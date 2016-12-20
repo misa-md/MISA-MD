@@ -1,0 +1,9 @@
+BCC_MD_SIMULATION_INPUT
+
+phasespace 50 50 50
+cutoffRadius 5.60
+latticeconst 2.85532
+createphase 600 466953
+potential_file setfl FeCuNi.eam.alloy
+#collision_step 2 2 2 2 0 5 5 5
+timesteps 10

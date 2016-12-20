@@ -1,0 +1,7 @@
+#BSUB -W 30
+#BSUB -n 2000
+#BSUB -q cpuII
+#BSUB -o %J.output
+#BSUB -e %J.error
+mpijob.intelmpi-2 ../Crystal-MD
+
