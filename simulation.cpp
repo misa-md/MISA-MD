@@ -26,6 +26,33 @@ simulation::~simulation() {
         delete _createatom;
 }
 
+void simulation::initialize() {
+    MPI_Comm_rank(MPI_COMM_WORLD, &ownrank);
+
+    _domaindecomposition = NULL;
+    _domain = NULL;
+    _finalCheckpoint = true;
+
+    //进行区域分解
+    if (ownrank == 0)
+        std::cout << "Initializing domain decomposition ... " << std::endl;
+    _domaindecomposition = (domaindecomposition *) new domaindecomposition();
+    if (ownrank == 0)
+        std::cout << "Initialization done" << std::endl;
+
+    if (ownrank == 0)
+        std::cout << "Constructing domain ..." << std::endl;
+    _domain = new domain(ownrank);
+    if (ownrank == 0)
+        std::cout << "Domain construction done." << std::endl;
+
+    /*
+     * 初始化参数
+     */
+    _numberOfTimesteps = 1;
+
+}
+
 void simulation::prepare_start(int rank) {
     double starttime, stoptime;
     double commtime, computetime, comm;
@@ -59,7 +86,6 @@ void simulation::prepare_start(int rank) {
 
 void simulation::createboxandatom() {
     //读取输入文件，确定各参数
-
     string inputfilename = "input";
     ifstream inputfilestream(inputfilename.c_str());
     if (!inputfilestream.is_open()) {
@@ -104,15 +130,15 @@ void simulation::createboxandatom() {
         }
     }
 
-    double boxlo[3], boxhi[3], globalLengh[3];
+    double boxlo[3], boxhi[3], globalLength[3];
     boxlo[0] = boxlo[1] = boxlo[2] = 0;
-    globalLengh[0] = boxhi[0] = box_x * latticeconst;
-    globalLengh[1] = boxhi[1] = box_y * latticeconst;
-    globalLengh[2] = boxhi[2] = box_z * latticeconst;
+    globalLength[0] = boxhi[0] = box_x * latticeconst; //box_x个单位长度(单位长度即latticeconst)
+    globalLength[1] = boxhi[1] = box_y * latticeconst;
+    globalLength[2] = boxhi[2] = box_z * latticeconst;
 
-    _domain->setGlobalLength(0, globalLengh[0]);
-    _domain->setGlobalLength(1, globalLengh[1]);
-    _domain->setGlobalLength(2, globalLengh[2]);
+    _domain->setGlobalLength(0, globalLength[0]);
+    _domain->setGlobalLength(1, globalLength[1]);
+    _domain->setGlobalLength(2, globalLength[2]);
     double bBoxMin[3];
     double bBoxMax[3];
     for (int i = 0; i < 3; i++) {
@@ -120,15 +146,13 @@ void simulation::createboxandatom() {
         bBoxMax[i] = _domaindecomposition->getBoundingBoxMax(i, _domain);
     }
     ghostlengh = cutoffRadius;
-    _atom = new atom(boxlo, boxhi, globalLengh, bBoxMin, bBoxMax, ghostlengh, latticeconst, cutoffRadius, seed);
+    _atom = new atom(boxlo, boxhi, globalLength, bBoxMin, bBoxMax, ghostlengh, latticeconst, cutoffRadius, seed);
     mass = 55.845;
     //创建原子坐标、速度信息
     if (create == 1) {
         _createatom = new createatom(t_set);
         _createatom->createphasespace(_atom, mass, box_x, box_y, box_z);
-    }
-        //读取原子坐标、速度信息
-    else if (inputtag == 1) {
+    } else if (inputtag == 1) { //读取原子坐标、速度信息
         _input = (input *) new input();
         _input->readPhaseSpace(_atom);
     }
@@ -137,7 +161,6 @@ void simulation::createboxandatom() {
 
 void simulation::simulate() {
     //开始进行模拟
-
     double starttime, stoptime;
     double commtime = 0, computetime = 0, comm;
     int nflag;
@@ -187,32 +210,6 @@ void simulation::simulate() {
     output();
 }
 
-void simulation::initialize() {
-    MPI_Comm_rank(MPI_COMM_WORLD, &ownrank);
-
-    _domaindecomposition = NULL;
-    _domain = NULL;
-    _finalCheckpoint = true;
-
-    //进行区域分解
-    if (ownrank == 0)
-        std::cout << "Initializing domain decomposition ... " << std::endl;
-    _domaindecomposition = (domaindecomposition *) new domaindecomposition();
-    if (ownrank == 0)
-        std::cout << "Initialization done" << std::endl;
-
-    if (ownrank == 0)
-        std::cout << "Constructing domain ..." << std::endl;
-    _domain = new domain(ownrank);
-    if (ownrank == 0)
-        std::cout << "Domain construction done." << std::endl;
-
-    /*
-     * 初始化参数
-     */
-    _numberOfTimesteps = 1;
-
-}
 
 void simulation::finalize() {
     if (_domaindecomposition != NULL) {

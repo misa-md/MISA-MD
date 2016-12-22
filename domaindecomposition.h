@@ -31,7 +31,7 @@ public:
 
 	void exchangeAtomfirst(atom* _atom, domain* domain);
 	void exchangeAtom(atom* _atom, domain* domain);
-	
+
 	void sendrho(atom* _atom);
 	void sendDfEmbed(atom* _atom);
 
@@ -47,13 +47,13 @@ private:
 
 	MPI_Datatype _mpi_Particle_data;
 	MPI_Datatype _mpi_latParticle_data;
-	//! Ã¿¸öÎ¬¶ÈµÄ½ø³ÌÊı
+	//! æ¯ä¸ªç»´åº¦çš„è¿›ç¨‹æ•°
 	int _gridSize[DIM];
-	//! ½ø³ÌµÄµÑ¿¨¶û×ø±ê
+	//! è¿›ç¨‹çš„ç¬›å¡å°”åæ ‡
 	int _coords[DIM];
-	//!  ½ø³ÌºÅ
+	//!  è¿›ç¨‹å·
 	int _rank;
-	//! ÁÚ¾Ó½ø³ÌºÅ
+	//! é‚»å±…è¿›ç¨‹å·
 	int _neighbours[DIM][2];
 
 	vector<vector<int> > sendlist;

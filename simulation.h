@@ -54,8 +54,8 @@ private:
     string filetype;
     string filename;
 
-    domaindecomposition *_domaindecomposition;
-    domain *_domain;
+    domaindecomposition *_domaindecomposition; //仅rank==0的进程有效
+    domain *_domain;  //仅rank==0的进程有效
     atom *_atom;
     integrator *_integrator;
     createatom *_createatom;
