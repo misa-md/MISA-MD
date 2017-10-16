@@ -35,6 +35,5 @@
 
 .idea/
 cmake-build-debug/
-Makefile
 example/dump_0.atom
 example/FeCuNi.eam.alloy

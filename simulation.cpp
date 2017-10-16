@@ -95,7 +95,7 @@ void simulation::createboxandatom() {
     int seed;
     int box_x, box_y, box_z;
     double t_set, mass;
-    double ghostlengh, latticeconst, cutoffRadius;
+    double ghostlength, latticeconst, cutoffRadius;
     int create = 0, inputtag = 0;
     string phasefilename;
     string token;
@@ -145,8 +145,8 @@ void simulation::createboxandatom() {
         bBoxMin[i] = _domaindecomposition->getBoundingBoxMin(i, _domain);
         bBoxMax[i] = _domaindecomposition->getBoundingBoxMax(i, _domain);
     }
-    ghostlengh = cutoffRadius;
-    _atom = new atom(boxlo, boxhi, globalLength, bBoxMin, bBoxMax, ghostlengh, latticeconst, cutoffRadius, seed);
+    ghostlength = cutoffRadius;
+    _atom = new atom(boxlo, boxhi, globalLength, bBoxMin, bBoxMax, ghostlength, latticeconst, cutoffRadius, seed);
     mass = 55.845;
     //创建原子坐标、速度信息
     if (create == 1) {
@@ -209,7 +209,6 @@ void simulation::simulate() {
     //输出原子信息
     output();
 }
-
 
 void simulation::finalize() {
     if (_domaindecomposition != NULL) {

@@ -1,6 +1,5 @@
-#include "latparticledata.h"
-
 #include <mpi.h>
+#include "latparticledata.h"
 
 void latparticledata::setMPIType(MPI_Datatype &sendPartType) {
 	int blocklengths[] = { 1, 3 }; // 1 int value (type), 3 double values (3r)

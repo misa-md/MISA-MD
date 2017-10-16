@@ -6,9 +6,9 @@ public:
 	void initInterpolationObject(int _n, double _x0, double dx, double* data);
 	void bcastInterpolationObject(int rank);
 	void interpolatefile();
-	int n;          //!< ±íÖÐÊý¾Ý¸öÊý
-	double x0;      //!< ÆðÊ¼µã
-	double invDx;   //!< µ¹Êý
+	int n;          //!< è¡¨ä¸­æ•°æ®ä¸ªæ•°
+	double x0;      //!< èµ·å§‹ç‚¹
+	double invDx;   //!< å€’æ•°
 	double* values;
 	double** spline;
 };

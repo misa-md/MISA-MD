@@ -13,101 +13,132 @@ class domaindecomposition;
 
 using namespace std;
 
-class atom{
+class atom {
 public :
-	atom(double boxlo[3], double boxhi[3], double globalLengh[3],
-		double boundingBoxMin[3], double boundingBoxMax[3], double ghostlength, double latticeconst, double cutoffRadius, int seed);
-	~atom();
-	void addatom(unsigned long id,double rx, double ry, double rz, double vx, double vy, double vz);
-	int decide();
-	void clear_force();
-	void computeEam(eam* pot, domaindecomposition* _domaindecomposition, double& comm);
+    atom(double boxlo[3], double boxhi[3], double globalLengh[3],
+         double boundingBoxMin[3], double boundingBoxMax[3], double ghostlength, double latticeconst,
+         double cutoffRadius, int seed);
 
-	double getBoundingBoxMin(int dimension) const;
-	double getBoundingBoxMax(int dimension) const;
-	double get_ghostlengh(int index) const;
-	int getinteridsendsize();
+    ~atom();
 
-	void computefirst(double dtInv2m, double dt);
-	void computesecond(double dtInv2m);
+    void addatom(unsigned long id, double rx, double ry, double rz, double vx, double vy, double vz);
 
-	void getatomx(int direction, vector<vector<int> > &sendlist);
-	void getatomy(int direction, vector<vector<int> > &sendlist);
-	void getatomz(int direction, vector<vector<int> > &sendlist);
-	void getIntertosend(int d, int direction, double ghostlengh, vector<int> &sendlist);
+    int decide();
 
-	int getintersendnum(int dimension, int direction);
-	void pack_intersend(particledata *buf);
-	void unpack_interrecv(int d, int n, particledata *buf);
+    void clear_force();
 
-	void pack_bordersend(int dimension, int n, vector<int> &sendlist, latparticledata *buf, double shift);
-	void unpack_borderrecv(int n, latparticledata *buf, vector<int> &recvlist);
+    void computeEam(eam *pot, domaindecomposition *_domaindecomposition, double &comm);
 
-	void pack_send(int dimension, int n, vector<int> &sendlist, latparticledata *buf, double shift);
-	void unpack_recvfirst(int d, int direction, latparticledata *buf, vector<vector<int> > &recvlist);
-	void unpack_recv(int d, int direction, int n, latparticledata *buf, vector<vector<int> > &recvlist);
+    double getBoundingBoxMin(int dimension) const;
 
-	void pack_rho(int n, vector<int> &recvlist, double *buf);
-	void unpack_rho(int d, int direction, double *buf, vector<vector<int> > &sendlist);
+    double getBoundingBoxMax(int dimension) const;
 
-	void pack_df(vector<int> &sendlist, vector<int> &intersendlist, double *buf);
-	void unpack_df(int n, double *buf, vector<int> &recvlist, vector<int> &interrecvlist);
-	
-	void pack_force(int n, vector<int> &recvlist, double *buf);
-	void unpack_force(int d, int direction, double *buf, vector<vector<int> > &sendlist);
-	void print_atom(int rank);
-	void setv(int lat[4], double collision_v[3]);
+    double get_ghostlengh(int index) const;
 
-	int getnlocalatom();
-	void createphasespace(double factor, int box_x, int box_y, int box_z);
-	void vcm(double mass, double masstotal, double* p);
-	void zero_momentum(double* vcm);
-	double compute_scalar(double mass);
-	void rescale(double scalar, double t_set);
-	void print_force();
+    int getinteridsendsize();
+
+    void computefirst(double dtInv2m, double dt);
+
+    void computesecond(double dtInv2m);
+
+    void getatomx(int direction, vector<vector<int> > &sendlist);
+
+    void getatomy(int direction, vector<vector<int> > &sendlist);
+
+    void getatomz(int direction, vector<vector<int> > &sendlist);
+
+    void getIntertosend(int d, int direction, double ghostlengh, vector<int> &sendlist);
+
+    int getintersendnum(int dimension, int direction);
+
+    void pack_intersend(particledata *buf);
+
+    void unpack_interrecv(int d, int n, particledata *buf);
+
+    void pack_bordersend(int dimension, int n, vector<int> &sendlist, latparticledata *buf, double shift);
+
+    void unpack_borderrecv(int n, latparticledata *buf, vector<int> &recvlist);
+
+    void pack_send(int dimension, int n, vector<int> &sendlist, latparticledata *buf, double shift);
+
+    void unpack_recvfirst(int d, int direction, latparticledata *buf, vector<vector<int> > &recvlist);
+
+    void unpack_recv(int d, int direction, int n, latparticledata *buf, vector<vector<int> > &recvlist);
+
+    void pack_rho(int n, vector<int> &recvlist, double *buf);
+
+    void unpack_rho(int d, int direction, double *buf, vector<vector<int> > &sendlist);
+
+    void pack_df(vector<int> &sendlist, vector<int> &intersendlist, double *buf);
+
+    void unpack_df(int n, double *buf, vector<int> &recvlist, vector<int> &interrecvlist);
+
+    void pack_force(int n, vector<int> &recvlist, double *buf);
+
+    void unpack_force(int d, int direction, double *buf, vector<vector<int> > &sendlist);
+
+    void print_atom(int rank);
+
+    void setv(int lat[4], double collision_v[3]);
+
+    int getnlocalatom();
+
+    void createphasespace(double factor, int box_x, int box_y, int box_z);
+
+    void vcm(double mass, double masstotal, double *p);
+
+    void zero_momentum(double *vcm);
+
+    double compute_scalar(double mass);
+
+    void rescale(double scalar, double t_set);
+
+    void print_force();
+
 private:
-	void calculateNeighbourIndices();
-	long int IndexOf3DIndex(long int xIndex, long int yIndex, long int zIndex) const;
-	double uniform();
+    void calculateNeighbourIndices();
+
+    long int IndexOf3DIndex(long int xIndex, long int yIndex, long int zIndex) const;
+
+    double uniform();
 
     double _boundingBoxMin[3];
-	double _boundingBoxMax[3];
-	double _ghostLength[3];
-	double _ghostBoundingBoxMin[3];
-	double _ghostBoundingBoxMax[3];
+    double _boundingBoxMax[3];
+    double _ghostLength[3];
+    double _ghostBoundingBoxMin[3];
+    double _ghostBoundingBoxMax[3];
 
-	double _boxlo[3], _boxhi[3];
-	double _globalLengh[3];
+    double _boxlo[3], _boxhi[3];
+    double _globalLengh[3];
 
-	int numberoflattice;
+    int numberoflattice;
 
-	double _cutoffRadius;
-	int _cutlattice;
-	double _latticeconst;
-	int _seed;
+    double _cutoffRadius;
+    int _cutlattice;
+    double _latticeconst;
+    int _seed;
 
-	int nlocalx, nlocaly, nlocalz;               //±¾µØboxÄÚ¾§¸ñÊı
-	int nghostx, nghosty, nghostz;               //ghostÇøÓò+localÇøÓòÄÚ¾§¸ñÊı
+    int nlocalx, nlocaly, nlocalz;               //æœ¬åœ°boxå†…æ™¶æ ¼æ•°
+    int nghostx, nghosty, nghostz;               //ghoståŒºåŸŸ+localåŒºåŸŸå†…æ™¶æ ¼æ•°
 
-    int lolocalx, lolocaly, lolocalz;  
-	int loghostx, loghosty, loghostz;            //±¾µØ¶ÔÓ¦µÄÈ«¾Ö¾§¸ñ×ø±ê
+    int lolocalx, lolocaly, lolocalz;
+    int loghostx, loghosty, loghostz;            //æœ¬åœ°å¯¹åº”çš„å…¨å±€æ™¶æ ¼åæ ‡
 
-    vector<long int> NeighbourOffsets;               //ÁÚ¾ÓÁ£×ÓÆ«ÒÆÁ¿
+    vector<long int> NeighbourOffsets;               //é‚»å±…ç²’å­åç§»é‡
 
+    //æ™¶æ ¼ç‚¹åŸå­ç”¨æ•°ç»„å­˜å‚¨å…¶ä¿¡æ¯
+    unsigned long *id;
+    int *type;
+    double *x, *v, *f, *rho, *df;
 
-	//¾§¸ñµãÔ­×ÓÓÃÊı×é´æ´¢ÆäĞÅÏ¢
-	unsigned long *id;
-	int *type;
-	double *x, *v, *f, *rho, *df;
-
-	vector<unsigned long> idinter;
-	vector<int> typeinter;
-	vector<vector<double> > xinter;                    //¼äÏ¶Ô­×Ó×ø±ê
-	vector<vector<double> > vinter;                    //¼äÏ¶Ô­×ÓËÙ¶È
-    vector<vector<double> > finter;                    //¼äÏ¶Ô­×ÓÁ¦
-	vector<double> rhointer;
-	vector<double> dfinter;
-	int nlocalinter, nghostinter;                     //±¾µØ¼äÏ¶Ô­×ÓÊıºÍghost¼äÏ¶Ô­×ÓÊı
+    vector<unsigned long> idinter;
+    vector<int> typeinter;
+    vector<vector<double> > xinter;                    //é—´éš™åŸå­åæ ‡
+    vector<vector<double> > vinter;                    //é—´éš™åŸå­é€Ÿåº¦
+    vector<vector<double> > finter;                    //é—´éš™åŸå­åŠ›
+    vector<double> rhointer;
+    vector<double> dfinter;
+    int nlocalinter, nghostinter;                     //æœ¬åœ°é—´éš™åŸå­æ•°å’Œghosté—´éš™åŸå­æ•°
 
     vector<unsigned long> interbuf;
 };

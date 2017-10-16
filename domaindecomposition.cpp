@@ -1,529 +1,542 @@
+#include <iostream>
 #include "domaindecomposition.h"
 #include "particledata.h"
 #include "latparticledata.h"
 #include "domain.h"
-#include <iostream>
+
 using namespace std;
 
 domaindecomposition::domaindecomposition() {
-	int period[DIM];
-	int reorder;
-	int num_procs; // ½ø³ÌÊıÁ¿
+    int period[DIM];
+    int reorder;
+    int num_procs; // è¿›ç¨‹æ•°é‡
 
-	// 3Î¬ÍØÆË
-	for (int d = 0; d < DIM; d++)
-		period[d] = 1;
-	reorder = 1;
-	// »ñÈ¡½ø³ÌÊıÁ¿
-	MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
-	setGridSize(num_procs);
-	// ¶Ô½ø³ÌÅÅĞò
-	MPI_Cart_create(MPI_COMM_WORLD, DIM, _gridSize, period, reorder, &_comm);
+    // 3ç»´æ‹“æ‰‘
+    for (int d = 0; d < DIM; d++)
+        period[d] = 1;
+    reorder = 1;
+    // è·å–è¿›ç¨‹æ•°é‡
+    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
+    setGridSize(num_procs);
+    // å¯¹è¿›ç¨‹æ’åº
+    MPI_Cart_create(MPI_COMM_WORLD, DIM, _gridSize, period, reorder, &_comm);
 
-	// »ñÈ¡±¾µØ½ø³ÌºÅ¡¢µÑ¿¨¶û×ø±ê
-	MPI_Comm_rank(_comm, &_rank);
-	MPI_Cart_coords(_comm, _rank, DIM, _coords);
-	if(_rank == 0){
-		cout << "MPI grid dimensions: " << _gridSize[0]<<", "<<_gridSize[1]<<", "<<_gridSize[2] << endl;
-		cout << "MPI coordinate of current process: " << _coords[0]<<", "<<_coords[1]<<", "<<_coords[2] << endl;
-	}
-	// »ñÈ¡ÁÚ¾Ó½ø³ÌºÅ
-	for (int d = 0; d < DIM; d++) {
-		MPI_Cart_shift(_comm, d, 1, &_neighbours[d][LOWER], &_neighbours[d][HIGHER]);
-	}
-	particledata::setMPIType(_mpi_Particle_data);
-	latparticledata::setMPIType(_mpi_latParticle_data);
-	intersendlist.resize(6);
-	interrecvlist.resize(6);
+    // è·å–æœ¬åœ°è¿›ç¨‹å·ã€ç¬›å¡å°”åæ ‡
+    MPI_Comm_rank(_comm, &_rank);
+    MPI_Cart_coords(_comm, _rank, DIM, _coords);
+    if (_rank == 0) {
+        cout << "MPI grid dimensions: " << _gridSize[0] << ", " << _gridSize[1] << ", " << _gridSize[2] << endl;
+        cout << "MPI coordinate of current process: " << _coords[0] << ", " << _coords[1] << ", " << _coords[2] << endl;
+    }
+    // è·å–é‚»å±…è¿›ç¨‹å·
+    for (int d = 0; d < DIM; d++) {
+        MPI_Cart_shift(_comm, d, 1, &_neighbours[d][LOWER], &_neighbours[d][HIGHER]);
+    }
+    particledata::setMPIType(_mpi_Particle_data);
+    latparticledata::setMPIType(_mpi_latParticle_data);
+    intersendlist.resize(6);
+    interrecvlist.resize(6);
 }
 
 domaindecomposition::~domaindecomposition() {
-	MPI_Type_free(&_mpi_Particle_data);
-	MPI_Type_free(&_mpi_latParticle_data);
+    MPI_Type_free(&_mpi_Particle_data);
+    MPI_Type_free(&_mpi_latParticle_data);
 }
 
-void domaindecomposition::exchangeAtomfirst(atom* _atom, domain* domain) {
+void domaindecomposition::exchangeAtomfirst(atom *_atom, domain *domain) {
 
-	double ghostlengh[DIM]; // ghostÇøÓò´óĞ¡
+    double ghostlengh[DIM]; // ghoståŒºåŸŸå¤§å°
 
-	for (int d = 0; d < DIM; d++) {
-		ghostlengh[d] = _atom->get_ghostlengh(d);
-	}
-	sendlist.resize(6);
-	recvlist.resize(6);
+    for (int d = 0; d < DIM; d++) {
+        ghostlengh[d] = _atom->get_ghostlengh(d);
+    }
+    sendlist.resize(6);
+    recvlist.resize(6);
 
-	// ·¢ËÍ¡¢½ÓÊÕÊı¾İ»º³åÇø
-	int numPartsToSend[DIM][2];
-	int numPartsToRecv[DIM][2];
-	latparticledata* sendbuf[2];
-	latparticledata* recvbuf[2];
+    // å‘é€ã€æ¥æ”¶æ•°æ®ç¼“å†²åŒº
+    int numPartsToSend[DIM][2];
+    int numPartsToRecv[DIM][2];
+    latparticledata *sendbuf[2];
+    latparticledata *recvbuf[2];
 
-	// MPIÍ¨ĞÅ×´Ì¬ºÍÇëÇó
-	MPI_Status status;
-	MPI_Status send_statuses[DIM][2];
-	MPI_Status recv_statuses[DIM][2];
-	MPI_Request send_requests[DIM][2];
-	MPI_Request recv_requests[DIM][2];
+    // MPIé€šä¿¡çŠ¶æ€å’Œè¯·æ±‚
+    MPI_Status status;
+    MPI_Status send_statuses[DIM][2];
+    MPI_Status recv_statuses[DIM][2];
+    MPI_Request send_requests[DIM][2];
+    MPI_Request recv_requests[DIM][2];
 
-	int direction;
+    int direction;
     int iswap = 0;
-	for (unsigned short d = 0; d < DIM; d++) {
-		// µ±Ô­×ÓÒª¿çÔ½ÖÜÆÚĞÔ±ß½ç, Ô­×Ó×ø±ê±ØĞëÒª×ö³öµ÷Õû
-	
-		double offsetLower[DIM];
-		double offsetHigher[DIM];
-		offsetLower[d] = 0.0;
-		offsetHigher[d] = 0.0;
+    for (unsigned short d = 0; d < DIM; d++) {
+        // å½“åŸå­è¦è·¨è¶Šå‘¨æœŸæ€§è¾¹ç•Œ, åŸå­åæ ‡å¿…é¡»è¦åšå‡ºè°ƒæ•´
 
-		// ½ø³ÌÔÚ×ó²à±ß½ç
-		if (_coords[d] == 0)
-			offsetLower[d] = domain->getGlobalLength(d);
-		// ½ø³ÌÔÚÓÒ²à±ß½ç
-		if (_coords[d] == _gridSize[d] - 1)
-			offsetHigher[d] = -domain->getGlobalLength(d);
+        double offsetLower[DIM];
+        double offsetHigher[DIM];
+        offsetLower[d] = 0.0;
+        offsetHigher[d] = 0.0;
 
-		for (direction = LOWER; direction <= HIGHER; direction++) {
-			// ÕÒµ½Òª·¢ËÍ¸øÁÚ¾ÓµÄÔ­×Ó
-			if(d == 0){
-				_atom->getatomx(direction, sendlist);
-			}
-			else if (d == 1){
-				_atom->getatomy(direction, sendlist);
-			}
-			else{
-				_atom->getatomz(direction, sendlist);
-			}
-            
-			double shift = 0.0;
-			if (direction == LOWER)
-				shift = offsetLower[d];
-			if (direction == HIGHER)
-				shift = offsetHigher[d];
+        // è¿›ç¨‹åœ¨å·¦ä¾§è¾¹ç•Œ
+        if (_coords[d] == 0)
+            offsetLower[d] = domain->getGlobalLength(d);
+        // è¿›ç¨‹åœ¨å³ä¾§è¾¹ç•Œ
+        if (_coords[d] == _gridSize[d] - 1)
+            offsetHigher[d] = -domain->getGlobalLength(d);
 
-			// ³õÊ¼»¯·¢ËÍ»º³åÇø
-			numPartsToSend[d][direction] = sendlist[iswap].size();
-			sendbuf[direction] = new latparticledata[numPartsToSend[d][direction]];
-			_atom->pack_send(d, numPartsToSend[d][direction], sendlist[iswap++], sendbuf[direction], shift);
-		}
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            // æ‰¾åˆ°è¦å‘é€ç»™é‚»å±…çš„åŸå­
+            if (d == 0) {
+                _atom->getatomx(direction, sendlist);
+            } else if (d == 1) {
+                _atom->getatomy(direction, sendlist);
+            } else {
+                _atom->getatomz(direction, sendlist);
+            }
 
-		// ÓëÉÏÏÂÁÚ¾ÓÍ¨ĞÅ
-		for (direction = LOWER; direction <= HIGHER; direction++) {
-			int numsend = numPartsToSend[d][direction];
-			int numrecv;
+            double shift = 0.0;
+            if (direction == LOWER)
+                shift = offsetLower[d];
+            if (direction == HIGHER)
+                shift = offsetHigher[d];
 
-			// ÏòÏÂ/ÉÏ·¢ËÍ²¢´ÓÉÏ/ÏÂ½ÓÊÕ
-			MPI_Isend(sendbuf[direction], numsend, _mpi_latParticle_data, _neighbours[d][direction], 99, _comm, &send_requests[d][direction]);
-			MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, _comm, &status);//²âÊÔÁÚ¾ÓÊÇ·ñÓĞĞÅÏ¢·¢ËÍ¸ø±¾µØ
-		    MPI_Get_count(&status, _mpi_latParticle_data, &numrecv);//µÃµ½Òª½ÓÊÕµÄÁ£×ÓÊıÄ¿
-			// ³õÊ¼»¯½ÓÊÕ»º³åÇø
-			//ÒÀ¾İµÃµ½·¢ËÍ·½Òª·¢ËÍÁ£×ÓĞÅÏ¢´óĞ¡£¬³õÊ¼»¯½ÓÊÕ»º³åÇø
-			recvbuf[direction] = new latparticledata[numrecv];
-			numPartsToRecv[d][direction] = numrecv;
-			MPI_Irecv(recvbuf[direction], numrecv, _mpi_latParticle_data, _neighbours[d][(direction + 1) % 2], 99, _comm, &recv_requests[d][direction]);
-		}
+            // åˆå§‹åŒ–å‘é€ç¼“å†²åŒº
+            numPartsToSend[d][direction] = sendlist[iswap].size();
+            sendbuf[direction] = new latparticledata[numPartsToSend[d][direction]];
+            _atom->pack_send(d, numPartsToSend[d][direction], sendlist[iswap++], sendbuf[direction], shift);
+        }
 
-		for (direction = LOWER; direction <= HIGHER; direction++) {
-			int numrecv = numPartsToRecv[d][direction];
-			MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
-			MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
-			
-			//½«ÊÕµ½µÄÁ£×ÓÎ»ÖÃĞÅÏ¢¼Óµ½¶ÔÓ¦´æ´¢Î»ÖÃÉÏ
-			_atom->unpack_recvfirst(d, direction, recvbuf[direction], recvlist);
- 
-			// ÊÍ·Åbuffer
-			delete[] sendbuf[direction];
-			delete[] recvbuf[direction];
-		}
-	}
+        // ä¸ä¸Šä¸‹é‚»å±…é€šä¿¡
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            int numsend = numPartsToSend[d][direction];
+            int numrecv;
+
+            // å‘ä¸‹/ä¸Šå‘é€å¹¶ä»ä¸Š/ä¸‹æ¥æ”¶
+            MPI_Isend(sendbuf[direction], numsend, _mpi_latParticle_data, _neighbours[d][direction], 99, _comm,
+                      &send_requests[d][direction]);
+            MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, _comm, &status);//æµ‹è¯•é‚»å±…æ˜¯å¦æœ‰ä¿¡æ¯å‘é€ç»™æœ¬åœ°
+            MPI_Get_count(&status, _mpi_latParticle_data, &numrecv);//å¾—åˆ°è¦æ¥æ”¶çš„ç²’å­æ•°ç›®
+            // åˆå§‹åŒ–æ¥æ”¶ç¼“å†²åŒº
+            //ä¾æ®å¾—åˆ°å‘é€æ–¹è¦å‘é€ç²’å­ä¿¡æ¯å¤§å°ï¼Œåˆå§‹åŒ–æ¥æ”¶ç¼“å†²åŒº
+            recvbuf[direction] = new latparticledata[numrecv];
+            numPartsToRecv[d][direction] = numrecv;
+            MPI_Irecv(recvbuf[direction], numrecv, _mpi_latParticle_data, _neighbours[d][(direction + 1) % 2], 99,
+                      _comm, &recv_requests[d][direction]);
+        }
+
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            int numrecv = numPartsToRecv[d][direction];
+            MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
+            MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
+
+            //å°†æ”¶åˆ°çš„ç²’å­ä½ç½®ä¿¡æ¯åŠ åˆ°å¯¹åº”å­˜å‚¨ä½ç½®ä¸Š
+            _atom->unpack_recvfirst(d, direction, recvbuf[direction], recvlist);
+
+            // é‡Šæ”¾buffer
+            delete[] sendbuf[direction];
+            delete[] recvbuf[direction];
+        }
+    }
 }
 
-void domaindecomposition::exchangeAtom(atom* _atom, domain* domain) {
+void domaindecomposition::exchangeAtom(atom *_atom, domain *domain) {
 
-	double ghostlengh[DIM]; // ghostÇøÓò´óĞ¡
+    double ghostlengh[DIM]; // ghoståŒºåŸŸå¤§å°
 
-	for (int d = 0; d < DIM; d++) {
-		ghostlengh[d] = _atom->get_ghostlengh(d);
-	}
+    for (int d = 0; d < DIM; d++) {
+        ghostlengh[d] = _atom->get_ghostlengh(d);
+    }
 
-	// ·¢ËÍ¡¢½ÓÊÕÊı¾İ»º³åÇø
-	int numPartsToSend[DIM][2];
-	int numPartsToRecv[DIM][2];
-	latparticledata* sendbuf[2];
-	latparticledata* recvbuf[2];
+    // å‘é€ã€æ¥æ”¶æ•°æ®ç¼“å†²åŒº
+    int numPartsToSend[DIM][2];
+    int numPartsToRecv[DIM][2];
+    latparticledata *sendbuf[2];
+    latparticledata *recvbuf[2];
 
-	// MPIÍ¨ĞÅ×´Ì¬ºÍÇëÇó
-	MPI_Status status;
-	MPI_Status send_statuses[DIM][2];
-	MPI_Status recv_statuses[DIM][2];
-	MPI_Request send_requests[DIM][2];
-	MPI_Request recv_requests[DIM][2];
+    // MPIé€šä¿¡çŠ¶æ€å’Œè¯·æ±‚
+    MPI_Status status;
+    MPI_Status send_statuses[DIM][2];
+    MPI_Status recv_statuses[DIM][2];
+    MPI_Request send_requests[DIM][2];
+    MPI_Request recv_requests[DIM][2];
 
-	int direction;
+    int direction;
     int iswap = 0;
-	for (unsigned short d = 0; d < DIM; d++) {
-		// µ±Ô­×ÓÒª¿çÔ½ÖÜÆÚĞÔ±ß½ç, Ô­×Ó×ø±ê±ØĞëÒª×ö³öµ÷Õû
+    for (unsigned short d = 0; d < DIM; d++) {
+        // å½“åŸå­è¦è·¨è¶Šå‘¨æœŸæ€§è¾¹ç•Œ, åŸå­åæ ‡å¿…é¡»è¦åšå‡ºè°ƒæ•´
 
-		double offsetLower[DIM];
-		double offsetHigher[DIM];
-		offsetLower[d] = 0.0;
-		offsetHigher[d] = 0.0;
+        double offsetLower[DIM];
+        double offsetHigher[DIM];
+        offsetLower[d] = 0.0;
+        offsetHigher[d] = 0.0;
 
-		// ½ø³ÌÔÚ×ó²à±ß½ç
-		if (_coords[d] == 0)
-			offsetLower[d] = domain->getGlobalLength(d);
-		// ½ø³ÌÔÚÓÒ²à±ß½ç
-		if (_coords[d] == _gridSize[d] - 1)
-			offsetHigher[d] = -domain->getGlobalLength(d);
+        // è¿›ç¨‹åœ¨å·¦ä¾§è¾¹ç•Œ
+        if (_coords[d] == 0)
+            offsetLower[d] = domain->getGlobalLength(d);
+        // è¿›ç¨‹åœ¨å³ä¾§è¾¹ç•Œ
+        if (_coords[d] == _gridSize[d] - 1)
+            offsetHigher[d] = -domain->getGlobalLength(d);
 
-		for (direction = LOWER; direction <= HIGHER; direction++) {
-			double shift = 0.0;
-			if (direction == LOWER)
-				shift = offsetLower[d];
-			if (direction == HIGHER)
-				shift = offsetHigher[d];
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            double shift = 0.0;
+            if (direction == LOWER)
+                shift = offsetLower[d];
+            if (direction == HIGHER)
+                shift = offsetHigher[d];
 
-			// ³õÊ¼»¯·¢ËÍ»º³åÇø
-			numPartsToSend[d][direction] = sendlist[iswap].size();
-			sendbuf[direction] = new latparticledata[numPartsToSend[d][direction]];
-			_atom->pack_send(d, numPartsToSend[d][direction], sendlist[iswap++], sendbuf[direction], shift);
-		}
+            // åˆå§‹åŒ–å‘é€ç¼“å†²åŒº
+            numPartsToSend[d][direction] = sendlist[iswap].size();
+            sendbuf[direction] = new latparticledata[numPartsToSend[d][direction]];
+            _atom->pack_send(d, numPartsToSend[d][direction], sendlist[iswap++], sendbuf[direction], shift);
+        }
 
-		// ÓëÉÏÏÂÁÚ¾ÓÍ¨ĞÅ
-		for (direction = LOWER; direction <= HIGHER; direction++) {
-		
-			int numsend = numPartsToSend[d][direction];
-			int numrecv;
+        // ä¸ä¸Šä¸‹é‚»å±…é€šä¿¡
+        for (direction = LOWER; direction <= HIGHER; direction++) {
 
-			MPI_Isend(sendbuf[direction], numsend, _mpi_latParticle_data, _neighbours[d][direction], 99, _comm, &send_requests[d][direction]);
-			MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, _comm, &status);//²âÊÔÁÚ¾ÓÊÇ·ñÓĞĞÅÏ¢·¢ËÍ¸ø±¾µØ
-		    MPI_Get_count(&status, _mpi_latParticle_data, &numrecv);//µÃµ½Òª½ÓÊÕµÄÁ£×ÓÊıÄ¿
-			// ³õÊ¼»¯½ÓÊÕ»º³åÇø
-			//ÒÀ¾İµÃµ½·¢ËÍ·½Òª·¢ËÍÁ£×ÓĞÅÏ¢´óĞ¡£¬³õÊ¼»¯½ÓÊÕ»º³åÇø
-			recvbuf[direction] = new latparticledata[numrecv];
-			numPartsToRecv[d][direction] = numrecv;
-			MPI_Irecv(recvbuf[direction], numrecv, _mpi_latParticle_data, _neighbours[d][(direction + 1) % 2], 99, _comm, &recv_requests[d][direction]);
-		}
+            int numsend = numPartsToSend[d][direction];
+            int numrecv;
 
-		for (direction = LOWER; direction <= HIGHER; direction++) {
-			int numrecv = numPartsToRecv[d][direction];
-			MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
-			MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
-			
-			//½«ÊÕµ½µÄÁ£×ÓÎ»ÖÃĞÅÏ¢¼Óµ½¶ÔÓ¦´æ´¢Î»ÖÃÉÏ
-			_atom->unpack_recv(d, direction, numrecv, recvbuf[direction], recvlist);
- 
-			// ÊÍ·Åbuffer
-			delete[] sendbuf[direction];
-			delete[] recvbuf[direction];
-		}
-	}
+            MPI_Isend(sendbuf[direction], numsend, _mpi_latParticle_data, _neighbours[d][direction], 99, _comm,
+                      &send_requests[d][direction]);
+            MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, _comm, &status);//æµ‹è¯•é‚»å±…æ˜¯å¦æœ‰ä¿¡æ¯å‘é€ç»™æœ¬åœ°
+            MPI_Get_count(&status, _mpi_latParticle_data, &numrecv);//å¾—åˆ°è¦æ¥æ”¶çš„ç²’å­æ•°ç›®
+            // åˆå§‹åŒ–æ¥æ”¶ç¼“å†²åŒº
+            //ä¾æ®å¾—åˆ°å‘é€æ–¹è¦å‘é€ç²’å­ä¿¡æ¯å¤§å°ï¼Œåˆå§‹åŒ–æ¥æ”¶ç¼“å†²åŒº
+            recvbuf[direction] = new latparticledata[numrecv];
+            numPartsToRecv[d][direction] = numrecv;
+            MPI_Irecv(recvbuf[direction], numrecv, _mpi_latParticle_data, _neighbours[d][(direction + 1) % 2], 99,
+                      _comm, &recv_requests[d][direction]);
+        }
+
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            int numrecv = numPartsToRecv[d][direction];
+            MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
+            MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
+
+            //å°†æ”¶åˆ°çš„ç²’å­ä½ç½®ä¿¡æ¯åŠ åˆ°å¯¹åº”å­˜å‚¨ä½ç½®ä¸Š
+            _atom->unpack_recv(d, direction, numrecv, recvbuf[direction], recvlist);
+
+            // é‡Šæ”¾buffer
+            delete[] sendbuf[direction];
+            delete[] recvbuf[direction];
+        }
+    }
 }
 
-void domaindecomposition::exchangeInter(atom* _atom, domain* domain) {
-	// ·¢ËÍ¡¢½ÓÊÕÊı¾İ»º³åÇø
-	int numPartsToSend[DIM][2];
-	int numPartsToRecv[DIM][2];
-	particledata* sendbuf[2];
-	particledata* recvbuf[2];
+void domaindecomposition::exchangeInter(atom *_atom, domain *domain) {
+    // å‘é€ã€æ¥æ”¶æ•°æ®ç¼“å†²åŒº
+    int numPartsToSend[DIM][2];
+    int numPartsToRecv[DIM][2];
+    particledata *sendbuf[2];
+    particledata *recvbuf[2];
 
-	// MPIÍ¨ĞÅ×´Ì¬ºÍÇëÇó
-	MPI_Status status;
-	MPI_Status send_statuses[DIM][2];
-	MPI_Status recv_statuses[DIM][2];
-	MPI_Request send_requests[DIM][2];
-	MPI_Request recv_requests[DIM][2];
+    // MPIé€šä¿¡çŠ¶æ€å’Œè¯·æ±‚
+    MPI_Status status;
+    MPI_Status send_statuses[DIM][2];
+    MPI_Status recv_statuses[DIM][2];
+    MPI_Request send_requests[DIM][2];
+    MPI_Request recv_requests[DIM][2];
 
-	int direction;
-	// ÕÒµ½Òª·¢ËÍ¸øÁÚ¾ÓµÄÔ­×Ó
-	for (unsigned short d = 0; d < DIM; d++) {
-		for (direction = LOWER; direction <= HIGHER; direction++) {
-			numPartsToSend[d][direction] = _atom->getintersendnum(d, direction);
-			sendbuf[direction] = new particledata[numPartsToSend[d][direction]];
+    int direction;
+    // æ‰¾åˆ°è¦å‘é€ç»™é‚»å±…çš„åŸå­
+    for (unsigned short d = 0; d < DIM; d++) {
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            numPartsToSend[d][direction] = _atom->getintersendnum(d, direction);
+            sendbuf[direction] = new particledata[numPartsToSend[d][direction]];
 
-			_atom->pack_intersend(sendbuf[direction]);
-		}
+            _atom->pack_intersend(sendbuf[direction]);
+        }
 
-		// ÓëÉÏÏÂÁÚ¾ÓÍ¨ĞÅ
-		for (direction = LOWER; direction <= HIGHER; direction++) {
-			int numsend = numPartsToSend[d][direction];
-			int numrecv;
+        // ä¸ä¸Šä¸‹é‚»å±…é€šä¿¡
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            int numsend = numPartsToSend[d][direction];
+            int numrecv;
 
-			MPI_Isend(sendbuf[direction], numsend, _mpi_Particle_data, _neighbours[d][direction], 99, _comm, &send_requests[d][direction]);
-			MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, _comm, &status);//²âÊÔÁÚ¾ÓÊÇ·ñÓĞĞÅÏ¢·¢ËÍ¸ø±¾µØ
-		    MPI_Get_count(&status, _mpi_Particle_data, &numrecv);//µÃµ½Òª½ÓÊÕµÄÁ£×ÓÊıÄ¿
-			// ³õÊ¼»¯½ÓÊÕ»º³åÇø
-			//ÒÀ¾İµÃµ½·¢ËÍ·½Òª·¢ËÍÁ£×ÓĞÅÏ¢´óĞ¡£¬³õÊ¼»¯½ÓÊÕ»º³åÇø
-			recvbuf[direction] = new particledata[numrecv];
-			numPartsToRecv[d][direction] = numrecv;
-			MPI_Irecv(recvbuf[direction], numrecv, _mpi_Particle_data, _neighbours[d][(direction + 1) % 2], 99, _comm, &recv_requests[d][direction]);
-		}
+            MPI_Isend(sendbuf[direction], numsend, _mpi_Particle_data, _neighbours[d][direction], 99, _comm,
+                      &send_requests[d][direction]);
+            MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, _comm, &status);//æµ‹è¯•é‚»å±…æ˜¯å¦æœ‰ä¿¡æ¯å‘é€ç»™æœ¬åœ°
+            MPI_Get_count(&status, _mpi_Particle_data, &numrecv);//å¾—åˆ°è¦æ¥æ”¶çš„ç²’å­æ•°ç›®
+            // åˆå§‹åŒ–æ¥æ”¶ç¼“å†²åŒº
+            //ä¾æ®å¾—åˆ°å‘é€æ–¹è¦å‘é€ç²’å­ä¿¡æ¯å¤§å°ï¼Œåˆå§‹åŒ–æ¥æ”¶ç¼“å†²åŒº
+            recvbuf[direction] = new particledata[numrecv];
+            numPartsToRecv[d][direction] = numrecv;
+            MPI_Irecv(recvbuf[direction], numrecv, _mpi_Particle_data, _neighbours[d][(direction + 1) % 2], 99, _comm,
+                      &recv_requests[d][direction]);
+        }
 
-		for (direction = LOWER; direction <= HIGHER; direction++) {
-			int numrecv = numPartsToRecv[d][direction];
-			MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
-			MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
-			
-			//½«ÊÕµ½µÄÁ£×ÓÎ»ÖÃĞÅÏ¢¼Óµ½¶ÔÓ¦´æ´¢Î»ÖÃÉÏ
-			_atom->unpack_interrecv(d, numrecv, recvbuf[direction]);
- 
-			// ÊÍ·Åbuffer
-			delete[] sendbuf[direction];
-			delete[] recvbuf[direction];
-		}
-	}
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            int numrecv = numPartsToRecv[d][direction];
+            MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
+            MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
+
+            //å°†æ”¶åˆ°çš„ç²’å­ä½ç½®ä¿¡æ¯åŠ åˆ°å¯¹åº”å­˜å‚¨ä½ç½®ä¸Š
+            _atom->unpack_interrecv(d, numrecv, recvbuf[direction]);
+
+            // é‡Šæ”¾buffer
+            delete[] sendbuf[direction];
+            delete[] recvbuf[direction];
+        }
+    }
 }
 
-void domaindecomposition::borderInter(atom* _atom, domain* domain){
-	double ghostlengh[DIM]; // ghostÇøÓò´óĞ¡
+void domaindecomposition::borderInter(atom *_atom, domain *domain) {
+    double ghostlengh[DIM]; // ghoståŒºåŸŸå¤§å°
 
-	for (int d = 0; d < DIM; d++) {
-		ghostlengh[d] = _atom->get_ghostlengh(d);
-	}
+    for (int d = 0; d < DIM; d++) {
+        ghostlengh[d] = _atom->get_ghostlengh(d);
+    }
 
-	intersendlist.clear();
-	interrecvlist.clear();
-	intersendlist.resize(6);
-	interrecvlist.resize(6);
-	// ·¢ËÍ¡¢½ÓÊÕÊı¾İ»º³åÇø
-	int numPartsToSend[DIM][2];
-	int numPartsToRecv[DIM][2];
-	latparticledata* sendbuf[2];
-	latparticledata* recvbuf[2];
+    intersendlist.clear();
+    interrecvlist.clear();
+    intersendlist.resize(6);
+    interrecvlist.resize(6);
+    // å‘é€ã€æ¥æ”¶æ•°æ®ç¼“å†²åŒº
+    int numPartsToSend[DIM][2];
+    int numPartsToRecv[DIM][2];
+    latparticledata *sendbuf[2];
+    latparticledata *recvbuf[2];
 
-	// MPIÍ¨ĞÅ×´Ì¬ºÍÇëÇó
-	MPI_Status status;
-	MPI_Status send_statuses[DIM][2];
-	MPI_Status recv_statuses[DIM][2];
-	MPI_Request send_requests[DIM][2];
-	MPI_Request recv_requests[DIM][2];
+    // MPIé€šä¿¡çŠ¶æ€å’Œè¯·æ±‚
+    MPI_Status status;
+    MPI_Status send_statuses[DIM][2];
+    MPI_Status recv_statuses[DIM][2];
+    MPI_Request send_requests[DIM][2];
+    MPI_Request recv_requests[DIM][2];
 
-	int direction;
+    int direction;
     int iswap = 0;
-	int jswap = 0;
-	for (unsigned short d = 0; d < DIM; d++) {
-		double offsetLower[DIM];
-		double offsetHigher[DIM];
-		offsetLower[d] = 0.0;
-		offsetHigher[d] = 0.0;
+    int jswap = 0;
+    for (unsigned short d = 0; d < DIM; d++) {
+        double offsetLower[DIM];
+        double offsetHigher[DIM];
+        offsetLower[d] = 0.0;
+        offsetHigher[d] = 0.0;
 
-		// ½ø³ÌÔÚ×ó²à±ß½ç
-		if (_coords[d] == 0)
-			offsetLower[d] = domain->getGlobalLength(d);
-		// ½ø³ÌÔÚÓÒ²à±ß½ç
-		if (_coords[d] == _gridSize[d] - 1)
-			offsetHigher[d] = -domain->getGlobalLength(d);
+        // è¿›ç¨‹åœ¨å·¦ä¾§è¾¹ç•Œ
+        if (_coords[d] == 0)
+            offsetLower[d] = domain->getGlobalLength(d);
+        // è¿›ç¨‹åœ¨å³ä¾§è¾¹ç•Œ
+        if (_coords[d] == _gridSize[d] - 1)
+            offsetHigher[d] = -domain->getGlobalLength(d);
 
-		for (direction = LOWER; direction <= HIGHER; direction++) {
-			// ÕÒµ½Òª·¢ËÍ¸øÁÚ¾ÓµÄÔ­×Ó
-			_atom->getIntertosend(d, direction, ghostlengh[d], intersendlist[iswap]);
-            
-			double shift = 0.0;
-			if (direction == LOWER)
-				shift = offsetLower[d];
-			if (direction == HIGHER)
-				shift = offsetHigher[d];
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            // æ‰¾åˆ°è¦å‘é€ç»™é‚»å±…çš„åŸå­
+            _atom->getIntertosend(d, direction, ghostlengh[d], intersendlist[iswap]);
 
-			// ³õÊ¼»¯·¢ËÍ»º³åÇø
-			numPartsToSend[d][direction] = intersendlist[iswap].size();
-			sendbuf[direction] = new latparticledata[numPartsToSend[d][direction]];
-			_atom->pack_bordersend(d, numPartsToSend[d][direction], intersendlist[iswap++], sendbuf[direction], shift);
+            double shift = 0.0;
+            if (direction == LOWER)
+                shift = offsetLower[d];
+            if (direction == HIGHER)
+                shift = offsetHigher[d];
 
-		}
+            // åˆå§‹åŒ–å‘é€ç¼“å†²åŒº
+            numPartsToSend[d][direction] = intersendlist[iswap].size();
+            sendbuf[direction] = new latparticledata[numPartsToSend[d][direction]];
+            _atom->pack_bordersend(d, numPartsToSend[d][direction], intersendlist[iswap++], sendbuf[direction], shift);
 
-		// ÓëÉÏÏÂÁÚ¾ÓÍ¨ĞÅ
-		for (direction = LOWER; direction <= HIGHER; direction++) {
-			int numsend = numPartsToSend[d][direction];
-			int numrecv;
+        }
 
-			MPI_Isend(sendbuf[direction], numsend, _mpi_latParticle_data, _neighbours[d][direction], 99, _comm, &send_requests[d][direction]);
-			MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, _comm, &status);//²âÊÔÁÚ¾ÓÊÇ·ñÓĞĞÅÏ¢·¢ËÍ¸ø±¾µØ
-		    MPI_Get_count(&status, _mpi_latParticle_data, &numrecv);//µÃµ½Òª½ÓÊÕµÄÁ£×ÓÊıÄ¿
-			// ³õÊ¼»¯½ÓÊÕ»º³åÇø
-			//ÒÀ¾İµÃµ½·¢ËÍ·½Òª·¢ËÍÁ£×ÓĞÅÏ¢´óĞ¡£¬³õÊ¼»¯½ÓÊÕ»º³åÇø
-			recvbuf[direction] = new latparticledata[numrecv];
-			numPartsToRecv[d][direction] = numrecv;
-			MPI_Irecv(recvbuf[direction], numrecv, _mpi_latParticle_data, _neighbours[d][(direction + 1) % 2], 99, _comm, &recv_requests[d][direction]);
-		}
+        // ä¸ä¸Šä¸‹é‚»å±…é€šä¿¡
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            int numsend = numPartsToSend[d][direction];
+            int numrecv;
 
-		for (direction = LOWER; direction <= HIGHER; direction++) {
-			int numrecv = numPartsToRecv[d][direction];
-			interrecvlist[jswap].resize(numrecv);
-			MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
-			MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
-			
-			//½«ÊÕµ½µÄÁ£×ÓÎ»ÖÃĞÅÏ¢¼Óµ½¶ÔÓ¦´æ´¢Î»ÖÃÉÏ
-			_atom->unpack_borderrecv(numrecv, recvbuf[direction], interrecvlist[jswap++]);
- 
-			// ÊÍ·Åbuffer
-			delete[] sendbuf[direction];
-			delete[] recvbuf[direction];
-		}
-	}
+            MPI_Isend(sendbuf[direction], numsend, _mpi_latParticle_data, _neighbours[d][direction], 99, _comm,
+                      &send_requests[d][direction]);
+            MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, _comm, &status);//æµ‹è¯•é‚»å±…æ˜¯å¦æœ‰ä¿¡æ¯å‘é€ç»™æœ¬åœ°
+            MPI_Get_count(&status, _mpi_latParticle_data, &numrecv);//å¾—åˆ°è¦æ¥æ”¶çš„ç²’å­æ•°ç›®
+            // åˆå§‹åŒ–æ¥æ”¶ç¼“å†²åŒº
+            //ä¾æ®å¾—åˆ°å‘é€æ–¹è¦å‘é€ç²’å­ä¿¡æ¯å¤§å°ï¼Œåˆå§‹åŒ–æ¥æ”¶ç¼“å†²åŒº
+            recvbuf[direction] = new latparticledata[numrecv];
+            numPartsToRecv[d][direction] = numrecv;
+            MPI_Irecv(recvbuf[direction], numrecv, _mpi_latParticle_data, _neighbours[d][(direction + 1) % 2], 99,
+                      _comm, &recv_requests[d][direction]);
+        }
+
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            int numrecv = numPartsToRecv[d][direction];
+            interrecvlist[jswap].resize(numrecv);
+            MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
+            MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
+
+            //å°†æ”¶åˆ°çš„ç²’å­ä½ç½®ä¿¡æ¯åŠ åˆ°å¯¹åº”å­˜å‚¨ä½ç½®ä¸Š
+            _atom->unpack_borderrecv(numrecv, recvbuf[direction], interrecvlist[jswap++]);
+
+            // é‡Šæ”¾buffer
+            delete[] sendbuf[direction];
+            delete[] recvbuf[direction];
+        }
+    }
 }
 
-void domaindecomposition::sendrho(atom* _atom){
-	// ·¢ËÍ¡¢½ÓÊÕÊı¾İ»º³åÇø
-	int numPartsToSend[DIM][2];
-	int numPartsToRecv[DIM][2];
-	double* sendbuf[2];
-	double* recvbuf[2];
+void domaindecomposition::sendrho(atom *_atom) {
+    // å‘é€ã€æ¥æ”¶æ•°æ®ç¼“å†²åŒº
+    int numPartsToSend[DIM][2];
+    int numPartsToRecv[DIM][2];
+    double *sendbuf[2];
+    double *recvbuf[2];
 
-	MPI_Status status;
-	MPI_Status send_statuses[DIM][2];
-	MPI_Status recv_statuses[DIM][2];
-	MPI_Request send_requests[DIM][2];
-	MPI_Request recv_requests[DIM][2];
+    MPI_Status status;
+    MPI_Status send_statuses[DIM][2];
+    MPI_Status recv_statuses[DIM][2];
+    MPI_Request send_requests[DIM][2];
+    MPI_Request recv_requests[DIM][2];
 
-	int direction;
-	int iswap = 5;
-	for (int d = (DIM - 1); d >= 0; d--){
-		for (direction = LOWER; direction <= HIGHER; direction++){
-			numPartsToSend[d][direction] = recvlist[iswap].size();
-			sendbuf[direction] = new double[numPartsToSend[d][direction]];
-			_atom->pack_rho(numPartsToSend[d][direction], recvlist[iswap--], sendbuf[direction]);
-		}
-		for (direction = LOWER; direction <= HIGHER; direction++) {
-			int numsend = numPartsToSend[d][direction];
-			int numrecv;
-
-			MPI_Isend(sendbuf[direction], numsend, MPI_DOUBLE, _neighbours[d][direction], 99, _comm, &send_requests[d][direction]);
-			MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, _comm, &status);//²âÊÔÁÚ¾ÓÊÇ·ñÓĞĞÅÏ¢·¢ËÍ¸ø±¾µØ
-			MPI_Get_count(&status, MPI_DOUBLE, &numrecv);//µÃµ½Òª½ÓÊÕµÄÁ£×ÓÊıÄ¿
-			// ³õÊ¼»¯½ÓÊÕ»º³åÇø
-			//ÒÀ¾İµÃµ½·¢ËÍ·½Òª·¢ËÍÁ£×ÓĞÅÏ¢´óĞ¡£¬³õÊ¼»¯½ÓÊÕ»º³åÇø
-			recvbuf[direction] = new double[numrecv];
-			numPartsToRecv[d][direction] = numrecv;
-			MPI_Irecv(recvbuf[direction], numrecv, MPI_DOUBLE, _neighbours[d][(direction + 1) % 2], 99, _comm, &recv_requests[d][direction]);
-		}
-		for (direction = LOWER; direction <= HIGHER; direction++) {
-			int numrecv = numPartsToRecv[d][direction];
-			MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
-			MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
-
-			//½«ÊÕµ½µÄµç×ÓÔÆÃÜ¶ÈĞÅÏ¢¼Óµ½¶ÔÓ¦´æ´¢Î»ÖÃÉÏ
-			_atom->unpack_rho(d, direction, recvbuf[direction], sendlist);
-
-			// ÊÍ·Åbuffer
-			delete[] sendbuf[direction];
-			delete[] recvbuf[direction];
-		}
-	}
-}
-
-void domaindecomposition::sendDfEmbed(atom* _atom){
-	// ·¢ËÍ¡¢½ÓÊÕÊı¾İ»º³åÇø
-	int numPartsToSend[DIM][2];
-	int numPartsToRecv[DIM][2];
-	double* sendbuf[2];
-	double* recvbuf[2];
-
-	MPI_Status status;
-	MPI_Status send_statuses[DIM][2];
-	MPI_Status recv_statuses[DIM][2];
-	MPI_Request send_requests[DIM][2];
-	MPI_Request recv_requests[DIM][2];
-
-	int direction;
-    int iswap = 0;
-	int jswap = 0;
-	for (unsigned short d = 0; d < DIM; d++) {
-		for (direction = LOWER; direction <= HIGHER; direction++) {
-			// ³õÊ¼»¯·¢ËÍ»º³åÇø
-			numPartsToSend[d][direction] = sendlist[iswap].size() + intersendlist[iswap].size();
-			sendbuf[direction] = new double[numPartsToSend[d][direction]];
-			_atom->pack_df(sendlist[iswap], intersendlist[iswap], sendbuf[direction]);
-			iswap++;
-		}
-
-		// ÓëÉÏÏÂÁÚ¾ÓÍ¨ĞÅ
-		for (direction = LOWER; direction <= HIGHER; direction++) {
-			int numsend = numPartsToSend[d][direction];
-			int numrecv;
-
-			MPI_Isend(sendbuf[direction], numsend, MPI_DOUBLE, _neighbours[d][direction], 99, _comm, &send_requests[d][direction]);
-			MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, _comm, &status);//²âÊÔÁÚ¾ÓÊÇ·ñÓĞĞÅÏ¢·¢ËÍ¸ø±¾µØ
-		    MPI_Get_count(&status, MPI_DOUBLE, &numrecv);//µÃµ½Òª½ÓÊÕµÄÁ£×ÓÊıÄ¿
-			// ³õÊ¼»¯½ÓÊÕ»º³åÇø
-			//ÒÀ¾İµÃµ½·¢ËÍ·½Òª·¢ËÍÁ£×ÓĞÅÏ¢´óĞ¡£¬³õÊ¼»¯½ÓÊÕ»º³åÇø
-			recvbuf[direction] = new double[numrecv];
-			numPartsToRecv[d][direction] = numrecv;
-			MPI_Irecv(recvbuf[direction], numrecv, MPI_DOUBLE, _neighbours[d][(direction + 1) % 2], 99, _comm, &recv_requests[d][direction]);
-		}
-
-		for (direction = LOWER; direction <= HIGHER; direction++) {
-			int numrecv = numPartsToRecv[d][direction];
-			MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
-			MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
-			
-			//½«ÊÕµ½µÄÇ¶ÈëÄÜµ¼ÊıĞÅÏ¢¼Óµ½¶ÔÓ¦´æ´¢Î»ÖÃÉÏ
-			_atom->unpack_df(numrecv, recvbuf[direction], recvlist[jswap], interrecvlist[jswap]);
-			jswap++;
- 
-			// ÊÍ·Åbuffer
-			delete[] sendbuf[direction];
-			delete[] recvbuf[direction];
-		}
-	}
-}
-
-void domaindecomposition::sendforce(atom* _atom){
-	// ·¢ËÍ¡¢½ÓÊÕÊı¾İ»º³åÇø
-	int numPartsToSend[DIM][2];
-	int numPartsToRecv[DIM][2];
-	double* sendbuf[2];
-	double* recvbuf[2];
-
-	MPI_Status status;
-	MPI_Status send_statuses[DIM][2];
-	MPI_Status recv_statuses[DIM][2];
-	MPI_Request send_requests[DIM][2];
-	MPI_Request recv_requests[DIM][2];
-
-	int direction;
+    int direction;
     int iswap = 5;
-	for (int d = (DIM - 1); d >= 0; d--){
-		for (direction = LOWER; direction <= HIGHER; direction++){
-			numPartsToSend[d][direction] = recvlist[iswap].size();
-			sendbuf[direction] = new double[numPartsToSend[d][direction] * 3];
-			_atom->pack_force(numPartsToSend[d][direction], recvlist[iswap--], sendbuf[direction]);
-		}
-		for (direction = LOWER; direction <= HIGHER; direction++) {
-			int numsend = numPartsToSend[d][direction] * 3;
-			int numrecv;
+    for (int d = (DIM - 1); d >= 0; d--) {
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            numPartsToSend[d][direction] = recvlist[iswap].size();
+            sendbuf[direction] = new double[numPartsToSend[d][direction]];
+            _atom->pack_rho(numPartsToSend[d][direction], recvlist[iswap--], sendbuf[direction]);
+        }
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            int numsend = numPartsToSend[d][direction];
+            int numrecv;
 
-			MPI_Isend(sendbuf[direction], numsend, MPI_DOUBLE, _neighbours[d][direction], 99, _comm, &send_requests[d][direction]);
-			MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, _comm, &status);//²âÊÔÁÚ¾ÓÊÇ·ñÓĞĞÅÏ¢·¢ËÍ¸ø±¾µØ
-		    MPI_Get_count(&status, MPI_DOUBLE, &numrecv);//µÃµ½Òª½ÓÊÕµÄÁ£×ÓÊıÄ¿
-			// ³õÊ¼»¯½ÓÊÕ»º³åÇø
-			//ÒÀ¾İµÃµ½·¢ËÍ·½Òª·¢ËÍÁ£×ÓĞÅÏ¢´óĞ¡£¬³õÊ¼»¯½ÓÊÕ»º³åÇø
-			recvbuf[direction] = new double[numrecv];
-			numPartsToRecv[d][direction] = numrecv;
-			MPI_Irecv(recvbuf[direction], numrecv, MPI_DOUBLE, _neighbours[d][(direction + 1) % 2], 99, _comm, &recv_requests[d][direction]);
-		}
-		for (direction = LOWER; direction <= HIGHER; direction++) {
-			int numrecv = numPartsToRecv[d][direction];
-			MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
-			MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
-			
-			//½«ÊÕµ½µÄÁ£×ÓÎ»ÖÃĞÅÏ¢¼Óµ½¶ÔÓ¦´æ´¢Î»ÖÃÉÏ
-			_atom->unpack_force(d, direction, recvbuf[direction], sendlist);
- 
-			delete[] sendbuf[direction];
-			delete[] recvbuf[direction];
-		}
-	}
+            MPI_Isend(sendbuf[direction], numsend, MPI_DOUBLE, _neighbours[d][direction], 99, _comm,
+                      &send_requests[d][direction]);
+            MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, _comm, &status);//æµ‹è¯•é‚»å±…æ˜¯å¦æœ‰ä¿¡æ¯å‘é€ç»™æœ¬åœ°
+            MPI_Get_count(&status, MPI_DOUBLE, &numrecv);//å¾—åˆ°è¦æ¥æ”¶çš„ç²’å­æ•°ç›®
+            // åˆå§‹åŒ–æ¥æ”¶ç¼“å†²åŒº
+            //ä¾æ®å¾—åˆ°å‘é€æ–¹è¦å‘é€ç²’å­ä¿¡æ¯å¤§å°ï¼Œåˆå§‹åŒ–æ¥æ”¶ç¼“å†²åŒº
+            recvbuf[direction] = new double[numrecv];
+            numPartsToRecv[d][direction] = numrecv;
+            MPI_Irecv(recvbuf[direction], numrecv, MPI_DOUBLE, _neighbours[d][(direction + 1) % 2], 99, _comm,
+                      &recv_requests[d][direction]);
+        }
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            int numrecv = numPartsToRecv[d][direction];
+            MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
+            MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
+
+            //å°†æ”¶åˆ°çš„ç”µå­äº‘å¯†åº¦ä¿¡æ¯åŠ åˆ°å¯¹åº”å­˜å‚¨ä½ç½®ä¸Š
+            _atom->unpack_rho(d, direction, recvbuf[direction], sendlist);
+
+            // é‡Šæ”¾buffer
+            delete[] sendbuf[direction];
+            delete[] recvbuf[direction];
+        }
+    }
 }
 
-double domaindecomposition::getBoundingBoxMin(int dimension, domain* domain) {
-	return _coords[dimension] * domain->getGlobalLength(dimension) / _gridSize[dimension];
+void domaindecomposition::sendDfEmbed(atom *_atom) {
+    // å‘é€ã€æ¥æ”¶æ•°æ®ç¼“å†²åŒº
+    int numPartsToSend[DIM][2];
+    int numPartsToRecv[DIM][2];
+    double *sendbuf[2];
+    double *recvbuf[2];
+
+    MPI_Status status;
+    MPI_Status send_statuses[DIM][2];
+    MPI_Status recv_statuses[DIM][2];
+    MPI_Request send_requests[DIM][2];
+    MPI_Request recv_requests[DIM][2];
+
+    int direction;
+    int iswap = 0;
+    int jswap = 0;
+    for (unsigned short d = 0; d < DIM; d++) {
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            // åˆå§‹åŒ–å‘é€ç¼“å†²åŒº
+            numPartsToSend[d][direction] = sendlist[iswap].size() + intersendlist[iswap].size();
+            sendbuf[direction] = new double[numPartsToSend[d][direction]];
+            _atom->pack_df(sendlist[iswap], intersendlist[iswap], sendbuf[direction]);
+            iswap++;
+        }
+
+        // ä¸ä¸Šä¸‹é‚»å±…é€šä¿¡
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            int numsend = numPartsToSend[d][direction];
+            int numrecv;
+
+            MPI_Isend(sendbuf[direction], numsend, MPI_DOUBLE, _neighbours[d][direction], 99, _comm,
+                      &send_requests[d][direction]);
+            MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, _comm, &status);//æµ‹è¯•é‚»å±…æ˜¯å¦æœ‰ä¿¡æ¯å‘é€ç»™æœ¬åœ°
+            MPI_Get_count(&status, MPI_DOUBLE, &numrecv);//å¾—åˆ°è¦æ¥æ”¶çš„ç²’å­æ•°ç›®
+            // åˆå§‹åŒ–æ¥æ”¶ç¼“å†²åŒº
+            //ä¾æ®å¾—åˆ°å‘é€æ–¹è¦å‘é€ç²’å­ä¿¡æ¯å¤§å°ï¼Œåˆå§‹åŒ–æ¥æ”¶ç¼“å†²åŒº
+            recvbuf[direction] = new double[numrecv];
+            numPartsToRecv[d][direction] = numrecv;
+            MPI_Irecv(recvbuf[direction], numrecv, MPI_DOUBLE, _neighbours[d][(direction + 1) % 2], 99, _comm,
+                      &recv_requests[d][direction]);
+        }
+
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            int numrecv = numPartsToRecv[d][direction];
+            MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
+            MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
+
+            //å°†æ”¶åˆ°çš„åµŒå…¥èƒ½å¯¼æ•°ä¿¡æ¯åŠ åˆ°å¯¹åº”å­˜å‚¨ä½ç½®ä¸Š
+            _atom->unpack_df(numrecv, recvbuf[direction], recvlist[jswap], interrecvlist[jswap]);
+            jswap++;
+
+            // é‡Šæ”¾buffer
+            delete[] sendbuf[direction];
+            delete[] recvbuf[direction];
+        }
+    }
 }
 
-double domaindecomposition::getBoundingBoxMax(int dimension, domain* domain) {
-	return (_coords[dimension] + 1) * domain->getGlobalLength(dimension) / _gridSize[dimension];
+void domaindecomposition::sendforce(atom *_atom) {
+    // å‘é€ã€æ¥æ”¶æ•°æ®ç¼“å†²åŒº
+    int numPartsToSend[DIM][2];
+    int numPartsToRecv[DIM][2];
+    double *sendbuf[2];
+    double *recvbuf[2];
+
+    MPI_Status status;
+    MPI_Status send_statuses[DIM][2];
+    MPI_Status recv_statuses[DIM][2];
+    MPI_Request send_requests[DIM][2];
+    MPI_Request recv_requests[DIM][2];
+
+    int direction;
+    int iswap = 5;
+    for (int d = (DIM - 1); d >= 0; d--) {
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            numPartsToSend[d][direction] = recvlist[iswap].size();
+            sendbuf[direction] = new double[numPartsToSend[d][direction] * 3];
+            _atom->pack_force(numPartsToSend[d][direction], recvlist[iswap--], sendbuf[direction]);
+        }
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            int numsend = numPartsToSend[d][direction] * 3;
+            int numrecv;
+
+            MPI_Isend(sendbuf[direction], numsend, MPI_DOUBLE, _neighbours[d][direction], 99, _comm,
+                      &send_requests[d][direction]);
+            MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, _comm, &status);//æµ‹è¯•é‚»å±…æ˜¯å¦æœ‰ä¿¡æ¯å‘é€ç»™æœ¬åœ°
+            MPI_Get_count(&status, MPI_DOUBLE, &numrecv);//å¾—åˆ°è¦æ¥æ”¶çš„ç²’å­æ•°ç›®
+            // åˆå§‹åŒ–æ¥æ”¶ç¼“å†²åŒº
+            //ä¾æ®å¾—åˆ°å‘é€æ–¹è¦å‘é€ç²’å­ä¿¡æ¯å¤§å°ï¼Œåˆå§‹åŒ–æ¥æ”¶ç¼“å†²åŒº
+            recvbuf[direction] = new double[numrecv];
+            numPartsToRecv[d][direction] = numrecv;
+            MPI_Irecv(recvbuf[direction], numrecv, MPI_DOUBLE, _neighbours[d][(direction + 1) % 2], 99, _comm,
+                      &recv_requests[d][direction]);
+        }
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            int numrecv = numPartsToRecv[d][direction];
+            MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
+            MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
+
+            //å°†æ”¶åˆ°çš„ç²’å­ä½ç½®ä¿¡æ¯åŠ åˆ°å¯¹åº”å­˜å‚¨ä½ç½®ä¸Š
+            _atom->unpack_force(d, direction, recvbuf[direction], sendlist);
+
+            delete[] sendbuf[direction];
+            delete[] recvbuf[direction];
+        }
+    }
+}
+
+double domaindecomposition::getBoundingBoxMin(int dimension, domain *domain) {
+    return _coords[dimension] * domain->getGlobalLength(dimension) / _gridSize[dimension];
+}
+
+double domaindecomposition::getBoundingBoxMax(int dimension, domain *domain) {
+    return (_coords[dimension] + 1) * domain->getGlobalLength(dimension) / _gridSize[dimension];
 }
 
 void domaindecomposition::setGridSize(int num_procs) {
-	for( int i = 0; i < DIM; i++ )
-	_gridSize[i] = 0;
-	MPI_Dims_create( num_procs, DIM, (int *) &_gridSize );
+    for (int i = 0; i < DIM; i++)
+        _gridSize[i] = 0;
+    MPI_Dims_create(num_procs, DIM, (int *) &_gridSize);
 }
