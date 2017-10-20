@@ -2,7 +2,7 @@
 
 A molecular dynamics (MD) simulation program.  
 Author:[Baihe](mailto:baihe_ustb@163.com)
-
+Update:[Chugenshen](mailto:genshenchu@gmail.com)
 
 ### how to build&run
 

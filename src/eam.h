@@ -19,8 +19,8 @@
 
 /// Internal mass units are eV * fs^2 / Ang^2
 static const double amuToInternalMass =
-         amuInKilograms * AngsInMeters * AngsInMeters
-         / (fsInSeconds * fsInSeconds  * eVInJoules);
+		amuInKilograms * AngsInMeters * AngsInMeters
+		/ (fsInSeconds * fsInSeconds  * eVInJoules);
 
 /// Hartrees to eVs
 static const double hartreeToEv = 27.21138505;
@@ -47,17 +47,17 @@ public:
 	void eamBcast(int rank);
 
 	void interpolatefile();
-	InterpolationObject *phi;  //!< ¶ÔÊÆ
-	InterpolationObject *rho;  //!< µç×ÓÔÆÃÜ¶È
-	InterpolationObject *f;    //!< Ç¶ÈëÄÜ
+	InterpolationObject *phi;  //!< å¯¹åŠ¿
+	InterpolationObject *rho;  //!< ç”µå­äº‘å¯†åº¦
+	InterpolationObject *f;    //!< åµŒå…¥èƒ½
 private:
 	int _nElems;
-	double cutoff;          //!< ½Ø¶Ï°ë¾¶
-	double *mass;           //!< ÖÊÁ¿
-	double lat;             //!< ¾§¸ñ³£Êý
-	char latticeType[8];    //!< ¾§¸ñÀàÐÍ
-	char  name[3];	   //!< ÔªËØÃû
-	int	 atomicNo;	   //!< ÔªËØÐòºÅ
+	double cutoff;          //!< æˆªæ–­åŠå¾„
+	double *mass;           //!< è´¨é‡
+	double lat;             //!< æ™¶æ ¼å¸¸æ•°
+	char latticeType[8];    //!< æ™¶æ ¼ç±»åž‹
+	char  name[3];	   //!< å…ƒç´ å
+	int	 atomicNo;	   //!< å…ƒç´ åºå·
 };
 
 #endif /* EAM_H_ */

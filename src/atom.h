@@ -41,11 +41,11 @@ public :
 
     void computesecond(double dtInv2m);
 
-    void getatomx(int direction, vector<vector<int> > &sendlist);
+    void getatomx(int direction, vector <vector<int>> &sendlist);
 
-    void getatomy(int direction, vector<vector<int> > &sendlist);
+    void getatomy(int direction, vector <vector<int>> &sendlist);
 
-    void getatomz(int direction, vector<vector<int> > &sendlist);
+    void getatomz(int direction, vector <vector<int>> &sendlist);
 
     void getIntertosend(int d, int direction, double ghostlengh, vector<int> &sendlist);
 
@@ -61,13 +61,13 @@ public :
 
     void pack_send(int dimension, int n, vector<int> &sendlist, latparticledata *buf, double shift);
 
-    void unpack_recvfirst(int d, int direction, latparticledata *buf, vector<vector<int> > &recvlist);
+    void unpack_recvfirst(int d, int direction, latparticledata *buf, vector <vector<int>> &recvlist);
 
-    void unpack_recv(int d, int direction, int n, latparticledata *buf, vector<vector<int> > &recvlist);
+    void unpack_recv(int d, int direction, int n, latparticledata *buf, vector <vector<int>> &recvlist);
 
     void pack_rho(int n, vector<int> &recvlist, double *buf);
 
-    void unpack_rho(int d, int direction, double *buf, vector<vector<int> > &sendlist);
+    void unpack_rho(int d, int direction, double *buf, vector <vector<int>> &sendlist);
 
     void pack_df(vector<int> &sendlist, vector<int> &intersendlist, double *buf);
 
@@ -75,7 +75,7 @@ public :
 
     void pack_force(int n, vector<int> &recvlist, double *buf);
 
-    void unpack_force(int d, int direction, double *buf, vector<vector<int> > &sendlist);
+    void unpack_force(int d, int direction, double *buf, vector <vector<int>> &sendlist);
 
     void print_atom(int rank);
 
@@ -133,9 +133,9 @@ private:
 
     vector<unsigned long> idinter;
     vector<int> typeinter;
-    vector<vector<double> > xinter;                    //间隙原子坐标
-    vector<vector<double> > vinter;                    //间隙原子速度
-    vector<vector<double> > finter;                    //间隙原子力
+    vector <vector<double>> xinter;                    //间隙原子坐标
+    vector <vector<double>> vinter;                    //间隙原子速度
+    vector <vector<double>> finter;                    //间隙原子力
     vector<double> rhointer;
     vector<double> dfinter;
     int nlocalinter, nghostinter;                     //本地间隙原子数和ghost间隙原子数

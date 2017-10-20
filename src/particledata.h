@@ -5,7 +5,7 @@
 
 class particledata {
 public:
-	// 定义一个数据类型，用于MPI数据传输
+	// 瀹氫箟涓�涓暟鎹被鍨嬶紝鐢ㄤ簬MPI鏁版嵁浼犺緭
 	static void setMPIType(MPI_Datatype &sendPartType);
 
 	particledata();

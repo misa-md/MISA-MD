@@ -1,18 +1,20 @@
 #define SIMULATION_SRC
 
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "simulation.h"
 #include "domain.h"
 #include "domaindecomposition.h"
 #include "atom.h"
+#include "mpi_utils.h"
+#include "config.h"
 
-simulation::simulation()
-        : _domaindecomposition(NULL) {
-    initialize();
+simulation::simulation() : _domaindecomposition(NULL) {
+//    domainDecomposition();
     _input = NULL;
-    collision_step = -1;
+    //collision_step = -1;
+    cp = config::newInstance();
 }
 
 simulation::~simulation() {
@@ -26,40 +28,116 @@ simulation::~simulation() {
         delete _createatom;
 }
 
-void simulation::initialize() {
-    MPI_Comm_rank(MPI_COMM_WORLD, &ownrank);
+void simulation::domainDecomposition() {
 
-    _domaindecomposition = NULL;
+//    _domaindecomposition = NULL;
     _domain = NULL;
     _finalCheckpoint = true;
 
     //进行区域分解
-    if (ownrank == 0)
+    if (mpiUtils::ownRank == MASTER_PROCESSOR)
         std::cout << "Initializing domain decomposition ... " << std::endl;
-    _domaindecomposition = (domaindecomposition *) new domaindecomposition();
-    if (ownrank == 0)
+    _domaindecomposition = new domaindecomposition();
+    if (mpiUtils::ownRank == MASTER_PROCESSOR)
         std::cout << "Initialization done" << std::endl;
 
-    if (ownrank == 0)
+    if (mpiUtils::ownRank == MASTER_PROCESSOR)
         std::cout << "Constructing domain ..." << std::endl;
-    _domain = new domain(ownrank);
-    if (ownrank == 0)
+    _domain = new domain(mpiUtils::ownRank);
+    if (mpiUtils::ownRank == MASTER_PROCESSOR)
         std::cout << "Domain construction done." << std::endl;
 
-    /*
-     * 初始化参数
-     */
-    _numberOfTimesteps = 1;
-
+//    /*
+//     * 初始化参数
+//     */
+//    _numberOfTimesteps = 1;
+//
 }
 
-void simulation::prepare_start(int rank) {
+void simulation::createBoxedAndAtoms() {
+    //读取输入文件，确定各参数
+//    string inputfilename = "input";
+//    ifstream inputfilestream(inputfilename.c_str());
+//    if (!inputfilestream.is_open()) {
+//        cout << "Could not open file " << inputfilename << endl;
+//        exit(1);
+//    }
+//    int seed;
+//    int box_x, box_y, box_z;
+//    double t_set, mass;
+    double mass;
+    double ghostlength; //, latticeconst, cutoffRadius;
+//    int create = 0, inputtag = 0;
+//    string phasefilename;
+//    string token;
+//    inputfilestream >> token;
+//    if (token != "BCC_MD_SIMULATION_INPUT") {
+//        cout << "Not a Cystal MD input file! First token: " << token << endl;
+//        exit(1);
+//    }
+
+//    while (inputfilestream) {
+//        token.clear();
+//        inputfilestream >> token;
+//    if (token == "phasespace") {
+//        inputfilestream >> box_x >> box_y >> box_z;
+//    } else if (token == "cutoffRadius") {
+//        inputfilestream >> cutoffRadius;
+//    } else if (token == "latticeconst") {
+//        inputfilestream >> latticeconst;
+//    } else if (token == "createphase") {
+//        create = 1;
+//        inputfilestream >> t_set >> seed;
+//    } else if (token == "inputfile") {
+//        inputtag = 1;
+//        inputfilestream >> phasefilename;
+//    } else if (token == "timesteps") {
+//        inputfilestream >> _numberOfTimesteps;
+//    } else if (token == "collision_step") {
+//        inputfilestream >> collision_step >> lat[0] >> lat[1] >> lat[2] >> lat[3] >> collision_v[0]
+//                        >> collision_v[1] >> collision_v[2];
+//    } else if (token == "potential_file") {
+//        inputfilestream >> filetype >> filename;
+//    }
+//    }
+
+    double boxlo[3], boxhi[3], globalLength[3];
+    boxlo[0] = boxlo[1] = boxlo[2] = 0;
+    globalLength[0] = boxhi[0] = cp->phaseSpace[0] * cp->latticeConst; //box_x个单位长度(单位长度即latticeconst)
+    globalLength[1] = boxhi[1] = cp->phaseSpace[1] * cp->latticeConst;
+    globalLength[2] = boxhi[2] = cp->phaseSpace[2] * cp->latticeConst;
+
+    _domain->setGlobalLength(0, globalLength[0]);
+    _domain->setGlobalLength(1, globalLength[1]);
+    _domain->setGlobalLength(2, globalLength[2]);
+
+    double bBoxMin[3], bBoxMax[3];
+    for (int i = 0; i < 3; i++) {
+        bBoxMin[i] = _domaindecomposition->getBoundingBoxMin(i, _domain);
+        bBoxMax[i] = _domaindecomposition->getBoundingBoxMax(i, _domain);
+    }
+    ghostlength = cp->cutoffRadius;
+    _atom = new atom(boxlo, boxhi, globalLength, bBoxMin, bBoxMax, ghostlength,
+                     cp->latticeConst, cp->cutoffRadius, cp->createSeed);
+    mass = 55.845;
+
+    if (cp->createPhaseMode) {  //创建原子坐标、速度信息
+        _createatom = new createatom(cp->createTSet);
+        _createatom->createphasespace(_atom, mass, cp->phaseSpace[0], cp->phaseSpace[1], cp->phaseSpace[2]);
+    } else { //读取原子坐标、速度信息
+        _input = new input();
+        _input->readPhaseSpace(_atom);
+    }
+    _integrator = new integrator(0.001);
+}
+
+void simulation::prepareForStart(int rank) {
     double starttime, stoptime;
     double commtime, computetime, comm;
     _pot = new eam();
     //读取势函数文件
     if (rank == 0) {
-        initEamPotential(filetype);
+        initEamPotential(cp->potentialFileType);
     }
     eamBcastPotential(rank);
     eamPotentialInterpolate();
@@ -78,85 +156,10 @@ void simulation::prepare_start(int rank) {
     _domaindecomposition->sendforce(_atom);
     stoptime = MPI_Wtime();
     commtime += stoptime - starttime;
-    if (ownrank == 0) {
+    if (mpiUtils::ownRank == MASTER_PROCESSOR) {
         printf("first step comm time: %lf\n", commtime);
         printf("first step compute time: %lf\n", computetime);
     }
-}
-
-void simulation::createboxandatom() {
-    //读取输入文件，确定各参数
-    string inputfilename = "input";
-    ifstream inputfilestream(inputfilename.c_str());
-    if (!inputfilestream.is_open()) {
-        cout << "Could not open file " << inputfilename << endl;
-        exit(1);
-    }
-    int seed;
-    int box_x, box_y, box_z;
-    double t_set, mass;
-    double ghostlength, latticeconst, cutoffRadius;
-    int create = 0, inputtag = 0;
-    string phasefilename;
-    string token;
-    inputfilestream >> token;
-    if (token != "BCC_MD_SIMULATION_INPUT") {
-        cout << "Not a Cystal MD input file! First token: " << token << endl;
-        exit(1);
-    }
-
-    while (inputfilestream) {
-        token.clear();
-        inputfilestream >> token;
-        if (token == "phasespace") {
-            inputfilestream >> box_x >> box_y >> box_z;
-        } else if (token == "cutoffRadius") {
-            inputfilestream >> cutoffRadius;
-        } else if (token == "latticeconst") {
-            inputfilestream >> latticeconst;
-        } else if (token == "createphase") {
-            create = 1;
-            inputfilestream >> t_set >> seed;
-        } else if (token == "inputfile") {
-            inputtag = 1;
-            inputfilestream >> phasefilename;
-        } else if (token == "timesteps") {
-            inputfilestream >> _numberOfTimesteps;
-        } else if (token == "collision_step") {
-            inputfilestream >> collision_step >> lat[0] >> lat[1] >> lat[2] >> lat[3] >> collision_v[0]
-                            >> collision_v[1] >> collision_v[2];
-        } else if (token == "potential_file") {
-            inputfilestream >> filetype >> filename;
-        }
-    }
-
-    double boxlo[3], boxhi[3], globalLength[3];
-    boxlo[0] = boxlo[1] = boxlo[2] = 0;
-    globalLength[0] = boxhi[0] = box_x * latticeconst; //box_x个单位长度(单位长度即latticeconst)
-    globalLength[1] = boxhi[1] = box_y * latticeconst;
-    globalLength[2] = boxhi[2] = box_z * latticeconst;
-
-    _domain->setGlobalLength(0, globalLength[0]);
-    _domain->setGlobalLength(1, globalLength[1]);
-    _domain->setGlobalLength(2, globalLength[2]);
-    double bBoxMin[3];
-    double bBoxMax[3];
-    for (int i = 0; i < 3; i++) {
-        bBoxMin[i] = _domaindecomposition->getBoundingBoxMin(i, _domain);
-        bBoxMax[i] = _domaindecomposition->getBoundingBoxMax(i, _domain);
-    }
-    ghostlength = cutoffRadius;
-    _atom = new atom(boxlo, boxhi, globalLength, bBoxMin, bBoxMax, ghostlength, latticeconst, cutoffRadius, seed);
-    mass = 55.845;
-    //创建原子坐标、速度信息
-    if (create == 1) {
-        _createatom = new createatom(t_set);
-        _createatom->createphasespace(_atom, mass, box_x, box_y, box_z);
-    } else if (inputtag == 1) { //读取原子坐标、速度信息
-        _input = (input *) new input();
-        _input->readPhaseSpace(_atom);
-    }
-    _integrator = new integrator(0.001);
 }
 
 void simulation::simulate() {
@@ -164,9 +167,9 @@ void simulation::simulate() {
     double starttime, stoptime;
     double commtime = 0, computetime = 0, comm;
     int nflag;
-    for (_simstep = 0; _simstep < _numberOfTimesteps; _simstep++) {
-        if (_simstep == collision_step) {
-            _atom->setv(lat, collision_v);
+    for (_simstep = 0; _simstep < cp->timeSteps; _simstep++) {
+        if (_simstep == cp->collisionSteps) {
+            _atom->setv(cp->collisionLat, cp->collisionV);
             _domaindecomposition->exchangeInter(_atom, _domain);
             _domaindecomposition->borderInter(_atom, _domain);
             _domaindecomposition->exchangeAtom(_atom, _domain);
@@ -202,7 +205,7 @@ void simulation::simulate() {
         //求解牛顿运动方程第二步
         _integrator->secondstep(_atom);
     }
-    if (ownrank == 0) {
+    if (mpiUtils::ownRank == MASTER_PROCESSOR) {
         printf("loop comm time: %lf\n", commtime);
         printf("loop compute time: %lf\n", computetime);
     }
@@ -222,7 +225,7 @@ void simulation::finalize() {
 void simulation::initEamPotential(string file_type) {
     if (file_type == "funcfl") {
         char tmp[4096];
-        sprintf(tmp, "%s", filename.c_str());
+        sprintf(tmp, "%s", cp->potentialFilename.c_str());
         FILE *potFile = fopen(tmp, "r");
         if (potFile == NULL) {
             cout << "file not found" << endl;
@@ -283,7 +286,7 @@ void simulation::initEamPotential(string file_type) {
         delete[] buf;
     } else if (string(file_type) == string("setfl")) {
         char tmp[4096];
-        sprintf(tmp, "%s", filename.c_str());
+        sprintf(tmp, "%s", cp->potentialFilename.c_str());
 
         FILE *potFile = fopen(tmp, "r");
         if (potFile == NULL) {
