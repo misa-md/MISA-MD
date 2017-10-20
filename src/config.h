@@ -12,23 +12,23 @@ class config {
 public:
     config();
 
-    bool hasError = false;
+    bool hasError;
     string errorMessage;
 
     //config values
-    int phaseSpace[DIMENSION] = {0, 0, 0};
-    double cutoffRadius = 0.0;
-    double latticeConst = 0.0;
-    unsigned long timeSteps = 100;
+    int phaseSpace[DIMENSION];
+    double cutoffRadius;
+    double latticeConst;
+    unsigned long timeSteps;
 
-    bool createPhaseMode = true;
-    double createTSet = 0.0;
-    int createSeed = 0;
-    string readPhaseFilename = ""; // for read mode
+    bool createPhaseMode;
+    double createTSet;
+    int createSeed;
+    string readPhaseFilename; // for read mode
 
-    unsigned long collisionSteps = 0;
-    int collisionLat[4] = {0, 0, 0, 0};
-    double collisionV[DIMENSION] = {0.0, 0.0, 0.0};
+    unsigned long collisionSteps;
+    int collisionLat[4];
+    double collisionV[DIMENSION];
 
     string potentialFileType;
     string potentialFilename;

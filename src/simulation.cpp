@@ -10,9 +10,9 @@
 #include "mpi_utils.h"
 #include "config.h"
 
-simulation::simulation() : _domaindecomposition(NULL) {
+simulation::simulation() : _domaindecomposition(nullptr), _input(nullptr) {
 //    domainDecomposition();
-    _input = NULL;
+
     //collision_step = -1;
     cp = config::newInstance();
 }

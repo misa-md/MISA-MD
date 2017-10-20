@@ -26,9 +26,13 @@ config *config::newInstance() {
     return m_pInstance; // make sure there is a configure instance.
 }
 
-config::config() = default;
+config::config() : phaseSpace{0, 0, 0}, cutoffRadius(0.0), latticeConst(0.0), timeSteps(10),
+                   createPhaseMode(true), createTSet(0.0), createSeed(1), readPhaseFilename(""),
+                   collisionSteps(0), collisionLat{0, 0, 0, 0}, collisionV{0.0, 0.0, 0.0},
+                   hasError(false) {
+}
 
-config::config(string configurePath) {
+config::config(string configurePath) : config() {
     resolveConfig(configurePath);
 }
 
