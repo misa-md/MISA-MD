@@ -9,7 +9,7 @@
 //
 
 using namespace std;
-config *config::m_pInstance = nullptr; //todo mpi
+config *config::m_pInstance = nullptr;
 
 //single mode
 config *config::newInstance(string configureFilePath) {

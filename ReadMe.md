@@ -17,7 +17,7 @@ cd build
 cmake ../
 make
 cd src  # executable file is located in src directory.
-./Crystal-MD  # run for showing help.
+./Crystal-MD  --help # run for showing help.
 mpiexec -n 64 ./Crystal-MD -c config.toml  # run MD simulation
 
 ```

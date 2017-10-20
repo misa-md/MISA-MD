@@ -5,13 +5,11 @@
 #include <cstring>
 
 #include "domaindecomposition.h"
-#include "atom.h"
 #include "integrator.h"
 #include "createatom.h"
 #include "input.h"
 #include "eam.h"
 #include "config.h"
-
 
 class simulation {
 public:
@@ -43,16 +41,7 @@ public:
     void exit(int exitcode);
 
 private:
-//    unsigned long _numberOfTimesteps;   /**< 时间步 */
     unsigned long _simstep;             /**< 程序运行实际时间步 */
-//    int ownrank;
-
-//    unsigned long collision_step;
-//    int lat[4];
-//    double collision_v[3];
-
-//    string filetype;
-//    string filename;
 
     config *cp;
 
