@@ -1,8 +1,4 @@
-#define SIMULATION_SRC
-
 #include <iostream>
-#include <cstdlib>
-
 #include "simulation.h"
 #include "domain.h"
 #include "domaindecomposition.h"
@@ -29,7 +25,6 @@ simulation::~simulation() {
 }
 
 void simulation::domainDecomposition() {
-
 //    _domaindecomposition = NULL;
     _domain = NULL;
     _finalCheckpoint = true;
@@ -55,51 +50,7 @@ void simulation::domainDecomposition() {
 }
 
 void simulation::createBoxedAndAtoms() {
-    //读取输入文件，确定各参数
-//    string inputfilename = "input";
-//    ifstream inputfilestream(inputfilename.c_str());
-//    if (!inputfilestream.is_open()) {
-//        cout << "Could not open file " << inputfilename << endl;
-//        exit(1);
-//    }
-//    int seed;
-//    int box_x, box_y, box_z;
-//    double t_set, mass;
-    double mass;
-    double ghostlength; //, latticeconst, cutoffRadius;
-//    int create = 0, inputtag = 0;
-//    string phasefilename;
-//    string token;
-//    inputfilestream >> token;
-//    if (token != "BCC_MD_SIMULATION_INPUT") {
-//        cout << "Not a Cystal MD input file! First token: " << token << endl;
-//        exit(1);
-//    }
-
-//    while (inputfilestream) {
-//        token.clear();
-//        inputfilestream >> token;
-//    if (token == "phasespace") {
-//        inputfilestream >> box_x >> box_y >> box_z;
-//    } else if (token == "cutoffRadius") {
-//        inputfilestream >> cutoffRadius;
-//    } else if (token == "latticeconst") {
-//        inputfilestream >> latticeconst;
-//    } else if (token == "createphase") {
-//        create = 1;
-//        inputfilestream >> t_set >> seed;
-//    } else if (token == "inputfile") {
-//        inputtag = 1;
-//        inputfilestream >> phasefilename;
-//    } else if (token == "timesteps") {
-//        inputfilestream >> _numberOfTimesteps;
-//    } else if (token == "collision_step") {
-//        inputfilestream >> collision_step >> lat[0] >> lat[1] >> lat[2] >> lat[3] >> collision_v[0]
-//                        >> collision_v[1] >> collision_v[2];
-//    } else if (token == "potential_file") {
-//        inputfilestream >> filetype >> filename;
-//    }
-//    }
+    double mass, ghostLength;
 
     double boxlo[3], boxhi[3], globalLength[3];
     boxlo[0] = boxlo[1] = boxlo[2] = 0;
@@ -116,8 +67,8 @@ void simulation::createBoxedAndAtoms() {
         bBoxMin[i] = _domaindecomposition->getBoundingBoxMin(i, _domain);
         bBoxMax[i] = _domaindecomposition->getBoundingBoxMax(i, _domain);
     }
-    ghostlength = cp->cutoffRadius;
-    _atom = new atom(boxlo, boxhi, globalLength, bBoxMin, bBoxMax, ghostlength,
+    ghostLength = cp->cutoffRadius;
+    _atom = new atom(boxlo, boxhi, globalLength, bBoxMin, bBoxMax, ghostLength,
                      cp->latticeConst, cp->cutoffRadius, cp->createSeed);
     mass = 55.845;
 
@@ -214,9 +165,9 @@ void simulation::simulate() {
 }
 
 void simulation::finalize() {
-    if (_domaindecomposition != NULL) {
+    if (_domaindecomposition != nullptr) {
         delete _domaindecomposition;
-        _domaindecomposition = NULL;
+        _domaindecomposition = nullptr;
     }
 }
 

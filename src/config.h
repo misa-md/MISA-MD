@@ -45,8 +45,8 @@ public:
 private:
     static config *m_pInstance;
 
-    config(string configurePath);//todo
-    void resolveConfig(string configurePath);//todo
+    config(string configurePath);
+    void resolveConfig(string configurePath);
 };
 
 
