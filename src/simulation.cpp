@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdlib>
 #include "simulation.h"
 #include "domain.h"
 #include "domaindecomposition.h"
@@ -18,15 +19,15 @@ simulation::~simulation() {
     delete _atom;
     delete _integrator;
     delete _pot;
-    if (_input != NULL)
+    if (_input != nullptr)
         delete _input;
-    if (_createatom != NULL)
+    if (_createatom != nullptr)
         delete _createatom;
 }
 
 void simulation::domainDecomposition() {
 //    _domaindecomposition = NULL;
-    _domain = NULL;
+    _domain = nullptr;
     _finalCheckpoint = true;
 
     //进行区域分解
@@ -90,7 +91,7 @@ void simulation::prepareForStart(int rank) {
     if (rank == 0) {
         initEamPotential(cp->potentialFileType);
     }
-    eamBcastPotential(rank);
+    eamBCastPotential(rank);
     eamPotentialInterpolate();
 
     starttime = MPI_Wtime();
@@ -178,8 +179,8 @@ void simulation::initEamPotential(string file_type) {
         char tmp[4096];
         sprintf(tmp, "%s", cp->potentialFilename.c_str());
         FILE *potFile = fopen(tmp, "r");
-        if (potFile == NULL) {
-            cout << "file not found" << endl;
+        if (potFile == nullptr) {
+            std::cerr << "file not found" << std::endl;
             exit(1);
         }
 
@@ -241,7 +242,7 @@ void simulation::initEamPotential(string file_type) {
 
         FILE *potFile = fopen(tmp, "r");
         if (potFile == NULL) {
-            printf("file not found");
+            std::cerr << "file not found!" << std::endl;
             exit(1);
         }
 
@@ -272,7 +273,7 @@ void simulation::initEamPotential(string file_type) {
         int nwords = n;
         delete[] copy;
         if (nwords != nElems + 1)
-            printf("Incorrect element names in EAM potential file!");
+            std::cerr << "Incorrect element names in EAM potential file!" << endl;
 
         char **words = new char *[nElems + 1];
         nwords = 0;
@@ -336,7 +337,7 @@ void simulation::grab(FILE *fptr, int n, double *list) {
     }
 }
 
-void simulation::eamBcastPotential(int rank) {
+void simulation::eamBCastPotential(int rank) {
     _pot->eamBcast(rank);
 }
 

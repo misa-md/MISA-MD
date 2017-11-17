@@ -16,7 +16,7 @@ bool crystalMD::initialize() {
     mpiUtils::initialMPI();
 
     if (mpiUtils::ownRank == MASTER_PROCESSOR) {
-        //parser arguments
+        // parser arguments
         // see https://github.com/Taywee/args for using args.
         args::ArgumentParser parser("This is CrystalMD program.", "authors:BaiHe.");
         args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
@@ -79,7 +79,7 @@ bool crystalMD::prepare() {
 void crystalMD::run() {
     simu->prepareForStart(mpiUtils::ownRank);
     if (mpiUtils::ownRank == MASTER_PROCESSOR)
-        std::cout << "Initializing simulation" << std::endl;
+        std::cout << "Start simulation" << std::endl;
     //开始模拟
     simu->simulate();
 }

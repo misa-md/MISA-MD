@@ -8,7 +8,7 @@ Update:[Chugenshen](mailto:genshenchu@gmail.com)
 #### build from CMake (recommend)  
 dependency:
 1. cmake CMake 3.6 or higher is required;
-2. gcc supported c++ 11;
+2. c++ 11 feature required(check your gcc version);
 3. mpi.
 
 ```sh
@@ -19,7 +19,6 @@ make
 cd src  # executable file is located in src directory.
 ./Crystal-MD  --help # run for showing help.
 mpiexec -n 64 ./Crystal-MD -c config.toml  # run MD simulation
-
 ```
 
 #### build from Makefile

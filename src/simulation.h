@@ -30,7 +30,7 @@ public:
 
     void initEamPotential(string file_type);
 
-    void eamBcastPotential(int rank);
+    void eamBCastPotential(int rank);
 
     void eamPotentialInterpolate();
 
