@@ -1,5 +1,4 @@
 #include <iostream>
-#include <cstdlib>
 #include "simulation.h"
 #include "domain.h"
 #include "domaindecomposition.h"
