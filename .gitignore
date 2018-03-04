@@ -4,6 +4,9 @@ example/*.atom
 example/FeCuNi.eam.alloy
 test/external
 
+# Sunway TaihuLight
+core.*
+
 # Created by .ignore support plugin (hsz.mobi)
 ### C template
 # Prerequisites

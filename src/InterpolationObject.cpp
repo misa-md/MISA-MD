@@ -11,8 +11,6 @@ InterpolationObject::InterpolationObject(){
 
 InterpolationObject::~InterpolationObject(){
 	delete[] values;
-	for(int i = 0; i < n + 1; i++)
-		delete spline[i];
 	delete[] spline;
 }
 
@@ -52,9 +50,7 @@ void InterpolationObject::bcastInterpolationObject(int rank){
 }
 
 void InterpolationObject::interpolatefile(){
-	spline = new double *[n+1];
-	for(int i = 0; i < n+1; i++)
-		spline[i] = new double[7];
+	spline = new double[n+1][7];
 	for (int m = 1; m <= n; m++) spline[m][6] = values[m];
 
 	spline[1][5] = spline[2][6] - spline[1][6];

@@ -332,7 +332,7 @@ void atom::computeEam(eam *pot, domaindecomposition *_domaindecomposition, doubl
     double rhoTmp, dRho, dEmbed, dfEmbed, phiTmp, dPhi;
     int nr, m;
     double p;
-    double **spline;
+    double (*spline)[7];
     double fpair;
     double recip, phi, phip, psip, z2, z2p;
     int kk;

@@ -10,5 +10,5 @@ public:
 	double x0;      //!< 起始点
 	double invDx;   //!< 倒数
 	double* values;
-	double** spline;
+	double (*spline)[7];
 };
