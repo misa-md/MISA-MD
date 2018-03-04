@@ -2,6 +2,7 @@
 cmake-build-debug/
 example/*.atom
 example/FeCuNi.eam.alloy
+test/external
 
 # Created by .ignore support plugin (hsz.mobi)
 ### C template

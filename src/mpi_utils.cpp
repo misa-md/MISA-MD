@@ -29,9 +29,3 @@ namespace mpiUtils {
         MPI_Finalize();
     }
 }
-
-
-
-
-
-
