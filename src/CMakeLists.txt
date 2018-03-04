@@ -39,8 +39,18 @@ set(SOURCE_FILES
         simulation.cpp
         )
 
+# codes runs on sunway.
+set(ARCH_SUNWAY_FILES
+        arch/sunway/sunway.h
+        arch/sunway/sunway.c
+        arch/sunway/sunway_slave.c
+        arch/sunway/sunway_slave2.c
+        )
+
+set(ARCH_FILES ${ARCH_SUNWAY_FILES} arch_env.hpp)
+
 set(MAIN_FILE main.cpp)
 
-add_executable(CrystalMD ${MAIN_FILE} ${INCLUDE_FILES} ${HEADER_FILES} ${SOURCE_FILES})
+add_executable(CrystalMD ${MAIN_FILE} ${INCLUDE_FILES} ${ARCH_FILES} ${HEADER_FILES} ${SOURCE_FILES})
 
 target_link_libraries(CrystalMD ${MPI_LIBRARIES}) # mpi lib

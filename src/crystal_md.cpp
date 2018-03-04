@@ -3,6 +3,7 @@
 #include "config.h"
 #include "mpi_utils.h"
 #include "include/args.hpp"
+#include "arch_env.hpp"
 
 //
 // Created by gensh(genshenchu@gmail.com) on 2017/4/19.
@@ -63,10 +64,22 @@ bool crystalMD::initialize() {
         MPI_Bcast(cp, sizeof(*cp), MPI_BYTE, MASTER_PROCESSOR, MPI_COMM_WORLD); // synchronize config information
         config::onPostMPICopy(cp);
         //configure check
-        return cp->configureCheck();
+        if (cp->configureCheck()) { // configure check passed.
+            return this->runtimeEnvInitialize();
+        } else {
+            return false;
+        }
     } else { //has error or help mode
         return false;
     }
+}
+
+/**
+ * initial runtime
+ */
+bool crystalMD::runtimeEnvInitialize() {
+    archEnvInit(); // architectures environment initialize.
+    return true;
 }
 
 bool crystalMD::prepare() {
@@ -95,5 +108,6 @@ void crystalMD::detach() {
     if (mpiUtils::ownRank == MASTER_PROCESSOR && argvStatus == 0) {
         cout << "app was detached" << endl;
     }
+    archEnvFinalize(); // clean architectures environment.
     mpiUtils::finishMPI();
 }

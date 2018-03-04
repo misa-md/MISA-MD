@@ -37,6 +37,7 @@ private:
     config *cp;
     simulation *simu;
 
+    bool runtimeEnvInitialize();
 };
 
 #endif //CRYSTALMD_CRYSTAL_MD_H
