@@ -1,0 +1,9 @@
+#bsub -b -m 1 -I -q q_sw_yyz_7836 -n $1 -cgsp 64 -share_size 7000 -host_stack 512 -o %J.out ./bin/CH3d $2
+#bsub -b -m 1 -q q_sw_soft_qh_large -n $1 -cgsp 64 -share_size 6800 -host_stack 512 -o %J.out ./bin/CH3d $2
+#bsub -b -m 1 -I -q q_sw_soft_yyz -n $1 -cgsp 64 -share_size 6800 -host_stack 512 -o %J.out ./bin/CH3d $2
+#bsub -b -m 1 -q q_sw_0_yyz -n $1 -cgsp 64 -share_size 6800 -host_stack 512 -o %J.out ./bin/CH3d1 $2
+#export MV2_ON_DEMAND_THRESHOLD=65536
+#export MV2_DEFAULT_MAX_CQ_SIZE=1600000
+#bsub -redun -b -m 1 -q q_sw_ccas -n $1 -cgsp 64 -share_size 6800 -host_stack 512 -o %J.out ./bin/cETD $2 $3 $4 $5
+bsub -b -m 1 -q q_sw_nofull -n $1 -cgsp $2 -share_size 6800 -host_stack 512 -o %J.out ./Crystal-MD
+# bsub -perf -b -m 1 -q q_sw_nofull -n $1 -cgsp $2 -share_size 6800 -host_stack 512 -o %J.out ../Crystal-MD # example2

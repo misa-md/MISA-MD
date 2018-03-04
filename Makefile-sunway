@@ -1,0 +1,24 @@
+CC=		mpif90
+CCFLAGS=	-c
+
+SCC=            sw5cc
+SCCFLAGS=       -slave -OPT:unroll_times=0 -c
+
+LINK=		mpicxx
+LINKFLAGS=	-hybrid -lm -OPT:unroll_times=0 -o
+
+all:Crystal-MD
+
+vpath %.cpp ./
+
+%.o:%.c
+	$(SCC) $(SCCFLAGS) $<
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) $<
+
+Crystal-MD:main.o simulation.o domain.o domaindecomposition.o atom.o input.o integrator.o eam.o InterpolationObject.o particledata.o latparticledata.o createatom.o slave.o
+	$(LINK) $(LINKFLAGS) $@ $^
+
+clean:
+	rm *.o	
