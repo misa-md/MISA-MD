@@ -5,6 +5,7 @@ set(INCLUDE_FILES
 
 
 set(HEADER_FILES
+        arch_env.hpp
         atom.h
         createatom.h
         crystal_md.h
@@ -20,7 +21,7 @@ set(HEADER_FILES
         particledata.h
         pre_config.h
         simulation.h
-        )
+        hardware_accelerate.hpp)
 
 set(SOURCE_FILES
         atom.cpp
@@ -41,13 +42,15 @@ set(SOURCE_FILES
 
 # codes runs on sunway.
 set(ARCH_SUNWAY_FILES
+        arch/sunway/athread_accelerate.h
+        arch/sunway/athread_accelerate.cpp
         arch/sunway/sunway.h
         arch/sunway/sunway.c
         arch/sunway/sunway_slave.c
         arch/sunway/sunway_slave2.c
         )
 
-set(ARCH_FILES ${ARCH_SUNWAY_FILES} arch_env.hpp)
+set(ARCH_FILES ${ARCH_SUNWAY_FILES})
 
 set(MAIN_FILE main.cpp)
 

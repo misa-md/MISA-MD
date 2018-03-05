@@ -2,8 +2,8 @@
 // Created by genshen on 2018-3-4.
 //
 
-#ifndef CRYSTALMD_ARCH_H
-#define CRYSTALMD_ARCH_H
+#ifndef CRYSTAL_MD_ARCH_H
+#define CRYSTAL_MD_ARCH_H
 
 #include <iostream>
 #include "pre_config.h"
@@ -27,4 +27,4 @@ void archEnvFinalize() {
 #endif
 }
 
-#endif //CRYSTALMD_ARCH_H
+#endif //CRYSTAL_MD_ARCH_H

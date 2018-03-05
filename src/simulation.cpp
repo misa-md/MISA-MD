@@ -1,10 +1,8 @@
 #include <iostream>
 #include "simulation.h"
-#include "domain.h"
-#include "domaindecomposition.h"
-#include "atom.h"
 #include "mpi_utils.h"
 #include "config.h"
+#include "hardware_accelerate.hpp"
 
 simulation::simulation() : _domaindecomposition(nullptr), _input(nullptr) {
 //    domainDecomposition();
@@ -93,6 +91,8 @@ void simulation::prepareForStart(int rank) {
     eamBCastPotential(rank);
     eamPotentialInterpolate();
 
+    beforeAccelerateRun(_pot); // it runs after atom and boxes creation, but before simulation running.
+
     starttime = MPI_Wtime();
     _domaindecomposition->exchangeAtomfirst(_atom, _domain);
     stoptime = MPI_Wtime();
@@ -161,7 +161,7 @@ void simulation::simulate() {
         printf("loop compute time: %lf\n", computetime);
     }
     //输出原子信息
-    output();
+    // output();
 }
 
 void simulation::finalize() {
