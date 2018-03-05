@@ -97,6 +97,7 @@ void simulation::prepareForStart(int rank) {
     _domaindecomposition->exchangeAtomfirst(_atom, _domain);
     stoptime = MPI_Wtime();
     commtime = stoptime - starttime;
+    _atom->clear_force(); // clear force before running simulation.
     starttime = MPI_Wtime();
     _atom->computeEam(_pot, _domaindecomposition, comm);
     stoptime = MPI_Wtime();
