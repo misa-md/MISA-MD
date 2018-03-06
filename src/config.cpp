@@ -46,7 +46,7 @@ bool config::configureCheck() {
 }
 
 void config::resolveConfig(string configurePath) {
-    // Parse foo.toml. If foo.toml is valid, pr.valid() should be true.
+// Parse foo.toml. If foo.toml is valid, pr.valid() should be true.
 // If not valid, pr.errorReason will contain the parser error reason.
     std::ifstream ifs(configurePath);
     toml::ParseResult pr = toml::parse(ifs);

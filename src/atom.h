@@ -61,7 +61,7 @@ public :
 
     void pack_send(int dimension, int n, vector<int> &sendlist, latparticledata *buf, double shift);
 
-    void unpack_recvfirst(int d, int direction, latparticledata *buf, vector<vector<int>> &recvlist);
+    void unpack_recvfirst(int d, int direction, int n, latparticledata *buf, vector<vector<int> > &recvlist);
 
     void unpack_recv(int d, int direction, int n, latparticledata *buf, vector<vector<int>> &recvlist);
 

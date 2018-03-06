@@ -14,7 +14,7 @@ void createatom::createphasespace(atom *_atom, double mass, int box_x, int box_y
     _atom->createphasespace(factor, box_x, box_y, box_z);
 
     int nlocalatom = _atom->getnlocalatom();
-    int natom = box_x * 2 * box_y * box_z;
+    unsigned long natom = (unsigned long)box_x * 2 * (unsigned long)box_y * (unsigned long)box_z;
     double masstotal = natom * mass;
     double p[3], vcm[3];
     p[0] = p[1] = p[2] = 0.0;

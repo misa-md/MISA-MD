@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iomanip>
 #include "atom.h"
+#include "hardware_accelerate.hpp" // use hardware(eg.GPU, MIC,Sunway slave cores.) to achieve calculate accelerating.
 
 #define IA 16807
 #define IM 2147483647
@@ -64,7 +65,7 @@ atom::atom(double boxlo[3], double boxhi[3], double globalLengh[3],
     nghostinter = 0;
 
     numberoflattice = nghostx * nghosty * nghostz;
-    printf("number:%d, %d\n", numberoflattice, nlocalx * nlocaly * nlocalz);
+//    printf("number:%d, %d, %d, %d, %d\n", numberoflattice, nlocalx, nlocaly, nlocalz, nlocalx*nlocaly*nlocalz);
     id = new unsigned long[numberoflattice];
     type = new int[numberoflattice];
     x = new double[numberoflattice * 3];
@@ -74,6 +75,11 @@ atom::atom(double boxlo[3], double boxhi[3], double globalLengh[3],
     df = new double[numberoflattice];
 
     calculateNeighbourIndices();
+
+    if (isAccelerateSupport()) {
+        accelerateInit(lolocalx, lolocaly, lolocalz, nlocalx, nlocaly, nlocalz,
+                       loghostx, loghosty, loghostz, nghostx, nghosty, nghostz);
+    }
 }
 
 atom::~atom() {
@@ -186,7 +192,7 @@ int atom::decide() {
                     dist = (x[kk] - xtemp) * (x[kk] - xtemp);
                     dist += (x[kk + 1] - ytemp) * (x[kk + 1] - ytemp);
                     dist += (x[kk + 2] - ztemp) * (x[kk + 2] - ztemp);
-                    if (dist > (pow(0.2 * _latticeconst, 2.0))/**超过距离则判断为间隙原子*/) {
+                    if (dist > (pow(0.2 * _latticeconst, 2.0))) { /**超过距离则判断为间隙原子*/
                         if (xinter.size() > nlocalinter) {
                             if (idinter.size() > nlocalinter)
                                 idinter[nlocalinter] = id[kk / 3];
@@ -239,6 +245,7 @@ int atom::decide() {
             }
         }
     }
+
     for (int i = 0; i < nlocalinter; i++) {
         if (xinter[i][0] < _boxlo[0]) {
             xinter[i][0] += _globalLengh[0];
@@ -340,36 +347,41 @@ void atom::computeEam(eam *pot, domaindecomposition *_domaindecomposition, doubl
     int ystart = lolocaly - loghosty;
     int zstart = lolocalz - loghostz;
 
-    //本地晶格点上的原子计算电子云密度
-    for (int k = zstart; k < nlocalz + zstart; k++) {
-        for (int j = ystart; j < nlocaly + ystart; j++) {
-            for (int i = xstart; i < nlocalx + xstart; i++) {
-                kk = IndexOf3DIndex(i, j, k);
-                xtemp = x[kk * 3];
-                ytemp = x[kk * 3 + 1];
-                ztemp = x[kk * 3 + 2];
-                if (xtemp != -100) {
-                    //对晶格点邻居原子遍历
-                    for (neighbourOffsetsIter = NeighbourOffsets.begin();
-                         neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
-                        n = (kk + *neighbourOffsetsIter);
-                        delx = xtemp - x[n * 3];
-                        dely = ytemp - x[n * 3 + 1];
-                        delz = ztemp - x[n * 3 + 2];
-                        dist2 = delx * delx + dely * dely + delz * delz;
-                        if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                            r = sqrt(dist2);
-                            nr = rho_spline->n;
-                            p = r * rho_spline->invDx + 1.0;
-                            m = static_cast<int> (p);
-                            m = std::max(1, std::min(m, (nr - 1)));
-                            p -= m;
-                            p = std::min(p, 1.0);
-                            spline = rho_spline->spline;
-                            rhoTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p + spline[m][6];
+    // 本地晶格点上的原子计算电子云密度
+    if (isAccelerateSupport()) {
+        accelerateEamRhoCalc(&(rho_spline->n), x, rho, &_cutoffRadius,
+                             &(rho_spline->invDx), rho_spline->values);
+    } else { // calculate rho use cpu only.
+        for (int k = zstart; k < nlocalz + zstart; k++) {
+            for (int j = ystart; j < nlocaly + ystart; j++) {
+                for (int i = xstart; i < nlocalx + xstart; i++) {
+                    kk = IndexOf3DIndex(i, j, k);
+                    xtemp = x[kk * 3];
+                    ytemp = x[kk * 3 + 1];
+                    ztemp = x[kk * 3 + 2];
+                    if (xtemp != -100) {
+                        //对晶格点邻居原子遍历
+                        for (neighbourOffsetsIter = NeighbourOffsets.begin();
+                             neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
+                            n = (kk + *neighbourOffsetsIter);
+                            delx = xtemp - x[n * 3];
+                            dely = ytemp - x[n * 3 + 1];
+                            delz = ztemp - x[n * 3 + 2];
+                            dist2 = delx * delx + dely * dely + delz * delz;
+                            if (dist2 < (_cutoffRadius * _cutoffRadius)) {
+                                r = sqrt(dist2);
+                                nr = rho_spline->n;
+                                p = r * rho_spline->invDx + 1.0;
+                                m = static_cast<int> (p);
+                                m = std::max(1, std::min(m, (nr - 1)));
+                                p -= m;
+                                p = std::min(p, 1.0);
+                                spline = rho_spline->spline;
+                                rhoTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p + spline[m][6];
 
-                            rho[kk] += rhoTmp;
-                            rho[n] += rhoTmp;
+                                rho[kk] += rhoTmp;
+                                rho[n] += rhoTmp;
+                            }
                         }
                     }
                 }
@@ -486,10 +498,10 @@ void atom::computeEam(eam *pot, domaindecomposition *_domaindecomposition, doubl
         dfinter[i] = dfEmbed;
     }
 
-    char tmp[20];
-    sprintf(tmp, "rho.atom");
     ofstream outfile;
-    /*outfile.open(tmp);
+    /* char tmp[20];
+    sprintf(tmp, "rho.atom");
+    outfile.open(tmp);
     for(int k = zstart; k < nlocalz + zstart; k++){
             for(int j = ystart; j < nlocaly + ystart; j++){
                     for(int i = xstart; i < nlocalx + xstart; i++){
@@ -499,9 +511,9 @@ void atom::computeEam(eam *pot, domaindecomposition *_domaindecomposition, doubl
                     }
             }
     }
-for(int i = 0; i < rho_spline->n; i++){
+for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
     outfile << rho_spline->spline[i][6] << std::endl;
-}
+} // 1. todo remove end.
     outfile.close();*/
 
     //发送电子云密度
@@ -525,19 +537,25 @@ for(int i = 0; i < rho_spline->n; i++){
     outfile.close();*/
 
     //本地晶格点计算嵌入能导数
-    for (int k = zstart; k < nlocalz + zstart; k++) {
-        for (int j = ystart; j < nlocaly + ystart; j++) {
-            for (int i = xstart; i < nlocalx + xstart; i++) {
-                kk = IndexOf3DIndex(i, j, k);
-                nr = f_spline->n;
-                p = rho[kk] * f_spline->invDx + 1.0;
-                m = static_cast<int> (p);
-                m = std::max(1, std::min(m, (nr - 1)));
-                p -= m;
-                p = std::min(p, 1.0);
-                spline = f_spline->spline;
-                dfEmbed = (spline[m][0] * p + spline[m][1]) * p + spline[m][2];
-                df[kk] = dfEmbed;
+    if (isAccelerateSupport()) {
+//        std::cout << "df\n";
+        accelerateEamDfCalc(&(f_spline->n), rho, df, &_cutoffRadius,
+                            &(f_spline->invDx), f_spline->values);
+    } else {
+        for (int k = zstart; k < nlocalz + zstart; k++) {
+            for (int j = ystart; j < nlocaly + ystart; j++) {
+                for (int i = xstart; i < nlocalx + xstart; i++) {
+                    kk = IndexOf3DIndex(i, j, k);
+                    nr = f_spline->n;
+                    p = rho[kk] * f_spline->invDx + 1.0;
+                    m = static_cast<int> (p);
+                    m = std::max(1, std::min(m, (nr - 1)));
+                    p -= m;
+                    p = std::min(p, 1.0);
+                    spline = f_spline->spline;
+                    dfEmbed = (spline[m][0] * p + spline[m][1]) * p + spline[m][2];
+                    df[kk] = dfEmbed;
+                }
             }
         }
     }
@@ -555,64 +573,83 @@ for(int i = 0; i < rho_spline->n; i++){
     stoptime = MPI_Wtime();
     comm += stoptime - starttime;
 
-    for (int k = zstart; k < nlocalz + zstart; k++) {
-        for (int j = ystart; j < nlocaly + ystart; j++) {
-            for (int i = xstart; i < nlocalx + xstart; i++) {
-                kk = IndexOf3DIndex(i, j, k);
-                xtemp = x[kk * 3];
-                ytemp = x[kk * 3 + 1];
-                ztemp = x[kk * 3 + 2];
-                if (xtemp != -100) {
-                    //对晶格点邻居原子遍历
-                    for (neighbourOffsetsIter = NeighbourOffsets.begin();
-                         neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
-                        n = (kk + *neighbourOffsetsIter);
-                        delx = xtemp - x[n * 3];
-                        dely = ytemp - x[n * 3 + 1];
-                        delz = ztemp - x[n * 3 + 2];
-                        dist2 = delx * delx + dely * dely + delz * delz;
-                        if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                            r = sqrt(dist2);
-                            nr = phi_spline->n;
-                            p = r * phi_spline->invDx + 1.0;
-                            m = static_cast<int> (p);
-                            m = std::max(1, std::min(m, (nr - 1)));
-                            p -= m;
-                            p = std::min(p, 1.0);
-                            spline = phi_spline->spline;
-                            phiTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p + spline[m][6];
-                            dPhi = (spline[m][0] * p + spline[m][1]) * p + spline[m][2];
-                            spline = rho_spline->spline;
-                            dRho = (spline[m][0] * p + spline[m][1]) * p + spline[m][2];
+    if (isAccelerateSupport()) {
+//        std::cout << "f\n";
+        accelerateEamForceCalc(&(phi_spline->n), x, f, df, &_cutoffRadius,
+                               &(phi_spline->invDx), phi_spline->values, rho_spline->values);
+    } else {
+        /*sprintf(tmp, "f.atom");
+        outfile.open(tmp);
+        for(int k = zstart; k < nlocalz + zstart; k++){
+                for(int j = ystart; j < nlocaly + ystart; j++){
+                        for(int i = xstart; i < nlocalx + xstart; i++){
+                                kk = IndexOf3DIndex( i, j, k);
+                                if(x[kk * 3] != -100)
+                                        outfile << f[kk*3] << std::endl;
+                        }
+                }
+        }
+        outfile.close();*/
 
-                            z2 = phiTmp;
-                            z2p = dPhi;
-                            recip = 1.0 / r;
-                            phi = z2 * recip;
-                            phip = z2p * recip - phi * recip;
-                            psip = (df[kk] + df[n]) * dRho + phip;
-                            fpair = -psip * recip;
+        for (int k = zstart; k < nlocalz + zstart; k++) {
+            for (int j = ystart; j < nlocaly + ystart; j++) {
+                for (int i = xstart; i < nlocalx + xstart; i++) {
+                    kk = IndexOf3DIndex(i, j, k);
+                    xtemp = x[kk * 3];
+                    ytemp = x[kk * 3 + 1];
+                    ztemp = x[kk * 3 + 2];
+                    if (xtemp != -100) {
+                        //对晶格点邻居原子遍历
+                        for (neighbourOffsetsIter = NeighbourOffsets.begin();
+                             neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
+                            n = (kk + *neighbourOffsetsIter);
+                            delx = xtemp - x[n * 3];
+                            dely = ytemp - x[n * 3 + 1];
+                            delz = ztemp - x[n * 3 + 2];
+                            dist2 = delx * delx + dely * dely + delz * delz;
+                            if (dist2 < (_cutoffRadius * _cutoffRadius)) {
+                                r = sqrt(dist2);
+                                nr = phi_spline->n;
+                                p = r * phi_spline->invDx + 1.0;
+                                m = static_cast<int> (p);
+                                m = std::max(1, std::min(m, (nr - 1)));
+                                p -= m;
+                                p = std::min(p, 1.0);
+                                spline = phi_spline->spline;
+                                phiTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p + spline[m][6];
+                                dPhi = (spline[m][0] * p + spline[m][1]) * p + spline[m][2];
+                                spline = rho_spline->spline;
+                                dRho = (spline[m][0] * p + spline[m][1]) * p + spline[m][2];
 
-                            f[kk * 3] += delx * fpair;
-                            f[kk * 3 + 1] += dely * fpair;
-                            f[kk * 3 + 2] += delz * fpair;
+                                z2 = phiTmp;
+                                z2p = dPhi;
+                                recip = 1.0 / r;
+                                phi = z2 * recip;
+                                phip = z2p * recip - phi * recip;
+                                psip = (df[kk] + df[n]) * dRho + phip;
+                                fpair = -psip * recip;
 
-                            f[n * 3] -= delx * fpair;
-                            f[n * 3 + 1] -= dely * fpair;
-                            f[n * 3 + 2] -= delz * fpair;
+                                f[kk * 3] += delx * fpair;
+                                f[kk * 3 + 1] += dely * fpair;
+                                f[kk * 3 + 2] += delz * fpair;
+
+                                f[n * 3] -= delx * fpair;
+                                f[n * 3 + 1] -= dely * fpair;
+                                f[n * 3 + 2] -= delz * fpair;
+                            }
                         }
                     }
                 }
             }
         }
-    }
+    } // end of if-isAccelerateSupport.
 
-    /*sprintf(tmp, "f.atom");
-        outfile.open(tmp);
-        for(int i = 0; i < phi_spline->n; i++){
-                outfile << i << " " << phi_spline->spline[i][6] << std::endl;
-        }
-        outfile.close();*/
+    /*sprintf(tmp, "f.atom");  // 2.todo remove start.
+      outfile.open(tmp);
+      for(int i = 0; i < phi_spline->n; i++){
+         outfile << i << " " << phi_spline->spline[i][6] << std::endl;
+      }
+      outfile.close();*/ // 2.todo remove end.
 
     //间隙原子计算嵌入能和对势带来的力
     for (int i = 0; i < nlocalinter; i++) {
@@ -1159,7 +1196,7 @@ void atom::pack_send(int dimension, int n, vector<int> &sendlist, latparticledat
     }
 }
 
-void atom::unpack_recvfirst(int d, int direction, latparticledata *buf, vector<vector<int> > &recvlist) {
+void atom::unpack_recvfirst(int d, int direction, int n, latparticledata *buf, vector<vector<int> > &recvlist) {
     int xstart, ystart, zstart;
     int xstop, ystop, zstop;
     int kk;
@@ -1184,6 +1221,8 @@ void atom::unpack_recvfirst(int d, int direction, latparticledata *buf, vector<v
                     }
                 }
             }
+            if (n != recvlist[0].size()) // todo error.
+                printf("wrong!!!\n");
         } else {
             xstart = 0;
             xstop = lolocalx - loghostx;
@@ -1203,6 +1242,8 @@ void atom::unpack_recvfirst(int d, int direction, latparticledata *buf, vector<v
                     }
                 }
             }
+            if (n != recvlist[1].size()) // todo error handling in dataReuse feature.
+                printf("wrong!!!\n");
         }
     } else if (d == 1) {
         if (direction == 0) {
@@ -1224,6 +1265,8 @@ void atom::unpack_recvfirst(int d, int direction, latparticledata *buf, vector<v
                     }
                 }
             }
+            if (n != recvlist[2].size()) // todo error handling in dataReuse feature.
+                printf("wrong!!!\n");
         } else {
             xstart = 0;
             xstop = nghostx;
@@ -1243,6 +1286,8 @@ void atom::unpack_recvfirst(int d, int direction, latparticledata *buf, vector<v
                     }
                 }
             }
+            if (n != recvlist[3].size()) // todo error handling in dataReuse feature.
+                printf("wrong!!!\n");
         }
     } else {
         if (direction == 0) {
@@ -1264,6 +1309,8 @@ void atom::unpack_recvfirst(int d, int direction, latparticledata *buf, vector<v
                     }
                 }
             }
+            if (n != recvlist[4].size()) // todo error handling in dataReuse feature.
+                printf("wrong!!!\n");
         } else {
             xstart = 0;
             xstop = nghostx;
@@ -1283,6 +1330,8 @@ void atom::unpack_recvfirst(int d, int direction, latparticledata *buf, vector<v
                     }
                 }
             }
+            if (n != recvlist[5].size()) // todo error handling in dataReuse feature.
+                printf("wrong!!!\n");
         }
     }
 }
@@ -1591,6 +1640,8 @@ void atom::print_atom(int rank) {
     int xstart = lolocalx - loghostx;
     int ystart = lolocaly - loghosty;
     int zstart = lolocalz - loghostz;
+    double start, stop;
+    start = MPI_Wtime();
     outfile << "print_atom" << std::endl;
     for (int k = zstart; k < nlocalz + zstart; k++) {
         for (int j = ystart; j < nlocaly + ystart; j++) {
@@ -1605,6 +1656,8 @@ void atom::print_atom(int rank) {
     for (int i = 0; i < nlocalinter; i++) {
         outfile << idinter[i] << " " << xinter[i][0] << " " << xinter[i][1] << " " << xinter[i][2] << std::endl;
     }
+    stop = MPI_Wtime();
+    printf("outtime:%lf\n", stop - start);
     outfile.close();
 }
 
@@ -1632,7 +1685,8 @@ void atom::createphasespace(double factor, int box_x, int box_y, int box_z) {
                 kk = IndexOf3DIndex(i, j, k);
                 id[kk] = ++numbefore;
                 kk *= 3;
-                x[kk] = (lolocalx + (i - xstart)) * (_latticeconst / 2);
+                // x[kk] = (lolocalx + (i - xstart)) * (_latticeconst / 2);
+                x[kk] = (loghostx + i) * 0.5 * (_latticeconst);
                 x[kk + 1] = (lolocaly + (j - ystart)) * _latticeconst + (i % 2) * (_latticeconst / 2);
                 x[kk + 2] = (lolocalz + (k - zstart)) * _latticeconst + (i % 2) * (_latticeconst / 2);
                 v[kk] = (uniform() - 0.5) * factor;

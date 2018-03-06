@@ -9,5 +9,5 @@
 
 // some value definition here.
 #define DIMENSION 3
-
+#define ARCH_SUNWAY // for Sunway SW26010.
 #endif //CRYSTAL_MD_CONFIG_H
