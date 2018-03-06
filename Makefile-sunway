@@ -2,10 +2,10 @@ CC=		mpif90
 CCFLAGS=	-c
 
 SCC=            sw5cc
-SCCFLAGS=       -slave -OPT:unroll_times=0 -c
+SCCFLAGS=       -slave -c
 
 LINK=		mpicxx
-LINKFLAGS=	-hybrid -lm -OPT:unroll_times=0 -o
+LINKFLAGS=	-hybrid -g -lm -o
 
 all:Crystal-MD
 

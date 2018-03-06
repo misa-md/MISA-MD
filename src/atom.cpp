@@ -245,6 +245,7 @@ int atom::decide() {
             }
         }
     }
+
     for (int i = 0; i < nlocalinter; i++) {
         if (xinter[i][0] < _boxlo[0]) {
             xinter[i][0] += _globalLengh[0];
@@ -537,7 +538,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
 
     //本地晶格点计算嵌入能导数
     if (isAccelerateSupport()) {
-        std::cout << "df\n";
+//        std::cout << "df\n";
         accelerateEamDfCalc(&(f_spline->n), rho, df, &_cutoffRadius,
                             &(f_spline->invDx), f_spline->values);
     } else {
@@ -573,7 +574,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
     comm += stoptime - starttime;
 
     if (isAccelerateSupport()) {
-        std::cout << "f\n";
+//        std::cout << "f\n";
         accelerateEamForceCalc(&(phi_spline->n), x, f, df, &_cutoffRadius,
                                &(phi_spline->invDx), phi_spline->values, rho_spline->values);
     } else {
