@@ -179,7 +179,8 @@ void simulation::simulate() {
         printf("loop compute time: %lf\n", computetime);
     }
     //输出原子信息
-    // output();
+//    if(_simstep == 10) // todo output atoms every 10 steps.
+    output();
     allstop = MPI_Wtime();
     alltime = allstop - allstart;
     if (mpiUtils::ownRank == MASTER_PROCESSOR) {

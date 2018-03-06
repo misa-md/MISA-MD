@@ -1,7 +1,9 @@
 #include <iostream>
-#include <math.h>
+#include <cmath>
 #include <fstream>
 #include <iomanip>
+#include <fcntl.h>
+#include <zconf.h>
 #include "atom.h"
 #include "hardware_accelerate.hpp" // use hardware(eg.GPU, MIC,Sunway slave cores.) to achieve calculate accelerating.
 
@@ -1632,33 +1634,69 @@ void atom::setv(int lat[4], double collision_v[3]) {
 }
 
 void atom::print_atom(int rank) {
-    char tmp[20];
-    sprintf(tmp, "dump_%d.atom", rank);
-    ofstream outfile;
-    outfile.open(tmp);
-    int kk;
+    long kk;
     int xstart = lolocalx - loghostx;
     int ystart = lolocaly - loghosty;
     int zstart = lolocalz - loghostz;
     double start, stop;
-    start = MPI_Wtime();
-    outfile << "print_atom" << std::endl;
-    for (int k = zstart; k < nlocalz + zstart; k++) {
-        for (int j = ystart; j < nlocaly + ystart; j++) {
-            for (int i = xstart; i < nlocalx + xstart; i++) {
-                kk = IndexOf3DIndex(i, j, k);
-                if (x[kk * 3] != -100)
-                    outfile << id[kk] << " " << x[kk * 3] << " " << x[kk * 3 + 1] << " " << x[kk * 3 + 2] << std::endl;
+
+    char outfileName[20];
+    sprintf(outfileName, "dump_%d.atom", rank);
+
+    if (true) { // todo copy atoms, then write.
+        double *x_io;
+        x_io = new double[nlocalx * nlocaly * nlocalz * 4];
+        int fd, ret;
+        fd = open(outfileName, O_CREAT | O_TRUNC | O_RDWR, 0700);
+        if (fd == -1) {
+            printf("ERROR,open file %s failed\n", outfileName);
+            exit(1);
+        }
+
+        int n = 0;
+        //outfile << "print_atom" << std::endl;
+        start = MPI_Wtime();
+        for (int k = zstart; k < nlocalz + zstart; k++) {
+            for (int j = ystart; j < nlocaly + ystart; j++) {
+                for (int i = xstart; i < nlocalx + xstart; i++) {
+                    kk = IndexOf3DIndex(i, j, k);
+                    x_io[n * 4] = id[kk];
+                    x_io[n * 4 + 1] = x[kk * 3];
+                    x_io[n * 4 + 2] = x[kk * 3 + 1];
+                    x_io[n * 4 + 3] = x[kk * 3 + 2];
+                    n++;
+                }
             }
         }
+        write(fd, &x_io[0], nlocalx * nlocaly * nlocalz * 4 * sizeof(double));
+        stop = MPI_Wtime();
+        close(fd);
+        printf("time of outputting atoms:%lf\n", stop - start);
+        delete[] x_io;
+    } else {
+        ofstream outfile;
+        outfile.open(outfileName);
+
+        start = MPI_Wtime();
+        outfile << "print atoms" << std::endl;
+        for (int k = zstart; k < nlocalz + zstart; k++) {
+            for (int j = ystart; j < nlocaly + ystart; j++) {
+                for (int i = xstart; i < nlocalx + xstart; i++) {
+                    kk = IndexOf3DIndex(i, j, k);
+                    if (x[kk * 3] != -100)
+                        outfile << id[kk] << " " << x[kk * 3] << " " << x[kk * 3 + 1] << " " << x[kk * 3 + 2]
+                                << std::endl;
+                }
+            }
+        }
+        outfile << "print_inter" << std::endl;
+        for (int i = 0; i < nlocalinter; i++) {
+            outfile << idinter[i] << " " << xinter[i][0] << " " << xinter[i][1] << " " << xinter[i][2] << std::endl;
+        }
+        stop = MPI_Wtime();
+        printf("outtime:%lf\n", stop - start);
+        outfile.close();
     }
-    outfile << "print_inter" << std::endl;
-    for (int i = 0; i < nlocalinter; i++) {
-        outfile << idinter[i] << " " << xinter[i][0] << " " << xinter[i][1] << " " << xinter[i][2] << std::endl;
-    }
-    stop = MPI_Wtime();
-    printf("outtime:%lf\n", stop - start);
-    outfile.close();
 }
 
 int atom::getnlocalatom() {
