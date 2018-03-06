@@ -117,7 +117,10 @@ void simulation::simulate() {
     //开始进行模拟
     double starttime, stoptime;
     double commtime = 0, computetime = 0, comm;
+    double alltime, allstart, allstop;
     int nflag;
+
+    allstart = MPI_Wtime();
     for (_simstep = 0; _simstep < cp->timeSteps; _simstep++) {
         if (_simstep == cp->collisionSteps) {
             _atom->setv(cp->collisionLat, cp->collisionV);
@@ -130,10 +133,17 @@ void simulation::simulate() {
         }
         //先进行求解牛顿运动方程第一步
         _integrator->firststep(_atom);
+
         //判断是否有粒子跑出晶格点
+        if (mpiUtils::ownRank == MASTER_PROCESSOR) {
+            printf("start deciding atoms:\n");
+        }
         nflag = _atom->decide();
 
         //通信ghost区域，交换粒子
+        if (mpiUtils::ownRank == MASTER_PROCESSOR) {
+            printf("start ghost communication:\n");
+        }
         starttime = MPI_Wtime();
         _domaindecomposition->exchangeInter(_atom, _domain);
         _domaindecomposition->borderInter(_atom, _domain);
@@ -142,13 +152,20 @@ void simulation::simulate() {
         commtime += stoptime - starttime;
 
         //计算力
+        if (mpiUtils::ownRank == MASTER_PROCESSOR) {
+            printf("start calculating force:\n");
+        }
         _atom->clear_force();
         starttime = MPI_Wtime();
         _atom->computeEam(_pot, _domaindecomposition, comm);
         stoptime = MPI_Wtime();
         computetime += stoptime - starttime - comm;
         commtime += comm;
+
         //发送力
+        if (mpiUtils::ownRank == MASTER_PROCESSOR) {
+            printf("start sending force:\n");
+        }
         starttime = MPI_Wtime();
         _domaindecomposition->sendforce(_atom);
         stoptime = MPI_Wtime();
@@ -162,6 +179,11 @@ void simulation::simulate() {
     }
     //输出原子信息
     // output();
+    allstop = MPI_Wtime();
+    alltime = allstop - allstart;
+    if (mpiUtils::ownRank == MASTER_PROCESSOR) {
+        printf("total time:%lf\n", alltime);
+    }
 }
 
 void simulation::finalize() {

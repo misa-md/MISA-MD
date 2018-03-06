@@ -65,7 +65,7 @@ atom::atom(double boxlo[3], double boxhi[3], double globalLengh[3],
     nghostinter = 0;
 
     numberoflattice = nghostx * nghosty * nghostz;
-    printf("number:%d, %d\n", numberoflattice, nlocalx * nlocaly * nlocalz);
+//    printf("number:%d, %d, %d, %d, %d\n", numberoflattice, nlocalx, nlocaly, nlocalz, nlocalx*nlocaly*nlocalz);
     id = new unsigned long[numberoflattice];
     type = new int[numberoflattice];
     x = new double[numberoflattice * 3];
@@ -192,7 +192,7 @@ int atom::decide() {
                     dist = (x[kk] - xtemp) * (x[kk] - xtemp);
                     dist += (x[kk + 1] - ytemp) * (x[kk + 1] - ytemp);
                     dist += (x[kk + 2] - ztemp) * (x[kk + 2] - ztemp);
-                    if (dist > (pow(0.2 * _latticeconst, 2.0))/**超过距离则判断为间隙原子*/) {
+                    if (dist > (pow(0.2 * _latticeconst, 2.0))) { /**超过距离则判断为间隙原子*/
                         if (xinter.size() > nlocalinter) {
                             if (idinter.size() > nlocalinter)
                                 idinter[nlocalinter] = id[kk / 3];
@@ -1196,7 +1196,7 @@ void atom::pack_send(int dimension, int n, vector<int> &sendlist, latparticledat
     }
 }
 
-void atom::unpack_recvfirst(int d, int direction, latparticledata *buf, vector<vector<int> > &recvlist) {
+void atom::unpack_recvfirst(int d, int direction, int n, latparticledata *buf, vector<vector<int> > &recvlist) {
     int xstart, ystart, zstart;
     int xstop, ystop, zstop;
     int kk;
@@ -1221,6 +1221,8 @@ void atom::unpack_recvfirst(int d, int direction, latparticledata *buf, vector<v
                     }
                 }
             }
+            if (n != recvlist[0].size()) // todo error.
+                printf("wrong!!!\n");
         } else {
             xstart = 0;
             xstop = lolocalx - loghostx;
@@ -1240,6 +1242,8 @@ void atom::unpack_recvfirst(int d, int direction, latparticledata *buf, vector<v
                     }
                 }
             }
+            if (n != recvlist[1].size()) // todo error handling in dataReuse feature.
+                printf("wrong!!!\n");
         }
     } else if (d == 1) {
         if (direction == 0) {
@@ -1261,6 +1265,8 @@ void atom::unpack_recvfirst(int d, int direction, latparticledata *buf, vector<v
                     }
                 }
             }
+            if (n != recvlist[2].size()) // todo error handling in dataReuse feature.
+                printf("wrong!!!\n");
         } else {
             xstart = 0;
             xstop = nghostx;
@@ -1280,6 +1286,8 @@ void atom::unpack_recvfirst(int d, int direction, latparticledata *buf, vector<v
                     }
                 }
             }
+            if (n != recvlist[3].size()) // todo error handling in dataReuse feature.
+                printf("wrong!!!\n");
         }
     } else {
         if (direction == 0) {
@@ -1301,6 +1309,8 @@ void atom::unpack_recvfirst(int d, int direction, latparticledata *buf, vector<v
                     }
                 }
             }
+            if (n != recvlist[4].size()) // todo error handling in dataReuse feature.
+                printf("wrong!!!\n");
         } else {
             xstart = 0;
             xstop = nghostx;
@@ -1320,6 +1330,8 @@ void atom::unpack_recvfirst(int d, int direction, latparticledata *buf, vector<v
                     }
                 }
             }
+            if (n != recvlist[5].size()) // todo error handling in dataReuse feature.
+                printf("wrong!!!\n");
         }
     }
 }
@@ -1628,6 +1640,8 @@ void atom::print_atom(int rank) {
     int xstart = lolocalx - loghostx;
     int ystart = lolocaly - loghosty;
     int zstart = lolocalz - loghostz;
+    double start, stop;
+    start = MPI_Wtime();
     outfile << "print_atom" << std::endl;
     for (int k = zstart; k < nlocalz + zstart; k++) {
         for (int j = ystart; j < nlocaly + ystart; j++) {
@@ -1642,6 +1656,8 @@ void atom::print_atom(int rank) {
     for (int i = 0; i < nlocalinter; i++) {
         outfile << idinter[i] << " " << xinter[i][0] << " " << xinter[i][1] << " " << xinter[i][2] << std::endl;
     }
+    stop = MPI_Wtime();
+    printf("outtime:%lf\n", stop - start);
     outfile.close();
 }
 
@@ -1669,7 +1685,8 @@ void atom::createphasespace(double factor, int box_x, int box_y, int box_z) {
                 kk = IndexOf3DIndex(i, j, k);
                 id[kk] = ++numbefore;
                 kk *= 3;
-                x[kk] = (lolocalx + (i - xstart)) * (_latticeconst / 2);
+                // x[kk] = (lolocalx + (i - xstart)) * (_latticeconst / 2);
+                x[kk] = (loghostx + i) * 0.5 * (_latticeconst);
                 x[kk + 1] = (lolocaly + (j - ystart)) * _latticeconst + (i % 2) * (_latticeconst / 2);
                 x[kk + 2] = (lolocalz + (k - zstart)) * _latticeconst + (i % 2) * (_latticeconst / 2);
                 v[kk] = (uniform() - 0.5) * factor;

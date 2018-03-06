@@ -129,7 +129,7 @@ void domaindecomposition::exchangeAtomfirst(atom *_atom, domain *domain) {
             MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
 
             //将收到的粒子位置信息加到对应存储位置上
-            _atom->unpack_recvfirst(d, direction, recvbuf[direction], recvlist);
+            _atom->unpack_recvfirst(d, direction, numrecv, recvbuf[direction], recvlist);
 
             // 释放buffer
             delete[] sendbuf[direction];
@@ -514,7 +514,7 @@ void domaindecomposition::sendforce(atom *_atom) {
                       &recv_requests[d][direction]);
         }
         for (direction = LOWER; direction <= HIGHER; direction++) {
-            int numrecv = numPartsToRecv[d][direction];
+            int numrecv = numPartsToRecv[d][direction]; // todo remove not used variable.
             MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
             MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
 
@@ -528,11 +528,11 @@ void domaindecomposition::sendforce(atom *_atom) {
 }
 
 double domaindecomposition::getBoundingBoxMin(int dimension, domain *domain) {
-    return _coords[dimension] * domain->getGlobalLength(dimension) / _gridSize[dimension];
+    return _coords[dimension] * (domain->getGlobalLength(dimension) / _gridSize[dimension]);
 }
 
 double domaindecomposition::getBoundingBoxMax(int dimension, domain *domain) {
-    return (_coords[dimension] + 1) * domain->getGlobalLength(dimension) / _gridSize[dimension];
+    return (_coords[dimension] + 1) * (domain->getGlobalLength(dimension) / _gridSize[dimension]);
 }
 
 void domaindecomposition::setGridSize(int num_procs) {
