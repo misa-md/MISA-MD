@@ -44,8 +44,8 @@ set(SOURCE_FILES
 set(ARCH_SUNWAY_FILES
         arch/sunway/athread_accelerate.h
         arch/sunway/athread_accelerate.cpp
-        arch/sunway/sunway.h
-        arch/sunway/sunway.c
+        arch/sunway/sunway_env.h
+        arch/sunway/sunway_env.cpp
         arch/sunway/sunway_slave.c
         arch/sunway/sunway_slave2.c
         )

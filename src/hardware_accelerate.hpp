@@ -17,7 +17,7 @@
 inline bool isAccelerateSupport() {
 #ifdef ARCH_SUNWAY
     return true; // sunway.
-#endif // todo other hardware.
+#else // todo other hardware.
     return false;
 #endif
 }

@@ -10,7 +10,7 @@
 
 #ifdef ARCH_SUNWAY
 
-#include "arch/sunway/sunway.h"
+#include "arch/sunway/sunway_env.h"
 
 #endif
 
