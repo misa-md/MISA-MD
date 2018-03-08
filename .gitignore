@@ -3,6 +3,7 @@ cmake-build-debug/
 example/*.atom
 example/FeCuNi.eam.alloy
 test/external
+build/
 
 # Sunway TaihuLight
 core.*

@@ -1,8 +1,12 @@
+# configure a header file to pass some of the CMake settings to the source code
+configure_file(
+        "${PROJECT_SOURCE_DIR}/src/pre_config.h.in"
+        "${PROJECT_SOURCE_DIR}/src/pre_config.h"
+)
 
 set(INCLUDE_FILES
         include/args.hpp
         include/toml.hpp)
-
 
 set(HEADER_FILES
         arch_env.hpp
@@ -50,10 +54,33 @@ set(ARCH_SUNWAY_FILES
         arch/sunway/sunway_slave2.c
         )
 
-set(ARCH_FILES ${ARCH_SUNWAY_FILES})
+if (ARCH_SW)
+    set(ARCH_FILES ${ARCH_FILES} ${ARCH_SUNWAY_FILES}) # add sunway architecture files to cmake.
+endif ()
 
 set(MAIN_FILE main.cpp)
 
-add_executable(CrystalMD ${MAIN_FILE} ${INCLUDE_FILES} ${ARCH_FILES} ${HEADER_FILES} ${SOURCE_FILES})
+# set binary path and lib storage path wile compiling process.
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
-target_link_libraries(CrystalMD ${MPI_LIBRARIES}) # mpi lib
+# make crystal-md lib
+set(MD_LIB_NAME crystalmd)
+add_library(${MD_LIB_NAME} STATIC ${INCLUDE_FILES} ${ARCH_FILES} ${HEADER_FILES} ${SOURCE_FILES})
+set(EXTRA_LIBS ${EXTRA_LIBS} ${MD_LIB_NAME})
+
+add_executable(${PROJECT_NAME} ${MAIN_FILE})
+
+target_link_libraries(${PROJECT_NAME} ${EXTRA_LIBS})
+
+
+##########################
+##### install files
+##########################
+install(TARGETS ${PROJECT_NAME} ${MD_LIB_NAME}
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        )
+
+install(FILES ${HEADER_FILES} DESTINATION include) #todo head file
