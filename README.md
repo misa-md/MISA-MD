@@ -31,3 +31,7 @@ cd ../example
 mpiexec -n 100 ./Crystal-MD
 
 ```
+
+### Contributing
+It is meaningful to make commit messages formated, so we use use [AngularJS's commit message convention](https://github.com/angular/angular/blob/master/CONTRIBUTING.md#-commit-message-guidelines) also known as conventional-changelog.  
+You can also use [commitizen tool](https://github.com/commitizen/cz-cli) to generate AngularJS style commit messages.
