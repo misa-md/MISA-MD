@@ -1,4 +1,5 @@
 title = "Crystal-MD Configure File"
+version = "0.2.0"
 #<a href='https://github.com/toml-lang/toml'>toml</a> configure file for Crystal-MD application,
 #designed by <a href='mailto:genshenchu@gmail.com'>genshen</a>"
 
@@ -16,7 +17,6 @@ create_t_set = 600.0   # double type, for create mode
 create_seed = 466953 # int type, for create mode
 #read_phase_filename = ""  # string type, for read mode.
 
-
 [simulation.collision]
 #collision_step [2, 2, 2, 2, 0, 5, 5, 5]
 collision_steps = 2  # unsigned long type
@@ -27,6 +27,12 @@ collision_v = [5.0, 5.0, 5.0]  # double array type
 [simulation.potential_file]
 type = "setfl" # string type
 filename = "FeCuNi.eam.alloy" # string type
+
+
+[output]
+mode = "copy" # output mode,string, "copy"(copy all atoms to memory and then output) or "direct" (output atoms directly) ;
+dump_filename = "md.out" # string,filename or path of dumpped atoms, default value is "crystal_md.out"
+
 
 [author]
 original_author = "BaiHe"

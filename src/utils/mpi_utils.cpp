@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include "mpi_utils.h"
-#include "pre_config.h" //just use  DEV_MODE
+#include "../pre_config.h" //just use  DEV_MODE
 
 using namespace std;
 
