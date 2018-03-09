@@ -1,5 +1,5 @@
 //
-// Created by genshen on 2018-3-9.
+// Created by genshen(genshenchu@gmail.com) on 2018-3-9.
 //
 
 #include <mpi.h>
@@ -11,7 +11,8 @@ ConfigValues::ConfigValues(unsigned int cap) :
         phaseSpace{0, 0, 0}, cutoffRadius(0.0), latticeConst(0.0),
         timeSteps(10), createPhaseMode(true), createTSet(0.0), createSeed(1),
         readPhaseFilename(""), collisionSteps(0),
-        collisionLat{0, 0, 0, 0}, collisionV{0.0, 0.0, 0.0} {}
+        collisionLat{0, 0, 0, 0}, collisionV{0.0, 0.0, 0.0},
+        outputMode(OUTPUT_COPY_MODE), outputDumpFilename(DEFAULT_OUTPUT_DUMP_FILENAME) {}
 
 void ConfigValues::packdata() {
     // append data into buffer.

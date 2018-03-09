@@ -1,5 +1,5 @@
 //
-// Created by gensh on 2017/5/7.
+// Created by genshen(genshenchu@gmail.com) on 2017/5/7.
 //
 
 #include <iostream>

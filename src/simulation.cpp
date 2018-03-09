@@ -16,10 +16,9 @@ simulation::~simulation() {
     delete _atom;
     delete _integrator;
     delete _pot;
-    if (_input != nullptr)
-        delete _input;
-    if (_createatom != nullptr)
-        delete _createatom;
+
+    delete _input; // delete null pointer has no effect.
+    delete _createatom;
 }
 
 void simulation::domainDecomposition() {
@@ -267,7 +266,7 @@ void simulation::initEamPotential(string file_type) {
         sprintf(tmp, "%s", cp->configValues->potentialFilename.c_str());
 
         FILE *potFile = fopen(tmp, "r");
-        if (potFile == NULL) {
+        if (potFile == nullptr) {
             std::cerr << "file not found!" << std::endl;
             exit(1);
         }
@@ -290,11 +289,11 @@ void simulation::initEamPotential(string file_type) {
         char *ptr;
         if ((ptr = strchr(copy, '#'))) *ptr = '\0';
         int n;
-        if (strtok(copy, " \t\n\r\f") == NULL) {
+        if (strtok(copy, " \t\n\r\f") == nullptr) {
             n = 0;
         } else {
             n = 1;
-            while (strtok(NULL, " \t\n\r\f")) n++;
+            while (strtok(nullptr, " \t\n\r\f")) n++;
         }
         int nwords = n;
         delete[] copy;
@@ -304,7 +303,7 @@ void simulation::initEamPotential(string file_type) {
         char **words = new char *[nElems + 1];
         nwords = 0;
         strtok(tmp, " \t\n\r\f");
-        while ((words[nwords++] = strtok(NULL, " \t\n\r\f"))) continue;
+        while ((words[nwords++] = strtok(nullptr, " \t\n\r\f"))) continue;
 
         delete[] words;
         // 第五行
@@ -375,7 +374,7 @@ void simulation::output() {
     int ownrank = 0;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &ownrank);
-    _atom->printAtoms(ownrank, cp->configValues->outputMode);
+    _atom->printAtoms(ownrank, cp->configValues->outputMode,cp->configValues->outputDumpFilename);
 }
 
 void simulation::exit(int exitcode) {

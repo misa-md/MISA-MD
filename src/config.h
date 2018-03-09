@@ -1,5 +1,5 @@
 //
-// Created by gensh(genshenchu@gmail.com) on 2017/4/16.
+// Created by genshen(genshenchu@gmail.com) on 2017/4/16.
 //
 #include "include/toml.hpp"
 #include "config_values.h"
@@ -8,10 +8,6 @@
 #define CRYSTAL_MD_CONFIG_H
 
 using namespace std;
-
-#define OUTPUT_COPY_MODE 0
-#define OUTPUT_DIRECT_MODE 1
-#define DEFAULT_OUTPUT_DUMP_FILENAME "crystal_md.out"
 
 class config {
 public:

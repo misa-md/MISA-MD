@@ -1634,7 +1634,7 @@ void atom::setv(int lat[4], double collision_v[3]) {
     }
 }
 
-void atom::printAtoms(int rank,int outMode) {
+void atom::printAtoms(int rank, int outMode, string filename) {
     long kk;
     int xstart = lolocalx - loghostx;
     int ystart = lolocaly - loghosty;
@@ -1669,7 +1669,7 @@ void atom::printAtoms(int rank,int outMode) {
                 }
             }
         }
-        write(fd, &x_io[0], nlocalx * nlocaly * nlocalz * 4 * sizeof(double));
+        write(fd, x_io, nlocalx * nlocaly * nlocalz * 4 * sizeof(double));
         stop = MPI_Wtime();
         close(fd);
         printf("time of outputting atoms:%lf\n", stop - start);

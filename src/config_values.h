@@ -1,5 +1,5 @@
 //
-// Created by genshen on 2018-3-9.
+// Created by genshen(genshenchu@gmail.com) on 2018-3-9.
 //
 
 #ifndef CRYSTAL_MD_CONFIG_VALUES_H
@@ -11,10 +11,15 @@
 
 using namespace std;
 
+#define OUTPUT_COPY_MODE 0
+#define OUTPUT_DIRECT_MODE 1
+#define DEFAULT_OUTPUT_DUMP_FILENAME "crystal_md.out"
+
 class ConfigValues : public DataPack {
     friend std::ostream &operator<<(std::ostream &os, const ConfigValues &cv);
 
 public:
+    // config values start
     // simulation section
     int phaseSpace[DIMENSION];
     double cutoffRadius;

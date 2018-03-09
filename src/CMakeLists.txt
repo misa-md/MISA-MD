@@ -14,6 +14,7 @@ set(HEADER_FILES
         createatom.h
         crystal_md.h
         config.h
+        config_values.h
         domain.h
         domaindecomposition.h
         eam.h
@@ -26,13 +27,14 @@ set(HEADER_FILES
         pre_config.h
         simulation.h
         utils/data_pack.h
-        utils/mpi_utils.h config_values.cpp config_values.h)
+        utils/mpi_utils.h)
 
 set(SOURCE_FILES
         atom.cpp
         createatom.cpp
         crystal_md.cpp
         config.cpp
+        config_values.cpp
         domain.cpp
         domaindecomposition.cpp
         eam.cpp
@@ -43,7 +45,7 @@ set(SOURCE_FILES
         particledata.cpp
         simulation.cpp
         utils/data_pack.cpp
-        utils/mpi_utils.cpp config_values.cpp config_values.h)
+        utils/mpi_utils.cpp)
 
 # codes runs on sunway.
 set(ARCH_SUNWAY_FILES

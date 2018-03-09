@@ -1,5 +1,5 @@
 //
-// Created by genshen on 2018-3-9.
+// Created by genshen(genshenchu@gmail.com) on 2018-3-9.
 //
 
 #ifndef CRYSTAL_MD_DATA_PACK_H
