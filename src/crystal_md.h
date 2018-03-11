@@ -33,9 +33,9 @@ private:
     int argc = 0;
     char **argv;
 
-    short argvStatus = 0;
-    config *cp;
-    simulation *simu;
+    short mArgvStatus = 0;
+    config *pConfig;
+    simulation *pSimulation;
 
     bool runtimeEnvInitialize();
 };

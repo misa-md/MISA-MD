@@ -97,7 +97,7 @@ void simulation::prepareForStart(int rank) {
     _domaindecomposition->exchangeAtomfirst(_atom, _domain);
     stoptime = MPI_Wtime();
     commtime = stoptime - starttime;
-    _atom->clear_force(); // clear force before running simulation.
+    _atom->clearForce(); // clear force before running simulation.
     starttime = MPI_Wtime();
     _atom->computeEam(_pot, _domaindecomposition, comm);
     stoptime = MPI_Wtime();
@@ -128,7 +128,7 @@ void simulation::simulate() {
             _domaindecomposition->exchangeInter(_atom, _domain);
             _domaindecomposition->borderInter(_atom, _domain);
             _domaindecomposition->exchangeAtom(_atom, _domain);
-            _atom->clear_force();
+            _atom->clearForce();
             _atom->computeEam(_pot, _domaindecomposition, comm);
             _domaindecomposition->sendforce(_atom);
         }
@@ -156,7 +156,7 @@ void simulation::simulate() {
         if (mpiUtils::ownRank == MASTER_PROCESSOR) {
             printf("start calculating force:\n");
         }
-        _atom->clear_force();
+        _atom->clearForce();
         starttime = MPI_Wtime();
         _atom->computeEam(_pot, _domaindecomposition, comm);
         stoptime = MPI_Wtime();

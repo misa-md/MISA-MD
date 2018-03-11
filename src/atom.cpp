@@ -312,7 +312,7 @@ int atom::decide() {
     return nflag;
 }
 
-void atom::clear_force() {
+void atom::clearForce() {
     for (int i = 0; i < numberoflattice * 3; i++) {
         f[i] = 0;
     }

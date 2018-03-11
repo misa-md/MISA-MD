@@ -25,7 +25,7 @@ public :
 
     int decide();
 
-    void clear_force();
+    void clearForce();
 
     void computeEam(eam *pot, domaindecomposition *_domaindecomposition, double &comm);
 

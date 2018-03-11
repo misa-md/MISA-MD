@@ -27,44 +27,44 @@ bool crystalMD::initialize() {
         }
         catch (args::Help) {
             cout << parser;
-            argvStatus = 1;
+            mArgvStatus = 1;
         }
         catch (args::ParseError e) {
             cerr << e.what() << endl;
             cerr << parser;
-            argvStatus = 2;
+            mArgvStatus = 2;
         }
         catch (args::ValidationError e) {
             cerr << e.what() << endl;
             cerr << parser;
-            argvStatus = 2;
+            mArgvStatus = 2;
         }
 
         //check configure
-        if (argvStatus == 0) {
+        if (mArgvStatus == 0) {
             if (conf) {
                 config *cp = config::newInstance(args::get(conf));//initial Config
                 if (cp->hasError) {
                     cerr << cp->errorMessage;
-                    argvStatus = 2;
+                    mArgvStatus = 2;
                 }
             } else {
                 cerr << "Error: The config file is required" << endl;
                 cerr << parser;
-                argvStatus = 2;
+                mArgvStatus = 2;
             }
         }
     } //end if
 
-    // synchronize argvStatus to all processors.
-    MPI_Bcast(&argvStatus, 1, MPI_SHORT, MASTER_PROCESSOR, MPI_COMM_WORLD);
+    // synchronize mArgvStatus to all processors.
+    MPI_Bcast(&mArgvStatus, 1, MPI_SHORT, MASTER_PROCESSOR, MPI_COMM_WORLD);
 
-    if (argvStatus == 0) { //right argv,and right configure
-        cp = config::newInstance();
-        MPI_Bcast(cp, sizeof(*cp), MPI_BYTE, MASTER_PROCESSOR, MPI_COMM_WORLD); // synchronize config information
-        config::onPostMPICopy(cp);
+    if (mArgvStatus == 0) { //right argv,and right configure
+        pConfig = config::newInstance();
+        MPI_Bcast(pConfig, sizeof(*pConfig), MPI_BYTE, MASTER_PROCESSOR, MPI_COMM_WORLD); // synchronize config information
+        config::onPostMPICopy(pConfig);
         //configure check
-        if (cp->configureCheck()) { // configure check passed.
+        if (pConfig->configureCheck()) { // configure check passed.
             return this->runtimeEnvInitialize();
         } else {
             return false;
@@ -83,29 +83,29 @@ bool crystalMD::runtimeEnvInitialize() {
 }
 
 bool crystalMD::prepare() {
-    simu = new simulation();
-    simu->domainDecomposition(); //区域分解
-    simu->createBoxedAndAtoms();
+    pSimulation = new simulation();
+    pSimulation->domainDecomposition(); //区域分解
+    pSimulation->createBoxedAndAtoms();
     return true; //todo
 }
 
 void crystalMD::run() {
-    simu->prepareForStart(mpiUtils::ownRank);
+    pSimulation->prepareForStart(mpiUtils::ownRank);
     if (mpiUtils::ownRank == MASTER_PROCESSOR)
         std::cout << "Start simulation" << std::endl;
     //开始模拟
-    simu->simulate();
+    pSimulation->simulate();
 }
 
 void crystalMD::destroy() {
     if (mpiUtils::ownRank == MASTER_PROCESSOR)
         std::cout << "finalizing simulation" << std::endl;
     //模拟结束
-    simu->finalize();
+    pSimulation->finalize();
 }
 
 void crystalMD::detach() {
-    if (mpiUtils::ownRank == MASTER_PROCESSOR && argvStatus == 0) {
+    if (mpiUtils::ownRank == MASTER_PROCESSOR && mArgvStatus == 0) {
         cout << "app was detached" << endl;
     }
     archEnvFinalize(); // clean architectures environment.

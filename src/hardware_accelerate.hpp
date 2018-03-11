@@ -23,10 +23,10 @@ inline bool isAccelerateSupport() {
 }
 
 // initial for hardware accelerate.
-inline void accelerateInit(int &lolocalx, int &lolocaly, int &lolocalz,
-                           int &nlocalx, int &nlocaly, int &nlocalz,
-                           int &loghostx, int &loghosty, int &loghostz,
-                           int &nghostx, int &nghosty, int &nghostz) {
+inline void accelerateInit(const int &lolocalx, const int &lolocaly, const int &lolocalz,
+                           const int &nlocalx, const int &nlocaly, const int &nlocalz,
+                           const int &loghostx, const int &loghosty, const int &loghostz,
+                           const int &nghostx, const int &nghosty, const int &nghostz) {
 #ifdef ARCH_SUNWAY
     athreadAccelerateInit(lolocalx, lolocaly, lolocalz, nlocalx, nlocaly, nlocalz,
                           loghostx, loghosty, loghostz, nghostx, nghosty, nghostz);
