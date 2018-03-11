@@ -23,10 +23,11 @@ inline bool isAccelerateSupport() {
 }
 
 // initial for hardware accelerate.
-inline void accelerateInit(const int &lolocalx, const int &lolocaly, const int &lolocalz,
-                           const int &nlocalx, const int &nlocaly, const int &nlocalz,
-                           const int &loghostx, const int &loghosty, const int &loghostz,
-                           const int &nghostx, const int &nghosty, const int &nghostz) {
+// about const &, see: https://stackoverflow.com/questions/9637856/why-is-const-int-faster-than-const-int/9637951#9637951
+inline void accelerateInit(const int lolocalx, const int lolocaly, const int lolocalz,
+                           const int nlocalx, const int nlocaly, const int nlocalz,
+                           const int loghostx, const int loghosty, const int loghostz,
+                           const int nghostx, const int nghosty, const int nghostz) {
 #ifdef ARCH_SUNWAY
     athreadAccelerateInit(lolocalx, lolocaly, lolocalz, nlocalx, nlocaly, nlocalz,
                           loghostx, loghosty, loghostz, nghostx, nghosty, nghostz);

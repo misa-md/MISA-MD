@@ -13,8 +13,8 @@
 #define IQ 127773
 #define IR 2836
 
-atom::atom(double boxlo[3], double boxhi[3], double globalLengh[3],
-           double boundingBoxMin[3], double boundingBoxMax[3], double ghostlength, double latticeconst,
+atom::atom(const double boxlo[3], const double boxhi[3], const double globalLengh[3],
+           const double boundingBoxMin[3], const double boundingBoxMax[3], double ghostlength, double latticeconst,
            double cutoffRadius, int seed) {
     _latticeconst = latticeconst;
     for (int d = 0; d < 3; d++) {

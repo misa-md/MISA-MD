@@ -1,22 +1,23 @@
-#ifndef ATOM_H
-#define ATOM_H
+#ifndef CRYSTAL_MD_ATOM_H
+#define CRYSTAL_MD_ATOM_H
 
 class domaindecomposition;
+
+#include <cstdio>
+#include <vector>
 
 #include "domaindecomposition.h"
 #include "eam.h"
 #include "particledata.h"
 #include "latparticledata.h"
 
-#include <stdio.h>
-#include <vector>
-
 using namespace std;
 
 class atom {
 public :
-    atom(double boxlo[3], double boxhi[3], double globalLengh[3],
-         double boundingBoxMin[3], double boundingBoxMax[3], double ghostlength, double latticeconst,
+    atom(const double boxlo[3], const double boxhi[3], const double globalLengh[3],
+         const double boundingBoxMin[3], const double boundingBoxMax[3],
+         double ghostlength, double latticeconst,
          double cutoffRadius, int seed);
 
     ~atom();
@@ -118,13 +119,13 @@ private:
     double _latticeconst;
     int _seed;
 
-    int nlocalx, nlocaly, nlocalz;               //本地box内晶格数
-    int nghostx, nghosty, nghostz;               //ghost区域+local区域内晶格数
+    int nlocalx, nlocaly, nlocalz; // 本地box内晶格数
+    int nghostx, nghosty, nghostz; // ghost区域+local区域内晶格数
 
     int lolocalx, lolocaly, lolocalz;
-    int loghostx, loghosty, loghostz;            //本地对应的全局晶格坐标
+    int loghostx, loghosty, loghostz; // 本地对应的全局晶格坐标
 
-    vector<long int> NeighbourOffsets;               //邻居粒子偏移量
+    vector<long int> NeighbourOffsets; // 邻居粒子偏移量
 
     //晶格点原子用数组存储其信息
     unsigned long *id;
@@ -133,14 +134,14 @@ private:
 
     vector<unsigned long> idinter;
     vector<int> typeinter;
-    vector<vector<double>> xinter;                    //间隙原子坐标
-    vector<vector<double>> vinter;                    //间隙原子速度
-    vector<vector<double>> finter;                    //间隙原子力
+    vector<vector<double>> xinter; // 间隙原子坐标
+    vector<vector<double>> vinter; // 间隙原子速度
+    vector<vector<double>> finter; // 间隙原子力
     vector<double> rhointer;
     vector<double> dfinter;
-    int nlocalinter, nghostinter;                     //本地间隙原子数和ghost间隙原子数
+    int nlocalinter, nghostinter; // 本地间隙原子数和ghost间隙原子数
 
     vector<unsigned long> interbuf;
 };
 
-#endif
+#endif // CRYSTAL_MD_ATOM_H

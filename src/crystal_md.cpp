@@ -1,8 +1,7 @@
 #include <iostream>
 #include "crystal_md.h"
-#include "config.h"
 #include "mpi_utils.h"
-#include "include/args.hpp"
+#include "args.hpp"
 #include "arch_env.hpp"
 
 //

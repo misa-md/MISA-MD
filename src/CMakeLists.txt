@@ -4,9 +4,11 @@ configure_file(
         "${PROJECT_SOURCE_DIR}/src/pre_config.h"
 )
 
-set(INCLUDE_FILES
-        include/args.hpp
-        include/toml.hpp)
+include_directories(${PROJECT_SOURCE_DIR}/vendor/include)
+
+#set(INCLUDE_FILES
+#        args.hpp
+#        toml.hpp)
 
 set(HEADER_FILES
         arch_env.hpp
@@ -66,18 +68,19 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 # make crystal-md lib
 set(MD_LIB_NAME crystalmd)
-add_library(${MD_LIB_NAME} STATIC ${INCLUDE_FILES} ${ARCH_FILES} ${HEADER_FILES} ${SOURCE_FILES})
+add_library(${MD_LIB_NAME} STATIC ${ARCH_FILES} ${HEADER_FILES} ${SOURCE_FILES})
 set(EXTRA_LIBS ${EXTRA_LIBS} ${MD_LIB_NAME})
 
-add_executable(${PROJECT_NAME} ${MAIN_FILE})
+set(PROGRAM_NAME ${PROJECT_NAME})
+add_executable(${PROGRAM_NAME} ${MAIN_FILE})
 
-target_link_libraries(${PROJECT_NAME} ${EXTRA_LIBS})
+target_link_libraries(${PROGRAM_NAME} ${EXTRA_LIBS})
 
 
 ##########################
 ##### install files
 ##########################
-install(TARGETS ${PROJECT_NAME} ${MD_LIB_NAME}
+install(TARGETS ${PROGRAM_NAME} ${MD_LIB_NAME}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
