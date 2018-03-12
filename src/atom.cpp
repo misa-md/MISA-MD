@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <zconf.h>
 #include "atom.h"
+#include "config.h"
 #include "hardware_accelerate.hpp" // use hardware(eg.GPU, MIC,Sunway slave cores.) to achieve calculate accelerating.
 
 #define IA 16807
@@ -1633,7 +1634,7 @@ void atom::setv(int lat[4], double collision_v[3]) {
     }
 }
 
-void atom::print_atom(int rank) {
+void atom::printAtoms(int rank, int outMode, string filename) {
     long kk;
     int xstart = lolocalx - loghostx;
     int ystart = lolocaly - loghosty;
@@ -1643,7 +1644,7 @@ void atom::print_atom(int rank) {
     char outfileName[20];
     sprintf(outfileName, "dump_%d.atom", rank);
 
-    if (true) { // todo copy atoms, then write.
+    if (outMode == OUTPUT_COPY_MODE) { // todo copy atoms, then write.
         double *x_io;
         x_io = new double[nlocalx * nlocaly * nlocalz * 4];
         int fd, ret;
@@ -1668,7 +1669,7 @@ void atom::print_atom(int rank) {
                 }
             }
         }
-        write(fd, &x_io[0], nlocalx * nlocaly * nlocalz * 4 * sizeof(double));
+        write(fd, x_io, nlocalx * nlocaly * nlocalz * 4 * sizeof(double));
         stop = MPI_Wtime();
         close(fd);
         printf("time of outputting atoms:%lf\n", stop - start);

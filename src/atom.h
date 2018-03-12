@@ -78,7 +78,7 @@ public :
 
     void unpack_force(int d, int direction, double *buf, vector<vector<int>> &sendlist);
 
-    void print_atom(int rank);
+    void printAtoms(int rank, int outMode,string filename);
 
     void setv(int lat[4], double collision_v[3]);
 

@@ -1,6 +1,6 @@
 #include <iostream>
 #include "simulation.h"
-#include "mpi_utils.h"
+#include "utils/mpi_utils.h"
 #include "config.h"
 #include "hardware_accelerate.hpp"
 
@@ -16,10 +16,9 @@ simulation::~simulation() {
     delete _atom;
     delete _integrator;
     delete _pot;
-    if (_input != nullptr)
-        delete _input;
-    if (_createatom != nullptr)
-        delete _createatom;
+
+    delete _input; // delete null pointer has no effect.
+    delete _createatom;
 }
 
 void simulation::domainDecomposition() {
@@ -52,9 +51,10 @@ void simulation::createBoxedAndAtoms() {
 
     double boxlo[3], boxhi[3], globalLength[3];
     boxlo[0] = boxlo[1] = boxlo[2] = 0;
-    globalLength[0] = boxhi[0] = cp->phaseSpace[0] * cp->latticeConst; //box_x个单位长度(单位长度即latticeconst)
-    globalLength[1] = boxhi[1] = cp->phaseSpace[1] * cp->latticeConst;
-    globalLength[2] = boxhi[2] = cp->phaseSpace[2] * cp->latticeConst;
+    globalLength[0] = boxhi[0] =
+            cp->configValues->phaseSpace[0] * cp->configValues->latticeConst; //box_x个单位长度(单位长度即latticeconst)
+    globalLength[1] = boxhi[1] = cp->configValues->phaseSpace[1] * cp->configValues->latticeConst;
+    globalLength[2] = boxhi[2] = cp->configValues->phaseSpace[2] * cp->configValues->latticeConst;
 
     _domain->setGlobalLength(0, globalLength[0]);
     _domain->setGlobalLength(1, globalLength[1]);
@@ -65,14 +65,16 @@ void simulation::createBoxedAndAtoms() {
         bBoxMin[i] = _domaindecomposition->getBoundingBoxMin(i, _domain);
         bBoxMax[i] = _domaindecomposition->getBoundingBoxMax(i, _domain);
     }
-    ghostLength = cp->cutoffRadius;
+    ghostLength = cp->configValues->cutoffRadius;
     _atom = new atom(boxlo, boxhi, globalLength, bBoxMin, bBoxMax, ghostLength,
-                     cp->latticeConst, cp->cutoffRadius, cp->createSeed);
+                     cp->configValues->latticeConst, cp->configValues->cutoffRadius,
+                     cp->configValues->createSeed);
     mass = 55.845;
 
-    if (cp->createPhaseMode) {  //创建原子坐标、速度信息
-        _createatom = new createatom(cp->createTSet);
-        _createatom->createphasespace(_atom, mass, cp->phaseSpace[0], cp->phaseSpace[1], cp->phaseSpace[2]);
+    if (cp->configValues->createPhaseMode) {  //创建原子坐标、速度信息
+        _createatom = new createatom(cp->configValues->createTSet);
+        _createatom->createphasespace(_atom, mass, cp->configValues->phaseSpace[0],
+                                      cp->configValues->phaseSpace[1], cp->configValues->phaseSpace[2]);
     } else { //读取原子坐标、速度信息
         _input = new input();
         _input->readPhaseSpace(_atom);
@@ -86,7 +88,7 @@ void simulation::prepareForStart(int rank) {
     _pot = new eam();
     //读取势函数文件
     if (rank == 0) {
-        initEamPotential(cp->potentialFileType);
+        initEamPotential(cp->configValues->potentialFileType);
     }
     eamBCastPotential(rank);
     eamPotentialInterpolate();
@@ -122,9 +124,9 @@ void simulation::simulate() {
     int nflag;
 
     allstart = MPI_Wtime();
-    for (_simstep = 0; _simstep < cp->timeSteps; _simstep++) {
-        if (_simstep == cp->collisionSteps) {
-            _atom->setv(cp->collisionLat, cp->collisionV);
+    for (_simstep = 0; _simstep < cp->configValues->timeSteps; _simstep++) {
+        if (_simstep == cp->configValues->collisionSteps) {
+            _atom->setv(cp->configValues->collisionLat, cp->configValues->collisionV);
             _domaindecomposition->exchangeInter(_atom, _domain);
             _domaindecomposition->borderInter(_atom, _domain);
             _domaindecomposition->exchangeAtom(_atom, _domain);
@@ -200,7 +202,7 @@ void simulation::finalize() {
 void simulation::initEamPotential(string file_type) {
     if (file_type == "funcfl") {
         char tmp[4096];
-        sprintf(tmp, "%s", cp->potentialFilename.c_str());
+        sprintf(tmp, "%s", cp->configValues->potentialFilename.c_str());
         FILE *potFile = fopen(tmp, "r");
         if (potFile == nullptr) {
             std::cerr << "file not found" << std::endl;
@@ -261,10 +263,10 @@ void simulation::initEamPotential(string file_type) {
         delete[] buf;
     } else if (string(file_type) == string("setfl")) {
         char tmp[4096];
-        sprintf(tmp, "%s", cp->potentialFilename.c_str());
+        sprintf(tmp, "%s", cp->configValues->potentialFilename.c_str());
 
         FILE *potFile = fopen(tmp, "r");
-        if (potFile == NULL) {
+        if (potFile == nullptr) {
             std::cerr << "file not found!" << std::endl;
             exit(1);
         }
@@ -287,11 +289,11 @@ void simulation::initEamPotential(string file_type) {
         char *ptr;
         if ((ptr = strchr(copy, '#'))) *ptr = '\0';
         int n;
-        if (strtok(copy, " \t\n\r\f") == NULL) {
+        if (strtok(copy, " \t\n\r\f") == nullptr) {
             n = 0;
         } else {
             n = 1;
-            while (strtok(NULL, " \t\n\r\f")) n++;
+            while (strtok(nullptr, " \t\n\r\f")) n++;
         }
         int nwords = n;
         delete[] copy;
@@ -301,7 +303,7 @@ void simulation::initEamPotential(string file_type) {
         char **words = new char *[nElems + 1];
         nwords = 0;
         strtok(tmp, " \t\n\r\f");
-        while ((words[nwords++] = strtok(NULL, " \t\n\r\f"))) continue;
+        while ((words[nwords++] = strtok(nullptr, " \t\n\r\f"))) continue;
 
         delete[] words;
         // 第五行
@@ -372,7 +374,7 @@ void simulation::output() {
     int ownrank = 0;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &ownrank);
-    _atom->print_atom(ownrank);
+    _atom->printAtoms(ownrank, cp->configValues->outputMode,cp->configValues->outputDumpFilename);
 }
 
 void simulation::exit(int exitcode) {

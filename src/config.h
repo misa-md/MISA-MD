@@ -1,10 +1,11 @@
 //
-// Created by gensh(genshenchu@gmail.com) on 2017/4/16.
+// Created by genshen(genshenchu@gmail.com) on 2017/4/16.
 //
-#include "pre_config.h"
+#include "toml.hpp"
+#include "config_values.h"
 
-#ifndef TFMM_CONFIG_H
-#define TFMM_CONFIG_H
+#ifndef CRYSTAL_MD_CONFIG_H
+#define CRYSTAL_MD_CONFIG_H
 
 using namespace std;
 
@@ -15,39 +16,35 @@ public:
     bool hasError;
     string errorMessage;
 
-    //config values
-    int phaseSpace[DIMENSION];
-    double cutoffRadius;
-    double latticeConst;
-    unsigned long timeSteps;
+    // config values
+    ConfigValues *configValues;
 
-    bool createPhaseMode;
-    double createTSet;
-    int createSeed;
-    string readPhaseFilename; // for read mode
-
-    unsigned long collisionSteps;
-    int collisionLat[4];
-    double collisionV[DIMENSION];
-
-    string potentialFileType;
-    string potentialFilename;
-    //config values ends
-
-    static config *newInstance(string configureFilePath);
+    static config *newInstance(const string &configureFilePath);
 
     static config *newInstance();
 
-    static void onPostMPICopy(config *);
-
     bool configureCheck();
 
-private:
-    static config *m_pInstance;
+    void sync(); // Synchronize configure information to all processors.
 
-    config(string configurePath);
-    void resolveConfig(string configurePath);
+private:
+
+    // when sync, some data like string is first copied here; then use MPI_Bcast to send whole class to other processors,
+    // and the other processors resume data (e.g. string) from buffer array.
+//    char buffer[512];
+
+    static config *m_pInstance; // stored in static area.
+
+    config(const string &configurePath);
+
+    void resolveConfig(const string &configurePath);
+
+    // resolve "simulation" section of config file.
+    void resolveConfigSimulation(const toml::Value &v);
+
+    // resolve "output" section of config file.
+    void resolveConfigOutput(const toml::Value &v);
 };
 
 
-#endif //TFMM_CONFIG_H
+#endif //CRYSTAL_MD_CONFIG_H

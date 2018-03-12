@@ -1,10 +1,10 @@
 //
-// Created by gensh on 2017/5/7.
+// Created by genshen(genshenchu@gmail.com) on 2017/5/7.
 //
 
 #include <iostream>
 #include "mpi_utils.h"
-#include "pre_config.h" //just use  DEV_MODE
+#include "../pre_config.h" //just use  DEV_MODE
 
 using namespace std;
 

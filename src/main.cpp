@@ -1,5 +1,5 @@
 //
-// Created by gensh(genshenchu@gmail.com)  on 2017/4/15.
+// Created by genshen(genshenchu@gmail.com)  on 2017/4/15.
 //
 
 #include "crystal_md.h"

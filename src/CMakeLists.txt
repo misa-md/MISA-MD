@@ -16,24 +16,27 @@ set(HEADER_FILES
         createatom.h
         crystal_md.h
         config.h
+        config_values.h
         domain.h
         domaindecomposition.h
         eam.h
+        hardware_accelerate.hpp
         input.h
         integrator.h
         InterpolationObject.h
         latparticledata.h
-        mpi_utils.h
         particledata.h
         pre_config.h
         simulation.h
-        hardware_accelerate.hpp)
+        utils/data_pack.h
+        utils/mpi_utils.h)
 
 set(SOURCE_FILES
         atom.cpp
         createatom.cpp
         crystal_md.cpp
         config.cpp
+        config_values.cpp
         domain.cpp
         domaindecomposition.cpp
         eam.cpp
@@ -41,10 +44,10 @@ set(SOURCE_FILES
         integrator.cpp
         InterpolationObject.cpp
         latparticledata.cpp
-        mpi_utils.cpp
         particledata.cpp
         simulation.cpp
-        )
+        utils/data_pack.cpp
+        utils/mpi_utils.cpp)
 
 # codes runs on sunway.
 set(ARCH_SUNWAY_FILES

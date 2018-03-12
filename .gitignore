@@ -1,9 +1,9 @@
 .idea/
 cmake-build-debug/
+build/
 example/*.atom
 example/FeCuNi.eam.alloy
 test/external
-build/
 
 # Sunway TaihuLight
 core.*

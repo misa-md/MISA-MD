@@ -1,6 +1,6 @@
 #include <iostream>
 #include "crystal_md.h"
-#include "mpi_utils.h"
+#include "utils/mpi_utils.h"
 #include "args.hpp"
 #include "arch_env.hpp"
 
@@ -44,24 +44,31 @@ bool crystalMD::initialize() {
             if (conf) {
                 config *cp = config::newInstance(args::get(conf));//initial Config
                 if (cp->hasError) {
-                    cerr << cp->errorMessage;
+                    cerr << cp->errorMessage << endl;
                     mArgvStatus = 2;
                 }
+
             } else {
                 cerr << "Error: The config file is required" << endl;
                 cerr << parser;
                 mArgvStatus = 2;
             }
         }
-    } //end if
+    } // end if
 
     // synchronize mArgvStatus to all processors.
     MPI_Bcast(&mArgvStatus, 1, MPI_SHORT, MASTER_PROCESSOR, MPI_COMM_WORLD);
 
     if (mArgvStatus == 0) { //right argv,and right configure
         pConfig = config::newInstance();
-        MPI_Bcast(pConfig, sizeof(*pConfig), MPI_BYTE, MASTER_PROCESSOR, MPI_COMM_WORLD); // synchronize config information
-        config::onPostMPICopy(pConfig);
+        pConfig->sync(); // Synchronize configure information to all processors.
+
+#ifdef DEV_MODE
+        // print configure.
+        if (mpiUtils::ownRank == MASTER_PROCESSOR) {
+            cout << *(pConfig->configValues);
+        }
+#endif
         //configure check
         if (pConfig->configureCheck()) { // configure check passed.
             return this->runtimeEnvInitialize();
