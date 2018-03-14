@@ -9,8 +9,7 @@ int main(int argc, char *argv[]) {
     // global setup...
 #ifdef TEST_MPI_ENABLE_FLAG
     // Initialize the MPI environment.
-    MPI_Init(&argc, &argv);
-    std::cout << "initialed mpi." << std::endl;
+    mpiUtils::initialMPI();
 #endif  // end TEST_MPI_ENABLE_FLAG
 
     int result = session.run(argc, argv);
@@ -18,7 +17,7 @@ int main(int argc, char *argv[]) {
 // global clean-up...
 #ifdef TEST_MPI_ENABLE_FLAG
     // Finalize the MPI environment.
-    MPI_Finalize();
+    mpiUtils::finishMPI();
 #endif  // end TEST_MPI_ENABLE_FLAG
 
     return result;

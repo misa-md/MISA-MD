@@ -16,7 +16,7 @@
 
 #ifdef TEST_MPI_ENABLE_FLAG
 
-#include "mpi.h"
+#include "utils/mpi_utils.h"
 
 #endif  // end TEST_MPI_ENABLE_FLAG
 

@@ -5,11 +5,13 @@ class domaindecomposition;
 
 #include <cstdio>
 #include <vector>
-
 #include "domaindecomposition.h"
 #include "eam.h"
 #include "particledata.h"
 #include "latparticledata.h"
+#include "utils/io_writer.h"
+
+#define COORDINATE_ATOM_OUT_BOX (-100)
 
 using namespace std;
 
@@ -78,7 +80,7 @@ public :
 
     void unpack_force(int d, int direction, double *buf, vector<vector<int>> &sendlist);
 
-    void printAtoms(int rank, int outMode,string filename);
+    void printAtoms(int rank, int outMode, IOWriter *writer);
 
     void setv(int lat[4], double collision_v[3]);
 

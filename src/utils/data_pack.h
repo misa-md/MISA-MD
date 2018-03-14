@@ -7,6 +7,7 @@
 
 #include <mpi.h>
 #include <string>
+#include "data_def.h"
 
 /**
  * a util for mpi data pack(including packing std::string),
@@ -20,8 +21,6 @@
  * pack->releasePackBuffer(); // release buffer.
  *
  */
-
-typedef unsigned char byte;
 
 class DataPack {
 public:

@@ -1,19 +1,9 @@
 cmake_minimum_required(VERSION 3.6)
 project(CrystalMD)
 
-# change to mpicc and mpicxx
-#set(CMAKE_C_COMPILER mpicc -cc=gcc -cxx=g++)
-#set(CMAKE_CXX_COMPILER mpicxx -cc=gcc -cxx=g++)
-
 set(CMAKE_CXX_STANDARD 11)
 
-option(OpenMP_ENABLE_FLAG "Use OpenMP" OFF) #change this flag to OFF to disable OpenMP
-option(MPI_ENABLE_FLAG "Use MPI library" ON) #change this flag to false to disable mpi
-option(TEST_ENABLE_FLAG "Enable test" ON) # enable test
-option(TEST_MPI_ENABLE_FLAG "Enable MPI in test" ON) # enable mpi in test, its value depends on option MPI_ENABLE_FLAG.
-
-## architecture ralated values.
-option(ARCH_SW "Enable sunway athread" OFF) # enable sunway athread if its running on sunway system.
+include(config.cmake)
 
 ################################
 # MPI and OpenMP
@@ -55,6 +45,14 @@ add_subdirectory(src)
 if (TEST_ENABLE_FLAG)
     MESSAGE(STATUS "TEST is enabled")
     add_subdirectory(test)
+endif ()
+
+##############################
+## tools
+##############################
+if (TOOLS_BUILD_ENABLE_FLAG)
+    MESSAGE(STATUS "Tools Building is enabled")
+    add_subdirectory(tools)
 endif ()
 
 

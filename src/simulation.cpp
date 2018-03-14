@@ -371,10 +371,10 @@ void simulation::eamPotentialInterpolate() {
 }
 
 void simulation::output() {
-    int ownrank = 0;
-
-    MPI_Comm_rank(MPI_COMM_WORLD, &ownrank);
-    _atom->printAtoms(ownrank, cp->configValues->outputMode,cp->configValues->outputDumpFilename);
+    if (writer == nullptr) {
+        writer = new IOWriter(cp->configValues->outputDumpFilename);
+    }
+    _atom->printAtoms(mpiUtils::ownRank, cp->configValues->outputMode, writer);
 }
 
 void simulation::exit(int exitcode) {

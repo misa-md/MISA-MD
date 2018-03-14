@@ -10,6 +10,7 @@
 #include "input.h"
 #include "eam.h"
 #include "config.h"
+#include "utils/io_writer.h"
 
 class simulation {
 public:
@@ -44,6 +45,7 @@ private:
     unsigned long _simstep;             /**< 程序运行实际时间步 */
 
     config *cp;
+    IOWriter *writer = nullptr; // io writer for writing a shared file using mpi-IO lib.
 
     domaindecomposition *_domaindecomposition; //仅rank==0的进程有效
     domain *_domain;  //仅rank==0的进程有效

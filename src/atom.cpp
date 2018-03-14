@@ -2,8 +2,6 @@
 #include <cmath>
 #include <fstream>
 #include <iomanip>
-#include <fcntl.h>
-#include <zconf.h>
 #include "atom.h"
 #include "config.h"
 #include "hardware_accelerate.hpp" // use hardware(eg.GPU, MIC,Sunway slave cores.) to achieve calculate accelerating.
@@ -188,7 +186,7 @@ int atom::decide() {
         for (int j = ystart; j < nlocaly + ystart; j++) {
             for (int i = xstart; i < nlocalx + xstart; i++) {
                 kk = IndexOf3DIndex(i, j, k) * 3;
-                if (x[kk] != -100) {
+                if (x[kk] != COORDINATE_ATOM_OUT_BOX) {
                     xtemp = (i + loghostx) * 0.5 * _latticeconst;
                     ytemp = (j + loghosty + (i % 2) * 0.5) * _latticeconst;
                     ztemp = (k + loghostz + (i % 2) * 0.5) * _latticeconst;
@@ -236,9 +234,9 @@ int atom::decide() {
                             dfinter.resize(nlocalinter);
                         }
 
-                        x[kk] = -100;
-                        x[kk + 1] = -100;
-                        x[kk + 2] = -100;
+                        x[kk] = COORDINATE_ATOM_OUT_BOX;
+                        x[kk + 1] = COORDINATE_ATOM_OUT_BOX;
+                        x[kk + 2] = COORDINATE_ATOM_OUT_BOX;
                         v[kk] = 0;
                         v[kk + 1] = 0;
                         v[kk + 2] = 0;
@@ -286,7 +284,7 @@ int atom::decide() {
             && k <= (nlocaly + (ceil(_cutoffRadius / _latticeconst) + 1))
             && l <= (nlocalz + (ceil(_cutoffRadius / _latticeconst) + 1))) {
             j = IndexOf3DIndex(j, k, l) * 3;
-            if (x[j] == -100) {
+            if (x[j] == COORDINATE_ATOM_OUT_BOX) {
                 id[j / 3] = idinter[i];
                 type[j / 3] = typeinter[i];
                 x[j] = xinter[i][0];
@@ -362,7 +360,7 @@ void atom::computeEam(eam *pot, domaindecomposition *_domaindecomposition, doubl
                     xtemp = x[kk * 3];
                     ytemp = x[kk * 3 + 1];
                     ztemp = x[kk * 3 + 2];
-                    if (xtemp != -100) {
+                    if (xtemp != COORDINATE_ATOM_OUT_BOX) {
                         //对晶格点邻居原子遍历
                         for (neighbourOffsetsIter = NeighbourOffsets.begin();
                              neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
@@ -509,7 +507,7 @@ void atom::computeEam(eam *pot, domaindecomposition *_domaindecomposition, doubl
             for(int j = ystart; j < nlocaly + ystart; j++){
                     for(int i = xstart; i < nlocalx + xstart; i++){
                             kk = IndexOf3DIndex( i, j, k);
-                            if(x[kk * 3] != -100)
+                            if(x[kk * 3] != COORDINATE_ATOM_OUT_BOX)
                                     outfile << rho[kk] << std::endl;
                     }
             }
@@ -532,7 +530,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             for(int j = ystart; j < nlocaly + ystart; j++){
                     for(int i = xstart; i < nlocalx + xstart; i++){
                             kk = IndexOf3DIndex( i, j, k);
-                            if(x[kk * 3] != -100)
+                            if(x[kk * 3] != COORDINATE_ATOM_OUT_BOX)
                                     outfile << rho[kk] << std::endl;
                     }
             }
@@ -587,7 +585,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                 for(int j = ystart; j < nlocaly + ystart; j++){
                         for(int i = xstart; i < nlocalx + xstart; i++){
                                 kk = IndexOf3DIndex( i, j, k);
-                                if(x[kk * 3] != -100)
+                                if(x[kk * 3] != COORDINATE_ATOM_OUT_BOX)
                                         outfile << f[kk*3] << std::endl;
                         }
                 }
@@ -601,7 +599,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                     xtemp = x[kk * 3];
                     ytemp = x[kk * 3 + 1];
                     ztemp = x[kk * 3 + 2];
-                    if (xtemp != -100) {
+                    if (xtemp != COORDINATE_ATOM_OUT_BOX) {
                         //对晶格点邻居原子遍历
                         for (neighbourOffsetsIter = NeighbourOffsets.begin();
                              neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
@@ -1557,7 +1555,7 @@ void atom::computefirst(double dtInv2m, double dt) {
         for (int j = ystart; j < nlocaly + ystart; j++) {
             for (int i = xstart; i < nlocalx + xstart; i++) {
                 kk = IndexOf3DIndex(i, j, k) * 3;
-                if (x[kk] != -100) {
+                if (x[kk] != COORDINATE_ATOM_OUT_BOX) {
                     v[kk] = v[kk] + dtInv2m * f[kk];
                     x[kk] += dt * v[kk];
                     v[kk + 1] = v[kk + 1] + dtInv2m * f[kk + 1];
@@ -1634,7 +1632,7 @@ void atom::setv(int lat[4], double collision_v[3]) {
     }
 }
 
-void atom::printAtoms(int rank, int outMode, string filename) {
+void atom::printAtoms(int rank, int outMode, IOWriter *writer) {
     long kk;
     int xstart = lolocalx - loghostx;
     int ystart = lolocaly - loghosty;
@@ -1645,14 +1643,13 @@ void atom::printAtoms(int rank, int outMode, string filename) {
     sprintf(outfileName, "dump_%d.atom", rank);
 
     if (outMode == OUTPUT_COPY_MODE) { // todo copy atoms, then write.
-        double *x_io;
-        x_io = new double[nlocalx * nlocaly * nlocalz * 4];
-        int fd, ret;
-        fd = open(outfileName, O_CREAT | O_TRUNC | O_RDWR, 0700);
-        if (fd == -1) {
-            printf("ERROR,open file %s failed\n", outfileName);
-            exit(1);
-        }
+        double *x_io = new double[nlocalx * nlocaly * nlocalz * 4];
+//        int fd, ret;
+//        fd = open(outfileName, O_CREAT | O_TRUNC | O_RDWR, 0700);
+//        if (fd == -1) {
+//            printf("ERROR,open file %s failed\n", outfileName);
+//            exit(1);
+//        }
 
         int n = 0;
         //outfile << "print_atom" << std::endl;
@@ -1669,9 +1666,8 @@ void atom::printAtoms(int rank, int outMode, string filename) {
                 }
             }
         }
-        write(fd, x_io, nlocalx * nlocaly * nlocalz * 4 * sizeof(double));
+        writer->write(x_io, nlocalx * nlocaly * nlocalz * 4);
         stop = MPI_Wtime();
-        close(fd);
         printf("time of outputting atoms:%lf\n", stop - start);
         delete[] x_io;
     } else {
@@ -1684,7 +1680,7 @@ void atom::printAtoms(int rank, int outMode, string filename) {
             for (int j = ystart; j < nlocaly + ystart; j++) {
                 for (int i = xstart; i < nlocalx + xstart; i++) {
                     kk = IndexOf3DIndex(i, j, k);
-                    if (x[kk * 3] != -100)
+                    if (x[kk * 3] != COORDINATE_ATOM_OUT_BOX)
                         outfile << id[kk] << " " << x[kk * 3] << " " << x[kk * 3 + 1] << " " << x[kk * 3 + 2]
                                 << std::endl;
                 }

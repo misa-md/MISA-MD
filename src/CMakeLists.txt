@@ -28,6 +28,7 @@ set(HEADER_FILES
         particledata.h
         pre_config.h
         simulation.h
+        utils/io_writer.h
         utils/data_pack.h
         utils/mpi_utils.h)
 
@@ -46,6 +47,7 @@ set(SOURCE_FILES
         latparticledata.cpp
         particledata.cpp
         simulation.cpp
+        utils/io_writer.cpp
         utils/data_pack.cpp
         utils/mpi_utils.cpp)
 
@@ -63,30 +65,28 @@ if (ARCH_SW)
     set(ARCH_FILES ${ARCH_FILES} ${ARCH_SUNWAY_FILES}) # add sunway architecture files to cmake.
 endif ()
 
-set(MAIN_FILE main.cpp)
+set(MAIN_FILE main.cpp utils/data_def.h)
 
-# set binary path and lib storage path wile compiling process.
+# set binary path and lib storage path for compiling process.
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 # make crystal-md lib
-set(MD_LIB_NAME crystalmd)
 add_library(${MD_LIB_NAME} STATIC ${ARCH_FILES} ${HEADER_FILES} ${SOURCE_FILES})
 set(EXTRA_LIBS ${EXTRA_LIBS} ${MD_LIB_NAME})
 
-set(PROGRAM_NAME ${PROJECT_NAME})
-add_executable(${PROGRAM_NAME} ${MAIN_FILE})
+add_executable(${EXECUTE_BIN_NAME} ${MAIN_FILE})
 
-target_link_libraries(${PROGRAM_NAME} ${EXTRA_LIBS})
+target_link_libraries(${EXECUTE_BIN_NAME} ${EXTRA_LIBS})
 
 
 ##########################
 ##### install files
 ##########################
-install(TARGETS ${PROGRAM_NAME} ${MD_LIB_NAME}
+install(TARGETS ${EXECUTE_BIN_NAME} ${MD_LIB_NAME}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         )
 
-install(FILES ${HEADER_FILES} DESTINATION include) #todo head file
+install(FILES ${HEADER_FILES} DESTINATION include) # todo head file
