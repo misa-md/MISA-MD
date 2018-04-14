@@ -1,0 +1,49 @@
+{
+  "name": "exampleProgram",
+  "version": "1.0.0",
+  "description": "an example program.",
+  "author": "genshen <genshenchu@gmail.com>",
+  "commands": {
+    "debug": "cmake ../",
+    "release": "cmake ../",
+    "test": "cmake ../"
+  },
+  "compilers": {
+    "cc": "clang",
+    "cxx": "clang++"
+  },
+  "packages": {
+    "git": {
+      "kiwi": {
+        "path": "https://git.gensh.me/genshen/kiwi.git",
+        "hash": "1b186928b0744f2dad6ecabb5f60b0998627019b"
+      }
+    },
+    "files": {
+      "catch2": {
+        "path": "https://raw.githubusercontent.com/CatchOrg/Catch2/v2.2.2/single_include",
+        "files": {
+          "catch.hpp": "catch2.hpp"
+        }
+      },
+      "toml": {
+        "path": "https://raw.githubusercontent.com/mayah/tinytoml/master/include/toml",
+        "files": {
+          "toml.h": "toml.hpp"
+        },
+        "build": [
+          "CP toml.hpp {INCLUDE}"
+        ]
+      },
+      "agrs": {
+        "path": "https://raw.githubusercontent.com/Taywee/args/master",
+        "files": {
+          "args.hxx": "args.hpp"
+        },
+        "build": [
+          "CP args.hpp {INCLUDE}"
+        ]
+      }
+    }
+  }
+}

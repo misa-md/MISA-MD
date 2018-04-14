@@ -1,31 +1,30 @@
 //
 // Created by genshen(genshenchu@gmail.com) on 2017/4/16.
 //
-#include "toml.hpp"
+#include <toml.hpp>
 #include "config_values.h"
+#include "config/config.h"
 
 #ifndef CRYSTAL_MD_CONFIG_H
 #define CRYSTAL_MD_CONFIG_H
 
 using namespace std;
 
-class config {
+class Config : public kiwi::config {
 public:
-    config();
+    Config();
 
     bool hasError;
     string errorMessage;
 
     // config values
-    ConfigValues *configValues;
+    ConfigValues configValues;
 
-    static config *newInstance(const string &configureFilePath);
+    static Config *newInstance(const string &configureFilePath);
 
-    static config *newInstance();
+    static Config *getInstance();
 
     bool configureCheck();
-
-    void sync(); // Synchronize configure information to all processors.
 
 private:
 
@@ -33,17 +32,21 @@ private:
     // and the other processors resume data (e.g. string) from buffer array.
 //    char buffer[512];
 
-    static config *m_pInstance; // stored in static area.
+    static Config *m_pInstance; // stored in static area.
 
-    config(const string &configurePath);
+//    config(const string &configurePath);
 
-    void resolveConfig(const string &configurePath);
+    void resolveConfig(std::shared_ptr<cpptoml::table> table) override;
 
     // resolve "simulation" section of config file.
-    void resolveConfigSimulation(const toml::Value &v);
+    void resolveConfigSimulation(std::shared_ptr<cpptoml::table> v);
 
     // resolve "output" section of config file.
-    void resolveConfigOutput(const toml::Value &v);
+    void resolveConfigOutput(shared_ptr<cpptoml::table> v);
+
+    void putConfigData(kiwi::Bundle &bundle) override;
+
+    void getConfigData(kiwi::Bundle &bundle) override;
 };
 
 

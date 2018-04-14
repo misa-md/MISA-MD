@@ -4,63 +4,63 @@
 
 #include <mpi.h>
 #include <iostream>
+#include <utils/bundle.h>
 #include "config_values.h"
 
-ConfigValues::ConfigValues(unsigned int cap) :
-        DataPack(cap),
+ConfigValues::ConfigValues() :
         phaseSpace{0, 0, 0}, cutoffRadius(0.0), latticeConst(0.0),
         timeSteps(10), createPhaseMode(true), createTSet(0.0), createSeed(1),
         readPhaseFilename(""), collisionSteps(0),
         collisionLat{0, 0, 0, 0}, collisionV{0.0, 0.0, 0.0},
         outputMode(OUTPUT_COPY_MODE), outputDumpFilename(DEFAULT_OUTPUT_DUMP_FILENAME) {}
 
-void ConfigValues::packdata() {
+void ConfigValues::packdata(kiwi::Bundle &bundle) {
     // append data into buffer.
-    append(MPI_COMM_WORLD, DIMENSION, phaseSpace); // todo remove MPI_COMM_WORLD to initial method.
-    append(MPI_COMM_WORLD, cutoffRadius);
-    append(MPI_COMM_WORLD, latticeConst);
-    append(MPI_COMM_WORLD, timeSteps);
+    bundle.put(MPI_COMM_WORLD, DIMENSION, phaseSpace); // todo remove MPI_COMM_WORLD to initial method.
+    bundle.put(MPI_COMM_WORLD, cutoffRadius);
+    bundle.put(MPI_COMM_WORLD, latticeConst);
+    bundle.put(MPI_COMM_WORLD, timeSteps);
 
-    append(MPI_COMM_WORLD, createPhaseMode);
-    append(MPI_COMM_WORLD, createTSet);
-    append(MPI_COMM_WORLD, createSeed);
-    append(MPI_COMM_WORLD, readPhaseFilename);
+    bundle.put(MPI_COMM_WORLD, createPhaseMode);
+    bundle.put(MPI_COMM_WORLD, createTSet);
+    bundle.put(MPI_COMM_WORLD, createSeed);
+    bundle.put(MPI_COMM_WORLD, readPhaseFilename);
 
-    append(MPI_COMM_WORLD, collisionSteps);
-    append(MPI_COMM_WORLD, 4, collisionLat);
-    append(MPI_COMM_WORLD, DIMENSION, collisionV);
+    bundle.put(MPI_COMM_WORLD, collisionSteps);
+    bundle.put(MPI_COMM_WORLD, 4, collisionLat);
+    bundle.put(MPI_COMM_WORLD, DIMENSION, collisionV);
 
-    append(MPI_COMM_WORLD, potentialFileType);
-    append(MPI_COMM_WORLD, potentialFilename);
+    bundle.put(MPI_COMM_WORLD, potentialFileType);
+    bundle.put(MPI_COMM_WORLD, potentialFilename);
 
     // out section
-    append(MPI_COMM_WORLD, outputMode);
-    append(MPI_COMM_WORLD, outputDumpFilename);
+    bundle.put(MPI_COMM_WORLD, outputMode);
+    bundle.put(MPI_COMM_WORLD, outputDumpFilename);
 }
 
-void ConfigValues::unpackdata() {
+void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
     // fetch data from buffer.
 //    if (getPackedData() != nullptr) { // buffer != null
     int cursor = 0;
-    recover(MPI_COMM_WORLD, cursor, DIMENSION, phaseSpace);
-    recover(MPI_COMM_WORLD, cursor, cutoffRadius);
-    recover(MPI_COMM_WORLD, cursor, latticeConst);
-    recover(MPI_COMM_WORLD, cursor, timeSteps);
+    bundle.get(MPI_COMM_WORLD, cursor, DIMENSION, phaseSpace);
+    bundle.get(MPI_COMM_WORLD, cursor, cutoffRadius);
+    bundle.get(MPI_COMM_WORLD, cursor, latticeConst);
+    bundle.get(MPI_COMM_WORLD, cursor, timeSteps);
 
-    recover(MPI_COMM_WORLD, cursor, createPhaseMode);
-    recover(MPI_COMM_WORLD, cursor, createTSet);
-    recover(MPI_COMM_WORLD, cursor, createSeed);
-    recover(MPI_COMM_WORLD, cursor, readPhaseFilename);
+    bundle.get(MPI_COMM_WORLD, cursor, createPhaseMode);
+    bundle.get(MPI_COMM_WORLD, cursor, createTSet);
+    bundle.get(MPI_COMM_WORLD, cursor, createSeed);
+    bundle.get(MPI_COMM_WORLD, cursor, readPhaseFilename);
 
-    recover(MPI_COMM_WORLD, cursor, collisionSteps);
-    recover(MPI_COMM_WORLD, cursor, 4, collisionLat);
-    recover(MPI_COMM_WORLD, cursor, DIMENSION, collisionV);
+    bundle.get(MPI_COMM_WORLD, cursor, collisionSteps);
+    bundle.get(MPI_COMM_WORLD, cursor, 4, collisionLat);
+    bundle.get(MPI_COMM_WORLD, cursor, DIMENSION, collisionV);
 
-    recover(MPI_COMM_WORLD, cursor, potentialFileType);
-    recover(MPI_COMM_WORLD, cursor, potentialFilename);
+    bundle.get(MPI_COMM_WORLD, cursor, potentialFileType);
+    bundle.get(MPI_COMM_WORLD, cursor, potentialFilename);
 
-    recover(MPI_COMM_WORLD, cursor, outputMode);
-    recover(MPI_COMM_WORLD, cursor, outputDumpFilename);
+    bundle.get(MPI_COMM_WORLD, cursor, outputMode);
+    bundle.get(MPI_COMM_WORLD, cursor, outputDumpFilename);
 //    }
 }
 

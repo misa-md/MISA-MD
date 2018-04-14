@@ -1,10 +1,16 @@
+# include directory
+include_directories(${PROJECT_SOURCE_DIR}/vendor/pkg/include)
+
+# include kiwi framework.
+add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/src/kiwi ${PROJECT_BINARY_DIR}/vendor/kiwi)
+include_directories(${KIWI_EXPORT_INCLUDE_PATH})
+set(EXTRA_LIBS kiwi ${EXTRA_LIBS})
+
 # configure a header file to pass some of the CMake settings to the source code
 configure_file(
         "${PROJECT_SOURCE_DIR}/src/pre_config.h.in"
         "${PROJECT_SOURCE_DIR}/src/pre_config.h"
 )
-
-include_directories(${PROJECT_SOURCE_DIR}/vendor/include)
 
 #set(INCLUDE_FILES
 #        args.hpp
@@ -15,7 +21,7 @@ set(HEADER_FILES
         atom.h
         createatom.h
         crystal_md.h
-        config.h
+        Config.h
         config_values.h
         domain.h
         domaindecomposition.h
@@ -28,15 +34,13 @@ set(HEADER_FILES
         particledata.h
         pre_config.h
         simulation.h
-        utils/io_writer.h
-        utils/data_pack.h
-        utils/mpi_utils.h)
+        )
 
 set(SOURCE_FILES
         atom.cpp
         createatom.cpp
         crystal_md.cpp
-        config.cpp
+        Config.cpp
         config_values.cpp
         domain.cpp
         domaindecomposition.cpp
@@ -47,9 +51,7 @@ set(SOURCE_FILES
         latparticledata.cpp
         particledata.cpp
         simulation.cpp
-        utils/io_writer.cpp
-        utils/data_pack.cpp
-        utils/mpi_utils.cpp)
+        )
 
 # codes runs on sunway.
 set(ARCH_SUNWAY_FILES
@@ -65,7 +67,7 @@ if (ARCH_SW)
     set(ARCH_FILES ${ARCH_FILES} ${ARCH_SUNWAY_FILES}) # add sunway architecture files to cmake.
 endif ()
 
-set(MAIN_FILE main.cpp utils/data_def.h)
+set(MAIN_FILE main.cpp)
 
 # set binary path and lib storage path for compiling process.
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
@@ -73,7 +75,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 # make crystal-md lib
 add_library(${MD_LIB_NAME} STATIC ${ARCH_FILES} ${HEADER_FILES} ${SOURCE_FILES})
-set(EXTRA_LIBS ${EXTRA_LIBS} ${MD_LIB_NAME})
+set(EXTRA_LIBS ${MD_LIB_NAME} ${EXTRA_LIBS})
 
 add_executable(${EXECUTE_BIN_NAME} ${MAIN_FILE})
 

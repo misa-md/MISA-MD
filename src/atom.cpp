@@ -3,7 +3,7 @@
 #include <fstream>
 #include <iomanip>
 #include "atom.h"
-#include "config.h"
+#include "Config.h"
 #include "hardware_accelerate.hpp" // use hardware(eg.GPU, MIC,Sunway slave cores.) to achieve calculate accelerating.
 
 #define IA 16807
@@ -1632,7 +1632,7 @@ void atom::setv(int lat[4], double collision_v[3]) {
     }
 }
 
-void atom::printAtoms(int rank, int outMode, IOWriter *writer) {
+void atom::printAtoms(int rank, int outMode, kiwi::IOWriter *writer) {
     long kk;
     int xstart = lolocalx - loghostx;
     int ystart = lolocaly - loghosty;

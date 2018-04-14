@@ -6,7 +6,7 @@
 #define CRYSTAL_MD_CONFIG_VALUES_H
 
 #include <string>
-#include "utils/data_pack.h"
+#include <utils/bundle.h>
 #include "pre_config.h"
 
 using namespace std;
@@ -15,13 +15,13 @@ using namespace std;
 #define OUTPUT_DIRECT_MODE 1
 #define DEFAULT_OUTPUT_DUMP_FILENAME "crystal_md.out"
 
-class ConfigValues : public DataPack {
+class ConfigValues {
     friend std::ostream &operator<<(std::ostream &os, const ConfigValues &cv);
 
 public:
     // config values start
     // simulation section
-    int phaseSpace[DIMENSION];
+    int64_t phaseSpace[DIMENSION];
     double cutoffRadius;
     double latticeConst;
     unsigned long timeSteps;
@@ -44,12 +44,11 @@ public:
     // output section ends
     // config values ends
 
-    ConfigValues(unsigned int cap);
+    ConfigValues();
 
-//    ~ConfigValues(); //todo remove
-    void packdata();  // todo override
+    void packdata(kiwi::Bundle &bundle);  // todo override
 
-    void unpackdata();
+    void unpackdata(kiwi::Bundle &bundle);
 
 };
 

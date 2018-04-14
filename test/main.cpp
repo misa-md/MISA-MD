@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
     // global setup...
 #ifdef TEST_MPI_ENABLE_FLAG
     // Initialize the MPI environment.
-    mpiUtils::initialMPI();
+    kiwi::mpiUtils::initialMPI(argc,argv);
 #endif  // end TEST_MPI_ENABLE_FLAG
 
     int result = session.run(argc, argv);
@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
 // global clean-up...
 #ifdef TEST_MPI_ENABLE_FLAG
     // Finalize the MPI environment.
-    mpiUtils::finishMPI();
+    kiwi::mpiUtils::finishMPI();
 #endif  // end TEST_MPI_ENABLE_FLAG
 
     return result;

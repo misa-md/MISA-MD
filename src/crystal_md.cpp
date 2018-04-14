@@ -1,119 +1,103 @@
-#include <iostream>
-#include "crystal_md.h"
-#include "utils/mpi_utils.h"
-#include "args.hpp"
-#include "arch_env.hpp"
-
 //
 // Created by gensh(genshenchu@gmail.com) on 2017/4/19.
 //
 
+#include <iostream>
+#include <args.hpp>
+#include <utils/mpi_utils.h>
+
+#include "crystal_md.h"
+#include "arch_env.hpp"
+
 using namespace std;
 
-crystalMD::crystalMD(int argc, char **argv) : argc(argc), argv(argv) {}
-
-bool crystalMD::initialize() {
-    mpiUtils::initialMPI();
-
-    if (mpiUtils::ownRank == MASTER_PROCESSOR) {
-        // parser arguments
-        // see https://github.com/Taywee/args for using args.
-        args::ArgumentParser parser("This is CrystalMD program.", "authors:BaiHe.");
-        args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
-        args::ValueFlag<string> conf(parser, "conf", "The configure file", {'c', "conf"});
-        try {
-            parser.ParseCLI(argc, (const char *const *) argv);
-        }
-        catch (args::Help) {
-            cout << parser;
-            mArgvStatus = 1;
-        }
-        catch (args::ParseError e) {
-            cerr << e.what() << endl;
-            cerr << parser;
-            mArgvStatus = 2;
-        }
-        catch (args::ValidationError e) {
-            cerr << e.what() << endl;
-            cerr << parser;
-            mArgvStatus = 2;
-        }
-
-        //check configure
-        if (mArgvStatus == 0) {
-            if (conf) {
-                config *cp = config::newInstance(args::get(conf));//initial Config
-                if (cp->hasError) {
-                    cerr << cp->errorMessage << endl;
-                    mArgvStatus = 2;
-                }
-
-            } else {
-                cerr << "Error: The config file is required" << endl;
-                cerr << parser;
-                mArgvStatus = 2;
-            }
-        }
-    } // end if
-
-    // synchronize mArgvStatus to all processors.
-    MPI_Bcast(&mArgvStatus, 1, MPI_SHORT, MASTER_PROCESSOR, MPI_COMM_WORLD);
-
-    if (mArgvStatus == 0) { //right argv,and right configure
-        pConfig = config::newInstance();
-        pConfig->sync(); // Synchronize configure information to all processors.
-
-#ifdef DEV_MODE
-        // print configure.
-        if (mpiUtils::ownRank == MASTER_PROCESSOR) {
-            cout << *(pConfig->configValues);
-        }
-#endif
-        //configure check
-        if (pConfig->configureCheck()) { // configure check passed.
-            return this->runtimeEnvInitialize();
-        } else {
-            return false;
-        }
-    } else { //has error or help mode
+bool crystalMD::beforeCreate(int argc, char *argv[]) {
+    // parser arguments
+    // see https://github.com/Taywee/args for using args.
+    args::ArgumentParser parser("This is CrystalMD program.", "authors:BaiHe.");
+    args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
+    args::ValueFlag<string> conf(parser, "conf", "The configure file", {'c', "conf"});
+    try {
+        parser.ParseCLI(argc, (const char *const *) argv);
+    }
+    catch (args::Help) {
+        cout << parser;
         return false;
     }
+    catch (args::ParseError e) {
+        cerr << e.what() << endl;
+        cerr << parser;
+        return false;
+    }
+    catch (args::ValidationError e) {
+        cerr << e.what() << endl;
+        cerr << parser;
+        return false;
+    }
+
+    // todo add version command.
+
+    if (conf) {
+        configFilePath = args::get(conf);
+        return true;
+    }
+
+    // if no args, print usage.
+    std::cerr << parser;
+    return false;
 }
 
-/**
- * initial runtime
- */
-bool crystalMD::runtimeEnvInitialize() {
-    archEnvInit(); // architectures environment initialize.
-    return true;
+void crystalMD::onCreate() {
+    Config *pConfig;
+    if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR) {
+        std::cout << "mpi env was initialed." << std::endl;
+        // initial config Obj, then read and resolve config file.
+        pConfig = Config::newInstance(configFilePath); // todo config file from argv.
+        if (pConfig->hasError) {
+            std::cerr << "[Error] " << pConfig->errorMessage << std::endl;
+            this->abort(2);
+        }
+    } else {
+        // just initial a empty config Obj.
+        pConfig = Config::getInstance();
+    }
+    pConfig->sync(); // sync config data to other processors from master processor.
+#ifdef DEV_MODE
+// print configure.
+    if (kiwi::mpiUtils::ownRank != MASTER_PROCESSOR) {
+        cout << pConfig->configValues;
+    }
+#endif
+    archEnvInit(); // initialize architectures environment.
 }
 
 bool crystalMD::prepare() {
     pSimulation = new simulation();
     pSimulation->domainDecomposition(); //区域分解
     pSimulation->createBoxedAndAtoms();
-    return true; //todo
+    return true;
 }
 
-void crystalMD::run() {
-    pSimulation->prepareForStart(mpiUtils::ownRank);
-    if (mpiUtils::ownRank == MASTER_PROCESSOR)
+void crystalMD::onStart() {
+    pSimulation->prepareForStart(kiwi::mpiUtils::ownRank);
+    if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR)
         std::cout << "Start simulation" << std::endl;
     //开始模拟
     pSimulation->simulate();
 }
 
-void crystalMD::destroy() {
-    if (mpiUtils::ownRank == MASTER_PROCESSOR)
+void crystalMD::onFinish() {
+    if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR)
         std::cout << "finalizing simulation" << std::endl;
     //模拟结束
     pSimulation->finalize();
 }
 
-void crystalMD::detach() {
-    if (mpiUtils::ownRank == MASTER_PROCESSOR && mArgvStatus == 0) {
+void crystalMD::beforeDestroy() {
+    if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR) {
         cout << "app was detached" << endl;
     }
     archEnvFinalize(); // clean architectures environment.
-    mpiUtils::finishMPI();
 }
+
+void crystalMD::onDestroy() {}

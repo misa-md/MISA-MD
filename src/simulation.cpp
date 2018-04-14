@@ -1,14 +1,14 @@
 #include <iostream>
+#include <utils/mpi_utils.h>
 #include "simulation.h"
-#include "utils/mpi_utils.h"
-#include "config.h"
+#include "Config.h"
 #include "hardware_accelerate.hpp"
 
 simulation::simulation() : _domaindecomposition(nullptr), _input(nullptr) {
 //    domainDecomposition();
 
     //collision_step = -1;
-    cp = config::newInstance();
+    cp = Config::getInstance();
 }
 
 simulation::~simulation() {
@@ -27,16 +27,16 @@ void simulation::domainDecomposition() {
     _finalCheckpoint = true;
 
     //进行区域分解
-    if (mpiUtils::ownRank == MASTER_PROCESSOR)
+    if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR)
         std::cout << "Initializing domain decomposition ... " << std::endl;
     _domaindecomposition = new domaindecomposition();
-    if (mpiUtils::ownRank == MASTER_PROCESSOR)
+    if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR)
         std::cout << "Initialization done" << std::endl;
 
-    if (mpiUtils::ownRank == MASTER_PROCESSOR)
+    if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR)
         std::cout << "Constructing domain ..." << std::endl;
-    _domain = new domain(mpiUtils::ownRank);
-    if (mpiUtils::ownRank == MASTER_PROCESSOR)
+    _domain = new domain(kiwi::mpiUtils::ownRank);
+    if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR)
         std::cout << "Domain construction done." << std::endl;
 
 //    /*
@@ -52,9 +52,9 @@ void simulation::createBoxedAndAtoms() {
     double boxlo[3], boxhi[3], globalLength[3];
     boxlo[0] = boxlo[1] = boxlo[2] = 0;
     globalLength[0] = boxhi[0] =
-            cp->configValues->phaseSpace[0] * cp->configValues->latticeConst; //box_x个单位长度(单位长度即latticeconst)
-    globalLength[1] = boxhi[1] = cp->configValues->phaseSpace[1] * cp->configValues->latticeConst;
-    globalLength[2] = boxhi[2] = cp->configValues->phaseSpace[2] * cp->configValues->latticeConst;
+            cp->configValues.phaseSpace[0] * cp->configValues.latticeConst; //box_x个单位长度(单位长度即latticeconst)
+    globalLength[1] = boxhi[1] = cp->configValues.phaseSpace[1] * cp->configValues.latticeConst;
+    globalLength[2] = boxhi[2] = cp->configValues.phaseSpace[2] * cp->configValues.latticeConst;
 
     _domain->setGlobalLength(0, globalLength[0]);
     _domain->setGlobalLength(1, globalLength[1]);
@@ -65,16 +65,16 @@ void simulation::createBoxedAndAtoms() {
         bBoxMin[i] = _domaindecomposition->getBoundingBoxMin(i, _domain);
         bBoxMax[i] = _domaindecomposition->getBoundingBoxMax(i, _domain);
     }
-    ghostLength = cp->configValues->cutoffRadius;
+    ghostLength = cp->configValues.cutoffRadius;
     _atom = new atom(boxlo, boxhi, globalLength, bBoxMin, bBoxMax, ghostLength,
-                     cp->configValues->latticeConst, cp->configValues->cutoffRadius,
-                     cp->configValues->createSeed);
+                     cp->configValues.latticeConst, cp->configValues.cutoffRadius,
+                     cp->configValues.createSeed);
     mass = 55.845;
 
-    if (cp->configValues->createPhaseMode) {  //创建原子坐标、速度信息
-        _createatom = new createatom(cp->configValues->createTSet);
-        _createatom->createphasespace(_atom, mass, cp->configValues->phaseSpace[0],
-                                      cp->configValues->phaseSpace[1], cp->configValues->phaseSpace[2]);
+    if (cp->configValues.createPhaseMode) {  //创建原子坐标、速度信息
+        _createatom = new createatom(cp->configValues.createTSet);
+        _createatom->createphasespace(_atom, mass, cp->configValues.phaseSpace[0],
+                                      cp->configValues.phaseSpace[1], cp->configValues.phaseSpace[2]);
     } else { //读取原子坐标、速度信息
         _input = new input();
         _input->readPhaseSpace(_atom);
@@ -88,7 +88,7 @@ void simulation::prepareForStart(int rank) {
     _pot = new eam();
     //读取势函数文件
     if (rank == 0) {
-        initEamPotential(cp->configValues->potentialFileType);
+        initEamPotential(cp->configValues.potentialFileType);
     }
     eamBCastPotential(rank);
     eamPotentialInterpolate();
@@ -110,7 +110,7 @@ void simulation::prepareForStart(int rank) {
     _domaindecomposition->sendforce(_atom);
     stoptime = MPI_Wtime();
     commtime += stoptime - starttime;
-    if (mpiUtils::ownRank == MASTER_PROCESSOR) {
+    if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR) {
         printf("first step comm time: %lf\n", commtime);
         printf("first step compute time: %lf\n", computetime);
     }
@@ -124,9 +124,9 @@ void simulation::simulate() {
     int nflag;
 
     allstart = MPI_Wtime();
-    for (_simstep = 0; _simstep < cp->configValues->timeSteps; _simstep++) {
-        if (_simstep == cp->configValues->collisionSteps) {
-            _atom->setv(cp->configValues->collisionLat, cp->configValues->collisionV);
+    for (_simstep = 0; _simstep < cp->configValues.timeSteps; _simstep++) {
+        if (_simstep == cp->configValues.collisionSteps) {
+            _atom->setv(cp->configValues.collisionLat, cp->configValues.collisionV);
             _domaindecomposition->exchangeInter(_atom, _domain);
             _domaindecomposition->borderInter(_atom, _domain);
             _domaindecomposition->exchangeAtom(_atom, _domain);
@@ -138,13 +138,13 @@ void simulation::simulate() {
         _integrator->firststep(_atom);
 
         //判断是否有粒子跑出晶格点
-        if (mpiUtils::ownRank == MASTER_PROCESSOR) {
+        if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR) {
             printf("start deciding atoms:\n");
         }
         nflag = _atom->decide();
 
         //通信ghost区域，交换粒子
-        if (mpiUtils::ownRank == MASTER_PROCESSOR) {
+        if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR) {
             printf("start ghost communication:\n");
         }
         starttime = MPI_Wtime();
@@ -155,7 +155,7 @@ void simulation::simulate() {
         commtime += stoptime - starttime;
 
         //计算力
-        if (mpiUtils::ownRank == MASTER_PROCESSOR) {
+        if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR) {
             printf("start calculating force:\n");
         }
         _atom->clearForce();
@@ -166,7 +166,7 @@ void simulation::simulate() {
         commtime += comm;
 
         //发送力
-        if (mpiUtils::ownRank == MASTER_PROCESSOR) {
+        if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR) {
             printf("start sending force:\n");
         }
         starttime = MPI_Wtime();
@@ -176,7 +176,7 @@ void simulation::simulate() {
         //求解牛顿运动方程第二步
         _integrator->secondstep(_atom);
     }
-    if (mpiUtils::ownRank == MASTER_PROCESSOR) {
+    if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR) {
         printf("loop comm time: %lf\n", commtime);
         printf("loop compute time: %lf\n", computetime);
     }
@@ -185,7 +185,7 @@ void simulation::simulate() {
     output();
     allstop = MPI_Wtime();
     alltime = allstop - allstart;
-    if (mpiUtils::ownRank == MASTER_PROCESSOR) {
+    if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR) {
         printf("total time:%lf\n", alltime);
     }
 }
@@ -202,7 +202,7 @@ void simulation::finalize() {
 void simulation::initEamPotential(string file_type) {
     if (file_type == "funcfl") {
         char tmp[4096];
-        sprintf(tmp, "%s", cp->configValues->potentialFilename.c_str());
+        sprintf(tmp, "%s", cp->configValues.potentialFilename.c_str());
         FILE *potFile = fopen(tmp, "r");
         if (potFile == nullptr) {
             std::cerr << "file not found" << std::endl;
@@ -263,7 +263,7 @@ void simulation::initEamPotential(string file_type) {
         delete[] buf;
     } else if (string(file_type) == string("setfl")) {
         char tmp[4096];
-        sprintf(tmp, "%s", cp->configValues->potentialFilename.c_str());
+        sprintf(tmp, "%s", cp->configValues.potentialFilename.c_str());
 
         FILE *potFile = fopen(tmp, "r");
         if (potFile == nullptr) {
@@ -372,9 +372,9 @@ void simulation::eamPotentialInterpolate() {
 
 void simulation::output() {
     if (writer == nullptr) {
-        writer = new IOWriter(cp->configValues->outputDumpFilename);
+        writer = new kiwi::IOWriter(cp->configValues.outputDumpFilename);
     }
-    _atom->printAtoms(mpiUtils::ownRank, cp->configValues->outputMode, writer);
+    _atom->printAtoms(kiwi::mpiUtils::ownRank, cp->configValues.outputMode, writer);
 }
 
 void simulation::exit(int exitcode) {

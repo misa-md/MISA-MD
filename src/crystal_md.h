@@ -5,39 +5,52 @@
 #ifndef CRYSTALMD_CRYSTAL_MD_H
 #define CRYSTALMD_CRYSTAL_MD_H
 
-#include "simulation.h"
-#include "config.h"
+#include <kiwi_app.h>
 
-class crystalMD {
+#include "simulation.h"
+#include "Config.h"
+
+class crystalMD : public kiwi::kiwiApp {
 
 public:
 
-    crystalMD(int argc, char **argv);
+    /**
+     * Parse command line argv, and print necessary help information (e.g. run: app --help).
+     * @param argc argc from function main().
+     * @param argv argv from function main().
+     * @return false for interrupting the running of the program after parsing argv.
+     */
+    bool beforeCreate(int argc, char *argv[]) override;
 
-    // initial MPI env; read terminal args and config file
-    //初始化MPI环境,读取命令行参数,然后根据参数读取配置文件并解析config.
-    bool initialize();
+    /**
+     * mpi has been initialed, then parse configure file on master processor and synchronize it to other processor.
+     * initial architecture environments(e.g. sunway) if necessary.
+     */
+    void onCreate() override;
 
     //create boxes and atoms for later simulation.
     //进行区域分解,创建原子
-    bool prepare();
+    bool prepare() override;
 
-    //运行模拟
-    void run();
+    /**
+     * run simulation.
+     */
+    void onStart() override;
 
-    void destroy();
+    void onFinish() override;
 
-    void detach();
+    void beforeDestroy() override;
+
+    void onDestroy() override;
 
 private:
     int argc = 0;
     char **argv;
 
-    short mArgvStatus = 0;
-    config *pConfig;
+    std::string configFilePath = "config.toml"; // configure file path default value.
+    Config *pConfig;
     simulation *pSimulation;
 
-    bool runtimeEnvInitialize();
 };
 
 #endif //CRYSTALMD_CRYSTAL_MD_H
