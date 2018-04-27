@@ -1,3 +1,7 @@
+//
+// Created by baihe back to 2016-01-06.
+//
+
 #ifndef CRYSTAL_MD_ATOM_H
 #define CRYSTAL_MD_ATOM_H
 
@@ -6,10 +10,10 @@ class domaindecomposition;
 #include <cstdio>
 #include <vector>
 #include <io/io_writer.h>
-#include "domaindecomposition.h"
+#include "domain_decomposition.h"
 #include "eam.h"
 #include "particledata.h"
-#include "latparticledata.h"
+#include "lat_particle_data.h"
 
 
 #define COORDINATE_ATOM_OUT_BOX (-100)
@@ -59,15 +63,15 @@ public :
 
     void unpack_interrecv(int d, int n, particledata *buf);
 
-    void pack_bordersend(int dimension, int n, vector<int> &sendlist, latparticledata *buf, double shift);
+    void pack_bordersend(int dimension, int n, vector<int> &sendlist, LatParticleData *buf, double shift);
 
-    void unpack_borderrecv(int n, latparticledata *buf, vector<int> &recvlist);
+    void unpack_borderrecv(int n, LatParticleData *buf, vector<int> &recvlist);
 
-    void pack_send(int dimension, int n, vector<int> &sendlist, latparticledata *buf, double shift);
+    void pack_send(int dimension, int n, vector<int> &sendlist, LatParticleData *buf, double shift);
 
-    void unpack_recvfirst(int d, int direction, int n, latparticledata *buf, vector<vector<int> > &recvlist);
+    void unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, vector<vector<int> > &recvlist);
 
-    void unpack_recv(int d, int direction, int n, latparticledata *buf, vector<vector<int>> &recvlist);
+    void unpack_recv(int d, int direction, int n, LatParticleData *buf, vector<vector<int>> &recvlist);
 
     void pack_rho(int n, vector<int> &recvlist, double *buf);
 

@@ -1105,7 +1105,7 @@ void atom::unpack_interrecv(int d, int n, particledata *buf) {
     }
 }
 
-void atom::pack_bordersend(int dimension, int n, vector<int> &sendlist, latparticledata *buf, double shift) {
+void atom::pack_bordersend(int dimension, int n, vector<int> &sendlist, LatParticleData *buf, double shift) {
     int j;
     if (dimension == 0) {
         for (int i = 0; i < n; i++) {
@@ -1134,7 +1134,7 @@ void atom::pack_bordersend(int dimension, int n, vector<int> &sendlist, latparti
     }
 }
 
-void atom::unpack_borderrecv(int n, latparticledata *buf, vector<int> &recvlist) {
+void atom::unpack_borderrecv(int n, LatParticleData *buf, vector<int> &recvlist) {
     int type;
     vector<double> xtemp(3);
     for (int i = 0; i < n; i++) {
@@ -1169,7 +1169,7 @@ void atom::unpack_borderrecv(int n, latparticledata *buf, vector<int> &recvlist)
     }
 }
 
-void atom::pack_send(int dimension, int n, vector<int> &sendlist, latparticledata *buf, double shift) {
+void atom::pack_send(int dimension, int n, vector<int> &sendlist, LatParticleData *buf, double shift) {
     int j;
     if (dimension == 0) {
         for (int i = 0; i < n; i++) {
@@ -1198,7 +1198,7 @@ void atom::pack_send(int dimension, int n, vector<int> &sendlist, latparticledat
     }
 }
 
-void atom::unpack_recvfirst(int d, int direction, int n, latparticledata *buf, vector<vector<int> > &recvlist) {
+void atom::unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, vector<vector<int> > &recvlist) {
     int xstart, ystart, zstart;
     int xstop, ystop, zstop;
     int kk;
@@ -1338,7 +1338,7 @@ void atom::unpack_recvfirst(int d, int direction, int n, latparticledata *buf, v
     }
 }
 
-void atom::unpack_recv(int d, int direction, int n, latparticledata *buf, vector<vector<int> > &recvlist) {
+void atom::unpack_recv(int d, int direction, int n, LatParticleData *buf, vector<vector<int> > &recvlist) {
     int kk;
     if (d == 0) {
         if (direction == 0) {

@@ -1,4 +1,3 @@
-#include <iostream>
 #include <utils/mpi_utils.h>
 #include <logs/logs.h>
 #include "simulation.h"
@@ -6,10 +5,9 @@
 #include "hardware_accelerate.hpp"
 
 simulation::simulation() : _domain_decomposition(nullptr), _input(nullptr) {
+    pConfigVal = &(ConfigParser::getInstance()->configValues);
 //    domainDecomposition();
-
-    //collision_step = -1;
-    cp = ConfigParser::getInstance();
+//    collision_step = -1;
 }
 
 simulation::~simulation() {
@@ -55,9 +53,10 @@ void simulation::createBoxedAndAtoms() {
     double boxlo[3], boxhi[3], globalLength[3];
     boxlo[0] = boxlo[1] = boxlo[2] = 0;
     globalLength[0] = boxhi[0] =
-            cp->configValues.phaseSpace[0] * cp->configValues.latticeConst; //box_x个单位长度(单位长度即latticeconst)
-    globalLength[1] = boxhi[1] = cp->configValues.phaseSpace[1] * cp->configValues.latticeConst;
-    globalLength[2] = boxhi[2] = cp->configValues.phaseSpace[2] * cp->configValues.latticeConst;
+            pConfigVal->phaseSpace[0] *
+            pConfigVal->latticeConst; //box_x个单位长度(单位长度即latticeconst)
+    globalLength[1] = boxhi[1] = pConfigVal->phaseSpace[1] * pConfigVal->latticeConst;
+    globalLength[2] = boxhi[2] = pConfigVal->phaseSpace[2] * pConfigVal->latticeConst;
 
     _domain->setGlobalLength(0, globalLength[0]);
     _domain->setGlobalLength(1, globalLength[1]);
@@ -68,16 +67,16 @@ void simulation::createBoxedAndAtoms() {
         bBoxMin[i] = _domain_decomposition->getBoundingBoxMin(i, _domain);
         bBoxMax[i] = _domain_decomposition->getBoundingBoxMax(i, _domain);
     }
-    ghostLength = cp->configValues.cutoffRadius;
+    ghostLength = pConfigVal->cutoffRadius;
     _atom = new atom(boxlo, boxhi, globalLength, bBoxMin, bBoxMax, ghostLength,
-                     cp->configValues.latticeConst, cp->configValues.cutoffRadius,
-                     cp->configValues.createSeed);
+                     pConfigVal->latticeConst, pConfigVal->cutoffRadius,
+                     pConfigVal->createSeed);
     mass = 55.845;
 
-    if (cp->configValues.createPhaseMode) {  //创建原子坐标、速度信息
-        _createatom = new createatom(cp->configValues.createTSet);
-        _createatom->createphasespace(_atom, mass, cp->configValues.phaseSpace[0],
-                                      cp->configValues.phaseSpace[1], cp->configValues.phaseSpace[2]);
+    if (pConfigVal->createPhaseMode) {  //创建原子坐标、速度信息
+        _createatom = new create_atom(pConfigVal->createTSet);
+        _createatom->createphasespace(_atom, mass, pConfigVal->phaseSpace[0],
+                                      pConfigVal->phaseSpace[1], pConfigVal->phaseSpace[2]);
     } else { //读取原子坐标、速度信息
         _input = new input();
         _input->readPhaseSpace(_atom);
@@ -91,7 +90,7 @@ void simulation::prepareForStart(int rank) {
     _pot = new eam();
     //读取势函数文件
     if (rank == 0) {
-        initEamPotential(cp->configValues.potentialFileType);
+        initEamPotential(pConfigVal->potentialFileType);
     }
     eamBCastPotential(rank);
     eamPotentialInterpolate();
@@ -127,9 +126,10 @@ void simulation::simulate() {
     int nflag;
 
     allstart = MPI_Wtime();
-    for (_simstep = 0; _simstep < cp->configValues.timeSteps; _simstep++) {
-        if (_simstep == cp->configValues.collisionSteps) {
-            _atom->setv(cp->configValues.collisionLat, cp->configValues.collisionV);
+    for (_simulation_time_step = 0;
+         _simulation_time_step < pConfigVal->timeSteps; _simulation_time_step++) {
+        if (_simulation_time_step == pConfigVal->collisionSteps) {
+            _atom->setv(pConfigVal->collisionLat, pConfigVal->collisionV);
             _domain_decomposition->exchangeInter(_atom, _domain);
             _domain_decomposition->borderInter(_atom, _domain);
             _domain_decomposition->exchangeAtom(_atom, _domain);
@@ -184,7 +184,7 @@ void simulation::simulate() {
         kiwi::logs::i("simulation", "loop compute time: {}.\n", computetime);
     }
     //输出原子信息
-//    if(_simstep == 10) // todo output atoms every 10 steps.
+//    if(_simulation_time_step == 10) // todo output atoms every 10 steps.
     output();
     allstop = MPI_Wtime();
     alltime = allstop - allstart;
@@ -205,10 +205,10 @@ void simulation::finalize() {
 void simulation::initEamPotential(string file_type) {
     if (file_type == "funcfl") {
         char tmp[4096];
-        sprintf(tmp, "%s", cp->configValues.potentialFilename.c_str());
+        sprintf(tmp, "%s", pConfigVal->potentialFilename.c_str());
         FILE *potFile = fopen(tmp, "r");
         if (potFile == nullptr) {
-            kiwi::logs::e("eam", "file {} not found.\n", cp->configValues.potentialFilename);
+            kiwi::logs::e("eam", "file {} not found.\n", pConfigVal->potentialFilename);
             exit(1);
         }
 
@@ -266,11 +266,11 @@ void simulation::initEamPotential(string file_type) {
         delete[] buf;
     } else if (string(file_type) == string("setfl")) {
         char tmp[4096];
-        sprintf(tmp, "%s", cp->configValues.potentialFilename.c_str());
+        sprintf(tmp, "%s", pConfigVal->potentialFilename.c_str());
 
         FILE *potFile = fopen(tmp, "r");
         if (potFile == nullptr) {
-            kiwi::logs::e("eam", "file {} not found.\n", cp->configValues.potentialFilename);
+            kiwi::logs::e("eam", "file {} not found.\n", pConfigVal->potentialFilename);
             exit(1);
         }
 
@@ -300,8 +300,10 @@ void simulation::initEamPotential(string file_type) {
         }
         int nwords = n;
         delete[] copy;
-        if (nwords != nElems + 1)
-            std::cerr << "Incorrect element names in EAM potential file!" << endl;
+        if (nwords != nElems + 1) {
+            kiwi::logs::e("eam", "Incorrect element names in EAM potential file!");
+            // todo MPI abort.
+        }
 
         char **words = new char *[nElems + 1];
         nwords = 0;
@@ -375,9 +377,9 @@ void simulation::eamPotentialInterpolate() {
 
 void simulation::output() {
     if (writer == nullptr) {
-        writer = new kiwi::IOWriter(cp->configValues.outputDumpFilename);
+        writer = new kiwi::IOWriter(pConfigVal->outputDumpFilename);
     }
-    _atom->printAtoms(kiwi::mpiUtils::own_rank, cp->configValues.outputMode, writer);
+    _atom->printAtoms(kiwi::mpiUtils::own_rank, pConfigVal->outputMode, writer);
 }
 
 void simulation::exit(int exitcode) {

@@ -1,5 +1,9 @@
-#ifndef INPUT_H_
-#define INPUT_H_
+//
+// Created by baihe back to 2015-08-17.
+//
+
+#ifndef CRYSTAL_MD_INPUT_H
+#define CRYSTAL_MD_INPUT_H
 
 #include "atom.h"
 
@@ -21,4 +25,4 @@ private:
     std::fstream _phaseSpaceHeaderFileStream;
 };
 
-#endif /*INPUT_H_*/
+#endif //CRYSTAL_MD_INPUT_H

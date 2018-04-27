@@ -1,12 +1,11 @@
-#include <mpi.h>
-#include "latparticledata.h"
+#include "lat_particle_data.h"
 
-void latparticledata::setMPIType(MPI_Datatype &sendPartType) {
+void LatParticleData::setMPIType(MPI_Datatype &sendPartType) {
 	int blocklengths[] = { 1, 3 }; // 1 int value (type), 3 double values (3r)
 	MPI_Datatype types[] = { MPI_INT, MPI_DOUBLE };
 
 	MPI_Aint displacements[2];
-	latparticledata pdata_dummy;
+	LatParticleData pdata_dummy;
 #if MPI_VERSION >= 2 && MPI_SUBVERSION >= 0
 	MPI_Get_address(&pdata_dummy, displacements);
 	MPI_Get_address(&pdata_dummy.r[0], displacements + 1);
@@ -26,7 +25,7 @@ void latparticledata::setMPIType(MPI_Datatype &sendPartType) {
 	MPI_Type_commit(&sendPartType);
 }
 
-latparticledata::latparticledata() : type(-1) {
+LatParticleData::LatParticleData() : type(-1) {
 	for (int i = 0; i < 3; i++ ) {
 		r[i] = 0.0;
 	}

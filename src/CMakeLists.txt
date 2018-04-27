@@ -19,18 +19,18 @@ configure_file(
 set(HEADER_FILES
         arch_env.hpp
         atom.h
-        createatom.h
+        create_atom.h
         crystal_md.h
         toml_config.h
         config_values.h
         domain.h
-        domaindecomposition.h
+        domain_decomposition.h
         eam.h
         hardware_accelerate.hpp
         input.h
         integrator.h
-        InterpolationObject.h
-        latparticledata.h
+        interpolation_object.h
+        lat_particle_data.h
         particledata.h
         pre_config.h
         simulation.h
@@ -38,17 +38,17 @@ set(HEADER_FILES
 
 set(SOURCE_FILES
         atom.cpp
-        createatom.cpp
+        create_atom.cpp
         crystal_md.cpp
         toml_config.cpp
         config_values.cpp
         domain.cpp
-        domaindecomposition.cpp
+        domain_decomposition.cpp
         eam.cpp
         input.cpp
         integrator.cpp
-        InterpolationObject.cpp
-        latparticledata.cpp
+        interpolation_object.cpp
+        lat_particle_data.cpp
         particledata.cpp
         simulation.cpp
         )

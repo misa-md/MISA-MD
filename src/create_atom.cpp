@@ -1,15 +1,15 @@
-#include "createatom.h"
+#include "create_atom.h"
 
 #include <mpi.h>
 #include <cmath>
 
-createatom::createatom(double tset) {
+create_atom::create_atom(double tset) {
     t_set = tset;
 }
 
-createatom::~createatom() {}
+create_atom::~create_atom() {}
 
-void createatom::createphasespace(atom *_atom, double mass, int box_x, int box_y, int box_z) {
+void create_atom::createphasespace(atom *_atom, double mass, int box_x, int box_y, int box_z) {
     double factor = 1.0 / sqrt(mass);
     _atom->createphasespace(factor, box_x, box_y, box_z);
 
@@ -40,7 +40,7 @@ void createatom::createphasespace(atom *_atom, double mass, int box_x, int box_y
     _atom->rescale(scalar, t_set);
 }
 
-double createatom::dof_compute(unsigned long natom) {
+double create_atom::dof_compute(unsigned long natom) {
     double tfactor;
     unsigned long dof = 3 * natom;
     dof -= 3;

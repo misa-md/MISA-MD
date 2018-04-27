@@ -1,12 +1,16 @@
-#ifndef SIMULATION_H_
-#define SIMULATION_H_
+//
+// Created by baihe in 2016-12-22.
+//
+
+#ifndef CRYSTAL_MD_SIMULATION_H
+#define CRYSTAL_MD_SIMULATION_H
 
 #include <mpi.h>
 #include <cstring>
 
-#include "domaindecomposition.h"
+#include "domain_decomposition.h"
 #include "integrator.h"
-#include "createatom.h"
+#include "create_atom.h"
 #include "input.h"
 #include "eam.h"
 #include "toml_config.h"
@@ -47,20 +51,26 @@ public:
     void exit(int exitcode);
 
 private:
-    unsigned long _simstep;             /**< 程序运行实际时间步 */
+    /**
+     * the time steps the program have simulated.
+     */
+    unsigned long _simulation_time_step;
 
-    ConfigParser *cp;
+    /**
+     * pointer to config data.
+     */
+    ConfigValues *pConfigVal; // todo config value.
     kiwi::IOWriter *writer = nullptr; // io writer for writing a shared file using mpi-IO lib.
 
     domaindecomposition *_domain_decomposition; //仅rank==0的进程有效
     domain *_domain;  //仅rank==0的进程有效
     atom *_atom;
     integrator *_integrator;
-    createatom *_createatom;
+    create_atom *_createatom;
     input *_input;  // 从文件读取原子坐标,速度信息
     eam *_pot;
 
     bool _finalCheckpoint;
 };
 
-#endif /*SIMULATION_H_*/
+#endif //CRYSTAL_MD_SIMULATION_H

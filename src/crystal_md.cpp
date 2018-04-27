@@ -2,7 +2,6 @@
 // Created by gensh(genshenchu@gmail.com) on 2017/4/19.
 //
 
-#include <iostream>
 #include <args.hpp>
 #include <utils/mpi_utils.h>
 #include <logs/logs.h>
@@ -20,17 +19,17 @@ bool crystalMD::beforeCreate(int argc, char *argv[]) {
         parser.ParseCLI(argc, (const char *const *) argv);
     }
     catch (args::Help) {
-        cout << parser;
+        std::cout << parser;
         return false;
     }
     catch (args::ParseError e) {
-        cerr << e.what() << endl;
-        cerr << parser;
+        std::cerr << e.what() << endl;
+        std::cerr << parser;
         return false;
     }
     catch (args::ValidationError e) {
-        cerr << e.what() << endl;
-        cerr << parser;
+        std::cerr << e.what() << endl;
+        std::cerr << parser;
         return false;
     }
 

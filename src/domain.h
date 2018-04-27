@@ -1,21 +1,32 @@
-#ifndef DOMAIN_H_
-#define DOMAIN_H_
+//
+// Created by baihe back to 2015-06-30.
+//
+
+#ifndef CRYSTAL_MD_DOMAIN_H
+#define CRYSTAL_MD_DOMAIN_H
+
+#include <utils/data_def.h>
 
 class domain {
-private:
-	domain();
-	domain(domain &domain);
 
-	domain& operator=(domain &domain);
-	
 public:
-	domain(int rank);
-	double getGlobalLength(int index) const;
-	void setGlobalLength(int index, double length);
-	double getGlobalLength(int d) { return _globalLength[d]; }
+    domain(kiwi::RID rank);
+
+    double getGlobalLength(int index) const;
+
+    void setGlobalLength(int index, double length);
+
+    double getGlobalLength(int d) { return _globalLength[d]; }
+
 private:
-	int _localRank;
+    int _localRank;
     double _globalLength[3];
+
+    domain();
+
+    domain(domain &domain);
+
+    domain &operator=(domain &domain);
 };
 
-#endif /*DOMAIN_H_*/
+#endif //CRYSTAL_MD_DOMAIN_H

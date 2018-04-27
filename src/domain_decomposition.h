@@ -1,5 +1,9 @@
-#ifndef DOMAINDECOMPOSITION_H_
-#define DOMAINDECOMPOSITION_H_
+//
+// Created by baihe back to 2016-12-22.
+//
+
+#ifndef CRYSTAL_MD_DOMAIN_DECOMPOSITION_H
+#define CRYSTAL_MD_DOMAIN_DECOMPOSITION_H
 
 #undef SEEK_SET
 #undef SEEK_END
@@ -27,7 +31,7 @@ using namespace std;
  * Then, we can bind each processor to a cartesian coordinate (x,y,z) due to the boxes partition,
  * where 0 <= x < N_x, 0 <= z < N_z, 0 <= z < N_z.
  * Last, based on the cartesian coordinate (x,y,z),
- * each processor can get the  cartesian coordinate of its contiguous sub-boxes.
+ * each processor can get the cartesian coordinate of its contiguous sub-boxes.
  */
 class domaindecomposition {
 public:
@@ -65,12 +69,13 @@ private:
     MPI_Datatype _mpi_latParticle_data;
     // 每个维度的进程数
     int _gridSize[DIM];
-    // 进程的笛卡尔坐标
+    /**
+     * The cartesian coordinate of the sub-box bound to this processor.
+     */
     int _coords[DIM];
-    // rank in communication _comm.
-    int _rank;
-    // 邻居进程号
-    int _neighbours[DIM][2];
+
+    // the rank ids of contiguous processors in space.
+    int _rank_id_neighbours[DIM][2];
 
     vector<vector<int> > sendlist;
     vector<vector<int> > recvlist;
@@ -79,4 +84,4 @@ private:
     vector<vector<int> > interrecvlist;
 };
 
-#endif /* DOMAINDECOMPOSITION_H_ */
+#endif // CRYSTAL_MD_DOMAIN_DECOMPOSITION_H

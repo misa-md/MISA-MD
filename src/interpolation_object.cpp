@@ -3,7 +3,7 @@
 #include <iostream>
 #include <algorithm>
 
-#include "InterpolationObject.h"
+#include "interpolation_object.h"
 
 InterpolationObject::InterpolationObject(){
 	values = NULL;
