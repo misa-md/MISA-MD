@@ -21,7 +21,7 @@ set(HEADER_FILES
         atom.h
         createatom.h
         crystal_md.h
-        Config.h
+        toml_config.h
         config_values.h
         domain.h
         domaindecomposition.h
@@ -40,7 +40,7 @@ set(SOURCE_FILES
         atom.cpp
         createatom.cpp
         crystal_md.cpp
-        Config.cpp
+        toml_config.cpp
         config_values.cpp
         domain.cpp
         domaindecomposition.cpp

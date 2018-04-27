@@ -1,14 +1,14 @@
 #include <iostream>
 #include <utils/mpi_utils.h>
 #include "simulation.h"
-#include "Config.h"
+#include "toml_config.h"
 #include "hardware_accelerate.hpp"
 
 simulation::simulation() : _domaindecomposition(nullptr), _input(nullptr) {
 //    domainDecomposition();
 
     //collision_step = -1;
-    cp = Config::getInstance();
+    cp = ConfigParser::getInstance();
 }
 
 simulation::~simulation() {

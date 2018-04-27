@@ -9,7 +9,7 @@
 #include "createatom.h"
 #include "input.h"
 #include "eam.h"
-#include "Config.h"
+#include "toml_config.h"
 
 class simulation {
 public:
@@ -43,7 +43,7 @@ public:
 private:
     unsigned long _simstep;             /**< 程序运行实际时间步 */
 
-    Config *cp;
+    ConfigParser *cp;
     kiwi::IOWriter *writer = nullptr; // io writer for writing a shared file using mpi-IO lib.
 
     domaindecomposition *_domaindecomposition; //仅rank==0的进程有效

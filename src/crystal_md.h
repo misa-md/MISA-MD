@@ -8,7 +8,7 @@
 #include <kiwi_app.h>
 
 #include "simulation.h"
-#include "Config.h"
+#include "toml_config.h"
 
 class crystalMD : public kiwi::kiwiApp {
 
@@ -48,7 +48,7 @@ private:
     char **argv;
 
     std::string configFilePath = "config.toml"; // configure file path default value.
-    Config *pConfig;
+    ConfigParser *pConfig;
     simulation *pSimulation;
 
 };

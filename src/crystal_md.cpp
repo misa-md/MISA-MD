@@ -48,18 +48,18 @@ bool crystalMD::beforeCreate(int argc, char *argv[]) {
 }
 
 void crystalMD::onCreate() {
-    Config *pConfig;
+    ConfigParser *pConfig;
     if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR) {
         std::cout << "mpi env was initialed." << std::endl;
         // initial config Obj, then read and resolve config file.
-        pConfig = Config::newInstance(configFilePath); // todo config file from argv.
+        pConfig = ConfigParser::newInstance(configFilePath); // todo config file from argv.
         if (pConfig->hasError) {
             std::cerr << "[Error] " << pConfig->errorMessage << std::endl;
             this->abort(2);
         }
     } else {
         // just initial a empty config Obj.
-        pConfig = Config::getInstance();
+        pConfig = ConfigParser::getInstance();
     }
     pConfig->sync(); // sync config data to other processors from master processor.
 #ifdef DEV_MODE

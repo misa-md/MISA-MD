@@ -3,58 +3,58 @@
 #include <utils/mpi_utils.h>
 #include <utils/bundle.h>
 
-#include "Config.h"
+#include "toml_config.h"
 
 //
 // Created by gensh(genshenchu@gmail.com) on 2017/4/16.
 //
 
 using namespace std;
-Config *Config::m_pInstance = nullptr;
+ConfigParser *ConfigParser::m_pInstance = nullptr;
 
-Config::Config() : kiwi::config::config() {
+ConfigParser::ConfigParser() : kiwi::config::config() {
     configValues = ConfigValues(); // todo ConfigValues cap
 }
 
 // a simple single mode.
-Config *Config::getInstance() {
+ConfigParser *ConfigParser::getInstance() {
     if (m_pInstance == nullptr) {
-        m_pInstance = new Config();
+        m_pInstance = new ConfigParser();
     }
     return m_pInstance; // make sure there is a configure instance.
 }
 
-Config *Config::newInstance(const string &configureFilePath) {
+ConfigParser *ConfigParser::newInstance(const string &configureFilePath) {
     if (m_pInstance == nullptr) {
-        m_pInstance = new Config();  // todo delete
+        m_pInstance = new ConfigParser();  // todo delete
         m_pInstance->resolve(configureFilePath);
     }
     return m_pInstance;
 }
 
-bool Config::configureCheck() {
+bool ConfigParser::configureCheck() {
     //todo
     return true;
 }
 
 // @override only for master processor.
 // @see https://github.com/skystrife/cpptoml#example-usage for more details.
-void Config::resolveConfig(std::shared_ptr<cpptoml::table> table) {
+void ConfigParser::resolveConfig(std::shared_ptr<cpptoml::table> table) {
     resolveConfigSimulation(table->get_table("simulation"));
     resolveConfigOutput(table->get_table("output"));
 }
 
 // @override
-void Config::putConfigData(kiwi::Bundle &bundle) {
+void ConfigParser::putConfigData(kiwi::Bundle &bundle) {
     configValues.packdata(bundle);
 }
 
 // @override
-void Config::getConfigData(kiwi::Bundle &bundle) {
+void ConfigParser::getConfigData(kiwi::Bundle &bundle) {
     configValues.unpackdata(bundle);
 }
 
-void Config::resolveConfigSimulation(std::shared_ptr<cpptoml::table> v) {
+void ConfigParser::resolveConfigSimulation(std::shared_ptr<cpptoml::table> v) {
     // resolve simulation.phasespace
     auto tomlPhaseSpace = v->get_array_of<int64_t>("phasespace");
     if (tomlPhaseSpace) {
@@ -174,7 +174,7 @@ void Config::resolveConfigSimulation(std::shared_ptr<cpptoml::table> v) {
     }
 }
 
-void Config::resolveConfigOutput(shared_ptr<cpptoml::table> v) {
+void ConfigParser::resolveConfigOutput(shared_ptr<cpptoml::table> v) {
     auto tomlOutputMode = v->get_as<std::string>("mode");
     if (tomlOutputMode) {
         if ("copy" == *tomlOutputMode) { // todo equal?

@@ -13,7 +13,7 @@ timesteps =  10  # unsigned long type
 [simulation.createphase]  # read atoms information from file or create atoms.
 #createphase = [600, 466953]
 create_phase = true  # boolean type. true: create atoms,false: read atoms.
-create_t_set = 600.0   # double type, for create mode
+create_t_set = 600.0   # temperature double type, for create mode
 create_seed = 466953 # int type, for create mode
 #read_phase_filename = ""  # string type, for read mode.
 

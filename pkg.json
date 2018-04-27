@@ -26,15 +26,6 @@
           "catch.hpp": "catch2.hpp"
         }
       },
-      "toml": {
-        "path": "https://raw.githubusercontent.com/mayah/tinytoml/master/include/toml",
-        "files": {
-          "toml.h": "toml.hpp"
-        },
-        "build": [
-          "CP toml.hpp {INCLUDE}"
-        ]
-      },
       "agrs": {
         "path": "https://raw.githubusercontent.com/Taywee/args/master",
         "files": {
