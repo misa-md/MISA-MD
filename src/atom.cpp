@@ -2,6 +2,7 @@
 #include <cmath>
 #include <fstream>
 #include <iomanip>
+#include <logs/logs.h>
 #include "atom.h"
 #include "toml_config.h"
 #include "hardware_accelerate.hpp" // use hardware(eg.GPU, MIC,Sunway slave cores.) to achieve calculate accelerating.
@@ -1691,7 +1692,7 @@ void atom::printAtoms(int rank, int outMode, kiwi::IOWriter *writer) {
             outfile << idinter[i] << " " << xinter[i][0] << " " << xinter[i][1] << " " << xinter[i][2] << std::endl;
         }
         stop = MPI_Wtime();
-        printf("outtime:%lf\n", stop - start);
+        kiwi::logs::i("output", "outtime:{}.\n", stop - start);
         outfile.close();
     }
 }

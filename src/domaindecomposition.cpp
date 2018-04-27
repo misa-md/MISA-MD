@@ -1,37 +1,44 @@
 #include <iostream>
+#include <logs/logs.h>
 #include "domaindecomposition.h"
 #include "particledata.h"
 #include "latparticledata.h"
 #include "domain.h"
 
-using namespace std;
-
 domaindecomposition::domaindecomposition() {
     int period[DIM];
-    int reorder;
-    int num_procs; // 进程数量
-
     // 3维拓扑
-    for (int d = 0; d < DIM; d++)
+    for (int d = 0; d < DIM; d++) {
         period[d] = 1;
-    reorder = 1;
-    // 获取进程数量
-    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
-    setGridSize(num_procs);
-    // 对进程排序
-    MPI_Cart_create(MPI_COMM_WORLD, DIM, _gridSize, period, reorder, &_comm);
+        _gridSize[d] = 0;
+    }
 
-    // 获取本地进程号、笛卡尔坐标
-    MPI_Comm_rank(_comm, &_rank);
-    MPI_Cart_coords(_comm, _rank, DIM, _coords);
-    if (_rank == 0) {
-        cout << "MPI grid dimensions: " << _gridSize[0] << ", " << _gridSize[1] << ", " << _gridSize[2] << endl;
-        cout << "MPI coordinate of current process: " << _coords[0] << ", " << _coords[1] << ", " << _coords[2] << endl;
+    // Assume N can be decomposed as N = N_x * N_y * N_z,
+    // then we have: _gridSize[0] = N_x, _gridSize[1] = N_y, _gridSize[1] = N_z.
+    // Fill in the _gridSize array such that the product of _gridSize[i] for i=0 to DIM-1 equals N.
+    MPI_Dims_create(kiwi::mpiUtils::all_ranks, DIM, (int *) &_gridSize);
+    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
+        kiwi::logs::i("decomposition", "MPI grid dimensions: {0},{1},{2}\n",
+                      _gridSize[0], _gridSize[1], _gridSize[2]);
+    }
+
+    // sort the processors to fit 3D cartesian topology.
+    // the rank id may change.
+    MPI_Comm _comm;
+    MPI_Cart_create(MPI_COMM_WORLD, DIM, _gridSize, period, true, &_comm);
+
+    // 获取本地进程 笛卡尔坐标
+    kiwi::mpiUtils::onGlobalCommChanged(_comm);
+    MPI_Cart_coords(kiwi::mpiUtils::global_comm, kiwi::mpiUtils::own_rank, DIM, _coords);
+    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
+        kiwi::logs::d("decomposition", "MPI coordinate of current process: {0},{1},{2}\n",
+                      _coords[0], _coords[1], _coords[2]);
     }
     // 获取邻居进程号
     for (int d = 0; d < DIM; d++) {
         MPI_Cart_shift(_comm, d, 1, &_neighbours[d][LOWER], &_neighbours[d][HIGHER]);
     }
+
     particledata::setMPIType(_mpi_Particle_data);
     latparticledata::setMPIType(_mpi_latParticle_data);
     intersendlist.resize(6);
@@ -111,16 +118,17 @@ void domaindecomposition::exchangeAtomfirst(atom *_atom, domain *domain) {
             int numrecv;
 
             // 向下/上发送并从上/下接收
-            MPI_Isend(sendbuf[direction], numsend, _mpi_latParticle_data, _neighbours[d][direction], 99, _comm,
+            MPI_Isend(sendbuf[direction], numsend, _mpi_latParticle_data, _neighbours[d][direction], 99,
+                      kiwi::mpiUtils::global_comm,
                       &send_requests[d][direction]);
-            MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, _comm, &status);//测试邻居是否有信息发送给本地
+            MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, kiwi::mpiUtils::global_comm, &status);//测试邻居是否有信息发送给本地
             MPI_Get_count(&status, _mpi_latParticle_data, &numrecv);//得到要接收的粒子数目
             // 初始化接收缓冲区
             //依据得到发送方要发送粒子信息大小，初始化接收缓冲区
             recvbuf[direction] = new latparticledata[numrecv];
             numPartsToRecv[d][direction] = numrecv;
             MPI_Irecv(recvbuf[direction], numrecv, _mpi_latParticle_data, _neighbours[d][(direction + 1) % 2], 99,
-                      _comm, &recv_requests[d][direction]);
+                      kiwi::mpiUtils::global_comm, &recv_requests[d][direction]);
         }
 
         for (direction = LOWER; direction <= HIGHER; direction++) {
@@ -195,16 +203,17 @@ void domaindecomposition::exchangeAtom(atom *_atom, domain *domain) {
             int numsend = numPartsToSend[d][direction];
             int numrecv;
 
-            MPI_Isend(sendbuf[direction], numsend, _mpi_latParticle_data, _neighbours[d][direction], 99, _comm,
+            MPI_Isend(sendbuf[direction], numsend, _mpi_latParticle_data, _neighbours[d][direction], 99,
+                      kiwi::mpiUtils::global_comm,
                       &send_requests[d][direction]);
-            MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, _comm, &status);//测试邻居是否有信息发送给本地
+            MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, kiwi::mpiUtils::global_comm, &status);//测试邻居是否有信息发送给本地
             MPI_Get_count(&status, _mpi_latParticle_data, &numrecv);//得到要接收的粒子数目
             // 初始化接收缓冲区
             //依据得到发送方要发送粒子信息大小，初始化接收缓冲区
             recvbuf[direction] = new latparticledata[numrecv];
             numPartsToRecv[d][direction] = numrecv;
             MPI_Irecv(recvbuf[direction], numrecv, _mpi_latParticle_data, _neighbours[d][(direction + 1) % 2], 99,
-                      _comm, &recv_requests[d][direction]);
+                      kiwi::mpiUtils::global_comm, &recv_requests[d][direction]);
         }
 
         for (direction = LOWER; direction <= HIGHER; direction++) {
@@ -251,16 +260,16 @@ void domaindecomposition::exchangeInter(atom *_atom, domain *domain) {
             int numsend = numPartsToSend[d][direction];
             int numrecv;
 
-            MPI_Isend(sendbuf[direction], numsend, _mpi_Particle_data, _neighbours[d][direction], 99, _comm,
-                      &send_requests[d][direction]);
-            MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, _comm, &status);//测试邻居是否有信息发送给本地
+            MPI_Isend(sendbuf[direction], numsend, _mpi_Particle_data, _neighbours[d][direction], 99,
+                      kiwi::mpiUtils::global_comm, &send_requests[d][direction]);
+            MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, kiwi::mpiUtils::global_comm, &status);//测试邻居是否有信息发送给本地
             MPI_Get_count(&status, _mpi_Particle_data, &numrecv);//得到要接收的粒子数目
             // 初始化接收缓冲区
             //依据得到发送方要发送粒子信息大小，初始化接收缓冲区
             recvbuf[direction] = new particledata[numrecv];
             numPartsToRecv[d][direction] = numrecv;
-            MPI_Irecv(recvbuf[direction], numrecv, _mpi_Particle_data, _neighbours[d][(direction + 1) % 2], 99, _comm,
-                      &recv_requests[d][direction]);
+            MPI_Irecv(recvbuf[direction], numrecv, _mpi_Particle_data, _neighbours[d][(direction + 1) % 2], 99,
+                      kiwi::mpiUtils::global_comm, &recv_requests[d][direction]);
         }
 
         for (direction = LOWER; direction <= HIGHER; direction++) {
@@ -340,16 +349,16 @@ void domaindecomposition::borderInter(atom *_atom, domain *domain) {
             int numsend = numPartsToSend[d][direction];
             int numrecv;
 
-            MPI_Isend(sendbuf[direction], numsend, _mpi_latParticle_data, _neighbours[d][direction], 99, _comm,
-                      &send_requests[d][direction]);
-            MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, _comm, &status);//测试邻居是否有信息发送给本地
+            MPI_Isend(sendbuf[direction], numsend, _mpi_latParticle_data, _neighbours[d][direction], 99,
+                      kiwi::mpiUtils::global_comm, &send_requests[d][direction]);
+            MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, kiwi::mpiUtils::global_comm, &status);//测试邻居是否有信息发送给本地
             MPI_Get_count(&status, _mpi_latParticle_data, &numrecv);//得到要接收的粒子数目
             // 初始化接收缓冲区
             //依据得到发送方要发送粒子信息大小，初始化接收缓冲区
             recvbuf[direction] = new latparticledata[numrecv];
             numPartsToRecv[d][direction] = numrecv;
             MPI_Irecv(recvbuf[direction], numrecv, _mpi_latParticle_data, _neighbours[d][(direction + 1) % 2], 99,
-                      _comm, &recv_requests[d][direction]);
+                      kiwi::mpiUtils::global_comm, &recv_requests[d][direction]);
         }
 
         for (direction = LOWER; direction <= HIGHER; direction++) {
@@ -393,16 +402,16 @@ void domaindecomposition::sendrho(atom *_atom) {
             int numsend = numPartsToSend[d][direction];
             int numrecv;
 
-            MPI_Isend(sendbuf[direction], numsend, MPI_DOUBLE, _neighbours[d][direction], 99, _comm,
-                      &send_requests[d][direction]);
-            MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, _comm, &status);//测试邻居是否有信息发送给本地
+            MPI_Isend(sendbuf[direction], numsend, MPI_DOUBLE, _neighbours[d][direction], 99,
+                      kiwi::mpiUtils::global_comm, &send_requests[d][direction]);
+            MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, kiwi::mpiUtils::global_comm, &status);//测试邻居是否有信息发送给本地
             MPI_Get_count(&status, MPI_DOUBLE, &numrecv);//得到要接收的粒子数目
             // 初始化接收缓冲区
             //依据得到发送方要发送粒子信息大小，初始化接收缓冲区
             recvbuf[direction] = new double[numrecv];
             numPartsToRecv[d][direction] = numrecv;
-            MPI_Irecv(recvbuf[direction], numrecv, MPI_DOUBLE, _neighbours[d][(direction + 1) % 2], 99, _comm,
-                      &recv_requests[d][direction]);
+            MPI_Irecv(recvbuf[direction], numrecv, MPI_DOUBLE, _neighbours[d][(direction + 1) % 2], 99,
+                      kiwi::mpiUtils::global_comm, &recv_requests[d][direction]);
         }
         for (direction = LOWER; direction <= HIGHER; direction++) {
             int numrecv = numPartsToRecv[d][direction];
@@ -449,16 +458,16 @@ void domaindecomposition::sendDfEmbed(atom *_atom) {
             int numsend = numPartsToSend[d][direction];
             int numrecv;
 
-            MPI_Isend(sendbuf[direction], numsend, MPI_DOUBLE, _neighbours[d][direction], 99, _comm,
-                      &send_requests[d][direction]);
-            MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, _comm, &status);//测试邻居是否有信息发送给本地
+            MPI_Isend(sendbuf[direction], numsend, MPI_DOUBLE, _neighbours[d][direction], 99,
+                      kiwi::mpiUtils::global_comm, &send_requests[d][direction]);
+            MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, kiwi::mpiUtils::global_comm, &status);//测试邻居是否有信息发送给本地
             MPI_Get_count(&status, MPI_DOUBLE, &numrecv);//得到要接收的粒子数目
             // 初始化接收缓冲区
             //依据得到发送方要发送粒子信息大小，初始化接收缓冲区
             recvbuf[direction] = new double[numrecv];
             numPartsToRecv[d][direction] = numrecv;
-            MPI_Irecv(recvbuf[direction], numrecv, MPI_DOUBLE, _neighbours[d][(direction + 1) % 2], 99, _comm,
-                      &recv_requests[d][direction]);
+            MPI_Irecv(recvbuf[direction], numrecv, MPI_DOUBLE, _neighbours[d][(direction + 1) % 2], 99,
+                      kiwi::mpiUtils::global_comm, &recv_requests[d][direction]);
         }
 
         for (direction = LOWER; direction <= HIGHER; direction++) {
@@ -502,16 +511,16 @@ void domaindecomposition::sendforce(atom *_atom) {
             int numsend = numPartsToSend[d][direction] * 3;
             int numrecv;
 
-            MPI_Isend(sendbuf[direction], numsend, MPI_DOUBLE, _neighbours[d][direction], 99, _comm,
-                      &send_requests[d][direction]);
-            MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, _comm, &status);//测试邻居是否有信息发送给本地
+            MPI_Isend(sendbuf[direction], numsend, MPI_DOUBLE, _neighbours[d][direction], 99,
+                      kiwi::mpiUtils::global_comm, &send_requests[d][direction]);
+            MPI_Probe(_neighbours[d][(direction + 1) % 2], 99, kiwi::mpiUtils::global_comm, &status);//测试邻居是否有信息发送给本地
             MPI_Get_count(&status, MPI_DOUBLE, &numrecv);//得到要接收的粒子数目
             // 初始化接收缓冲区
             //依据得到发送方要发送粒子信息大小，初始化接收缓冲区
             recvbuf[direction] = new double[numrecv];
             numPartsToRecv[d][direction] = numrecv;
-            MPI_Irecv(recvbuf[direction], numrecv, MPI_DOUBLE, _neighbours[d][(direction + 1) % 2], 99, _comm,
-                      &recv_requests[d][direction]);
+            MPI_Irecv(recvbuf[direction], numrecv, MPI_DOUBLE, _neighbours[d][(direction + 1) % 2], 99,
+                      kiwi::mpiUtils::global_comm, &recv_requests[d][direction]);
         }
         for (direction = LOWER; direction <= HIGHER; direction++) {
             int numrecv = numPartsToRecv[d][direction]; // todo remove not used variable.
@@ -533,10 +542,4 @@ double domaindecomposition::getBoundingBoxMin(int dimension, domain *domain) {
 
 double domaindecomposition::getBoundingBoxMax(int dimension, domain *domain) {
     return (_coords[dimension] + 1) * (domain->getGlobalLength(dimension) / _gridSize[dimension]);
-}
-
-void domaindecomposition::setGridSize(int num_procs) {
-    for (int i = 0; i < DIM; i++)
-        _gridSize[i] = 0;
-    MPI_Dims_create(num_procs, DIM, (int *) &_gridSize);
 }

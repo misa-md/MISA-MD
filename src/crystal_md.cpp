@@ -5,11 +5,10 @@
 #include <iostream>
 #include <args.hpp>
 #include <utils/mpi_utils.h>
+#include <logs/logs.h>
 
 #include "crystal_md.h"
 #include "arch_env.hpp"
-
-using namespace std;
 
 bool crystalMD::beforeCreate(int argc, char *argv[]) {
     // parser arguments
@@ -49,12 +48,12 @@ bool crystalMD::beforeCreate(int argc, char *argv[]) {
 
 void crystalMD::onCreate() {
     ConfigParser *pConfig;
-    if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR) {
-        std::cout << "mpi env was initialed." << std::endl;
+    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
+        kiwi::logs::s("env", "mpi env is initialized.\n");
         // initial config Obj, then read and resolve config file.
         pConfig = ConfigParser::newInstance(configFilePath); // todo config file from argv.
         if (pConfig->hasError) {
-            std::cerr << "[Error] " << pConfig->errorMessage << std::endl;
+            kiwi::logs::e("config", "{}\n", pConfig->errorMessage);
             this->abort(2);
         }
     } else {
@@ -64,8 +63,8 @@ void crystalMD::onCreate() {
     pConfig->sync(); // sync config data to other processors from master processor.
 #ifdef DEV_MODE
 // print configure.
-    if (kiwi::mpiUtils::ownRank != MASTER_PROCESSOR) {
-        cout << pConfig->configValues;
+    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
+        std::cout << pConfig->configValues;
     }
 #endif
     archEnvInit(); // initialize architectures environment.
@@ -79,23 +78,25 @@ bool crystalMD::prepare() {
 }
 
 void crystalMD::onStart() {
-    pSimulation->prepareForStart(kiwi::mpiUtils::ownRank);
-    if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR)
-        std::cout << "Start simulation" << std::endl;
+    pSimulation->prepareForStart(kiwi::mpiUtils::own_rank);
+    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
+        kiwi::logs::v("simulation", "Start simulation.\n");
+    }
     //开始模拟
     pSimulation->simulate();
 }
 
 void crystalMD::onFinish() {
-    if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR)
-        std::cout << "finalizing simulation" << std::endl;
+    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
+        kiwi::logs::s("simulation", "finalizing simulation\n");
+    }
     //模拟结束
     pSimulation->finalize();
 }
 
 void crystalMD::beforeDestroy() {
-    if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR) {
-        cout << "app was detached" << endl;
+    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
+        kiwi::logs::v("app", "app was detached.\n");
     }
     archEnvFinalize(); // clean architectures environment.
 }

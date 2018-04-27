@@ -4,7 +4,7 @@ include_directories(${PROJECT_SOURCE_DIR}/vendor/pkg/include)
 # include kiwi framework.
 add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/src/kiwi ${PROJECT_BINARY_DIR}/vendor/kiwi)
 include_directories(${KIWI_EXPORT_INCLUDE_PATH})
-set(EXTRA_LIBS kiwi ${EXTRA_LIBS})
+set(EXTRA_LIBS fmt kiwi ${EXTRA_LIBS})
 
 # configure a header file to pass some of the CMake settings to the source code
 configure_file(

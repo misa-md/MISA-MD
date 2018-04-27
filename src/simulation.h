@@ -46,7 +46,7 @@ private:
     ConfigParser *cp;
     kiwi::IOWriter *writer = nullptr; // io writer for writing a shared file using mpi-IO lib.
 
-    domaindecomposition *_domaindecomposition; //仅rank==0的进程有效
+    domaindecomposition *_domain_decomposition; //仅rank==0的进程有效
     domain *_domain;  //仅rank==0的进程有效
     atom *_atom;
     integrator *_integrator;

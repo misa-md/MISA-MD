@@ -21,6 +21,16 @@ using namespace std;
 
 class domaindecomposition{
 public:
+	/**
+	 * In this construction method, each processor will be bound to a cartesian coordinate.
+	 *
+	 * It first divide the simulation space into N pieces(sub-space) (N is the count of all processors).
+	 * First, if N can be decomposed as N = N_x * N_y * N_z, where N, N_x, N_y, N_z are all integer bigger than or equal to 1,
+	 * then the whole simulation space will be divided into N sub-space with N_z levels in z axis,
+	 * and in each level, it has  N_x * N_y sub-space.
+	 *
+	 * Second, we can bind each processor to a cartesian coordinate (x,y,z) due to the space partition, where 0 <= x < N_x, 0 <= z < N_z, 0 <= z < N_z.
+	 */
 	domaindecomposition();
 
 	~domaindecomposition();
@@ -40,20 +50,16 @@ public:
 	double getBoundingBoxMin(int dimension, domain* domain);
 	double getBoundingBoxMax(int dimension, domain* domain);
 private:
-	void setGridSize(int num_procs);
-
-	MPI_Comm _comm;
-	int _comm_size;
 
 	MPI_Datatype _mpi_Particle_data;
 	MPI_Datatype _mpi_latParticle_data;
-	//! 每个维度的进程数
+	// 每个维度的进程数
 	int _gridSize[DIM];
-	//! 进程的笛卡尔坐标
+	// 进程的笛卡尔坐标
 	int _coords[DIM];
-	//!  进程号
+	// rank in communication _comm.
 	int _rank;
-	//! 邻居进程号
+	// 邻居进程号
 	int _neighbours[DIM][2];
 
 	vector<vector<int> > sendlist;

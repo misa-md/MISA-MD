@@ -16,7 +16,7 @@
     "git": {
       "kiwi": {
         "path": "https://git.gensh.me/genshen/kiwi.git",
-        "hash": "1b186928b0744f2dad6ecabb5f60b0998627019b"
+        "hash": "21513034630d1e3fd4313e6571795da685c775e5"
       }
     },
     "files": {
@@ -24,7 +24,10 @@
         "path": "https://raw.githubusercontent.com/CatchOrg/Catch2/v2.2.2/single_include",
         "files": {
           "catch.hpp": "catch2.hpp"
-        }
+        },
+        "build": [
+          "CP catch2.hpp {INCLUDE}"
+        ]
       },
       "agrs": {
         "path": "https://raw.githubusercontent.com/Taywee/args/master",
