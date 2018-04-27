@@ -18,6 +18,12 @@ public:
 
     ~simulation();
 
+    /**
+     * Denote N as the count of all processors.
+     * {@memberof domainDecomposition} will divide the simulation box into N parts,
+     * we call each part as a sub-box.
+     * And each sub-box will bind to a processor.
+     */
     void domainDecomposition();
 
     void createBoxedAndAtoms();
