@@ -1,17 +1,16 @@
 #include <utils/mpi_utils.h>
 #include <logs/logs.h>
 #include "simulation.h"
-#include "toml_config.h"
 #include "hardware_accelerate.hpp"
 
 simulation::simulation() : _domain_decomposition(nullptr), _input(nullptr) {
     pConfigVal = &(ConfigParser::getInstance()->configValues);
-//    domainDecomposition();
+//    constructeDomain();
 //    collision_step = -1;
 }
 
 simulation::~simulation() {
-    delete _domain;
+//    delete _domain;
     delete _atom;
     delete _integrator;
     delete _pot;
@@ -20,27 +19,21 @@ simulation::~simulation() {
     delete _createatom;
 }
 
-void simulation::domainDecomposition() {
-//    _domain_decomposition = NULL;
-    _domain = nullptr;
+void simulation::constructeDomain() { // todo function name.
     _finalCheckpoint = true;
 
     //进行区域分解
-    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
-        kiwi::logs::v("domain", "Initializing domain decomposition.\n");
-    }
-    _domain_decomposition = new domaindecomposition();
-    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
-        kiwi::logs::v("domain", "Initialization done.\n");
-    }
+    kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initializing GlobalDomain decomposition.\n");
+    _domain_decomposition = new DomainDecomposition();
+    _domain_decomposition->decomposition();
 
-    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
-        kiwi::logs::v("domain", "Constructing domain.\n");
-    }
-    _domain = new domain(kiwi::mpiUtils::own_rank);
-    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
-        kiwi::logs::v("domain", "Domain construction done.\n");
-    }
+    _domain_decomposition->establishGlobalDomain(pConfigVal->phaseSpace,
+                                                 pConfigVal->latticeConst); // set global box domain.
+    _domain_decomposition->establishLocalBoxDomain(pConfigVal->phaseSpace,
+                                                   pConfigVal->latticeConst,
+                                                   pConfigVal->cutoffRadius); // set local sub-box domain.
+    kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initialization done.\n");
+
     /*
      * 初始化参数
      */
@@ -48,30 +41,9 @@ void simulation::domainDecomposition() {
 }
 
 void simulation::createBoxedAndAtoms() {
-    double mass, ghostLength;
-
-    double boxlo[3], boxhi[3], globalLength[3];
-    boxlo[0] = boxlo[1] = boxlo[2] = 0;
-    globalLength[0] = boxhi[0] =
-            pConfigVal->phaseSpace[0] *
-            pConfigVal->latticeConst; //box_x个单位长度(单位长度即latticeconst)
-    globalLength[1] = boxhi[1] = pConfigVal->phaseSpace[1] * pConfigVal->latticeConst;
-    globalLength[2] = boxhi[2] = pConfigVal->phaseSpace[2] * pConfigVal->latticeConst;
-
-    _domain->setGlobalLength(0, globalLength[0]);
-    _domain->setGlobalLength(1, globalLength[1]);
-    _domain->setGlobalLength(2, globalLength[2]);
-
-    double bBoxMin[3], bBoxMax[3];
-    for (int i = 0; i < 3; i++) {
-        bBoxMin[i] = _domain_decomposition->getBoundingBoxMin(i, _domain);
-        bBoxMax[i] = _domain_decomposition->getBoundingBoxMax(i, _domain);
-    }
-    ghostLength = pConfigVal->cutoffRadius;
-    _atom = new atom(boxlo, boxhi, globalLength, bBoxMin, bBoxMax, ghostLength,
-                     pConfigVal->latticeConst, pConfigVal->cutoffRadius,
+    _atom = new atom(_domain_decomposition, pConfigVal->latticeConst, pConfigVal->cutoffRadius,
                      pConfigVal->createSeed);
-    mass = 55.845;
+    double mass = 55.845;
 
     if (pConfigVal->createPhaseMode) {  //创建原子坐标、速度信息
         _createatom = new create_atom(pConfigVal->createTSet);
@@ -98,7 +70,7 @@ void simulation::prepareForStart(int rank) {
     beforeAccelerateRun(_pot); // it runs after atom and boxes creation, but before simulation running.
 
     starttime = MPI_Wtime();
-    _domain_decomposition->exchangeAtomfirst(_atom, _domain);
+    _domain_decomposition->exchangeAtomfirst(_atom);
     stoptime = MPI_Wtime();
     commtime = stoptime - starttime;
     _atom->clearForce(); // clear force before running simulation.
@@ -109,7 +81,7 @@ void simulation::prepareForStart(int rank) {
     commtime += comm;
     //_atom->print_force();
     starttime = MPI_Wtime();
-    _domain_decomposition->sendforce(_atom);
+    _domain_decomposition->sendForce(_atom);
     stoptime = MPI_Wtime();
     commtime += stoptime - starttime;
     if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
@@ -130,12 +102,12 @@ void simulation::simulate() {
          _simulation_time_step < pConfigVal->timeSteps; _simulation_time_step++) {
         if (_simulation_time_step == pConfigVal->collisionSteps) {
             _atom->setv(pConfigVal->collisionLat, pConfigVal->collisionV);
-            _domain_decomposition->exchangeInter(_atom, _domain);
-            _domain_decomposition->borderInter(_atom, _domain);
-            _domain_decomposition->exchangeAtom(_atom, _domain);
+            _domain_decomposition->exchangeInter(_atom);
+            _domain_decomposition->borderInter(_atom);
+            _domain_decomposition->exchangeAtom(_atom);
             _atom->clearForce();
             _atom->computeEam(_pot, _domain_decomposition, comm);
-            _domain_decomposition->sendforce(_atom);
+            _domain_decomposition->sendForce(_atom);
         }
         //先进行求解牛顿运动方程第一步
         _integrator->firststep(_atom);
@@ -151,9 +123,9 @@ void simulation::simulate() {
             kiwi::logs::v("simulation", "start ghost communication:\n");
         }
         starttime = MPI_Wtime();
-        _domain_decomposition->exchangeInter(_atom, _domain);
-        _domain_decomposition->borderInter(_atom, _domain);
-        _domain_decomposition->exchangeAtom(_atom, _domain);
+        _domain_decomposition->exchangeInter(_atom);
+        _domain_decomposition->borderInter(_atom);
+        _domain_decomposition->exchangeAtom(_atom);
         stoptime = MPI_Wtime();
         commtime += stoptime - starttime;
 
@@ -173,7 +145,7 @@ void simulation::simulate() {
             kiwi::logs::v("simulation", "start sending force:\n");
         }
         starttime = MPI_Wtime();
-        _domain_decomposition->sendforce(_atom);
+        _domain_decomposition->sendForce(_atom);
         stoptime = MPI_Wtime();
         commtime += stoptime - starttime;
         //求解牛顿运动方程第二步

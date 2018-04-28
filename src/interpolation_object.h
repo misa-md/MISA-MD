@@ -1,6 +1,8 @@
 //
 // Created by baihe back to 2015-12-26.
 //
+#ifndef CRYSTAL_MD_INTERPOLATION_OBJECT_H
+#define CRYSTAL_MD_INTERPOLATION_OBJECT_H
 
 class InterpolationObject {
 public:
@@ -20,3 +22,5 @@ public:
     double *values;
     double (*spline)[7];
 };
+
+#endif //CRYSTAL_MD_INTERPOLATION_OBJECT_H

@@ -71,7 +71,7 @@ void crystalMD::onCreate() {
 
 bool crystalMD::prepare() {
     pSimulation = new simulation();
-    pSimulation->domainDecomposition(); //区域分解
+    pSimulation->constructeDomain(); //区域分解
     pSimulation->createBoxedAndAtoms();
     return true;
 }

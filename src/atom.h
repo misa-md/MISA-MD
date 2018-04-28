@@ -5,12 +5,12 @@
 #ifndef CRYSTAL_MD_ATOM_H
 #define CRYSTAL_MD_ATOM_H
 
-class domaindecomposition;
+class DomainDecomposition;
 
 #include <cstdio>
 #include <vector>
 #include <io/io_writer.h>
-#include "domain_decomposition.h"
+#include "domain.h"
 #include "eam.h"
 #include "particledata.h"
 #include "lat_particle_data.h"
@@ -22,10 +22,8 @@ using namespace std;
 
 class atom {
 public :
-    atom(const double boxlo[3], const double boxhi[3], const double globalLengh[3],
-         const double boundingBoxMin[3], const double boundingBoxMax[3],
-         double ghostlength, double latticeconst,
-         double cutoffRadius, int seed);
+    atom(DomainDecomposition *domain, double latticeconst,
+                               double cutoffRadius, int seed);
 
     ~atom();
 
@@ -35,13 +33,7 @@ public :
 
     void clearForce();
 
-    void computeEam(eam *pot, domaindecomposition *_domaindecomposition, double &comm);
-
-    double getBoundingBoxMin(int dimension) const;
-
-    double getBoundingBoxMax(int dimension) const;
-
-    double get_ghostlengh(int index) const;
+    void computeEam(eam *pot, DomainDecomposition *_domaindecomposition, double &comm);
 
     int getinteridsendsize();
 
@@ -110,15 +102,7 @@ private:
 
     double uniform();
 
-    double _boundingBoxMin[3];
-    double _boundingBoxMax[3];
-    double _ghostLength[3];
-    double _ghostBoundingBoxMin[3];
-    double _ghostBoundingBoxMax[3];
-
-    double _boxlo[3], _boxhi[3];
-    double _globalLengh[3];
-
+    DomainDecomposition *_domain;
     int numberoflattice;
 
     double _cutoffRadius;

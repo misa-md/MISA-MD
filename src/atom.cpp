@@ -13,25 +13,14 @@
 #define IQ 127773
 #define IR 2836
 
-atom::atom(const double boxlo[3], const double boxhi[3], const double globalLengh[3],
-           const double boundingBoxMin[3], const double boundingBoxMax[3], double ghostlength, double latticeconst,
-           double cutoffRadius, int seed) {
-    _latticeconst = latticeconst;
-    for (int d = 0; d < 3; d++) {
-        _boxlo[d] = boxlo[d];
-        _boxhi[d] = boxhi[d];
-        _globalLengh[d] = globalLengh[d];
-        _boundingBoxMin[d] = boundingBoxMin[d];
-        _boundingBoxMax[d] = boundingBoxMax[d];
-        _ghostLength[d] = ghostlength;
-        _ghostBoundingBoxMin[d] = _boundingBoxMin[d] - _ghostLength[d];
-        _ghostBoundingBoxMax[d] = _boundingBoxMax[d] + _ghostLength[d];
-    }
+atom::atom(DomainDecomposition *domain, double latticeconst,
+           double cutoffRadius, int seed) : _domain(domain), _latticeconst(latticeconst) {
 
-    nlocalx = floor(_boundingBoxMax[0] / (_latticeconst)) - floor(_boundingBoxMin[0] / (_latticeconst));
+    nlocalx =
+            floor(_domain->_boundingBoxMax[0] / (_latticeconst)) - floor(_domain->_boundingBoxMin[0] / (_latticeconst));
     nlocalx *= 2;
-    nlocaly = floor(_boundingBoxMax[1] / _latticeconst) - floor(_boundingBoxMin[1] / _latticeconst);
-    nlocalz = floor(_boundingBoxMax[2] / _latticeconst) - floor(_boundingBoxMin[2] / _latticeconst);
+    nlocaly = floor(_domain->_boundingBoxMax[1] / _latticeconst) - floor(_domain->_boundingBoxMin[1] / _latticeconst);
+    nlocalz = floor(_domain->_boundingBoxMax[2] / _latticeconst) - floor(_domain->_boundingBoxMin[2] / _latticeconst);
 
     /*
     nghostx = nlocalx + 2 * 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
@@ -44,9 +33,9 @@ atom::atom(const double boxlo[3], const double boxhi[3], const double globalLeng
     nghostz = nlocalz + 2 * ceil(cutoffRadius / _latticeconst);
 
 
-    lolocalx = floor(_boundingBoxMin[0] / latticeconst) * 2;
-    lolocaly = floor(_boundingBoxMin[1] / latticeconst);
-    lolocalz = floor(_boundingBoxMin[2] / latticeconst);
+    lolocalx = floor(_domain->_boundingBoxMin[0] / latticeconst) * 2;
+    lolocaly = floor(_domain->_boundingBoxMin[1] / latticeconst);
+    lolocalz = floor(_domain->_boundingBoxMin[2] / latticeconst);
 
     /*
     loghostx = lolocalx - 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
@@ -149,9 +138,9 @@ long int atom::IndexOf3DIndex(long int xIndex, long int yIndex, long int zIndex)
 
 void atom::addatom(unsigned long id, double rx, double ry, double rz, double vx, double vy, double vz) {
     int i;
-    if ((rx >= _boundingBoxMin[0]) && (rx < _boundingBoxMax[0]) &&
-        (ry >= _boundingBoxMin[1]) && (ry < _boundingBoxMax[1]) &&
-        (rz >= _boundingBoxMin[2]) && (rz < _boundingBoxMax[2])) {
+    if ((rx >= _domain->_boundingBoxMin[0]) && (rx < _domain->_boundingBoxMax[0]) &&
+        (ry >= _domain->_boundingBoxMin[1]) && (ry < _domain->_boundingBoxMax[1]) &&
+        (rz >= _domain->_boundingBoxMin[2]) && (rz < _domain->_boundingBoxMax[2])) {
         int lattice[3];
         lattice[0] = rx * 2 / _latticeconst + 0.5;
         lattice[1] = ry * 2 / _latticeconst + 0.5;
@@ -249,20 +238,20 @@ int atom::decide() {
     }
 
     for (int i = 0; i < nlocalinter; i++) {
-        if (xinter[i][0] < _boxlo[0]) {
-            xinter[i][0] += _globalLengh[0];
-        } else if (xinter[i][0] >= _boxhi[0]) {
-            xinter[i][0] -= _globalLengh[0];
+        if (xinter[i][0] < _domain->_coord_global_box_low[0]) {
+            xinter[i][0] += _domain->_globalLength[0];
+        } else if (xinter[i][0] >= _domain->_coord_global_box_high[0]) {
+            xinter[i][0] -= _domain->_globalLength[0];
         }
-        if (xinter[i][1] < _boxlo[1]) {
-            xinter[i][1] += _globalLengh[1];
-        } else if (xinter[i][1] >= _boxhi[1]) {
-            xinter[i][1] -= _globalLengh[1];
+        if (xinter[i][1] < _domain->_coord_global_box_low[1]) {
+            xinter[i][1] += _domain->_globalLength[1];
+        } else if (xinter[i][1] >= _domain->_coord_global_box_high[1]) {
+            xinter[i][1] -= _domain->_globalLength[1];
         }
-        if (xinter[i][2] < _boxlo[2]) {
-            xinter[i][2] += _globalLengh[2];
-        } else if (xinter[i][2] >= _boxhi[2]) {
-            xinter[i][2] -= _globalLengh[2];
+        if (xinter[i][2] < _domain->_coord_global_box_low[2]) {
+            xinter[i][2] += _domain->_globalLength[2];
+        } else if (xinter[i][2] >= _domain->_coord_global_box_high[2]) {
+            xinter[i][2] -= _domain->_globalLength[2];
         }
     }
 
@@ -327,7 +316,7 @@ void atom::clearForce() {
     }
 }
 
-void atom::computeEam(eam *pot, domaindecomposition *_domaindecomposition, double &comm) {
+void atom::computeEam(eam *pot, DomainDecomposition *_domaindecomposition, double &comm) {
     double starttime, stoptime;
     double xtemp, ytemp, ztemp;
     double delx, dely, delz;
@@ -817,18 +806,6 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
     }
 }
 
-double atom::getBoundingBoxMin(int dimension) const {
-    return this->_boundingBoxMin[dimension];
-}
-
-double atom::getBoundingBoxMax(int dimension) const {
-    return this->_boundingBoxMax[dimension];
-}
-
-double atom::get_ghostlengh(int index) const {
-    return _ghostLength[index];
-}
-
 int atom::getinteridsendsize() {
     return interbuf.size();
 }
@@ -960,16 +937,16 @@ void atom::getIntertosend(int d, int direction, double ghostlengh, vector<int> &
     double low, high;
     if (d == 0) {
         if (direction == 0) {
-            low = _boundingBoxMin[0];
-            high = _boundingBoxMin[0] + ghostlengh;
+            low = _domain->_boundingBoxMin[0];
+            high = _domain->_boundingBoxMin[0] + ghostlengh;
             for (int i = 0; i < nlocalinter; i++) {
                 if (xinter[i][0] < high && xinter[i][0] >= low) {
                     sendlist.push_back(i);
                 }
             }
         } else {
-            low = _boundingBoxMax[0] - ghostlengh;
-            high = _boundingBoxMax[0];
+            low = _domain->_boundingBoxMax[0] - ghostlengh;
+            high = _domain->_boundingBoxMax[0];
             for (int i = 0; i < nlocalinter; i++) {
                 if (xinter[i][0] <= high && xinter[i][0] > low) {
                     sendlist.push_back(i);
@@ -978,16 +955,16 @@ void atom::getIntertosend(int d, int direction, double ghostlengh, vector<int> &
         }
     } else if (d == 1) {
         if (direction == 0) {
-            low = _boundingBoxMin[1];
-            high = _boundingBoxMin[1] + ghostlengh;
+            low = _domain->_boundingBoxMin[1];
+            high = _domain->_boundingBoxMin[1] + ghostlengh;
             for (int i = 0; i < nlocalinter + nghostinter; i++) {
                 if (xinter[i][1] < high && xinter[i][1] >= low) {
                     sendlist.push_back(i);
                 }
             }
         } else {
-            low = _boundingBoxMax[1] - ghostlengh;
-            high = _boundingBoxMax[1];
+            low = _domain->_boundingBoxMax[1] - ghostlengh;
+            high = _domain->_boundingBoxMax[1];
             for (int i = 0; i < nlocalinter + nghostinter; i++) {
                 if (xinter[i][1] <= high && xinter[i][1] > low) {
                     sendlist.push_back(i);
@@ -996,16 +973,16 @@ void atom::getIntertosend(int d, int direction, double ghostlengh, vector<int> &
         }
     } else {
         if (direction == 0) {
-            low = _boundingBoxMin[2];
-            high = _boundingBoxMin[2] + ghostlengh;
+            low = _domain->_boundingBoxMin[2];
+            high = _domain->_boundingBoxMin[2] + ghostlengh;
             for (int i = 0; i < nlocalinter + nghostinter; i++) {
                 if (xinter[i][2] < high && xinter[i][2] >= low) {
                     sendlist.push_back(i);
                 }
             }
         } else {
-            low = _boundingBoxMax[2] - ghostlengh;
-            high = _boundingBoxMax[2];
+            low = _domain->_boundingBoxMax[2] - ghostlengh;
+            high = _domain->_boundingBoxMax[2];
             for (int i = 0; i < nlocalinter + nghostinter; i++) {
                 if (xinter[i][2] <= high && xinter[i][2] > low) {
                     sendlist.push_back(i);
@@ -1019,11 +996,11 @@ int atom::getintersendnum(int dimension, int direction) {
     interbuf.clear();
     for (int i = 0; i < nlocalinter; i++) {
         if (direction == 0) {
-            if (xinter[i][dimension] < _boundingBoxMin[dimension]) {
+            if (xinter[i][dimension] < _domain->_boundingBoxMin[dimension]) {
                 interbuf.push_back(i);
             }
         } else {
-            if (xinter[i][dimension] >= _boundingBoxMax[dimension]) {
+            if (xinter[i][dimension] >= _domain->_boundingBoxMax[dimension]) {
                 interbuf.push_back(i);
             }
         }
@@ -1070,7 +1047,7 @@ void atom::unpack_interrecv(int d, int n, particledata *buf) {
         vtemp[0] = buf[i].v[0];
         vtemp[1] = buf[i].v[1];
         vtemp[2] = buf[i].v[2];
-        if (xtemp[d] >= _boundingBoxMin[d] && xtemp[d] < _boundingBoxMax[d]) {
+        if (xtemp[d] >= _domain->_boundingBoxMin[d] && xtemp[d] < _domain->_boundingBoxMax[d]) {
             if (nlocalinter == xinter.size()) {
                 idinter.push_back(id);
                 typeinter.push_back(type);
@@ -1142,9 +1119,9 @@ void atom::unpack_borderrecv(int n, LatParticleData *buf, vector<int> &recvlist)
         xtemp[0] = buf[i].r[0];
         xtemp[1] = buf[i].r[1];
         xtemp[2] = buf[i].r[2];
-        if (xtemp[0] >= _ghostBoundingBoxMin[0] && xtemp[0] < _ghostBoundingBoxMax[0] &&
-            xtemp[1] >= _ghostBoundingBoxMin[1] && xtemp[1] < _ghostBoundingBoxMax[1] &&
-            xtemp[2] >= _ghostBoundingBoxMin[2] && xtemp[2] < _ghostBoundingBoxMax[2]) {
+        if (xtemp[0] >= _domain->_ghostBoundingBoxMin[0] && xtemp[0] < _domain->_ghostBoundingBoxMax[0] &&
+            xtemp[1] >= _domain->_ghostBoundingBoxMin[1] && xtemp[1] < _domain->_ghostBoundingBoxMax[1] &&
+            xtemp[2] >= _domain->_ghostBoundingBoxMin[2] && xtemp[2] < _domain->_ghostBoundingBoxMax[2]) {
             if (xinter.size() == nlocalinter + nghostinter) {
                 typeinter.push_back(type);
                 xinter.push_back(xtemp);

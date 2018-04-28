@@ -24,7 +24,6 @@ set(HEADER_FILES
         toml_config.h
         config_values.h
         domain.h
-        domain_decomposition.h
         eam.h
         hardware_accelerate.hpp
         input.h
@@ -43,7 +42,6 @@ set(SOURCE_FILES
         toml_config.cpp
         config_values.cpp
         domain.cpp
-        domain_decomposition.cpp
         eam.cpp
         input.cpp
         integrator.cpp

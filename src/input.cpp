@@ -1,5 +1,5 @@
 #include "input.h"
-#include "domain_decomposition.h"
+#include "domain.h"
 #include <iostream>
 #include <logs/logs.h>
 

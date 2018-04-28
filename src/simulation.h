@@ -8,7 +8,7 @@
 #include <mpi.h>
 #include <cstring>
 
-#include "domain_decomposition.h"
+#include "domain.h"
 #include "integrator.h"
 #include "create_atom.h"
 #include "input.h"
@@ -28,7 +28,7 @@ public:
      * we call each part as a sub-box.
      * And each sub-box will bind to a processor.
      */
-    void domainDecomposition();
+    void constructeDomain();
 
     void createBoxedAndAtoms();
 
@@ -62,8 +62,8 @@ private:
     ConfigValues *pConfigVal; // todo config value.
     kiwi::IOWriter *writer = nullptr; // io writer for writing a shared file using mpi-IO lib.
 
-    domaindecomposition *_domain_decomposition; //仅rank==0的进程有效
-    domain *_domain;  //仅rank==0的进程有效
+    DomainDecomposition *_domain_decomposition; //仅rank==0的进程有效
+   // GlobalDomain *_domain;  //仅rank==0的进程有效 // todo ??
     atom *_atom;
     integrator *_integrator;
     create_atom *_createatom;
