@@ -14,13 +14,17 @@
 #define IR 2836
 
 atom::atom(DomainDecomposition *domain, double latticeconst,
-           double cutoffRadius, int seed) : _domain(domain), _latticeconst(latticeconst) {
+           double cutoffRadius, int seed) :
+        _domain(domain), _latticeconst(latticeconst),
+        _cutoffRadius (cutoffRadius),_seed(seed) {
 
-    nlocalx =
-            floor(_domain->_boundingBoxMax[0] / (_latticeconst)) - floor(_domain->_boundingBoxMin[0] / (_latticeconst));
+    nlocalx = floor(_domain->_boundingBoxMax[0] / (_latticeconst)) -
+              floor(_domain->_boundingBoxMin[0] / (_latticeconst));
     nlocalx *= 2;
-    nlocaly = floor(_domain->_boundingBoxMax[1] / _latticeconst) - floor(_domain->_boundingBoxMin[1] / _latticeconst);
-    nlocalz = floor(_domain->_boundingBoxMax[2] / _latticeconst) - floor(_domain->_boundingBoxMin[2] / _latticeconst);
+    nlocaly = floor(_domain->_boundingBoxMax[1] / _latticeconst) -
+              floor(_domain->_boundingBoxMin[1] / _latticeconst);
+    nlocalz = floor(_domain->_boundingBoxMax[2] / _latticeconst) -
+              floor(_domain->_boundingBoxMin[2] / _latticeconst);
 
     /*
     nghostx = nlocalx + 2 * 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
@@ -28,9 +32,9 @@ atom::atom(DomainDecomposition *domain, double latticeconst,
     nghostz = nlocalz + 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
     */
 
-    nghostx = nlocalx + 2 * 2 * ceil(cutoffRadius / _latticeconst);
-    nghosty = nlocaly + 2 * ceil(cutoffRadius / _latticeconst);
-    nghostz = nlocalz + 2 * ceil(cutoffRadius / _latticeconst);
+    nghostx = nlocalx + 2 * 2 * ceil(domain->_ghostLength[0] / _latticeconst);
+    nghosty = nlocaly + 2 * ceil(domain->_ghostLength[1] / _latticeconst);
+    nghostz = nlocalz + 2 * ceil(domain->_ghostLength[2] / _latticeconst);
 
 
     lolocalx = floor(_domain->_boundingBoxMin[0] / latticeconst) * 2;
@@ -47,9 +51,6 @@ atom::atom(DomainDecomposition *domain, double latticeconst,
     loghosty = lolocaly - ceil(cutoffRadius / _latticeconst);
     loghostz = lolocalz - ceil(cutoffRadius / _latticeconst);
 
-
-    _seed = seed;
-    _cutoffRadius = cutoffRadius;
     _cutlattice = ceil(_cutoffRadius / _latticeconst);
 
     nlocalinter = 0;
@@ -1723,7 +1724,7 @@ void atom::vcm(double mass, double masstotal, double *p) {
     int xstart = lolocalx - loghostx;
     int ystart = lolocaly - loghosty;
     int zstart = lolocalz - loghostz;
-    int kk;
+    long kk;
     for (int k = zstart; k < nlocalz + zstart; k++) {
         for (int j = ystart; j < nlocaly + ystart; j++) {
             for (int i = xstart; i < nlocalx + xstart; i++) {

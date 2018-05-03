@@ -5,15 +5,15 @@
 #ifndef CRYSTAL_MD_DOMAIN_DECOMPOSITION_H
 #define CRYSTAL_MD_DOMAIN_DECOMPOSITION_H
 
-#undef SEEK_SET
-#undef SEEK_END
-#undef SEEK_CUR
-
 #include <mpi.h>
 #include <vector>
 
 #include "atom.h"
 #include "pre_config.h"
+
+#undef SEEK_SET
+#undef SEEK_END
+#undef SEEK_CUR
 
 #define LOWER  0
 #define HIGHER 1
@@ -48,6 +48,14 @@ public:
     ~DomainDecomposition();
 
     /**
+     * In this method, each processor will be bound to a cartesian coordinate.
+     *
+     * It first divide the simulation box into N pieces(sub-box) (N is the count of all processors).
+     * And each processor will be bound to a sub-box, and tagged with a cartesian coordinate(x,y,z).
+     */
+    DomainDecomposition*  decomposition();
+
+    /**
      * get global length of the simulation box at dimension {@var d}.
      * @param d dimension
      * @return box length at dimension d.
@@ -62,23 +70,15 @@ public:
      * @param phaseSpace  phase space, the unit length of simulation box.
      * @param latticeConst lattice const
      */
-    void establishGlobalDomain(const int64_t phaseSpace[DIMENSION], const double latticeConst);
+    DomainDecomposition* createGlobalDomain(const int64_t *phaseSpace, const double latticeConst);
 
     /**
      * set bound for current sub-box.
      * @param phaseSpace  phase space, the unit length of simulation box.
      * @param latticeConst lattice const
      */
-    void establishLocalBoxDomain(const int64_t phaseSpace[DIMENSION],
-                                 const double latticeConst, const double cutoffRadius);
-
-    /**
-     * In this method, each processor will be bound to a cartesian coordinate.
-     *
-     * It first divide the simulation box into N pieces(sub-box) (N is the count of all processors).
-     * And each processor will be bound to a sub-box, and tagged with a cartesian coordinate(x,y,z).
-     */
-    void decomposition();
+    DomainDecomposition* createLocalBoxDomain(const int64_t *phaseSpace,
+                              const double latticeConst, const double cutoffRadius);
 
     void exchangeInter(atom *_atom);
 

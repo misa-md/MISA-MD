@@ -5,7 +5,7 @@
 
 simulation::simulation() : _domain_decomposition(nullptr), _input(nullptr) {
     pConfigVal = &(ConfigParser::getInstance()->configValues);
-//    constructeDomain();
+//    createDomainDecomposition();
 //    collision_step = -1;
 }
 
@@ -19,31 +19,24 @@ simulation::~simulation() {
     delete _createatom;
 }
 
-void simulation::constructeDomain() { // todo function name.
+void simulation::createDomainDecomposition() {
     _finalCheckpoint = true;
 
     //进行区域分解
     kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initializing GlobalDomain decomposition.\n");
-    _domain_decomposition = new DomainDecomposition();
-    _domain_decomposition->decomposition();
-
-    _domain_decomposition->establishGlobalDomain(pConfigVal->phaseSpace,
-                                                 pConfigVal->latticeConst); // set global box domain.
-    _domain_decomposition->establishLocalBoxDomain(pConfigVal->phaseSpace,
-                                                   pConfigVal->latticeConst,
-                                                   pConfigVal->cutoffRadius); // set local sub-box domain.
+    _domain_decomposition = (new DomainDecomposition())
+            ->decomposition()
+            ->createGlobalDomain(pConfigVal->phaseSpace, pConfigVal->latticeConst) // set global box domain.
+            ->createLocalBoxDomain(pConfigVal->phaseSpace, pConfigVal->latticeConst, pConfigVal->cutoffRadius); // set local sub-box domain.
     kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initialization done.\n");
 
-    /*
-     * 初始化参数
-     */
 //    _numberOfTimesteps = 1;
 }
 
-void simulation::createBoxedAndAtoms() {
-    _atom = new atom(_domain_decomposition, pConfigVal->latticeConst, pConfigVal->cutoffRadius,
-                     pConfigVal->createSeed);
-    double mass = 55.845;
+void simulation::createAtoms() {
+    _atom = new atom(_domain_decomposition, pConfigVal->latticeConst,
+                     pConfigVal->cutoffRadius, pConfigVal->createSeed);
+    const double mass = 55.845;
 
     if (pConfigVal->createPhaseMode) {  //创建原子坐标、速度信息
         _createatom = new create_atom(pConfigVal->createTSet);
@@ -53,7 +46,7 @@ void simulation::createBoxedAndAtoms() {
         _input = new input();
         _input->readPhaseSpace(_atom);
     }
-    _integrator = new integrator(0.001);
+    _integrator = new integrator(0.001); // time step width.
 }
 
 void simulation::prepareForStart(int rank) {

@@ -6,10 +6,10 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 
 ## add kiwi framefork
 include_directories(${KIWI_EXPORT_INCLUDE_PATH})
-set(EXTRA_LIBS kiwi ${EXTRA_LIBS})
+set(EXTRA_LIBS ${KIWI_EXPORT_LINK_LIBS} ${EXTRA_LIBS})
 
 # Extra linking for the project.
-set(EXTRA_LIBS ${EXTRA_LIBS} ${MD_LIB_NAME}) # add crystal-md lib
+set(EXTRA_LIBS ${MD_LIB_NAME} ${EXTRA_LIBS}) # add crystal-md lib
 
 if (NOT (MPI_ENABLE_FLAG))
     set(TEST_MPI_ENABLE_FLAG OFF)  # if we disabled MPI_ENABLE_FLAG,we cann't also use TEST_MPI_ENABLE_FLAG.
@@ -30,7 +30,7 @@ set(TEST_SOURCE_FILES
         test_config.h
         main.cpp
         f_test.cpp
-        )
+        domain_test.cpp)
 
 # set binary path and lib storage path wile compiling process.
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)

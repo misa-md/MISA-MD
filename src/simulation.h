@@ -28,9 +28,9 @@ public:
      * we call each part as a sub-box.
      * And each sub-box will bind to a processor.
      */
-    void constructeDomain();
+    void createDomainDecomposition();
 
-    void createBoxedAndAtoms();
+    void createAtoms();
 
     void prepareForStart(int rank);
 

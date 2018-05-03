@@ -15,7 +15,7 @@ DomainDecomposition::~DomainDecomposition() {
     MPI_Type_free(&_mpi_latParticle_data);
 }
 
-void DomainDecomposition::decomposition() {
+DomainDecomposition *DomainDecomposition::decomposition() {
     // Assume N can be decomposed as N = N_x * N_y * N_z,
     // then we have: _grid_size[0] = N_x, _grid_size[1] = N_y, _grid_size[1] = N_z.
     // Fill in the _grid_size array such that the product of _grid_size[i] for i=0 to DIMENSION-1 equals N.
@@ -51,19 +51,21 @@ void DomainDecomposition::decomposition() {
     LatParticleData::setMPIType(_mpi_latParticle_data);
     intersendlist.resize(6);
     interrecvlist.resize(6);
+    return this;
 }
 
-void DomainDecomposition::establishGlobalDomain(const int64_t phaseSpace[DIMENSION], const double latticeConst) {
+DomainDecomposition *DomainDecomposition::createGlobalDomain(const int64_t *phaseSpace, const double latticeConst) {
     for (int d = 0; d < DIMENSION; d++) {
         //phaseSpace个单位长度(单位长度即latticeconst)
         _globalLength[d] = phaseSpace[d] * latticeConst;
         _coord_global_box_low[d] = 0;
         _coord_global_box_high[d] = _globalLength[d];
     }
+    return this;
 }
 
-void DomainDecomposition::establishLocalBoxDomain(const int64_t phaseSpace[DIMENSION],
-                                                  const double latticeConst, const double cutoffRadius) {
+DomainDecomposition *DomainDecomposition::createLocalBoxDomain(const int64_t *phaseSpace,
+                                                               const double latticeConst, const double cutoffRadius) {
     for (int d = 0; d < DIMENSION; d++) {
         _boundingBoxMin[d] = getBoundingBoxMin(d);
         _boundingBoxMax[d] = getBoundingBoxMax(d);
@@ -73,6 +75,7 @@ void DomainDecomposition::establishLocalBoxDomain(const int64_t phaseSpace[DIMEN
         _ghostBoundingBoxMin[d] = _boundingBoxMin[d] - _ghostLength[d];
         _ghostBoundingBoxMax[d] = _boundingBoxMax[d] + _ghostLength[d];
     }
+    return this;
 }
 
 double DomainDecomposition::getSubBoxLowerBounding(int dimension) const { // todo inline.

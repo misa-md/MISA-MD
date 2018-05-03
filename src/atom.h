@@ -95,6 +95,8 @@ public :
 
     void print_force();
 
+    int nlocalx, nlocaly, nlocalz; // 本地box内晶格数
+
 private:
     void calculateNeighbourIndices();
 
@@ -110,7 +112,7 @@ private:
     double _latticeconst;
     int _seed;
 
-    int nlocalx, nlocaly, nlocalz; // 本地box内晶格数
+  //  int nlocalx, nlocaly, nlocalz; // 本地box内晶格数
     int nghostx, nghosty, nghostz; // ghost区域+local区域内晶格数
 
     int lolocalx, lolocaly, lolocalz;
