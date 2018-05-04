@@ -18,13 +18,13 @@ atom::atom(DomainDecomposition *domain, double latticeconst,
         _domain(domain), _latticeconst(latticeconst),
         _cutoffRadius (cutoffRadius),_seed(seed) {
 
-    nlocalx = floor(_domain->_boundingBoxMax[0] / (_latticeconst)) -
-              floor(_domain->_boundingBoxMin[0] / (_latticeconst));
+    nlocalx = floor(_domain->_meas_bounding_upper[0] / (_latticeconst)) -
+              floor(_domain->_meas_bounding_lower[0] / (_latticeconst));
     nlocalx *= 2;
-    nlocaly = floor(_domain->_boundingBoxMax[1] / _latticeconst) -
-              floor(_domain->_boundingBoxMin[1] / _latticeconst);
-    nlocalz = floor(_domain->_boundingBoxMax[2] / _latticeconst) -
-              floor(_domain->_boundingBoxMin[2] / _latticeconst);
+    nlocaly = floor(_domain->_meas_bounding_upper[1] / _latticeconst) -
+              floor(_domain->_meas_bounding_lower[1] / _latticeconst);
+    nlocalz = floor(_domain->_meas_bounding_upper[2] / _latticeconst) -
+              floor(_domain->_meas_bounding_lower[2] / _latticeconst);
 
     /*
     nghostx = nlocalx + 2 * 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
@@ -32,14 +32,14 @@ atom::atom(DomainDecomposition *domain, double latticeconst,
     nghostz = nlocalz + 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
     */
 
-    nghostx = nlocalx + 2 * 2 * ceil(domain->_ghostLength[0] / _latticeconst);
-    nghosty = nlocaly + 2 * ceil(domain->_ghostLength[1] / _latticeconst);
-    nghostz = nlocalz + 2 * ceil(domain->_ghostLength[2] / _latticeconst);
+    nghostx = nlocalx + 2 * 2 * ceil(domain->_meas_ghost_length[0] / _latticeconst);
+    nghosty = nlocaly + 2 * ceil(domain->_meas_ghost_length[1] / _latticeconst);
+    nghostz = nlocalz + 2 * ceil(domain->_meas_ghost_length[2] / _latticeconst);
 
 
-    lolocalx = floor(_domain->_boundingBoxMin[0] / latticeconst) * 2;
-    lolocaly = floor(_domain->_boundingBoxMin[1] / latticeconst);
-    lolocalz = floor(_domain->_boundingBoxMin[2] / latticeconst);
+    lolocalx = floor(_domain->_meas_bounding_lower[0] / latticeconst) * 2;
+    lolocaly = floor(_domain->_meas_bounding_lower[1] / latticeconst);
+    lolocalz = floor(_domain->_meas_bounding_lower[2] / latticeconst);
 
     /*
     loghostx = lolocalx - 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
@@ -139,9 +139,9 @@ long int atom::IndexOf3DIndex(long int xIndex, long int yIndex, long int zIndex)
 
 void atom::addatom(unsigned long id, double rx, double ry, double rz, double vx, double vy, double vz) {
     int i;
-    if ((rx >= _domain->_boundingBoxMin[0]) && (rx < _domain->_boundingBoxMax[0]) &&
-        (ry >= _domain->_boundingBoxMin[1]) && (ry < _domain->_boundingBoxMax[1]) &&
-        (rz >= _domain->_boundingBoxMin[2]) && (rz < _domain->_boundingBoxMax[2])) {
+    if ((rx >= _domain->_meas_bounding_lower[0]) && (rx < _domain->_meas_bounding_upper[0]) &&
+        (ry >= _domain->_meas_bounding_lower[1]) && (ry < _domain->_meas_bounding_upper[1]) &&
+        (rz >= _domain->_meas_bounding_lower[2]) && (rz < _domain->_meas_bounding_upper[2])) {
         int lattice[3];
         lattice[0] = rx * 2 / _latticeconst + 0.5;
         lattice[1] = ry * 2 / _latticeconst + 0.5;
@@ -239,20 +239,20 @@ int atom::decide() {
     }
 
     for (int i = 0; i < nlocalinter; i++) {
-        if (xinter[i][0] < _domain->_coord_global_box_low[0]) {
-            xinter[i][0] += _domain->_globalLength[0];
-        } else if (xinter[i][0] >= _domain->_coord_global_box_high[0]) {
-            xinter[i][0] -= _domain->_globalLength[0];
+        if (xinter[i][0] < _domain->_grid_coord_global_box_low[0]) {
+            xinter[i][0] += _domain->_meas_global_length[0];
+        } else if (xinter[i][0] >= _domain->_grid_coord_global_box_up[0]) {
+            xinter[i][0] -= _domain->_meas_global_length[0];
         }
-        if (xinter[i][1] < _domain->_coord_global_box_low[1]) {
-            xinter[i][1] += _domain->_globalLength[1];
-        } else if (xinter[i][1] >= _domain->_coord_global_box_high[1]) {
-            xinter[i][1] -= _domain->_globalLength[1];
+        if (xinter[i][1] < _domain->_grid_coord_global_box_low[1]) {
+            xinter[i][1] += _domain->_meas_global_length[1];
+        } else if (xinter[i][1] >= _domain->_grid_coord_global_box_up[1]) {
+            xinter[i][1] -= _domain->_meas_global_length[1];
         }
-        if (xinter[i][2] < _domain->_coord_global_box_low[2]) {
-            xinter[i][2] += _domain->_globalLength[2];
-        } else if (xinter[i][2] >= _domain->_coord_global_box_high[2]) {
-            xinter[i][2] -= _domain->_globalLength[2];
+        if (xinter[i][2] < _domain->_grid_coord_global_box_low[2]) {
+            xinter[i][2] += _domain->_meas_global_length[2];
+        } else if (xinter[i][2] >= _domain->_grid_coord_global_box_up[2]) {
+            xinter[i][2] -= _domain->_meas_global_length[2];
         }
     }
 
@@ -938,16 +938,16 @@ void atom::getIntertosend(int d, int direction, double ghostlengh, vector<int> &
     double low, high;
     if (d == 0) {
         if (direction == 0) {
-            low = _domain->_boundingBoxMin[0];
-            high = _domain->_boundingBoxMin[0] + ghostlengh;
+            low = _domain->_meas_bounding_lower[0];
+            high = _domain->_meas_bounding_lower[0] + ghostlengh;
             for (int i = 0; i < nlocalinter; i++) {
                 if (xinter[i][0] < high && xinter[i][0] >= low) {
                     sendlist.push_back(i);
                 }
             }
         } else {
-            low = _domain->_boundingBoxMax[0] - ghostlengh;
-            high = _domain->_boundingBoxMax[0];
+            low = _domain->_meas_bounding_upper[0] - ghostlengh;
+            high = _domain->_meas_bounding_upper[0];
             for (int i = 0; i < nlocalinter; i++) {
                 if (xinter[i][0] <= high && xinter[i][0] > low) {
                     sendlist.push_back(i);
@@ -956,16 +956,16 @@ void atom::getIntertosend(int d, int direction, double ghostlengh, vector<int> &
         }
     } else if (d == 1) {
         if (direction == 0) {
-            low = _domain->_boundingBoxMin[1];
-            high = _domain->_boundingBoxMin[1] + ghostlengh;
+            low = _domain->_meas_bounding_lower[1];
+            high = _domain->_meas_bounding_lower[1] + ghostlengh;
             for (int i = 0; i < nlocalinter + nghostinter; i++) {
                 if (xinter[i][1] < high && xinter[i][1] >= low) {
                     sendlist.push_back(i);
                 }
             }
         } else {
-            low = _domain->_boundingBoxMax[1] - ghostlengh;
-            high = _domain->_boundingBoxMax[1];
+            low = _domain->_meas_bounding_upper[1] - ghostlengh;
+            high = _domain->_meas_bounding_upper[1];
             for (int i = 0; i < nlocalinter + nghostinter; i++) {
                 if (xinter[i][1] <= high && xinter[i][1] > low) {
                     sendlist.push_back(i);
@@ -974,16 +974,16 @@ void atom::getIntertosend(int d, int direction, double ghostlengh, vector<int> &
         }
     } else {
         if (direction == 0) {
-            low = _domain->_boundingBoxMin[2];
-            high = _domain->_boundingBoxMin[2] + ghostlengh;
+            low = _domain->_meas_bounding_lower[2];
+            high = _domain->_meas_bounding_lower[2] + ghostlengh;
             for (int i = 0; i < nlocalinter + nghostinter; i++) {
                 if (xinter[i][2] < high && xinter[i][2] >= low) {
                     sendlist.push_back(i);
                 }
             }
         } else {
-            low = _domain->_boundingBoxMax[2] - ghostlengh;
-            high = _domain->_boundingBoxMax[2];
+            low = _domain->_meas_bounding_upper[2] - ghostlengh;
+            high = _domain->_meas_bounding_upper[2];
             for (int i = 0; i < nlocalinter + nghostinter; i++) {
                 if (xinter[i][2] <= high && xinter[i][2] > low) {
                     sendlist.push_back(i);
@@ -997,11 +997,11 @@ int atom::getintersendnum(int dimension, int direction) {
     interbuf.clear();
     for (int i = 0; i < nlocalinter; i++) {
         if (direction == 0) {
-            if (xinter[i][dimension] < _domain->_boundingBoxMin[dimension]) {
+            if (xinter[i][dimension] < _domain->_meas_bounding_lower[dimension]) {
                 interbuf.push_back(i);
             }
         } else {
-            if (xinter[i][dimension] >= _domain->_boundingBoxMax[dimension]) {
+            if (xinter[i][dimension] >= _domain->_meas_bounding_upper[dimension]) {
                 interbuf.push_back(i);
             }
         }
@@ -1048,7 +1048,7 @@ void atom::unpack_interrecv(int d, int n, particledata *buf) {
         vtemp[0] = buf[i].v[0];
         vtemp[1] = buf[i].v[1];
         vtemp[2] = buf[i].v[2];
-        if (xtemp[d] >= _domain->_boundingBoxMin[d] && xtemp[d] < _domain->_boundingBoxMax[d]) {
+        if (xtemp[d] >= _domain->_meas_bounding_lower[d] && xtemp[d] < _domain->_meas_bounding_upper[d]) {
             if (nlocalinter == xinter.size()) {
                 idinter.push_back(id);
                 typeinter.push_back(type);
@@ -1120,9 +1120,9 @@ void atom::unpack_borderrecv(int n, LatParticleData *buf, vector<int> &recvlist)
         xtemp[0] = buf[i].r[0];
         xtemp[1] = buf[i].r[1];
         xtemp[2] = buf[i].r[2];
-        if (xtemp[0] >= _domain->_ghostBoundingBoxMin[0] && xtemp[0] < _domain->_ghostBoundingBoxMax[0] &&
-            xtemp[1] >= _domain->_ghostBoundingBoxMin[1] && xtemp[1] < _domain->_ghostBoundingBoxMax[1] &&
-            xtemp[2] >= _domain->_ghostBoundingBoxMin[2] && xtemp[2] < _domain->_ghostBoundingBoxMax[2]) {
+        if (xtemp[0] >= _domain->_meas_ghost_bounding_lower[0] && xtemp[0] < _domain->_meas_ghost_bounding_upper[0] &&
+            xtemp[1] >= _domain->_meas_ghost_bounding_lower[1] && xtemp[1] < _domain->_meas_ghost_bounding_upper[1] &&
+            xtemp[2] >= _domain->_meas_ghost_bounding_lower[2] && xtemp[2] < _domain->_meas_ghost_bounding_upper[2]) {
             if (xinter.size() == nlocalinter + nghostinter) {
                 typeinter.push_back(type);
                 xinter.push_back(xtemp);

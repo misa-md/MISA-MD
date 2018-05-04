@@ -2,11 +2,14 @@
 #include <logs/logs.h>
 #include "domain.h"
 
-DomainDecomposition::DomainDecomposition() {
+DomainDecomposition::DomainDecomposition(const int64_t *phaseSpace, const double latticeConst,
+                                         const double cutoffRadius) :
+        _lattice_const(latticeConst), _cutoff_radius(cutoffRadius) {
     // 3维拓扑
     for (int d = 0; d < DIMENSION; d++) {
+        _phase_space[d] = phaseSpace[d]; // initialize phase space.
         _grid_size[d] = 0;
-        _globalLength[d] = 0;
+        _meas_global_length[d] = 0;
     }
 }
 
@@ -38,9 +41,9 @@ DomainDecomposition *DomainDecomposition::decomposition() {
     kiwi::mpiUtils::onGlobalCommChanged(_comm);
 
     // get cartesian coordinate of current processor.
-    MPI_Cart_coords(kiwi::mpiUtils::global_comm, kiwi::mpiUtils::own_rank, DIMENSION, _coords);
+    MPI_Cart_coords(kiwi::mpiUtils::global_comm, kiwi::mpiUtils::own_rank, DIMENSION, _grid_coord_sub_box);
     kiwi::logs::d("decomposition", "old_rank_id: {0}, MPI coordinate of current process: x:{1},y{2},z{3}\n",
-                  _debug_old_rank, _coords[0], _coords[1], _coords[2]);
+                  _debug_old_rank, _grid_coord_sub_box[0], _grid_coord_sub_box[1], _grid_coord_sub_box[2]);
 
     // get the rank ids of contiguous processors of current processor.
     for (int d = 0; d < DIMENSION; d++) {
@@ -54,48 +57,42 @@ DomainDecomposition *DomainDecomposition::decomposition() {
     return this;
 }
 
-DomainDecomposition *DomainDecomposition::createGlobalDomain(const int64_t *phaseSpace, const double latticeConst) {
+DomainDecomposition *DomainDecomposition::createGlobalDomain() {
     for (int d = 0; d < DIMENSION; d++) {
         //phaseSpace个单位长度(单位长度即latticeconst)
-        _globalLength[d] = phaseSpace[d] * latticeConst;
-        _coord_global_box_low[d] = 0;
-        _coord_global_box_high[d] = _globalLength[d];
+        _meas_global_length[d] = _phase_space[d] * _lattice_const;
+        _grid_coord_global_box_low[d] = 0; // lower bounding is set to 0 by default.
+        _grid_coord_global_box_up[d] = _meas_global_length[d];
     }
     return this;
 }
 
-DomainDecomposition *DomainDecomposition::createLocalBoxDomain(const int64_t *phaseSpace,
-                                                               const double latticeConst, const double cutoffRadius) {
+DomainDecomposition *DomainDecomposition::createLocalBoxDomain() {
     for (int d = 0; d < DIMENSION; d++) {
-        _boundingBoxMin[d] = getBoundingBoxMin(d);
-        _boundingBoxMax[d] = getBoundingBoxMax(d);
+        // the lower and upper bounding of current sub-box.
+        _meas_bounding_lower[d] = _grid_coord_global_box_low[d] +
+                                  _grid_coord_sub_box[d] * (_meas_global_length[d] / _grid_size[d]);
+        _meas_bounding_upper[d] = _grid_coord_global_box_low[d] +
+                                  (_grid_coord_sub_box[d] + 1) * (_meas_global_length[d] / _grid_size[d]);
 
-        _ghostLength[d] = cutoffRadius; // todo ??
+        _meas_ghost_length[d] = _cutoff_radius; // ghost length todo ??
 
-        _ghostBoundingBoxMin[d] = _boundingBoxMin[d] - _ghostLength[d];
-        _ghostBoundingBoxMax[d] = _boundingBoxMax[d] + _ghostLength[d];
+        _meas_ghost_bounding_lower[d] = _meas_bounding_lower[d] - _meas_ghost_length[d];
+        _meas_ghost_bounding_upper[d] = _meas_bounding_upper[d] + _meas_ghost_length[d];
     }
     return this;
 }
 
 double DomainDecomposition::getSubBoxLowerBounding(int dimension) const { // todo inline.
-    return _boundingBoxMin[dimension];
+    return _meas_bounding_lower[dimension];
 }
 
 double DomainDecomposition::getUpperBoxLowerBounding(int dimension) const {
-    return _boundingBoxMax[dimension];
+    return _meas_bounding_upper[dimension];
 }
 
 double DomainDecomposition::getGhostLength(int index) const {
-    return _ghostLength[index];
-}
-
-double DomainDecomposition::getBoundingBoxMin(int dimension) {
-    return _coords[dimension] * (getGlobalLength(dimension) / _grid_size[dimension]);
-}
-
-double DomainDecomposition::getBoundingBoxMax(int dimension) {
-    return (_coords[dimension] + 1) * (getGlobalLength(dimension) / _grid_size[dimension]);
+    return _meas_ghost_length[index];
 }
 
 void DomainDecomposition::exchangeAtomfirst(atom *_atom) {
@@ -132,11 +129,11 @@ void DomainDecomposition::exchangeAtomfirst(atom *_atom) {
         offsetHigher[d] = 0.0;
 
         // 进程在左侧边界
-        if (_coords[d] == 0)
-            offsetLower[d] = getGlobalLength(d);
+        if (_grid_coord_sub_box[d] == 0)
+            offsetLower[d] = getMeasuredGlobalLength(d);
         // 进程在右侧边界
-        if (_coords[d] == _grid_size[d] - 1)
-            offsetHigher[d] = -(getGlobalLength(d));
+        if (_grid_coord_sub_box[d] == _grid_size[d] - 1)
+            offsetHigher[d] = -(getMeasuredGlobalLength(d));
 
         for (direction = LOWER; direction <= HIGHER; direction++) {
             // 找到要发送给邻居的原子
@@ -228,11 +225,11 @@ void DomainDecomposition::exchangeAtom(atom *_atom) {
         offsetHigher[d] = 0.0;
 
         // 进程在左侧边界
-        if (_coords[d] == 0)
-            offsetLower[d] = getGlobalLength(d);
+        if (_grid_coord_sub_box[d] == 0)
+            offsetLower[d] = getMeasuredGlobalLength(d);
         // 进程在右侧边界
-        if (_coords[d] == _grid_size[d] - 1)
-            offsetHigher[d] = -(getGlobalLength(d));
+        if (_grid_coord_sub_box[d] == _grid_size[d] - 1)
+            offsetHigher[d] = -(getMeasuredGlobalLength(d));
 
         for (direction = LOWER; direction <= HIGHER; direction++) {
             double shift = 0.0;
@@ -374,11 +371,11 @@ void DomainDecomposition::borderInter(atom *_atom) {
         offsetHigher[d] = 0.0;
 
         // 进程在左侧边界
-        if (_coords[d] == 0)
-            offsetLower[d] = getGlobalLength(d);
+        if (_grid_coord_sub_box[d] == 0)
+            offsetLower[d] = getMeasuredGlobalLength(d);
         // 进程在右侧边界
-        if (_coords[d] == _grid_size[d] - 1)
-            offsetHigher[d] = -(getGlobalLength(d));
+        if (_grid_coord_sub_box[d] == _grid_size[d] - 1)
+            offsetHigher[d] = -(getMeasuredGlobalLength(d));
 
         for (direction = LOWER; direction <= HIGHER; direction++) {
             // 找到要发送给邻居的原子
