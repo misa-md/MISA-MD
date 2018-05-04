@@ -70,29 +70,46 @@ DomainDecomposition *DomainDecomposition::createGlobalDomain() {
 DomainDecomposition *DomainDecomposition::createLocalBoxDomain() {
     for (int d = 0; d < DIMENSION; d++) {
         // the lower and upper bounding of current sub-box.
-        _meas_bounding_lower[d] = _grid_coord_global_box_low[d] +
-                                  _grid_coord_sub_box[d] * (_meas_global_length[d] / _grid_size[d]);
-        _meas_bounding_upper[d] = _grid_coord_global_box_low[d] +
-                                  (_grid_coord_sub_box[d] + 1) * (_meas_global_length[d] / _grid_size[d]);
+        _meas_sub_box_lower_bounding[d] = _grid_coord_global_box_low[d] +
+                                          _grid_coord_sub_box[d] * (_meas_global_length[d] / _grid_size[d]);
+        _meas_sub_box_upper_bounding[d] = _grid_coord_global_box_low[d] +
+                                          (_grid_coord_sub_box[d] + 1) * (_meas_global_length[d] / _grid_size[d]);
 
         _meas_ghost_length[d] = _cutoff_radius; // ghost length todo ??
 
-        _meas_ghost_bounding_lower[d] = _meas_bounding_lower[d] - _meas_ghost_length[d];
-        _meas_ghost_bounding_upper[d] = _meas_bounding_upper[d] + _meas_ghost_length[d];
+        _meas_ghost_lower_bounding[d] = _meas_sub_box_lower_bounding[d] - _meas_ghost_length[d];
+        _meas_ghost_upper_bounding[d] = _meas_sub_box_upper_bounding[d] + _meas_ghost_length[d];
+
+        // set lattice coordinate bounding.
+        _lattice_size_sub_box[d] = (_grid_coord_sub_box[d] + 1) * _phase_space[d] / _grid_size[d] -
+                                   (_grid_coord_sub_box[d]) * _phase_space[d] / _grid_size[d];
     }
+    _lattice_size_sub_box[0] *= 2; // todo ?? why
     return this;
 }
 
-double DomainDecomposition::getSubBoxLowerBounding(int dimension) const { // todo inline.
-    return _meas_bounding_lower[dimension];
+double DomainDecomposition::getMeasuredSubBoxLowerBounding(int dimension) const { // todo inline.
+    return _meas_sub_box_lower_bounding[dimension];
 }
 
-double DomainDecomposition::getUpperBoxLowerBounding(int dimension) const {
-    return _meas_bounding_upper[dimension];
+double DomainDecomposition::getMeasuredSubBoxUpperBounding(int dimension) const {
+    return _meas_sub_box_upper_bounding[dimension];
 }
 
-double DomainDecomposition::getGhostLength(int index) const {
+double DomainDecomposition::getMeasuredGhostLength(int index) const {
     return _meas_ghost_length[index];
+}
+
+double DomainDecomposition::getMeasuredGhostLowerBounding(int dimension) const {
+    return _meas_ghost_lower_bounding[dimension];
+}
+
+double DomainDecomposition::getMeasuredGhostUpperBounding(int dimension) const {
+    return _meas_ghost_upper_bounding[dimension];
+}
+
+_type_lattice_size DomainDecomposition::getSubBoxLatticeSize(unsigned short dimension) const {
+    return _lattice_size_sub_box[dimension];
 }
 
 void DomainDecomposition::exchangeAtomfirst(atom *_atom) {
@@ -100,7 +117,7 @@ void DomainDecomposition::exchangeAtomfirst(atom *_atom) {
     double ghostlengh[DIMENSION]; // ghost区域大小
 
     for (int d = 0; d < DIMENSION; d++) {
-        ghostlengh[d] = getGhostLength(d);
+        ghostlengh[d] = getMeasuredGhostLength(d);
     }
     sendlist.resize(6);
     recvlist.resize(6);
@@ -198,7 +215,7 @@ void DomainDecomposition::exchangeAtom(atom *_atom) {
     double ghostlengh[DIMENSION]; // ghost区域大小
 
     for (int d = 0; d < DIMENSION; d++) {
-        ghostlengh[d] = getGhostLength(d);
+        ghostlengh[d] = getMeasuredGhostLength(d);
     }
 
     // 发送、接收数据缓冲区
@@ -341,7 +358,7 @@ void DomainDecomposition::borderInter(atom *_atom) {
     double ghostlengh[DIMENSION]; // ghost区域大小
 
     for (int d = 0; d < DIMENSION; d++) {
-        ghostlengh[d] = getGhostLength(d);
+        ghostlengh[d] = getMeasuredGhostLength(d);
     }
 
     intersendlist.clear();

@@ -41,9 +41,11 @@ class atom;
  *
  * 4.variables for lattice count in box or in global box have a prefix "lattice_size" or "_lattice_size", with int type.
  */
+
+typedef int _type_lattice_size;
+
 class DomainDecomposition {
 public:
-    friend class atom;
 
     /**
      * global information for the simulation box.
@@ -69,15 +71,6 @@ public:
     DomainDecomposition *decomposition();
 
     /**
-     * get global measured length of the simulation box at dimension {@var d}.
-     * @param d dimension
-     * @return box length at dimension d.
-     */
-    inline double getMeasuredGlobalLength(int d) const {
-        return _meas_global_length[d];
-    }
-
-    /**
      * set length of global simulation box.
      * and set upper and lower bound of global simulation box.
      * @param phaseSpace  phase space, the unit length of simulation box.
@@ -91,6 +84,16 @@ public:
      * @param latticeConst lattice const
      */
     DomainDecomposition *createLocalBoxDomain();
+
+    /**
+     * get global measured length of the simulation box at dimension {@var d}.
+     * @param d dimension
+     * @return box length at dimension d.
+     */
+    inline double getMeasuredGlobalLength(int d) const {
+        return _meas_global_length[d];
+    }
+
 
     void exchangeInter(atom *_atom);
 
@@ -108,24 +111,29 @@ public:
 
     /**
      * get lower bound of current sub-box at a dimension.
-     * @param dimension
-     * @return
      */
-    double getSubBoxLowerBounding(int dimension) const;
+    double getMeasuredSubBoxLowerBounding(int dimension) const;
 
     /**
-     * get upper bound of current sub-box at some dimension specificed by {@var dimension}.
-     * @param dimension
-     * @return
+     * get upper bound of current sub-box at some dimension specified by {@var dimension}.
      */
-    double getUpperBoxLowerBounding(int dimension) const;
+    double getMeasuredSubBoxUpperBounding(int dimension) const;
 
     /**
-     * get ghost length at dimension
+     *  todo document
+     */
+    double getMeasuredGhostLowerBounding(int dimension) const;
+
+    double getMeasuredGhostUpperBounding(int dimension) const;
+
+    /**
+     * get measured ghost length at dimension
      * @param index
      * @return
      */
-    double getGhostLength(int index) const;
+    double getMeasuredGhostLength(int index) const;
+
+    _type_lattice_size getSubBoxLatticeSize(unsigned short dimension) const;
 
 private:
 
@@ -148,13 +156,19 @@ private:
      */
     int _rank_id_neighbours[DIMENSION][2];
 
-    /**bound of local sub-box**/
-    double _meas_bounding_lower[DIMENSION]; // the measured lower bounding of current sub-box.
-    double _meas_bounding_upper[DIMENSION]; // the measured upper bounding of current sub-box.
+    /**bounding of local sub-box**/
+    double _meas_sub_box_lower_bounding[DIMENSION]; // the measured lower bounding of current sub-box.
+    double _meas_sub_box_upper_bounding[DIMENSION]; // the measured upper bounding of current sub-box.
 
+    /**bounding of ghost of local sub-box**/
     double _meas_ghost_length[DIMENSION];  // measured ghost length, which equals to the cutoff radius.
-    double _meas_ghost_bounding_lower[DIMENSION]; // the measured ghost lower bound of current sub-box.
-    double _meas_ghost_bounding_upper[DIMENSION]; // the measured ghost upper bound of current sub-box.
+    double _meas_ghost_lower_bounding[DIMENSION]; // the measured ghost lower bound of current sub-box.
+    double _meas_ghost_upper_bounding[DIMENSION]; // the measured ghost upper bound of current sub-box.
+
+    /*lattice count in local sub-box*/
+    //  int _lattice_coord_lower[DIMENSION]; // the lower bounding of lattice coordinate for current sub-box.
+    //  int _lattice_coord_upper[DIMENSION]; // the upper bounding of lattice coordinate for current sub-box.
+    _type_lattice_size _lattice_size_sub_box[DIMENSION]; // lattice count of current sub-box in each dimension (upper bounding - lower bounding).
 
     /** mpi data struct. **/
     MPI_Datatype _mpi_Particle_data;

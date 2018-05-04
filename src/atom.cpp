@@ -16,30 +16,22 @@
 atom::atom(DomainDecomposition *domain, double latticeconst,
            double cutoffRadius, int seed) :
         _domain(domain), _latticeconst(latticeconst),
-        _cutoffRadius (cutoffRadius),_seed(seed) {
-
-    nlocalx = floor(_domain->_meas_bounding_upper[0] / (_latticeconst)) -
-              floor(_domain->_meas_bounding_lower[0] / (_latticeconst));
-    nlocalx *= 2;
-    nlocaly = floor(_domain->_meas_bounding_upper[1] / _latticeconst) -
-              floor(_domain->_meas_bounding_lower[1] / _latticeconst);
-    nlocalz = floor(_domain->_meas_bounding_upper[2] / _latticeconst) -
-              floor(_domain->_meas_bounding_lower[2] / _latticeconst);
+        _cutoffRadius(cutoffRadius), _seed(seed) {
 
     /*
-    nghostx = nlocalx + 2 * 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
-    nghosty = nlocaly + 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
-    nghostz = nlocalz + 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
+    nghostx = _domain->getSubBoxLatticeSize(0) + 2 * 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
+    nghosty = _domain->getSubBoxLatticeSize(1) + 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
+    nghostz = _domain->getSubBoxLatticeSize(2) + 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
     */
 
-    nghostx = nlocalx + 2 * 2 * ceil(domain->_meas_ghost_length[0] / _latticeconst);
-    nghosty = nlocaly + 2 * ceil(domain->_meas_ghost_length[1] / _latticeconst);
-    nghostz = nlocalz + 2 * ceil(domain->_meas_ghost_length[2] / _latticeconst);
+    nghostx = _domain->getSubBoxLatticeSize(0) + 2 * 2 * ceil(domain->getMeasuredGhostLength(0) / _latticeconst);
+    nghosty = _domain->getSubBoxLatticeSize(1) + 2 * ceil(domain->getMeasuredGhostLength(1) / _latticeconst);
+    nghostz = _domain->getSubBoxLatticeSize(2) + 2 * ceil(domain->getMeasuredGhostLength(2) / _latticeconst);
 
 
-    lolocalx = floor(_domain->_meas_bounding_lower[0] / latticeconst) * 2;
-    lolocaly = floor(_domain->_meas_bounding_lower[1] / latticeconst);
-    lolocalz = floor(_domain->_meas_bounding_lower[2] / latticeconst);
+    lolocalx = floor(_domain->getMeasuredSubBoxLowerBounding(0) / latticeconst) * 2;
+    lolocaly = floor(_domain->getMeasuredSubBoxLowerBounding(1) / latticeconst);
+    lolocalz = floor(_domain->getMeasuredSubBoxLowerBounding(2) / latticeconst);
 
     /*
     loghostx = lolocalx - 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
@@ -57,7 +49,7 @@ atom::atom(DomainDecomposition *domain, double latticeconst,
     nghostinter = 0;
 
     numberoflattice = nghostx * nghosty * nghostz;
-//    printf("number:%d, %d, %d, %d, %d\n", numberoflattice, nlocalx, nlocaly, nlocalz, nlocalx*nlocaly*nlocalz);
+//    printf("number:%d, %d, %d, %d, %d\n", numberoflattice, _domain->getSubBoxLatticeSize(0), _domain->getSubBoxLatticeSize(1), _domain->getSubBoxLatticeSize(2), _domain->getSubBoxLatticeSize(0)*_domain->getSubBoxLatticeSize(1)*_domain->getSubBoxLatticeSize(2));
     id = new unsigned long[numberoflattice];
     type = new int[numberoflattice];
     x = new double[numberoflattice * 3];
@@ -69,7 +61,8 @@ atom::atom(DomainDecomposition *domain, double latticeconst,
     calculateNeighbourIndices();
 
     if (isAccelerateSupport()) {
-        accelerateInit(lolocalx, lolocaly, lolocalz, nlocalx, nlocaly, nlocalz,
+        accelerateInit(lolocalx, lolocaly, lolocalz, _domain->getSubBoxLatticeSize(0), _domain->getSubBoxLatticeSize(1),
+                       _domain->getSubBoxLatticeSize(2),
                        loghostx, loghosty, loghostz, nghostx, nghosty, nghostz);
     }
 }
@@ -139,9 +132,9 @@ long int atom::IndexOf3DIndex(long int xIndex, long int yIndex, long int zIndex)
 
 void atom::addatom(unsigned long id, double rx, double ry, double rz, double vx, double vy, double vz) {
     int i;
-    if ((rx >= _domain->_meas_bounding_lower[0]) && (rx < _domain->_meas_bounding_upper[0]) &&
-        (ry >= _domain->_meas_bounding_lower[1]) && (ry < _domain->_meas_bounding_upper[1]) &&
-        (rz >= _domain->_meas_bounding_lower[2]) && (rz < _domain->_meas_bounding_upper[2])) {
+    if ((rx >= _domain->getMeasuredSubBoxLowerBounding(0)) && (rx < _domain->getMeasuredSubBoxUpperBounding(0)) &&
+        (ry >= _domain->getMeasuredSubBoxLowerBounding(1)) && (ry < _domain->getMeasuredSubBoxUpperBounding(1)) &&
+        (rz >= _domain->getMeasuredSubBoxLowerBounding(2)) && (rz < _domain->getMeasuredSubBoxUpperBounding(2))) {
         int lattice[3];
         lattice[0] = rx * 2 / _latticeconst + 0.5;
         lattice[1] = ry * 2 / _latticeconst + 0.5;
@@ -173,9 +166,9 @@ int atom::decide() {
     int zstart = lolocalz - loghostz;
 
     //对本地晶格点原子进行判断，看是否运动为间隙原子
-    for (int k = zstart; k < nlocalz + zstart; k++) {
-        for (int j = ystart; j < nlocaly + ystart; j++) {
-            for (int i = xstart; i < nlocalx + xstart; i++) {
+    for (int k = zstart; k < _domain->getSubBoxLatticeSize(2) + zstart; k++) {
+        for (int j = ystart; j < _domain->getSubBoxLatticeSize(1) + ystart; j++) {
+            for (int i = xstart; i < _domain->getSubBoxLatticeSize(0) + xstart; i++) {
                 kk = IndexOf3DIndex(i, j, k) * 3;
                 if (x[kk] != COORDINATE_ATOM_OUT_BOX) {
                     xtemp = (i + loghostx) * 0.5 * _latticeconst;
@@ -271,9 +264,9 @@ int atom::decide() {
         k -= loghosty;
         l -= loghostz;
         //判断是否在所表示晶格范围内
-        if (j <= (nlocalx + 2 * (ceil(_cutoffRadius / _latticeconst) + 1))
-            && k <= (nlocaly + (ceil(_cutoffRadius / _latticeconst) + 1))
-            && l <= (nlocalz + (ceil(_cutoffRadius / _latticeconst) + 1))) {
+        if (j <= (_domain->getSubBoxLatticeSize(0) + 2 * (ceil(_cutoffRadius / _latticeconst) + 1))
+            && k <= (_domain->getSubBoxLatticeSize(1) + (ceil(_cutoffRadius / _latticeconst) + 1))
+            && l <= (_domain->getSubBoxLatticeSize(2) + (ceil(_cutoffRadius / _latticeconst) + 1))) {
             j = IndexOf3DIndex(j, k, l) * 3;
             if (x[j] == COORDINATE_ATOM_OUT_BOX) {
                 id[j / 3] = idinter[i];
@@ -344,9 +337,9 @@ void atom::computeEam(eam *pot, DomainDecomposition *_domaindecomposition, doubl
         accelerateEamRhoCalc(&(rho_spline->n), x, rho, &_cutoffRadius,
                              &(rho_spline->invDx), rho_spline->values);
     } else { // calculate rho use cpu only.
-        for (int k = zstart; k < nlocalz + zstart; k++) {
-            for (int j = ystart; j < nlocaly + ystart; j++) {
-                for (int i = xstart; i < nlocalx + xstart; i++) {
+        for (int k = zstart; k < _domain->getSubBoxLatticeSize(2) + zstart; k++) {
+            for (int j = ystart; j < _domain->getSubBoxLatticeSize(1) + ystart; j++) {
+                for (int i = xstart; i < _domain->getSubBoxLatticeSize(0) + xstart; i++) {
                     kk = IndexOf3DIndex(i, j, k);
                     xtemp = x[kk * 3];
                     ytemp = x[kk * 3 + 1];
@@ -494,9 +487,9 @@ void atom::computeEam(eam *pot, DomainDecomposition *_domaindecomposition, doubl
     /* char tmp[20];
     sprintf(tmp, "rho.atom");
     outfile.open(tmp);
-    for(int k = zstart; k < nlocalz + zstart; k++){
-            for(int j = ystart; j < nlocaly + ystart; j++){
-                    for(int i = xstart; i < nlocalx + xstart; i++){
+    for(int k = zstart; k < _domain->getSubBoxLatticeSize(2) + zstart; k++){
+            for(int j = ystart; j < _domain->getSubBoxLatticeSize(1) + ystart; j++){
+                    for(int i = xstart; i < _domain->getSubBoxLatticeSize(0) + xstart; i++){
                             kk = IndexOf3DIndex( i, j, k);
                             if(x[kk * 3] != COORDINATE_ATOM_OUT_BOX)
                                     outfile << rho[kk] << std::endl;
@@ -517,9 +510,9 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
     /*sprintf(tmp, "rho2.atom");
     outfile;
     outfile.open(tmp);
-    for(int k = zstart; k < nlocalz + zstart; k++){
-            for(int j = ystart; j < nlocaly + ystart; j++){
-                    for(int i = xstart; i < nlocalx + xstart; i++){
+    for(int k = zstart; k < _domain->getSubBoxLatticeSize(2) + zstart; k++){
+            for(int j = ystart; j < _domain->getSubBoxLatticeSize(1) + ystart; j++){
+                    for(int i = xstart; i < _domain->getSubBoxLatticeSize(0) + xstart; i++){
                             kk = IndexOf3DIndex( i, j, k);
                             if(x[kk * 3] != COORDINATE_ATOM_OUT_BOX)
                                     outfile << rho[kk] << std::endl;
@@ -534,9 +527,9 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
         accelerateEamDfCalc(&(f_spline->n), rho, df, &_cutoffRadius,
                             &(f_spline->invDx), f_spline->values);
     } else {
-        for (int k = zstart; k < nlocalz + zstart; k++) {
-            for (int j = ystart; j < nlocaly + ystart; j++) {
-                for (int i = xstart; i < nlocalx + xstart; i++) {
+        for (int k = zstart; k < _domain->getSubBoxLatticeSize(2) + zstart; k++) {
+            for (int j = ystart; j < _domain->getSubBoxLatticeSize(1) + ystart; j++) {
+                for (int i = xstart; i < _domain->getSubBoxLatticeSize(0) + xstart; i++) {
                     kk = IndexOf3DIndex(i, j, k);
                     nr = f_spline->n;
                     p = rho[kk] * f_spline->invDx + 1.0;
@@ -572,9 +565,9 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
     } else {
         /*sprintf(tmp, "f.atom");
         outfile.open(tmp);
-        for(int k = zstart; k < nlocalz + zstart; k++){
-                for(int j = ystart; j < nlocaly + ystart; j++){
-                        for(int i = xstart; i < nlocalx + xstart; i++){
+        for(int k = zstart; k < _domain->getSubBoxLatticeSize(2) + zstart; k++){
+                for(int j = ystart; j < _domain->getSubBoxLatticeSize(1) + ystart; j++){
+                        for(int i = xstart; i < _domain->getSubBoxLatticeSize(0) + xstart; i++){
                                 kk = IndexOf3DIndex( i, j, k);
                                 if(x[kk * 3] != COORDINATE_ATOM_OUT_BOX)
                                         outfile << f[kk*3] << std::endl;
@@ -583,9 +576,9 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
         }
         outfile.close();*/
 
-        for (int k = zstart; k < nlocalz + zstart; k++) {
-            for (int j = ystart; j < nlocaly + ystart; j++) {
-                for (int i = xstart; i < nlocalx + xstart; i++) {
+        for (int k = zstart; k < _domain->getSubBoxLatticeSize(2) + zstart; k++) {
+            for (int j = ystart; j < _domain->getSubBoxLatticeSize(1) + ystart; j++) {
+                for (int i = xstart; i < _domain->getSubBoxLatticeSize(0) + xstart; i++) {
                     kk = IndexOf3DIndex(i, j, k);
                     xtemp = x[kk * 3];
                     ytemp = x[kk * 3 + 1];
@@ -819,8 +812,8 @@ void atom::getatomx(int direction, vector<vector<int> > &sendlist) {
         int ystart = lolocaly - loghosty;
         int zstart = lolocalz - loghostz;
         int xstop = xstart + (_cutlattice) * 2;
-        int ystop = ystart + nlocaly;
-        int zstop = zstart + nlocalz;
+        int ystop = ystart + _domain->getSubBoxLatticeSize(1);
+        int zstop = zstart + _domain->getSubBoxLatticeSize(2);
 
         //要发送要邻居进程区域内的分子指针
         for (int iz = zstart; iz < zstop; iz++) {
@@ -833,12 +826,12 @@ void atom::getatomx(int direction, vector<vector<int> > &sendlist) {
         }
     } else {
         //找到要发送到邻居进程的区域
-        int xstart = lolocalx - loghostx + nlocalx - ((_cutlattice) * 2);
+        int xstart = lolocalx - loghostx + _domain->getSubBoxLatticeSize(0) - ((_cutlattice) * 2);
         int ystart = lolocaly - loghosty;
         int zstart = lolocalz - loghostz;
-        int xstop = lolocalx - loghostx + nlocalx;
-        int ystop = ystart + nlocaly;
-        int zstop = zstart + nlocalz;
+        int xstop = lolocalx - loghostx + _domain->getSubBoxLatticeSize(0);
+        int ystop = ystart + _domain->getSubBoxLatticeSize(1);
+        int zstop = zstart + _domain->getSubBoxLatticeSize(2);
 
         //要发送要邻居进程区域内的分子指针
         for (int iz = zstart; iz < zstop; iz++) {
@@ -861,7 +854,7 @@ void atom::getatomy(int direction, vector<vector<int> > &sendlist) {
         int zstart = lolocalz - loghostz;
         int xstop = nghostx;
         int ystop = ystart + _cutlattice;
-        int zstop = zstart + nlocalz;
+        int zstop = zstart + _domain->getSubBoxLatticeSize(2);
 
         //要发送要邻居进程区域内的分子指针
         for (int iz = zstart; iz < zstop; iz++) {
@@ -875,11 +868,11 @@ void atom::getatomy(int direction, vector<vector<int> > &sendlist) {
     } else {
         //找到要发送到邻居进程的区域
         int xstart = 0;
-        int ystart = lolocaly - loghosty + nlocaly - (_cutlattice);
+        int ystart = lolocaly - loghosty + _domain->getSubBoxLatticeSize(1) - (_cutlattice);
         int zstart = lolocalz - loghostz;
         int xstop = nghostx;
-        int ystop = lolocaly - loghosty + nlocaly;
-        int zstop = zstart + nlocalz;
+        int ystop = lolocaly - loghosty + _domain->getSubBoxLatticeSize(1);
+        int zstop = zstart + _domain->getSubBoxLatticeSize(2);
 
         //要发送要邻居进程区域内的分子指针
         for (int iz = zstart; iz < zstop; iz++) {
@@ -917,10 +910,10 @@ void atom::getatomz(int direction, vector<vector<int> > &sendlist) {
         //找到要发送到邻居进程的区域
         int xstart = 0;
         int ystart = 0;
-        int zstart = lolocalz - loghostz + nlocalz - (_cutlattice);
+        int zstart = lolocalz - loghostz + _domain->getSubBoxLatticeSize(2) - (_cutlattice);
         int xstop = nghostx;
         int ystop = nghosty;
-        int zstop = lolocalz - loghostz + nlocalz;
+        int zstop = lolocalz - loghostz + _domain->getSubBoxLatticeSize(2);
 
         //要发送要邻居进程区域内的分子指针
         for (int iz = zstart; iz < zstop; iz++) {
@@ -938,16 +931,16 @@ void atom::getIntertosend(int d, int direction, double ghostlengh, vector<int> &
     double low, high;
     if (d == 0) {
         if (direction == 0) {
-            low = _domain->_meas_bounding_lower[0];
-            high = _domain->_meas_bounding_lower[0] + ghostlengh;
+            low = _domain->getMeasuredSubBoxLowerBounding(0);
+            high = _domain->getMeasuredSubBoxLowerBounding(0) + ghostlengh;
             for (int i = 0; i < nlocalinter; i++) {
                 if (xinter[i][0] < high && xinter[i][0] >= low) {
                     sendlist.push_back(i);
                 }
             }
         } else {
-            low = _domain->_meas_bounding_upper[0] - ghostlengh;
-            high = _domain->_meas_bounding_upper[0];
+            low = _domain->getMeasuredSubBoxUpperBounding(0) - ghostlengh;
+            high = _domain->getMeasuredSubBoxUpperBounding(0);
             for (int i = 0; i < nlocalinter; i++) {
                 if (xinter[i][0] <= high && xinter[i][0] > low) {
                     sendlist.push_back(i);
@@ -956,16 +949,16 @@ void atom::getIntertosend(int d, int direction, double ghostlengh, vector<int> &
         }
     } else if (d == 1) {
         if (direction == 0) {
-            low = _domain->_meas_bounding_lower[1];
-            high = _domain->_meas_bounding_lower[1] + ghostlengh;
+            low = _domain->getMeasuredSubBoxLowerBounding(1);
+            high = _domain->getMeasuredSubBoxLowerBounding(1) + ghostlengh;
             for (int i = 0; i < nlocalinter + nghostinter; i++) {
                 if (xinter[i][1] < high && xinter[i][1] >= low) {
                     sendlist.push_back(i);
                 }
             }
         } else {
-            low = _domain->_meas_bounding_upper[1] - ghostlengh;
-            high = _domain->_meas_bounding_upper[1];
+            low = _domain->getMeasuredSubBoxUpperBounding(1) - ghostlengh;
+            high = _domain->getMeasuredSubBoxUpperBounding(1);
             for (int i = 0; i < nlocalinter + nghostinter; i++) {
                 if (xinter[i][1] <= high && xinter[i][1] > low) {
                     sendlist.push_back(i);
@@ -974,16 +967,16 @@ void atom::getIntertosend(int d, int direction, double ghostlengh, vector<int> &
         }
     } else {
         if (direction == 0) {
-            low = _domain->_meas_bounding_lower[2];
-            high = _domain->_meas_bounding_lower[2] + ghostlengh;
+            low = _domain->getMeasuredSubBoxLowerBounding(2);
+            high = _domain->getMeasuredSubBoxLowerBounding(2) + ghostlengh;
             for (int i = 0; i < nlocalinter + nghostinter; i++) {
                 if (xinter[i][2] < high && xinter[i][2] >= low) {
                     sendlist.push_back(i);
                 }
             }
         } else {
-            low = _domain->_meas_bounding_upper[2] - ghostlengh;
-            high = _domain->_meas_bounding_upper[2];
+            low = _domain->getMeasuredSubBoxUpperBounding(2) - ghostlengh;
+            high = _domain->getMeasuredSubBoxUpperBounding(2);
             for (int i = 0; i < nlocalinter + nghostinter; i++) {
                 if (xinter[i][2] <= high && xinter[i][2] > low) {
                     sendlist.push_back(i);
@@ -997,11 +990,11 @@ int atom::getintersendnum(int dimension, int direction) {
     interbuf.clear();
     for (int i = 0; i < nlocalinter; i++) {
         if (direction == 0) {
-            if (xinter[i][dimension] < _domain->_meas_bounding_lower[dimension]) {
+            if (xinter[i][dimension] < _domain->getMeasuredSubBoxLowerBounding(dimension)) {
                 interbuf.push_back(i);
             }
         } else {
-            if (xinter[i][dimension] >= _domain->_meas_bounding_upper[dimension]) {
+            if (xinter[i][dimension] >= _domain->getMeasuredSubBoxUpperBounding(dimension)) {
                 interbuf.push_back(i);
             }
         }
@@ -1048,7 +1041,8 @@ void atom::unpack_interrecv(int d, int n, particledata *buf) {
         vtemp[0] = buf[i].v[0];
         vtemp[1] = buf[i].v[1];
         vtemp[2] = buf[i].v[2];
-        if (xtemp[d] >= _domain->_meas_bounding_lower[d] && xtemp[d] < _domain->_meas_bounding_upper[d]) {
+        if (xtemp[d] >= _domain->getMeasuredSubBoxLowerBounding(d) &&
+            xtemp[d] < _domain->getMeasuredSubBoxUpperBounding(d)) {
             if (nlocalinter == xinter.size()) {
                 idinter.push_back(id);
                 typeinter.push_back(type);
@@ -1120,9 +1114,12 @@ void atom::unpack_borderrecv(int n, LatParticleData *buf, vector<int> &recvlist)
         xtemp[0] = buf[i].r[0];
         xtemp[1] = buf[i].r[1];
         xtemp[2] = buf[i].r[2];
-        if (xtemp[0] >= _domain->_meas_ghost_bounding_lower[0] && xtemp[0] < _domain->_meas_ghost_bounding_upper[0] &&
-            xtemp[1] >= _domain->_meas_ghost_bounding_lower[1] && xtemp[1] < _domain->_meas_ghost_bounding_upper[1] &&
-            xtemp[2] >= _domain->_meas_ghost_bounding_lower[2] && xtemp[2] < _domain->_meas_ghost_bounding_upper[2]) {
+        if (xtemp[0] >= _domain->getMeasuredGhostLowerBounding(0) &&
+            xtemp[0] < _domain->getMeasuredGhostUpperBounding(0) &&
+            xtemp[1] >= _domain->getMeasuredGhostLowerBounding(1) &&
+            xtemp[1] < _domain->getMeasuredGhostUpperBounding(1) &&
+            xtemp[2] >= _domain->getMeasuredGhostLowerBounding(2) &&
+            xtemp[2] < _domain->getMeasuredGhostUpperBounding(2)) {
             if (xinter.size() == nlocalinter + nghostinter) {
                 typeinter.push_back(type);
                 xinter.push_back(xtemp);
@@ -1183,12 +1180,12 @@ void atom::unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, v
     int m = 0;
     if (d == 0) {
         if (direction == 0) {
-            xstart = lolocalx - loghostx + nlocalx;
+            xstart = lolocalx - loghostx + _domain->getSubBoxLatticeSize(0);
             xstop = nghostx;
             ystart = lolocaly - loghosty;
-            ystop = ystart + nlocaly;
+            ystop = ystart + _domain->getSubBoxLatticeSize(1);
             zstart = lolocalz - loghostz;
-            zstop = zstart + nlocalz;
+            zstop = zstart + _domain->getSubBoxLatticeSize(2);
             for (int k = zstart; k < zstop; k++) {
                 for (int j = ystart; j < ystop; j++) {
                     for (int i = xstart; i < xstop; i++) {
@@ -1207,9 +1204,9 @@ void atom::unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, v
             xstart = 0;
             xstop = lolocalx - loghostx;
             ystart = lolocaly - loghosty;
-            ystop = ystart + nlocaly;
+            ystop = ystart + _domain->getSubBoxLatticeSize(1);
             zstart = lolocalz - loghostz;
-            zstop = zstart + nlocalz;
+            zstop = zstart + _domain->getSubBoxLatticeSize(2);
             for (int k = zstart; k < zstop; k++) {
                 for (int j = ystart; j < ystop; j++) {
                     for (int i = xstart; i < xstop; i++) {
@@ -1229,10 +1226,10 @@ void atom::unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, v
         if (direction == 0) {
             xstart = 0;
             xstop = nghostx;
-            ystart = lolocaly - loghosty + nlocaly;
+            ystart = lolocaly - loghosty + _domain->getSubBoxLatticeSize(1);
             ystop = nghosty;
             zstart = lolocalz - loghostz;
-            zstop = zstart + nlocalz;
+            zstop = zstart + _domain->getSubBoxLatticeSize(2);
             for (int k = zstart; k < zstop; k++) {
                 for (int j = ystart; j < ystop; j++) {
                     for (int i = xstart; i < xstop; i++) {
@@ -1253,7 +1250,7 @@ void atom::unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, v
             ystart = 0;
             ystop = lolocaly - loghosty;
             zstart = lolocalz - loghostz;
-            zstop = zstart + nlocalz;
+            zstop = zstart + _domain->getSubBoxLatticeSize(2);
             for (int k = zstart; k < zstop; k++) {
                 for (int j = ystart; j < ystop; j++) {
                     for (int i = xstart; i < xstop; i++) {
@@ -1275,7 +1272,7 @@ void atom::unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, v
             xstop = nghostx;
             ystart = 0;
             ystop = nghosty;
-            zstart = lolocalz - loghostz + nlocalz;
+            zstart = lolocalz - loghostz + _domain->getSubBoxLatticeSize(2);
             zstop = nghostz;
             for (int k = zstart; k < zstop; k++) {
                 for (int j = ystart; j < ystop; j++) {
@@ -1530,9 +1527,9 @@ void atom::computefirst(double dtInv2m, double dt) {
     int ystart = lolocaly - loghosty;
     int zstart = lolocalz - loghostz;
     //本地晶格点上的原子求解运动方程第一步
-    for (int k = zstart; k < nlocalz + zstart; k++) {
-        for (int j = ystart; j < nlocaly + ystart; j++) {
-            for (int i = xstart; i < nlocalx + xstart; i++) {
+    for (int k = zstart; k < _domain->getSubBoxLatticeSize(2) + zstart; k++) {
+        for (int j = ystart; j < _domain->getSubBoxLatticeSize(1) + ystart; j++) {
+            for (int i = xstart; i < _domain->getSubBoxLatticeSize(0) + xstart; i++) {
                 kk = IndexOf3DIndex(i, j, k) * 3;
                 if (x[kk] != COORDINATE_ATOM_OUT_BOX) {
                     v[kk] = v[kk] + dtInv2m * f[kk];
@@ -1560,9 +1557,9 @@ void atom::computesecond(double dtInv2m) {
     int ystart = lolocaly - loghosty;
     int zstart = lolocalz - loghostz;
     //本地晶格点上的原子求解运动方程第二步
-    for (int k = zstart; k < nlocalz + zstart; k++) {
-        for (int j = ystart; j < nlocaly + ystart; j++) {
-            for (int i = xstart; i < nlocalx + xstart; i++) {
+    for (int k = zstart; k < _domain->getSubBoxLatticeSize(2) + zstart; k++) {
+        for (int j = ystart; j < _domain->getSubBoxLatticeSize(1) + ystart; j++) {
+            for (int i = xstart; i < _domain->getSubBoxLatticeSize(0) + xstart; i++) {
                 kk = IndexOf3DIndex(i, j, k) * 3;
                 for (unsigned short d = 0; d < 3; ++d) {
                     v[kk + d] += dtInv2m * f[kk + d];
@@ -1588,9 +1585,9 @@ void atom::print_force() {
     int ystart = lolocaly - loghosty;
     int zstart = lolocalz - loghostz;
     std::cout << "print_force" << std::endl;
-    for (int k = zstart; k < nlocalz + zstart; k++) {
-        for (int j = ystart; j < nlocaly + ystart; j++) {
-            for (int i = xstart; i < nlocalx + xstart; i++) {
+    for (int k = zstart; k < _domain->getSubBoxLatticeSize(2) + zstart; k++) {
+        for (int j = ystart; j < _domain->getSubBoxLatticeSize(1) + ystart; j++) {
+            for (int i = xstart; i < _domain->getSubBoxLatticeSize(0) + xstart; i++) {
                 kk = IndexOf3DIndex(i, j, k) * 3;
                 outfile << f[kk] << " " << f[kk + 1] << " " << f[kk + 2] << std::endl;
             }
@@ -1601,9 +1598,9 @@ void atom::print_force() {
 
 void atom::setv(int lat[4], double collision_v[3]) {
     int kk;
-    if ((lat[0] * 2) >= lolocalx && (lat[0] * 2) < (lolocalx + nlocalx)
-        && lat[1] >= lolocaly && lat[1] < (lolocaly + nlocaly)
-        && lat[2] >= lolocalz && lat[2] < (lolocalz + nlocalz)) {
+    if ((lat[0] * 2) >= lolocalx && (lat[0] * 2) < (lolocalx + _domain->getSubBoxLatticeSize(0))
+        && lat[1] >= lolocaly && lat[1] < (lolocaly + _domain->getSubBoxLatticeSize(1))
+        && lat[2] >= lolocalz && lat[2] < (lolocalz + _domain->getSubBoxLatticeSize(2))) {
         kk = (IndexOf3DIndex(lat[0] * 2 - loghostx, lat[1] - loghosty, lat[2] - loghostz) + lat[4]) * 3;
         v[kk] += collision_v[0];
         v[kk + 1] += collision_v[1];
@@ -1622,7 +1619,8 @@ void atom::printAtoms(int rank, int outMode, kiwi::IOWriter *writer) {
     sprintf(outfileName, "dump_%d.atom", rank);
 
     if (outMode == OUTPUT_COPY_MODE) { // todo copy atoms, then write.
-        double *x_io = new double[nlocalx * nlocaly * nlocalz * 4];
+        double *x_io = new double[_domain->getSubBoxLatticeSize(0) * _domain->getSubBoxLatticeSize(1) *
+                                  _domain->getSubBoxLatticeSize(2) * 4];
 //        int fd, ret;
 //        fd = open(outfileName, O_CREAT | O_TRUNC | O_RDWR, 0700);
 //        if (fd == -1) {
@@ -1633,9 +1631,9 @@ void atom::printAtoms(int rank, int outMode, kiwi::IOWriter *writer) {
         int n = 0;
         //outfile << "print_atom" << std::endl;
         start = MPI_Wtime();
-        for (int k = zstart; k < nlocalz + zstart; k++) {
-            for (int j = ystart; j < nlocaly + ystart; j++) {
-                for (int i = xstart; i < nlocalx + xstart; i++) {
+        for (int k = zstart; k < _domain->getSubBoxLatticeSize(2) + zstart; k++) {
+            for (int j = ystart; j < _domain->getSubBoxLatticeSize(1) + ystart; j++) {
+                for (int i = xstart; i < _domain->getSubBoxLatticeSize(0) + xstart; i++) {
                     kk = IndexOf3DIndex(i, j, k);
                     x_io[n * 4] = id[kk];
                     x_io[n * 4 + 1] = x[kk * 3];
@@ -1645,7 +1643,8 @@ void atom::printAtoms(int rank, int outMode, kiwi::IOWriter *writer) {
                 }
             }
         }
-        writer->write(x_io, nlocalx * nlocaly * nlocalz * 4);
+        writer->write(x_io, _domain->getSubBoxLatticeSize(0) * _domain->getSubBoxLatticeSize(1) *
+                            _domain->getSubBoxLatticeSize(2) * 4);
         stop = MPI_Wtime();
         printf("time of outputting atoms:%lf\n", stop - start);
         delete[] x_io;
@@ -1655,9 +1654,9 @@ void atom::printAtoms(int rank, int outMode, kiwi::IOWriter *writer) {
 
         start = MPI_Wtime();
         outfile << "print atoms" << std::endl;
-        for (int k = zstart; k < nlocalz + zstart; k++) {
-            for (int j = ystart; j < nlocaly + ystart; j++) {
-                for (int i = xstart; i < nlocalx + xstart; i++) {
+        for (int k = zstart; k < _domain->getSubBoxLatticeSize(2) + zstart; k++) {
+            for (int j = ystart; j < _domain->getSubBoxLatticeSize(1) + ystart; j++) {
+                for (int i = xstart; i < _domain->getSubBoxLatticeSize(0) + xstart; i++) {
                     kk = IndexOf3DIndex(i, j, k);
                     if (x[kk * 3] != COORDINATE_ATOM_OUT_BOX)
                         outfile << id[kk] << " " << x[kk * 3] << " " << x[kk * 3 + 1] << " " << x[kk * 3 + 2]
@@ -1676,14 +1675,14 @@ void atom::printAtoms(int rank, int outMode, kiwi::IOWriter *writer) {
 }
 
 int atom::getnlocalatom() {
-    return (nlocalx * nlocaly * nlocalz);
+    return (_domain->getSubBoxLatticeSize(0) * _domain->getSubBoxLatticeSize(1) * _domain->getSubBoxLatticeSize(2));
 }
 
 void atom::createphasespace(double factor, int box_x, int box_y, int box_z) {
     unsigned long numbefore = 0;
     numbefore += (unsigned long) box_x * box_y * lolocalz;
-    numbefore += (unsigned long) lolocaly * box_x * nlocalz;
-    numbefore += (unsigned long) lolocalx * nlocaly * nlocalz;
+    numbefore += (unsigned long) lolocaly * box_x * _domain->getSubBoxLatticeSize(2);
+    numbefore += (unsigned long) lolocalx * _domain->getSubBoxLatticeSize(1) * _domain->getSubBoxLatticeSize(2);
     /*for(int i = 0; i < numbefore; i++){
         uniform();
         uniform();
@@ -1693,9 +1692,9 @@ void atom::createphasespace(double factor, int box_x, int box_y, int box_z) {
     int ystart = lolocaly - loghosty;
     int zstart = lolocalz - loghostz;
     int kk;
-    for (int k = zstart; k < nlocalz + zstart; k++) {
-        for (int j = ystart; j < nlocaly + ystart; j++) {
-            for (int i = xstart; i < nlocalx + xstart; i++) {
+    for (int k = zstart; k < _domain->getSubBoxLatticeSize(2) + zstart; k++) {
+        for (int j = ystart; j < _domain->getSubBoxLatticeSize(1) + ystart; j++) {
+            for (int i = xstart; i < _domain->getSubBoxLatticeSize(0) + xstart; i++) {
                 kk = IndexOf3DIndex(i, j, k);
                 id[kk] = ++numbefore;
                 kk *= 3;
@@ -1725,9 +1724,9 @@ void atom::vcm(double mass, double masstotal, double *p) {
     int ystart = lolocaly - loghosty;
     int zstart = lolocalz - loghostz;
     long kk;
-    for (int k = zstart; k < nlocalz + zstart; k++) {
-        for (int j = ystart; j < nlocaly + ystart; j++) {
-            for (int i = xstart; i < nlocalx + xstart; i++) {
+    for (int k = zstart; k < _domain->getSubBoxLatticeSize(2) + zstart; k++) {
+        for (int j = ystart; j < _domain->getSubBoxLatticeSize(1) + ystart; j++) {
+            for (int i = xstart; i < _domain->getSubBoxLatticeSize(0) + xstart; i++) {
                 kk = IndexOf3DIndex(i, j, k) * 3;
                 massone = mass;
                 p[0] += v[kk] * massone;
@@ -1743,9 +1742,9 @@ void atom::zero_momentum(double *vcm) {
     int ystart = lolocaly - loghosty;
     int zstart = lolocalz - loghostz;
     int kk;
-    for (int k = zstart; k < nlocalz + zstart; k++) {
-        for (int j = ystart; j < nlocaly + ystart; j++) {
-            for (int i = xstart; i < nlocalx + xstart; i++) {
+    for (int k = zstart; k < _domain->getSubBoxLatticeSize(2) + zstart; k++) {
+        for (int j = ystart; j < _domain->getSubBoxLatticeSize(1) + ystart; j++) {
+            for (int i = xstart; i < _domain->getSubBoxLatticeSize(0) + xstart; i++) {
                 kk = IndexOf3DIndex(i, j, k) * 3;
                 v[kk] -= vcm[0];
                 v[kk + 1] -= vcm[1];
@@ -1761,9 +1760,9 @@ double atom::compute_scalar(double mass) {
     int ystart = lolocaly - loghosty;
     int zstart = lolocalz - loghostz;
     int kk;
-    for (int k = zstart; k < nlocalz + zstart; k++) {
-        for (int j = ystart; j < nlocaly + ystart; j++) {
-            for (int i = xstart; i < nlocalx + xstart; i++) {
+    for (int k = zstart; k < _domain->getSubBoxLatticeSize(2) + zstart; k++) {
+        for (int j = ystart; j < _domain->getSubBoxLatticeSize(1) + ystart; j++) {
+            for (int i = xstart; i < _domain->getSubBoxLatticeSize(0) + xstart; i++) {
                 kk = IndexOf3DIndex(i, j, k) * 3;
                 t += (v[kk] * v[kk] + v[kk + 1] * v[kk + 1] + v[kk + 2] * v[kk + 2]) * mass;
             }
@@ -1778,9 +1777,9 @@ void atom::rescale(double scalar, double t_set) {
     int ystart = lolocaly - loghosty;
     int zstart = lolocalz - loghostz;
     int kk;
-    for (int k = zstart; k < nlocalz + zstart; k++) {
-        for (int j = ystart; j < nlocaly + ystart; j++) {
-            for (int i = xstart; i < nlocalx + xstart; i++) {
+    for (int k = zstart; k < _domain->getSubBoxLatticeSize(2) + zstart; k++) {
+        for (int j = ystart; j < _domain->getSubBoxLatticeSize(1) + ystart; j++) {
+            for (int i = xstart; i < _domain->getSubBoxLatticeSize(0) + xstart; i++) {
                 kk = IndexOf3DIndex(i, j, k) * 3;
                 v[kk] *= factor;
                 v[kk + 1] *= factor;
