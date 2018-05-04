@@ -24,7 +24,7 @@ void simulation::createDomainDecomposition() {
 
     //进行区域分解
     kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initializing GlobalDomain decomposition.\n");
-    _domain_decomposition = (new DomainDecomposition(pConfigVal->phaseSpace,
+    _domain_decomposition = (new Domain(pConfigVal->phaseSpace,
                                                      pConfigVal->latticeConst,
                                                      pConfigVal->cutoffRadiusFactor))
             ->decomposition()

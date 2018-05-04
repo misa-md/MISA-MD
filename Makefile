@@ -5,7 +5,7 @@ LINK=		mpicxx
 LINKFLAGS=	-g -o
 
 BUILD_DIR = build/
-SRCS = main.cpp atom.cpp config.cpp createatom.cpp crystal_md.cpp domain.cpp domaindecomposition.cpp eam.cpp input.cpp integrator.cpp InterpolationObject.cpp latparticledata.cpp mpi_utils.cpp particledata.cpp  simulation.cpp
+SRCS = main.cpp atom.cpp config.cpp createatom.cpp crystal_md.cpp GlobalDomain.cpp Domain.cpp eam.cpp input.cpp integrator.cpp InterpolationObject.cpp latparticledata.cpp mpi_utils.cpp particledata.cpp  simulation.cpp
 OBJS = $(patsubst %.cpp,$(BUILD_DIR)%.o,$(SRCS))
 
 all:Crystal-MD

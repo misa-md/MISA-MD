@@ -2,7 +2,7 @@
 #include <logs/logs.h>
 #include "domain.h"
 
-DomainDecomposition::DomainDecomposition(const int64_t *phaseSpace, const double latticeConst,
+Domain::Domain(const int64_t *phaseSpace, const double latticeConst,
                                          const double cutoffRadiusFactor) :
         _lattice_const(latticeConst), _cutoff_radius_factor(cutoffRadiusFactor) {
     // 3维拓扑
@@ -13,12 +13,12 @@ DomainDecomposition::DomainDecomposition(const int64_t *phaseSpace, const double
     }
 }
 
-DomainDecomposition::~DomainDecomposition() {
+Domain::~Domain() {
     MPI_Type_free(&_mpi_Particle_data);
     MPI_Type_free(&_mpi_latParticle_data);
 }
 
-DomainDecomposition *DomainDecomposition::decomposition() {
+Domain *Domain::decomposition() {
     // Assume N can be decomposed as N = N_x * N_y * N_z,
     // then we have: _grid_size[0] = N_x, _grid_size[1] = N_y, _grid_size[1] = N_z.
     // Fill in the _grid_size array such that the product of _grid_size[i] for i=0 to DIMENSION-1 equals N.
@@ -57,7 +57,7 @@ DomainDecomposition *DomainDecomposition::decomposition() {
     return this;
 }
 
-DomainDecomposition *DomainDecomposition::createGlobalDomain() {
+Domain *Domain::createGlobalDomain() {
     for (int d = 0; d < DIMENSION; d++) {
         //phaseSpace个单位长度(单位长度即latticeconst)
         _meas_global_length[d] = _phase_space[d] * _lattice_const;
@@ -67,7 +67,7 @@ DomainDecomposition *DomainDecomposition::createGlobalDomain() {
     return this;
 }
 
-DomainDecomposition *DomainDecomposition::createLocalBoxDomain() {
+Domain *Domain::createLocalBoxDomain() {
     for (int d = 0; d < DIMENSION; d++) {
         // the lower and upper bounding of current sub-box.
         _meas_sub_box_lower_bounding[d] = _meas_global_box_coord_lower[d] +
@@ -123,7 +123,7 @@ DomainDecomposition *DomainDecomposition::createLocalBoxDomain() {
     return this;
 }
 
-void DomainDecomposition::exchangeAtomfirst(atom *_atom) {
+void Domain::exchangeAtomfirst(atom *_atom) {
 
     double ghostlengh[DIMENSION]; // ghost区域大小
 
@@ -221,7 +221,7 @@ void DomainDecomposition::exchangeAtomfirst(atom *_atom) {
     }
 }
 
-void DomainDecomposition::exchangeAtom(atom *_atom) {
+void Domain::exchangeAtom(atom *_atom) {
 
     double ghostlengh[DIMENSION]; // ghost区域大小
 
@@ -308,7 +308,7 @@ void DomainDecomposition::exchangeAtom(atom *_atom) {
     }
 }
 
-void DomainDecomposition::exchangeInter(atom *_atom) {
+void Domain::exchangeInter(atom *_atom) {
     // 发送、接收数据缓冲区
     int numPartsToSend[DIMENSION][2];
     int numPartsToRecv[DIMENSION][2];
@@ -365,7 +365,7 @@ void DomainDecomposition::exchangeInter(atom *_atom) {
     }
 }
 
-void DomainDecomposition::borderInter(atom *_atom) {
+void Domain::borderInter(atom *_atom) {
     double ghostlengh[DIMENSION]; // ghost区域大小
 
     for (int d = 0; d < DIMENSION; d++) {
@@ -457,7 +457,7 @@ void DomainDecomposition::borderInter(atom *_atom) {
     }
 }
 
-void DomainDecomposition::sendrho(atom *_atom) {
+void Domain::sendrho(atom *_atom) {
     // 发送、接收数据缓冲区
     int numPartsToSend[DIMENSION][2];
     int numPartsToRecv[DIMENSION][2];
@@ -509,7 +509,7 @@ void DomainDecomposition::sendrho(atom *_atom) {
     }
 }
 
-void DomainDecomposition::sendDfEmbed(atom *_atom) {
+void Domain::sendDfEmbed(atom *_atom) {
     // 发送、接收数据缓冲区
     int numPartsToSend[DIMENSION][2];
     int numPartsToRecv[DIMENSION][2];
@@ -568,7 +568,7 @@ void DomainDecomposition::sendDfEmbed(atom *_atom) {
     }
 }
 
-void DomainDecomposition::sendForce(atom *_atom) {
+void Domain::sendForce(atom *_atom) {
     // 发送、接收数据缓冲区
     int numPartsToSend[DIMENSION][2];
     int numPartsToRecv[DIMENSION][2];

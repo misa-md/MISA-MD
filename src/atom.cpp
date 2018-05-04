@@ -13,7 +13,7 @@
 #define IQ 127773
 #define IR 2836
 
-atom::atom(DomainDecomposition *domain, double latticeconst,
+atom::atom(Domain *domain, double latticeconst,
            double cutoffRadiusFactor, int seed) :
         _domain(domain), _latticeconst(latticeconst),
         _cutoffRadius(cutoffRadiusFactor * latticeconst), _seed(seed) {
@@ -322,7 +322,7 @@ void atom::clearForce() {
     }
 }
 
-void atom::computeEam(eam *pot, DomainDecomposition *_domaindecomposition, double &comm) {
+void atom::computeEam(eam *pot, Domain *domain, double &comm) {
     double starttime, stoptime;
     double xtemp, ytemp, ztemp;
     double delx, dely, delz;
@@ -515,7 +515,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
 
     //发送电子云密度
     starttime = MPI_Wtime();
-    _domaindecomposition->sendrho(this);
+    domain->sendrho(this);
     stoptime = MPI_Wtime();
     comm = stoptime - starttime;
 
@@ -566,7 +566,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
 
     //发送嵌入能导数
     starttime = MPI_Wtime();
-    _domaindecomposition->sendDfEmbed(this);
+    domain->sendDfEmbed(this);
     stoptime = MPI_Wtime();
     comm += stoptime - starttime;
 

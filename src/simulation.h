@@ -62,7 +62,7 @@ private:
     ConfigValues *pConfigVal; // todo config value.
     kiwi::IOWriter *writer = nullptr; // io writer for writing a shared file using mpi-IO lib.
 
-    DomainDecomposition *_domain_decomposition; //仅rank==0的进程有效
+    Domain *_domain_decomposition; //仅rank==0的进程有效
    // GlobalDomain *_domain;  //仅rank==0的进程有效 // todo ??
     atom *_atom;
     integrator *_integrator;

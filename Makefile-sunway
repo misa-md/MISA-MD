@@ -17,7 +17,7 @@ vpath %.cpp ./
 %.o:%.cpp
 	$(CC) $(CCFLAGS) $<
 
-Crystal-MD:main.o simulation.o domain.o domaindecomposition.o atom.o input.o integrator.o eam.o InterpolationObject.o particledata.o latparticledata.o createatom.o slave.o
+Crystal-MD:main.o simulation.o GlobalDomain.o Domain.o atom.o input.o integrator.o eam.o InterpolationObject.o particledata.o latparticledata.o createatom.o slave.o
 	$(LINK) $(LINKFLAGS) $@ $^
 
 clean:

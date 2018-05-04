@@ -45,13 +45,12 @@ class atom;
 typedef int _type_lattice_size;
 typedef _type_lattice_size _type_lattice_coord;
 
-class DomainDecomposition {
+class Domain {
 public:
 
-    DomainDecomposition(const int64_t *phaseSpace, const double latticeConst,
-                        const double cutoffRadius);
+    Domain(const int64_t *phaseSpace, const double latticeConst, const double cutoffRadius);
 
-    ~DomainDecomposition();
+    ~Domain();
 
     /**
      * In this method, each processor will be bound to a cartesian coordinate.
@@ -59,7 +58,7 @@ public:
      * It first divide the simulation box into N pieces(sub-box) (N is the count of all processors).
      * And each processor will be bound to a sub-box, and tagged with a cartesian coordinate(x,y,z).
      */
-    DomainDecomposition *decomposition();
+    Domain *decomposition();
 
     /**
      * set length of global simulation box.
@@ -67,14 +66,14 @@ public:
      * @param phaseSpace  phase space, the unit length of simulation box.
      * @param latticeConst lattice const
      */
-    DomainDecomposition *createGlobalDomain();
+    Domain *createGlobalDomain();
 
     /**
      * set bound for current sub-box.
      * @param phaseSpace  phase space, the unit length of simulation box.
      * @param latticeConst lattice const
      */
-    DomainDecomposition *createLocalBoxDomain();
+    Domain *createLocalBoxDomain();
 
     void exchangeInter(atom *_atom);
 

@@ -14,10 +14,10 @@ double lattice_const = 0.86;
 double cutoff_radius = 1.1421;
 int rand_seek = 1024;
 
-DomainDecomposition *getDomainInstance() {
-    static DomainDecomposition *_domain = nullptr;
+Domain *getDomainInstance() {
+    static Domain *_domain = nullptr;
     if (!_domain) {
-        return _domain = (new DomainDecomposition(space, lattice_const, cutoff_radius))
+        return _domain = (new Domain(space, lattice_const, cutoff_radius))
                 ->decomposition()
                 ->createGlobalDomain()
                 ->createLocalBoxDomain();
@@ -26,7 +26,7 @@ DomainDecomposition *getDomainInstance() {
 }
 
 TEST_CASE("domain-test-decomposition", "domain-test") {
-    DomainDecomposition *_domain = getDomainInstance();
+    Domain *_domain = getDomainInstance();
     atom *_atom = new atom(_domain, lattice_const, cutoff_radius, rand_seek);
 
     int grid_sum[3] = {0, 0, 0};
@@ -40,7 +40,7 @@ TEST_CASE("domain-test-decomposition", "domain-test") {
 }
 
 TEST_CASE("domain-local-lattice-size", "domain-test") {
-    DomainDecomposition *_domain = getDomainInstance();
+    Domain *_domain = getDomainInstance();
 
     int nlocalx = floor(_domain->getMeasuredSubBoxUpperBounding(0) / (lattice_const)) -
                   floor(_domain->getMeasuredSubBoxLowerBounding(0) / (lattice_const));
@@ -56,7 +56,7 @@ TEST_CASE("domain-local-lattice-size", "domain-test") {
 }
 
 TEST_CASE("domain-ghost-lattice-size", "domain-test") {
-    DomainDecomposition *_domain = getDomainInstance();
+    Domain *_domain = getDomainInstance();
 
     int nghostx = _domain->getSubBoxLatticeSize(0) + 2 * 2 * ceil(_domain->getMeasuredGhostLength(0) / lattice_const);
     int nghosty = _domain->getSubBoxLatticeSize(1) + 2 * ceil(_domain->getMeasuredGhostLength(1) / lattice_const);
@@ -68,7 +68,7 @@ TEST_CASE("domain-ghost-lattice-size", "domain-test") {
 }
 
 TEST_CASE("domain-local-lattice-coord", "domain-test") {
-    DomainDecomposition *_domain = getDomainInstance();
+    Domain *_domain = getDomainInstance();
 
     // lower boundary of lattice coordinate of local sub-box
     int lolocalx = floor(_domain->getMeasuredSubBoxLowerBounding(0) / lattice_const) * 2;
@@ -90,7 +90,7 @@ TEST_CASE("domain-local-lattice-coord", "domain-test") {
 }
 
 TEST_CASE("domain-ghost-lattice-coord", "domain-test") {
-    DomainDecomposition *_domain = getDomainInstance();
+    Domain *_domain = getDomainInstance();
 
     // lower boundary of lattice coordinate of ghost
     int loghostx = _domain->getSubBoxLatticeCoordLower(0) - 2 * ceil(cutoff_radius / lattice_const);

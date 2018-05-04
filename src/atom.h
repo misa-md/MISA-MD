@@ -5,7 +5,7 @@
 #ifndef CRYSTAL_MD_ATOM_H
 #define CRYSTAL_MD_ATOM_H
 
-class DomainDecomposition;
+class Domain;
 
 #include <cstdio>
 #include <vector>
@@ -22,7 +22,7 @@ using namespace std;
 
 class atom {
 public :
-    atom(DomainDecomposition *domain, double latticeconst,
+    atom(Domain *domain, double latticeconst,
          double cutoffRadiusFactor, int seed);
 
     ~atom();
@@ -33,7 +33,7 @@ public :
 
     void clearForce();
 
-    void computeEam(eam *pot, DomainDecomposition *_domaindecomposition, double &comm);
+    void computeEam(eam *pot, Domain *domain, double &comm);
 
     int getinteridsendsize();
 
@@ -102,7 +102,7 @@ private:
 
     double uniform();
 
-    DomainDecomposition *_domain;
+    Domain *_domain;
     int numberoflattice;
 
     double _cutoffRadius;
