@@ -23,7 +23,7 @@ using namespace std;
 class atom {
 public :
     atom(DomainDecomposition *domain, double latticeconst,
-         double cutoffRadius, int seed);
+         double cutoffRadiusFactor, int seed);
 
     ~atom();
 
@@ -109,12 +109,6 @@ private:
     int _cutlattice;
     double _latticeconst;
     int _seed;
-
-    int nlocalx, nlocaly, nlocalz; // 本地box内晶格数
-    int nghostx, nghosty, nghostz; // ghost区域+local区域内晶格数
-
-    int lolocalx, lolocaly, lolocalz;
-    int loghostx, loghosty, loghostz; // 本地对应的全局晶格坐标
 
     vector<long int> NeighbourOffsets; // 邻居粒子偏移量
 

@@ -3,8 +3,8 @@
 #include "domain.h"
 
 DomainDecomposition::DomainDecomposition(const int64_t *phaseSpace, const double latticeConst,
-                                         const double cutoffRadius) :
-        _lattice_const(latticeConst), _cutoff_radius(cutoffRadius) {
+                                         const double cutoffRadiusFactor) :
+        _lattice_const(latticeConst), _cutoff_radius_factor(cutoffRadiusFactor) {
     // 3维拓扑
     for (int d = 0; d < DIMENSION; d++) {
         _phase_space[d] = phaseSpace[d]; // initialize phase space.
@@ -61,8 +61,8 @@ DomainDecomposition *DomainDecomposition::createGlobalDomain() {
     for (int d = 0; d < DIMENSION; d++) {
         //phaseSpace个单位长度(单位长度即latticeconst)
         _meas_global_length[d] = _phase_space[d] * _lattice_const;
-        _grid_coord_global_box_low[d] = 0; // lower bounding is set to 0 by default.
-        _grid_coord_global_box_up[d] = _meas_global_length[d];
+        _meas_global_box_coord_lower[d] = 0; // lower bounding is set to 0 by default.
+        _meas_global_box_coord_upper[d] = _meas_global_length[d];
     }
     return this;
 }
@@ -70,46 +70,57 @@ DomainDecomposition *DomainDecomposition::createGlobalDomain() {
 DomainDecomposition *DomainDecomposition::createLocalBoxDomain() {
     for (int d = 0; d < DIMENSION; d++) {
         // the lower and upper bounding of current sub-box.
-        _meas_sub_box_lower_bounding[d] = _grid_coord_global_box_low[d] +
+        _meas_sub_box_lower_bounding[d] = _meas_global_box_coord_lower[d] +
                                           _grid_coord_sub_box[d] * (_meas_global_length[d] / _grid_size[d]);
-        _meas_sub_box_upper_bounding[d] = _grid_coord_global_box_low[d] +
+        _meas_sub_box_upper_bounding[d] = _meas_global_box_coord_lower[d] +
                                           (_grid_coord_sub_box[d] + 1) * (_meas_global_length[d] / _grid_size[d]);
 
-        _meas_ghost_length[d] = _cutoff_radius; // ghost length todo ??
+        _meas_ghost_length[d] = _cutoff_radius_factor * _lattice_const; // ghost length todo
 
         _meas_ghost_lower_bounding[d] = _meas_sub_box_lower_bounding[d] - _meas_ghost_length[d];
         _meas_ghost_upper_bounding[d] = _meas_sub_box_upper_bounding[d] + _meas_ghost_length[d];
-
-        // set lattice coordinate bounding.
-        _lattice_size_sub_box[d] = (_grid_coord_sub_box[d] + 1) * _phase_space[d] / _grid_size[d] -
-                                   (_grid_coord_sub_box[d]) * _phase_space[d] / _grid_size[d];
     }
-    _lattice_size_sub_box[0] *= 2; // todo ?? why
+
+    // set lattice size of local sub-box.
+    for (int d = 0; d < DIMENSION; d++) {
+        _lattice_size_local[d] = (_grid_coord_sub_box[d] + 1) * _phase_space[d] / _grid_size[d] -
+                                 (_grid_coord_sub_box[d]) * _phase_space[d] / _grid_size[d];
+    }
+    _lattice_size_local[0] *= 2; // todo ?? why
+
+    /*
+    nghostx = _domain->getSubBoxLatticeSize(0) + 2 * 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
+    nghosty = _domain->getSubBoxLatticeSize(1) + 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
+    nghostz = _domain->getSubBoxLatticeSize(2) + 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
+    */
+    // set ghost lattice size.
+    for (int d = 0; d < DIMENSION; d++) {
+        // i * ceil(x) >= ceil(i*x) for all x ∈ R and i ∈ Z
+        _type_lattice_size pure_ghost_lattice_size_dim = (d == 0) ?
+                                                         2 * 2 * ceil(_cutoff_radius_factor) :
+                                                         2 * ceil(_cutoff_radius_factor);
+        _lattice_size_ghost[d] = _lattice_size_local[d] + pure_ghost_lattice_size_dim;
+    }
+
+    // set lattice coordinate boundary of sub-box.
+    for (int d = 0; d < DIMENSION; d++) {
+        // floor equals to "/" if all operation number >=0.
+        _lattice_coord_sub_box_lower[d] = _grid_coord_sub_box[d] * _phase_space[d] / _grid_size[d];
+        _lattice_coord_sub_box_upper[d] = (_grid_coord_sub_box[d] + 1) * _phase_space[d] / _grid_size[d];
+    }
+    _lattice_coord_sub_box_lower[0] *= 2;
+    _lattice_coord_sub_box_upper[0] *= 2;
+
+    // set lattice coordinate boundary for ghost.
+    for (int d = 0; d < DIMENSION; d++) {
+        _type_lattice_coord pure_ghost_lattice_size_dim = (d == 0) ?
+                                                          2 * ceil(_cutoff_radius_factor) :
+                                                          ceil(_cutoff_radius_factor);
+        _lattice_coord_ghost_lower[d] =
+                _lattice_coord_sub_box_lower[d] - pure_ghost_lattice_size_dim; // todo too integer minus, cut too many??
+        _lattice_coord_ghost_upper[d] = _lattice_coord_sub_box_upper[d] + pure_ghost_lattice_size_dim;
+    }
     return this;
-}
-
-double DomainDecomposition::getMeasuredSubBoxLowerBounding(int dimension) const { // todo inline.
-    return _meas_sub_box_lower_bounding[dimension];
-}
-
-double DomainDecomposition::getMeasuredSubBoxUpperBounding(int dimension) const {
-    return _meas_sub_box_upper_bounding[dimension];
-}
-
-double DomainDecomposition::getMeasuredGhostLength(int index) const {
-    return _meas_ghost_length[index];
-}
-
-double DomainDecomposition::getMeasuredGhostLowerBounding(int dimension) const {
-    return _meas_ghost_lower_bounding[dimension];
-}
-
-double DomainDecomposition::getMeasuredGhostUpperBounding(int dimension) const {
-    return _meas_ghost_upper_bounding[dimension];
-}
-
-_type_lattice_size DomainDecomposition::getSubBoxLatticeSize(unsigned short dimension) const {
-    return _lattice_size_sub_box[dimension];
 }
 
 void DomainDecomposition::exchangeAtomfirst(atom *_atom) {

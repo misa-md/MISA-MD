@@ -39,7 +39,7 @@ TEST_CASE("domain-test-decomposition", "domain-test") {
     }
 }
 
-void runDomainLocalLatticeSizeTest(int64_t space[3], double lattice_const, double cutoff_radius) {
+TEST_CASE("domain-local-lattice-size", "domain-test") {
     DomainDecomposition *_domain = getDomainInstance();
 
     int nlocalx = floor(_domain->getMeasuredSubBoxUpperBounding(0) / (lattice_const)) -
@@ -55,7 +55,58 @@ void runDomainLocalLatticeSizeTest(int64_t space[3], double lattice_const, doubl
     REQUIRE(nlocalz == _domain->getSubBoxLatticeSize(2));
 }
 
-TEST_CASE("domain-local-lattice-size", "domain-test") {
-    int64_t a[3] = {60, 58, 67};
-    runDomainLocalLatticeSizeTest(a, 0.86, 1.1421);
+TEST_CASE("domain-ghost-lattice-size", "domain-test") {
+    DomainDecomposition *_domain = getDomainInstance();
+
+    int nghostx = _domain->getSubBoxLatticeSize(0) + 2 * 2 * ceil(_domain->getMeasuredGhostLength(0) / lattice_const);
+    int nghosty = _domain->getSubBoxLatticeSize(1) + 2 * ceil(_domain->getMeasuredGhostLength(1) / lattice_const);
+    int nghostz = _domain->getSubBoxLatticeSize(2) + 2 * ceil(_domain->getMeasuredGhostLength(2) / lattice_const);
+
+    REQUIRE(nghostx == _domain->getGhostLatticeSize(0));
+    REQUIRE(nghosty == _domain->getGhostLatticeSize(1));
+    REQUIRE(nghostz == _domain->getGhostLatticeSize(2));
+}
+
+TEST_CASE("domain-local-lattice-coord", "domain-test") {
+    DomainDecomposition *_domain = getDomainInstance();
+
+    // lower boundary of lattice coordinate of local sub-box
+    int lolocalx = floor(_domain->getMeasuredSubBoxLowerBounding(0) / lattice_const) * 2;
+    int lolocaly = floor(_domain->getMeasuredSubBoxLowerBounding(1) / lattice_const);
+    int lolocalz = floor(_domain->getMeasuredSubBoxLowerBounding(2) / lattice_const);
+
+    REQUIRE(lolocalx == _domain->getSubBoxLatticeCoordLower(0));
+    REQUIRE(lolocaly == _domain->getSubBoxLatticeCoordLower(1));
+    REQUIRE(lolocalz == _domain->getSubBoxLatticeCoordLower(2));
+
+    // upper boundary of lattice coordinate of local sub-box
+    int uplocalx = floor(_domain->getMeasuredSubBoxUpperBounding(0) / lattice_const) * 2;
+    int uplocaly = floor(_domain->getMeasuredSubBoxUpperBounding(1) / lattice_const);
+    int uplocalz = floor(_domain->getMeasuredSubBoxUpperBounding(2) / lattice_const);
+
+    REQUIRE(uplocalx == _domain->getSubBoxLatticeCoordUpper(0));
+    REQUIRE(uplocaly == _domain->getSubBoxLatticeCoordUpper(1));
+    REQUIRE(uplocalz == _domain->getSubBoxLatticeCoordUpper(2));
+}
+
+TEST_CASE("domain-ghost-lattice-coord", "domain-test") {
+    DomainDecomposition *_domain = getDomainInstance();
+
+    // lower boundary of lattice coordinate of ghost
+    int loghostx = _domain->getSubBoxLatticeCoordLower(0) - 2 * ceil(cutoff_radius / lattice_const);
+    int loghosty = _domain->getSubBoxLatticeCoordLower(1) - ceil(cutoff_radius / lattice_const);
+    int loghostz = _domain->getSubBoxLatticeCoordLower(2) - ceil(cutoff_radius / lattice_const);
+
+    REQUIRE(loghostx == _domain->getGhostLatticeCoordLower(0));
+    REQUIRE(loghosty == _domain->getGhostLatticeCoordLower(1));
+    REQUIRE(loghostz == _domain->getGhostLatticeCoordLower(2));
+
+    // upper boundary of lattice coordinate of ghost
+    int upghostx = _domain->getSubBoxLatticeCoordUpper(0) + 2 * ceil(cutoff_radius / lattice_const);
+    int upghosty = _domain->getSubBoxLatticeCoordUpper(1) + ceil(cutoff_radius / lattice_const);
+    int upghostz = _domain->getSubBoxLatticeCoordUpper(2) + ceil(cutoff_radius / lattice_const);
+
+    REQUIRE(upghostx == _domain->getGhostLatticeCoordUpper(0));
+    REQUIRE(upghosty == _domain->getGhostLatticeCoordUpper(1));
+    REQUIRE(upghostz == _domain->getGhostLatticeCoordUpper(2));
 }

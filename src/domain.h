@@ -31,7 +31,7 @@ class atom;
  *
  *
  * variable naming:
- * 1.variables for real length(measured length) and real bounding(measured bounding) of sub-box or global box
+ * 1.variables for real length(measured length) and real boundary(measured boundary) of sub-box or global box
  * have a prefix "meas" or "_meas", with double type.
  *
  * 2.variables for cartesian coordinate of box decomposition have a prefix "grid_coord" or "_grid_coord", with int type;
@@ -43,19 +43,10 @@ class atom;
  */
 
 typedef int _type_lattice_size;
+typedef _type_lattice_size _type_lattice_coord;
 
 class DomainDecomposition {
 public:
-
-    /**
-     * global information for the simulation box.
-     */
-    double _meas_global_length[DIMENSION]; // todo private.
-
-    /**
-     * the lower and upper bound coordinate for the global simulation box.
-     */
-    double _grid_coord_global_box_low[DIMENSION], _grid_coord_global_box_up[DIMENSION];
 
     DomainDecomposition(const int64_t *phaseSpace, const double latticeConst,
                         const double cutoffRadius);
@@ -85,16 +76,6 @@ public:
      */
     DomainDecomposition *createLocalBoxDomain();
 
-    /**
-     * get global measured length of the simulation box at dimension {@var d}.
-     * @param d dimension
-     * @return box length at dimension d.
-     */
-    inline double getMeasuredGlobalLength(int d) const {
-        return _meas_global_length[d];
-    }
-
-
     void exchangeInter(atom *_atom);
 
     void borderInter(atom *_atom);
@@ -110,42 +91,133 @@ public:
     void sendForce(atom *_atom);
 
     /**
-     * get lower bound of current sub-box at a dimension.
+     * get global measured length of the simulation box at dimension {@var d}.
+     * @param d dimension
+     * @return global simulation box length at dimension d.
      */
-    double getMeasuredSubBoxLowerBounding(int dimension) const;
+    inline double getMeasuredGlobalLength(int d) const {
+        return _meas_global_length[d];
+    }
 
     /**
-     * get upper bound of current sub-box at some dimension specified by {@var dimension}.
+     * get decomposed grid size at each dimension {@var d}.
      */
-    double getMeasuredSubBoxUpperBounding(int dimension) const;
+    inline double getDecomposedGridSize(int d) const {
+        return _grid_size[d];
+    }
 
     /**
-     *  todo document
+     * get coordinate of lower boundary of global simulation box.
      */
-    double getMeasuredGhostLowerBounding(int dimension) const;
+    inline double getMeasuredGlobalBoxCoordLower(int d) const {
+        return _meas_global_box_coord_lower[d];
+    }
 
-    double getMeasuredGhostUpperBounding(int dimension) const;
+    /**
+     * get coordinate of upper boundary of global simulation box.
+     */
+    inline double getMeasuredGlobalBoxCoordUpper(int d) const {
+        return _meas_global_box_coord_upper[d];
+    }
+
+    /**
+     * get measured lower bound of current sub-box at a dimension.
+     */
+    inline double getMeasuredSubBoxLowerBounding(int dimension) const {
+        return _meas_sub_box_lower_bounding[dimension];
+    }
+
+    /**
+     * get measured upper boundary of current sub-box at some dimension specified by {@var dimension}.
+     */
+    inline double getMeasuredSubBoxUpperBounding(int dimension) const {
+        return _meas_sub_box_upper_bounding[dimension];
+    }
+
+    /**
+     *  get measured ghost lower boundary of current sub-box.
+     */
+    inline double getMeasuredGhostLowerBounding(int dimension) const {
+        return _meas_ghost_lower_bounding[dimension];
+    }
+
+    /**
+     *  get measured ghost upper boundary of current sub-box.
+     */
+    inline double getMeasuredGhostUpperBounding(int dimension) const {
+        return _meas_ghost_upper_bounding[dimension];
+    }
 
     /**
      * get measured ghost length at dimension
-     * @param index
-     * @return
      */
-    double getMeasuredGhostLength(int index) const;
+    inline double getMeasuredGhostLength(int index) const {
+        return _meas_ghost_length[index];
+    }
 
-    _type_lattice_size getSubBoxLatticeSize(unsigned short dimension) const;
+    /**
+     * get lattice count in current sub-box.
+     */
+    inline _type_lattice_size getSubBoxLatticeSize(unsigned short dimension) const {
+        return _lattice_size_local[dimension];
+    }
+
+    /**
+     * get lattice count in ghost area plus local area of current sub-box.
+     */
+    inline _type_lattice_size getGhostLatticeSize(unsigned short dimension) const {
+        return _lattice_size_ghost[dimension];
+    }
+
+    /**
+     * get lower boundary of lattice coordinate of current sub-box.
+     */
+    inline _type_lattice_size getSubBoxLatticeCoordLower(unsigned short dimension) const {
+        return _lattice_coord_sub_box_lower[dimension];
+    }
+
+    /**
+     * get upper boundary of lattice coordinate of current sub-box.
+     */
+    inline _type_lattice_size getSubBoxLatticeCoordUpper(unsigned short dimension) const {
+        return _lattice_coord_sub_box_upper[dimension];
+    }
+
+    /**
+     * get lower boundary of lattice coordinate of ghost of current sub-box.
+     */
+    inline _type_lattice_size getGhostLatticeCoordLower(unsigned short dimension) const {
+        return _lattice_coord_ghost_lower[dimension];
+    }
+
+    /**
+     * get upper boundary of lattice coordinate of ghost of current sub-box.
+     */
+    inline _type_lattice_size getGhostLatticeCoordUpper(unsigned short dimension) const {
+        return _lattice_coord_ghost_upper[dimension];
+    }
 
 private:
 
-    const double _lattice_const, _cutoff_radius; // lattice const and cutoff radius for construct domain.
+    const double _lattice_const, _cutoff_radius_factor; // lattice const and cutoff radius for construct domain.
     int64_t _phase_space[DIMENSION]; // phase space of the global simulation box; the lattice count in each dimension in global simulation box.
 
-    /** local information for current simulation sub-box. **/
+    /**
+    * global information for the simulation box.
+    */
+    double _meas_global_length[DIMENSION];
+
     /**
      * the count of processors at each dimension.
      */
     int _grid_size[DIMENSION] = {0};
 
+    /**
+     * the lower and upper boundary coordinate for the global simulation box.
+     */
+    double _meas_global_box_coord_lower[DIMENSION], _meas_global_box_coord_upper[DIMENSION];
+
+    /** local information for current simulation sub-box. **/
     /**
      * The cartesian coordinate of the sub-box bound to this processor after running grid decomposition.
      */
@@ -156,19 +228,29 @@ private:
      */
     int _rank_id_neighbours[DIMENSION][2];
 
-    /**bounding of local sub-box**/
-    double _meas_sub_box_lower_bounding[DIMENSION]; // the measured lower bounding of current sub-box.
-    double _meas_sub_box_upper_bounding[DIMENSION]; // the measured upper bounding of current sub-box.
+    /**boundary of local sub-box**/
+    // the measured lower and upper boundary of current sub-box.
+    double _meas_sub_box_lower_bounding[DIMENSION], _meas_sub_box_upper_bounding[DIMENSION];
 
-    /**bounding of ghost of local sub-box**/
+    /**boundary of ghost of local sub-box**/
     double _meas_ghost_length[DIMENSION];  // measured ghost length, which equals to the cutoff radius.
-    double _meas_ghost_lower_bounding[DIMENSION]; // the measured ghost lower bound of current sub-box.
-    double _meas_ghost_upper_bounding[DIMENSION]; // the measured ghost upper bound of current sub-box.
+    // the measured ghost lower and upper bound of current sub-box.
+    double _meas_ghost_lower_bounding[DIMENSION], _meas_ghost_upper_bounding[DIMENSION];
 
     /*lattice count in local sub-box*/
-    //  int _lattice_coord_lower[DIMENSION]; // the lower bounding of lattice coordinate for current sub-box.
-    //  int _lattice_coord_upper[DIMENSION]; // the upper bounding of lattice coordinate for current sub-box.
-    _type_lattice_size _lattice_size_sub_box[DIMENSION]; // lattice count of current sub-box in each dimension (upper bounding - lower bounding).
+    //  int _lattice_coord_lower[DIMENSION]; // the lower boundary of lattice coordinate for current sub-box.
+    //  int _lattice_coord_upper[DIMENSION]; // the upper boundary of lattice coordinate for current sub-box.
+    // lattice count in local sub-box area at each dimension (upper boundary - lower boundary).
+    _type_lattice_size _lattice_size_local[DIMENSION];
+    // lattice count in ghost area plus sub-box area at each dimension (upper boundary - lower boundary).
+    _type_lattice_size _lattice_size_ghost[DIMENSION];
+
+    /*lattice boundary of local sub-box and ghost*/
+    // lower and upper boundary of lattice coordinate in local sub-box area at each dimension.
+    _type_lattice_coord _lattice_coord_sub_box_lower[DIMENSION], _lattice_coord_sub_box_upper[DIMENSION];
+
+    // lower and upper boundary of lattice coordinate in ghost area of current sub-box area at each dimension.
+    _type_lattice_coord _lattice_coord_ghost_lower[DIMENSION], _lattice_coord_ghost_upper[DIMENSION];
 
     /** mpi data struct. **/
     MPI_Datatype _mpi_Particle_data;
