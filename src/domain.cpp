@@ -2,20 +2,23 @@
 #include <logs/logs.h>
 #include "domain.h"
 
-DomainDecomposition::DomainDecomposition() {
+Domain::Domain(const int64_t *phaseSpace, const double latticeConst,
+                                         const double cutoffRadiusFactor) :
+        _lattice_const(latticeConst), _cutoff_radius_factor(cutoffRadiusFactor) {
     // 3维拓扑
     for (int d = 0; d < DIMENSION; d++) {
+        _phase_space[d] = phaseSpace[d]; // initialize phase space.
         _grid_size[d] = 0;
-        _globalLength[d] = 0;
+        _meas_global_length[d] = 0;
     }
 }
 
-DomainDecomposition::~DomainDecomposition() {
+Domain::~Domain() {
     MPI_Type_free(&_mpi_Particle_data);
     MPI_Type_free(&_mpi_latParticle_data);
 }
 
-void DomainDecomposition::decomposition() {
+Domain *Domain::decomposition() {
     // Assume N can be decomposed as N = N_x * N_y * N_z,
     // then we have: _grid_size[0] = N_x, _grid_size[1] = N_y, _grid_size[1] = N_z.
     // Fill in the _grid_size array such that the product of _grid_size[i] for i=0 to DIMENSION-1 equals N.
@@ -38,9 +41,9 @@ void DomainDecomposition::decomposition() {
     kiwi::mpiUtils::onGlobalCommChanged(_comm);
 
     // get cartesian coordinate of current processor.
-    MPI_Cart_coords(kiwi::mpiUtils::global_comm, kiwi::mpiUtils::own_rank, DIMENSION, _coords);
+    MPI_Cart_coords(kiwi::mpiUtils::global_comm, kiwi::mpiUtils::own_rank, DIMENSION, _grid_coord_sub_box);
     kiwi::logs::d("decomposition", "old_rank_id: {0}, MPI coordinate of current process: x:{1},y{2},z{3}\n",
-                  _debug_old_rank, _coords[0], _coords[1], _coords[2]);
+                  _debug_old_rank, _grid_coord_sub_box[0], _grid_coord_sub_box[1], _grid_coord_sub_box[2]);
 
     // get the rank ids of contiguous processors of current processor.
     for (int d = 0; d < DIMENSION; d++) {
@@ -51,56 +54,81 @@ void DomainDecomposition::decomposition() {
     LatParticleData::setMPIType(_mpi_latParticle_data);
     intersendlist.resize(6);
     interrecvlist.resize(6);
+    return this;
 }
 
-void DomainDecomposition::establishGlobalDomain(const int64_t phaseSpace[DIMENSION], const double latticeConst) {
+Domain *Domain::createGlobalDomain() {
     for (int d = 0; d < DIMENSION; d++) {
         //phaseSpace个单位长度(单位长度即latticeconst)
-        _globalLength[d] = phaseSpace[d] * latticeConst;
-        _coord_global_box_low[d] = 0;
-        _coord_global_box_high[d] = _globalLength[d];
+        _meas_global_length[d] = _phase_space[d] * _lattice_const;
+        _meas_global_box_coord_lower[d] = 0; // lower bounding is set to 0 by default.
+        _meas_global_box_coord_upper[d] = _meas_global_length[d];
     }
+    return this;
 }
 
-void DomainDecomposition::establishLocalBoxDomain(const int64_t phaseSpace[DIMENSION],
-                                                  const double latticeConst, const double cutoffRadius) {
+Domain *Domain::createLocalBoxDomain() {
     for (int d = 0; d < DIMENSION; d++) {
-        _boundingBoxMin[d] = getBoundingBoxMin(d);
-        _boundingBoxMax[d] = getBoundingBoxMax(d);
+        // the lower and upper bounding of current sub-box.
+        _meas_sub_box_lower_bounding[d] = _meas_global_box_coord_lower[d] +
+                                          _grid_coord_sub_box[d] * (_meas_global_length[d] / _grid_size[d]);
+        _meas_sub_box_upper_bounding[d] = _meas_global_box_coord_lower[d] +
+                                          (_grid_coord_sub_box[d] + 1) * (_meas_global_length[d] / _grid_size[d]);
 
-        _ghostLength[d] = cutoffRadius; // todo ??
+        _meas_ghost_length[d] = _cutoff_radius_factor * _lattice_const; // ghost length todo
 
-        _ghostBoundingBoxMin[d] = _boundingBoxMin[d] - _ghostLength[d];
-        _ghostBoundingBoxMax[d] = _boundingBoxMax[d] + _ghostLength[d];
+        _meas_ghost_lower_bounding[d] = _meas_sub_box_lower_bounding[d] - _meas_ghost_length[d];
+        _meas_ghost_upper_bounding[d] = _meas_sub_box_upper_bounding[d] + _meas_ghost_length[d];
     }
+
+    // set lattice size of local sub-box.
+    for (int d = 0; d < DIMENSION; d++) {
+        _lattice_size_local[d] = (_grid_coord_sub_box[d] + 1) * _phase_space[d] / _grid_size[d] -
+                                 (_grid_coord_sub_box[d]) * _phase_space[d] / _grid_size[d];
+    }
+    _lattice_size_local[0] *= 2; // todo ?? why
+
+    /*
+    nghostx = _domain->getSubBoxLatticeSize(0) + 2 * 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
+    nghosty = _domain->getSubBoxLatticeSize(1) + 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
+    nghostz = _domain->getSubBoxLatticeSize(2) + 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
+    */
+    // set ghost lattice size.
+    for (int d = 0; d < DIMENSION; d++) {
+        // i * ceil(x) >= ceil(i*x) for all x ∈ R and i ∈ Z
+        _type_lattice_size pure_ghost_lattice_size_dim = (d == 0) ?
+                                                         2 * 2 * ceil(_cutoff_radius_factor) :
+                                                         2 * ceil(_cutoff_radius_factor);
+        _lattice_size_ghost[d] = _lattice_size_local[d] + pure_ghost_lattice_size_dim;
+    }
+
+    // set lattice coordinate boundary of sub-box.
+    for (int d = 0; d < DIMENSION; d++) {
+        // floor equals to "/" if all operation number >=0.
+        _lattice_coord_sub_box_lower[d] = _grid_coord_sub_box[d] * _phase_space[d] / _grid_size[d];
+        _lattice_coord_sub_box_upper[d] = (_grid_coord_sub_box[d] + 1) * _phase_space[d] / _grid_size[d];
+    }
+    _lattice_coord_sub_box_lower[0] *= 2;
+    _lattice_coord_sub_box_upper[0] *= 2;
+
+    // set lattice coordinate boundary for ghost.
+    for (int d = 0; d < DIMENSION; d++) {
+        _type_lattice_coord pure_ghost_lattice_size_dim = (d == 0) ?
+                                                          2 * ceil(_cutoff_radius_factor) :
+                                                          ceil(_cutoff_radius_factor);
+        _lattice_coord_ghost_lower[d] =
+                _lattice_coord_sub_box_lower[d] - pure_ghost_lattice_size_dim; // todo too integer minus, cut too many??
+        _lattice_coord_ghost_upper[d] = _lattice_coord_sub_box_upper[d] + pure_ghost_lattice_size_dim;
+    }
+    return this;
 }
 
-double DomainDecomposition::getSubBoxLowerBounding(int dimension) const { // todo inline.
-    return _boundingBoxMin[dimension];
-}
-
-double DomainDecomposition::getUpperBoxLowerBounding(int dimension) const {
-    return _boundingBoxMax[dimension];
-}
-
-double DomainDecomposition::getGhostLength(int index) const {
-    return _ghostLength[index];
-}
-
-double DomainDecomposition::getBoundingBoxMin(int dimension) {
-    return _coords[dimension] * (getGlobalLength(dimension) / _grid_size[dimension]);
-}
-
-double DomainDecomposition::getBoundingBoxMax(int dimension) {
-    return (_coords[dimension] + 1) * (getGlobalLength(dimension) / _grid_size[dimension]);
-}
-
-void DomainDecomposition::exchangeAtomfirst(atom *_atom) {
+void Domain::exchangeAtomfirst(atom *_atom) {
 
     double ghostlengh[DIMENSION]; // ghost区域大小
 
     for (int d = 0; d < DIMENSION; d++) {
-        ghostlengh[d] = getGhostLength(d);
+        ghostlengh[d] = getMeasuredGhostLength(d);
     }
     sendlist.resize(6);
     recvlist.resize(6);
@@ -129,11 +157,11 @@ void DomainDecomposition::exchangeAtomfirst(atom *_atom) {
         offsetHigher[d] = 0.0;
 
         // 进程在左侧边界
-        if (_coords[d] == 0)
-            offsetLower[d] = getGlobalLength(d);
+        if (_grid_coord_sub_box[d] == 0)
+            offsetLower[d] = getMeasuredGlobalLength(d);
         // 进程在右侧边界
-        if (_coords[d] == _grid_size[d] - 1)
-            offsetHigher[d] = -(getGlobalLength(d));
+        if (_grid_coord_sub_box[d] == _grid_size[d] - 1)
+            offsetHigher[d] = -(getMeasuredGlobalLength(d));
 
         for (direction = LOWER; direction <= HIGHER; direction++) {
             // 找到要发送给邻居的原子
@@ -193,12 +221,12 @@ void DomainDecomposition::exchangeAtomfirst(atom *_atom) {
     }
 }
 
-void DomainDecomposition::exchangeAtom(atom *_atom) {
+void Domain::exchangeAtom(atom *_atom) {
 
     double ghostlengh[DIMENSION]; // ghost区域大小
 
     for (int d = 0; d < DIMENSION; d++) {
-        ghostlengh[d] = getGhostLength(d);
+        ghostlengh[d] = getMeasuredGhostLength(d);
     }
 
     // 发送、接收数据缓冲区
@@ -225,11 +253,11 @@ void DomainDecomposition::exchangeAtom(atom *_atom) {
         offsetHigher[d] = 0.0;
 
         // 进程在左侧边界
-        if (_coords[d] == 0)
-            offsetLower[d] = getGlobalLength(d);
+        if (_grid_coord_sub_box[d] == 0)
+            offsetLower[d] = getMeasuredGlobalLength(d);
         // 进程在右侧边界
-        if (_coords[d] == _grid_size[d] - 1)
-            offsetHigher[d] = -(getGlobalLength(d));
+        if (_grid_coord_sub_box[d] == _grid_size[d] - 1)
+            offsetHigher[d] = -(getMeasuredGlobalLength(d));
 
         for (direction = LOWER; direction <= HIGHER; direction++) {
             double shift = 0.0;
@@ -280,7 +308,7 @@ void DomainDecomposition::exchangeAtom(atom *_atom) {
     }
 }
 
-void DomainDecomposition::exchangeInter(atom *_atom) {
+void Domain::exchangeInter(atom *_atom) {
     // 发送、接收数据缓冲区
     int numPartsToSend[DIMENSION][2];
     int numPartsToRecv[DIMENSION][2];
@@ -337,11 +365,11 @@ void DomainDecomposition::exchangeInter(atom *_atom) {
     }
 }
 
-void DomainDecomposition::borderInter(atom *_atom) {
+void Domain::borderInter(atom *_atom) {
     double ghostlengh[DIMENSION]; // ghost区域大小
 
     for (int d = 0; d < DIMENSION; d++) {
-        ghostlengh[d] = getGhostLength(d);
+        ghostlengh[d] = getMeasuredGhostLength(d);
     }
 
     intersendlist.clear();
@@ -371,11 +399,11 @@ void DomainDecomposition::borderInter(atom *_atom) {
         offsetHigher[d] = 0.0;
 
         // 进程在左侧边界
-        if (_coords[d] == 0)
-            offsetLower[d] = getGlobalLength(d);
+        if (_grid_coord_sub_box[d] == 0)
+            offsetLower[d] = getMeasuredGlobalLength(d);
         // 进程在右侧边界
-        if (_coords[d] == _grid_size[d] - 1)
-            offsetHigher[d] = -(getGlobalLength(d));
+        if (_grid_coord_sub_box[d] == _grid_size[d] - 1)
+            offsetHigher[d] = -(getMeasuredGlobalLength(d));
 
         for (direction = LOWER; direction <= HIGHER; direction++) {
             // 找到要发送给邻居的原子
@@ -429,7 +457,7 @@ void DomainDecomposition::borderInter(atom *_atom) {
     }
 }
 
-void DomainDecomposition::sendrho(atom *_atom) {
+void Domain::sendrho(atom *_atom) {
     // 发送、接收数据缓冲区
     int numPartsToSend[DIMENSION][2];
     int numPartsToRecv[DIMENSION][2];
@@ -481,7 +509,7 @@ void DomainDecomposition::sendrho(atom *_atom) {
     }
 }
 
-void DomainDecomposition::sendDfEmbed(atom *_atom) {
+void Domain::sendDfEmbed(atom *_atom) {
     // 发送、接收数据缓冲区
     int numPartsToSend[DIMENSION][2];
     int numPartsToRecv[DIMENSION][2];
@@ -540,7 +568,7 @@ void DomainDecomposition::sendDfEmbed(atom *_atom) {
     }
 }
 
-void DomainDecomposition::sendForce(atom *_atom) {
+void Domain::sendForce(atom *_atom) {
     // 发送、接收数据缓冲区
     int numPartsToSend[DIMENSION][2];
     int numPartsToRecv[DIMENSION][2];

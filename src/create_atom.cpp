@@ -7,15 +7,15 @@ create_atom::create_atom(double tset) {
     t_set = tset;
 }
 
-create_atom::~create_atom() {}
+create_atom::~create_atom() = default;
 
 void create_atom::createphasespace(atom *_atom, double mass, int box_x, int box_y, int box_z) {
     double factor = 1.0 / sqrt(mass);
     _atom->createphasespace(factor, box_x, box_y, box_z);
 
     int nlocalatom = _atom->getnlocalatom();
-    unsigned long natom = (unsigned long)box_x * 2 * (unsigned long)box_y * (unsigned long)box_z;
-    double masstotal = natom * mass;
+    unsigned long natom = 2 * (unsigned long)box_x * (unsigned long)box_y * (unsigned long)box_z;
+    double masstotal = natom * mass; // todo multiple type.
     double p[3], vcm[3];
     p[0] = p[1] = p[2] = 0.0;
     _atom->vcm(mass, masstotal, p);

@@ -22,7 +22,7 @@ public:
     // config values start
     // simulation section
     int64_t phaseSpace[DIMENSION];
-    double cutoffRadius;
+    double cutoffRadiusFactor;
     double latticeConst;
     unsigned long timeSteps;
 
