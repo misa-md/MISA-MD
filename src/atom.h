@@ -9,6 +9,7 @@
 #include <vector>
 #include <io/io_writer.h>
 
+#include "pre_define.h"
 #include "domain.h"
 #include "eam.h"
 #include "particledata.h"
@@ -26,7 +27,7 @@ public :
 
     ~atom();
 
-    void addatom(unsigned long id, double rx, double ry, double rz, double vx, double vy, double vz);
+    void addAtom(unsigned long id, double rx, double ry, double rz, double vx, double vy, double vz);
 
     int decide();
 

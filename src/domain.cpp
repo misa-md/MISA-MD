@@ -3,7 +3,7 @@
 #include "domain.h"
 
 Domain::Domain(const int64_t *phaseSpace, const double latticeConst,
-                                         const double cutoffRadiusFactor) :
+               const double cutoffRadiusFactor) :
         _lattice_const(latticeConst), _cutoff_radius_factor(cutoffRadiusFactor) {
     // 3维拓扑
     for (int d = 0; d < DIMENSION; d++) {
@@ -84,7 +84,7 @@ Domain *Domain::createSubBoxDomain() {
     // set lattice size of local sub-box.
     for (int d = 0; d < DIMENSION; d++) {
         _lattice_size_sub_box[d] = (_grid_coord_sub_box[d] + 1) * _phase_space[d] / _grid_size[d] -
-                                 (_grid_coord_sub_box[d]) * _phase_space[d] / _grid_size[d];
+                                   (_grid_coord_sub_box[d]) * _phase_space[d] / _grid_size[d];
     }
     _lattice_size_sub_box[0] *= 2; // todo ?? why
 
@@ -129,13 +129,7 @@ Domain *Domain::createSubBoxDomain() {
     return this;
 }
 
-void Domain::exchangeAtomfirst(atom *_atom) {
-
-    double ghostlengh[DIMENSION]; // ghost区域大小
-
-    for (int d = 0; d < DIMENSION; d++) {
-        ghostlengh[d] = getMeasuredGhostLength(d);
-    }
+void Domain::exchangeAtomFirst(atom *_atom) {
     sendlist.resize(6);
     recvlist.resize(6);
 
@@ -156,7 +150,6 @@ void Domain::exchangeAtomfirst(atom *_atom) {
     int iswap = 0;
     for (unsigned short d = 0; d < DIMENSION; d++) {
         // 当原子要跨越周期性边界, 原子坐标必须要做出调整
-
         double offsetLower[DIMENSION];
         double offsetHigher[DIMENSION];
         offsetLower[d] = 0.0;
@@ -171,19 +164,27 @@ void Domain::exchangeAtomfirst(atom *_atom) {
 
         for (direction = LOWER; direction <= HIGHER; direction++) {
             // 找到要发送给邻居的原子
-            if (d == 0) {
-                _atom->getatomx(direction, sendlist);
-            } else if (d == 1) {
-                _atom->getatomy(direction, sendlist);
-            } else {
-                _atom->getatomz(direction, sendlist);
+            switch (d) {
+                case 0:
+                    _atom->getatomx(direction, sendlist);
+                    break;
+                case 1:
+                    _atom->getatomy(direction, sendlist);
+                    break;
+                case 2:
+                    _atom->getatomz(direction, sendlist);
+                    break;
+                default:
+                    break;
             }
 
             double shift = 0.0;
-            if (direction == LOWER)
+            if (direction == LOWER) {
                 shift = offsetLower[d];
-            if (direction == HIGHER)
+            }
+            if (direction == HIGHER) {
                 shift = offsetHigher[d];
+            }
 
             // 初始化发送缓冲区
             numPartsToSend[d][direction] = sendlist[iswap].size();
@@ -207,7 +208,8 @@ void Domain::exchangeAtomfirst(atom *_atom) {
             //依据得到发送方要发送粒子信息大小，初始化接收缓冲区
             recvbuf[direction] = new LatParticleData[numrecv];
             numPartsToRecv[d][direction] = numrecv;
-            MPI_Irecv(recvbuf[direction], numrecv, _mpi_latParticle_data, _rank_id_neighbours[d][(direction + 1) % 2],
+            MPI_Irecv(recvbuf[direction], numrecv, _mpi_latParticle_data,
+                      _rank_id_neighbours[d][(direction + 1) % 2],
                       99,
                       kiwi::mpiUtils::global_comm, &recv_requests[d][direction]);
         }
@@ -294,7 +296,8 @@ void Domain::exchangeAtom(atom *_atom) {
             //依据得到发送方要发送粒子信息大小，初始化接收缓冲区
             recvbuf[direction] = new LatParticleData[numrecv];
             numPartsToRecv[d][direction] = numrecv;
-            MPI_Irecv(recvbuf[direction], numrecv, _mpi_latParticle_data, _rank_id_neighbours[d][(direction + 1) % 2],
+            MPI_Irecv(recvbuf[direction], numrecv, _mpi_latParticle_data,
+                      _rank_id_neighbours[d][(direction + 1) % 2],
                       99,
                       kiwi::mpiUtils::global_comm, &recv_requests[d][direction]);
         }
@@ -352,7 +355,8 @@ void Domain::exchangeInter(atom *_atom) {
             //依据得到发送方要发送粒子信息大小，初始化接收缓冲区
             recvbuf[direction] = new particledata[numrecv];
             numPartsToRecv[d][direction] = numrecv;
-            MPI_Irecv(recvbuf[direction], numrecv, _mpi_Particle_data, _rank_id_neighbours[d][(direction + 1) % 2], 99,
+            MPI_Irecv(recvbuf[direction], numrecv, _mpi_Particle_data, _rank_id_neighbours[d][(direction + 1) % 2],
+                      99,
                       kiwi::mpiUtils::global_comm, &recv_requests[d][direction]);
         }
 
@@ -372,12 +376,6 @@ void Domain::exchangeInter(atom *_atom) {
 }
 
 void Domain::borderInter(atom *_atom) {
-    double ghostlengh[DIMENSION]; // ghost区域大小
-
-    for (int d = 0; d < DIMENSION; d++) {
-        ghostlengh[d] = getMeasuredGhostLength(d);
-    }
-
     intersendlist.clear();
     interrecvlist.clear();
     intersendlist.resize(6);
@@ -413,7 +411,7 @@ void Domain::borderInter(atom *_atom) {
 
         for (direction = LOWER; direction <= HIGHER; direction++) {
             // 找到要发送给邻居的原子
-            _atom->getIntertosend(d, direction, ghostlengh[d], intersendlist[iswap]);
+            _atom->getIntertosend(d, direction, getMeasuredGhostLength(d), intersendlist[iswap]);
 
             double shift = 0.0;
             if (direction == LOWER)
@@ -424,7 +422,8 @@ void Domain::borderInter(atom *_atom) {
             // 初始化发送缓冲区
             numPartsToSend[d][direction] = intersendlist[iswap].size();
             sendbuf[direction] = new LatParticleData[numPartsToSend[d][direction]];
-            _atom->pack_bordersend(d, numPartsToSend[d][direction], intersendlist[iswap++], sendbuf[direction], shift);
+            _atom->pack_bordersend(d, numPartsToSend[d][direction], intersendlist[iswap++], sendbuf[direction],
+                                   shift);
 
         }
 
@@ -442,7 +441,8 @@ void Domain::borderInter(atom *_atom) {
             //依据得到发送方要发送粒子信息大小，初始化接收缓冲区
             recvbuf[direction] = new LatParticleData[numrecv];
             numPartsToRecv[d][direction] = numrecv;
-            MPI_Irecv(recvbuf[direction], numrecv, _mpi_latParticle_data, _rank_id_neighbours[d][(direction + 1) % 2],
+            MPI_Irecv(recvbuf[direction], numrecv, _mpi_latParticle_data,
+                      _rank_id_neighbours[d][(direction + 1) % 2],
                       99,
                       kiwi::mpiUtils::global_comm, &recv_requests[d][direction]);
         }
@@ -567,7 +567,7 @@ void Domain::sendDfEmbed(atom *_atom) {
             _atom->unpack_df(numrecv, recvbuf[direction], recvlist[jswap], interrecvlist[jswap]);
             jswap++;
 
-            // 释放buffer
+            // release memory of buffer
             delete[] sendbuf[direction];
             delete[] recvbuf[direction];
         }

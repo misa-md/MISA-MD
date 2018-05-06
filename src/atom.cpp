@@ -108,7 +108,7 @@ long atom::IndexOf3DIndex(long int xIndex, long int yIndex, long int zIndex) con
     return (zIndex * p_domain->getGhostLatticeSize(1) + yIndex) * p_domain->getGhostLatticeSize(0) + xIndex;
 }
 
-void atom::addatom(_type_atom_id id, double rx, double ry, double rz, double vx, double vy, double vz) {
+void atom::addAtom(_type_atom_id id, double rx, double ry, double rz, double vx, double vy, double vz) {
     int i;
     if ((rx >= p_domain->getMeasuredSubBoxLowerBounding(0)) &&
         (rx < p_domain->getMeasuredSubBoxUpperBounding(0)) &&

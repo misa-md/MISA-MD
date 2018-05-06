@@ -15,6 +15,9 @@
 // some value definition here.
 #define DIMENSION 3
 
+// simulation
+#define DEFAULT_TIME_STEP_LENGTH 0.001
+
 // domain
 #define COORDINATE_ATOM_OUT_BOX (-100)
 

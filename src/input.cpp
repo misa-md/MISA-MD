@@ -22,7 +22,7 @@ void input::readPhaseSpace(atom *_atom) {
     x = y = z = vx = vy = vz = 0.;
     for (unsigned long i = 0; i < 432; i++) {
         _phaseSpaceFileStream >> id >> x >> y >> z >> vx >> vy >> vz;
-        _atom->addatom(id, x, y, z, vx, vy, vz);
+        _atom->addAtom(id, x, y, z, vx, vy, vz);
     }
     _phaseSpaceFileStream.close();
 }

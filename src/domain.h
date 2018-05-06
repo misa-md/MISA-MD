@@ -87,7 +87,7 @@ public:
 
     void borderInter(atom *_atom);
 
-    void exchangeAtomfirst(atom *_atom);
+    void exchangeAtomFirst(atom *_atom);
 
     void exchangeAtom(atom *_atom);
 

@@ -13,7 +13,7 @@ simulation::simulation() : _p_domain(nullptr), _input(nullptr) {
 }
 
 simulation::~simulation() {
-//    delete p_domain;
+//    delete _p_domain; // see finalize method.
     delete _atom;
     delete _integrator;
     delete _pot;
@@ -56,41 +56,42 @@ void simulation::createAtoms() {
         _input = new input();
         _input->readPhaseSpace(_atom);
     }
-    _integrator = new integrator(0.001); // time step width.
+    _integrator = new integrator(DEFAULT_TIME_STEP_LENGTH); // time step length.
 }
 
-void simulation::prepareForStart(int rank) {
+void simulation::prepareForStart() {
     double starttime, stoptime;
     double commtime, computetime, comm;
     _pot = new eam();
     //读取势函数文件
-    if (rank == 0) {
+    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
         initEamPotential(pConfigVal->potentialFileType);
     }
-    eamBCastPotential(rank);
+    eamBCastPotential(kiwi::mpiUtils::own_rank);
     eamPotentialInterpolate();
 
     beforeAccelerateRun(_pot); // it runs after atom and boxes creation, but before simulation running.
 
     starttime = MPI_Wtime();
-    _p_domain->exchangeAtomfirst(_atom);
+    _p_domain->exchangeAtomFirst(_atom);
     stoptime = MPI_Wtime();
     commtime = stoptime - starttime;
+
     _atom->clearForce(); // clear force before running simulation.
     starttime = MPI_Wtime();
     _atom->computeEam(_pot, _p_domain, comm);
     stoptime = MPI_Wtime();
     computetime = stoptime - starttime - comm;
     commtime += comm;
+
     //_atom->print_force();
     starttime = MPI_Wtime();
     _p_domain->sendForce(_atom);
     stoptime = MPI_Wtime();
     commtime += stoptime - starttime;
-    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
-        kiwi::logs::i("sim", "first step comm time: {}\n", commtime);
-        kiwi::logs::i("sim", "first step compute time: {}\n", computetime);
-    }
+
+    kiwi::logs::i(MASTER_PROCESSOR, "sim", "first step comm time: {}\n", commtime);
+    kiwi::logs::i(MASTER_PROCESSOR, "sim", "first step compute time: {}\n", computetime);
 }
 
 void simulation::simulate() {
