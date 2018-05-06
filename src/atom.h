@@ -5,7 +5,7 @@
 #ifndef CRYSTAL_MD_ATOM_H
 #define CRYSTAL_MD_ATOM_H
 
-class DomainDecomposition;
+class Domain;
 
 #include <cstdio>
 #include <vector>
@@ -22,8 +22,8 @@ using namespace std;
 
 class atom {
 public :
-    atom(DomainDecomposition *domain, double latticeconst,
-                               double cutoffRadius, int seed);
+    atom(Domain *domain, double latticeconst,
+         double cutoffRadiusFactor, int seed);
 
     ~atom();
 
@@ -33,7 +33,7 @@ public :
 
     void clearForce();
 
-    void computeEam(eam *pot, DomainDecomposition *_domaindecomposition, double &comm);
+    void computeEam(eam *pot, Domain *domain, double &comm);
 
     int getinteridsendsize();
 
@@ -95,8 +95,6 @@ public :
 
     void print_force();
 
-    int nlocalx, nlocaly, nlocalz; // 本地box内晶格数
-
 private:
     void calculateNeighbourIndices();
 
@@ -104,19 +102,13 @@ private:
 
     double uniform();
 
-    DomainDecomposition *_domain;
+    Domain *_domain;
     int numberoflattice;
 
     double _cutoffRadius;
     int _cutlattice;
     double _latticeconst;
     int _seed;
-
-  //  int nlocalx, nlocaly, nlocalz; // 本地box内晶格数
-    int nghostx, nghosty, nghostz; // ghost区域+local区域内晶格数
-
-    int lolocalx, lolocaly, lolocalz;
-    int loghostx, loghosty, loghostz; // 本地对应的全局晶格坐标
 
     vector<long int> NeighbourOffsets; // 邻居粒子偏移量
 

@@ -8,7 +8,7 @@
 #include "config_values.h"
 
 ConfigValues::ConfigValues() :
-        phaseSpace{0, 0, 0}, cutoffRadius(0.0), latticeConst(0.0),
+        phaseSpace{0, 0, 0}, cutoffRadiusFactor(0.0), latticeConst(0.0),
         timeSteps(10), createPhaseMode(true), createTSet(0.0), createSeed(1),
         readPhaseFilename(""), collisionSteps(0),
         collisionLat{0, 0, 0, 0}, collisionV{0.0, 0.0, 0.0},
@@ -17,7 +17,7 @@ ConfigValues::ConfigValues() :
 void ConfigValues::packdata(kiwi::Bundle &bundle) {
     // append data into buffer.
     bundle.put(MPI_COMM_WORLD, DIMENSION, phaseSpace); // todo remove MPI_COMM_WORLD to initial method.
-    bundle.put(MPI_COMM_WORLD, cutoffRadius);
+    bundle.put(MPI_COMM_WORLD, cutoffRadiusFactor);
     bundle.put(MPI_COMM_WORLD, latticeConst);
     bundle.put(MPI_COMM_WORLD, timeSteps);
 
@@ -43,7 +43,7 @@ void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
 //    if (getPackedData() != nullptr) { // buffer != null
     int cursor = 0;
     bundle.get(MPI_COMM_WORLD, cursor, DIMENSION, phaseSpace);
-    bundle.get(MPI_COMM_WORLD, cursor, cutoffRadius);
+    bundle.get(MPI_COMM_WORLD, cursor, cutoffRadiusFactor);
     bundle.get(MPI_COMM_WORLD, cursor, latticeConst);
     bundle.get(MPI_COMM_WORLD, cursor, timeSteps);
 
@@ -69,7 +69,7 @@ std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
     os << "===========config of simulation=============" << std::endl;
     os << "simulation.phase_space:" << cv.phaseSpace[0] << "," << cv.phaseSpace[1]
        << "," << cv.phaseSpace[2] << "," << std::endl;
-    os << "simulation.cutoff_radius:" << cv.cutoffRadius << std::endl;
+    os << "simulation.cutoff_radius:" << cv.cutoffRadiusFactor << std::endl;
     os << "simulation.lattice_const:" << cv.latticeConst << std::endl;
     os << "simulation.timesteps:" << cv.timeSteps << std::endl;
 

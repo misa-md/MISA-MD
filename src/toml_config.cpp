@@ -72,9 +72,9 @@ void ConfigParser::resolveConfigSimulation(std::shared_ptr<cpptoml::table> v) {
     }
 
     //resolve simulation.cutoff_radius
-    auto tomlCutoffRadius = v->get_as<double>("cutoff_radius");
-    if (tomlCutoffRadius) {
-        configValues.cutoffRadius = *tomlCutoffRadius;
+    auto tomlCutoffRadiusFactor = v->get_as<double>("cutoff_radius_factor");
+    if (tomlCutoffRadiusFactor) {
+        configValues.cutoffRadiusFactor = *tomlCutoffRadiusFactor;
     }
 
     //resolve simulation.latticeconst

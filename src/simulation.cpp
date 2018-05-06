@@ -24,10 +24,12 @@ void simulation::createDomainDecomposition() {
 
     //进行区域分解
     kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initializing GlobalDomain decomposition.\n");
-    _domain_decomposition = (new DomainDecomposition())
+    _domain_decomposition = (new Domain(pConfigVal->phaseSpace,
+                                                     pConfigVal->latticeConst,
+                                                     pConfigVal->cutoffRadiusFactor))
             ->decomposition()
-            ->createGlobalDomain(pConfigVal->phaseSpace, pConfigVal->latticeConst) // set global box domain.
-            ->createLocalBoxDomain(pConfigVal->phaseSpace, pConfigVal->latticeConst, pConfigVal->cutoffRadius); // set local sub-box domain.
+            ->createGlobalDomain() // set global box domain.
+            ->createLocalBoxDomain(); // set local sub-box domain.
     kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initialization done.\n");
 
 //    _numberOfTimesteps = 1;
@@ -35,7 +37,7 @@ void simulation::createDomainDecomposition() {
 
 void simulation::createAtoms() {
     _atom = new atom(_domain_decomposition, pConfigVal->latticeConst,
-                     pConfigVal->cutoffRadius, pConfigVal->createSeed);
+                     pConfigVal->cutoffRadiusFactor, pConfigVal->createSeed);
     const double mass = 55.845;
 
     if (pConfigVal->createPhaseMode) {  //创建原子坐标、速度信息

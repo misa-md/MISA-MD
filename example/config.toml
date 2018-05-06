@@ -5,9 +5,9 @@ version = "0.2.0"
 
 #for BCC struct
 [simulation]
-phasespace = [50, 50, 50] # box size #int array type
-cutoff_radius = 5.60  # double type
-lattice_const = 2.85532   # double type
+phasespace = [50, 50, 50] # box size, the count of lattice at each dimension. #int array type
+cutoff_radius_factor = 1.96125  # the real cutoff radius is cutoff_radius_factor*lattice_cosnt , double type
+lattice_const = 2.85532   # lattice const, double type
 timesteps =  10  # unsigned long type
 
 [simulation.createphase]  # read atoms information from file or create atoms.
@@ -30,7 +30,7 @@ filename = "FeCuNi.eam.alloy" # string type
 
 
 [output]
-mode = "copy" # output mode,string, "copy"(copy all atoms to memory and then output) or "direct" (output atoms directly) ;
+mode = "direct" # output mode,string, "copy"(copy all atoms to memory and then output) or "direct" (output atoms directly) ;
 dump_filename = "md.out" # string,filename or path of dumpped atoms, default value is "crystal_md.out"
 
 
