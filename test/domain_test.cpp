@@ -20,7 +20,7 @@ Domain *getDomainInstance() {
         return _domain = (new Domain(space, lattice_const, cutoff_radius))
                 ->decomposition()
                 ->createGlobalDomain()
-                ->createLocalBoxDomain();
+                ->createSubBoxDomain();
     }
     return _domain;
 }

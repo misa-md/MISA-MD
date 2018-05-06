@@ -69,11 +69,22 @@ public:
     Domain *createGlobalDomain();
 
     /**
-     * set bound for current sub-box.
+     * set boundary for current sub-box.
+     *
+     * Note: why some variable in x dimension is multiplied by 2:
+     * the basic unit in x dimension is half the lattice, not a lattice like in y,z dimension.
+     * in x dimension:
+     *    | :  |  :  |  :  |  :  |  :  |  ...
+     * x: 0 1  2  3  4  5  6  7  8  9  10 ...
+     * but, in y or z dimension:
+     *    | :  |  :  |  :  |  :  |  :  | ...
+     * y: 0    1     2     3     4     5  ...
+     * in above figure, |  :  | represents a lattice length.
+     *
      * @param phaseSpace  phase space, the unit length of simulation box.
      * @param latticeConst lattice const
      */
-    Domain *createLocalBoxDomain();
+    Domain *createSubBoxDomain();
 
     void exchangeInter(atom *_atom);
 
@@ -158,7 +169,7 @@ public:
      * get lattice count in current sub-box.
      */
     inline _type_lattice_size getSubBoxLatticeSize(unsigned short dimension) const {
-        return _lattice_size_local[dimension];
+        return _lattice_size_sub_box[dimension];
     }
 
     /**
@@ -240,7 +251,7 @@ private:
     //  int _lattice_coord_lower[DIMENSION]; // the lower boundary of lattice coordinate for current sub-box.
     //  int _lattice_coord_upper[DIMENSION]; // the upper boundary of lattice coordinate for current sub-box.
     // lattice count in local sub-box area at each dimension (upper boundary - lower boundary).
-    _type_lattice_size _lattice_size_local[DIMENSION];
+    _type_lattice_size _lattice_size_sub_box[DIMENSION];
     // lattice count in ghost area plus sub-box area at each dimension (upper boundary - lower boundary).
     _type_lattice_size _lattice_size_ghost[DIMENSION];
 

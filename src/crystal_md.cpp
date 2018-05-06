@@ -52,7 +52,7 @@ void crystalMD::onCreate() {
         // initial config Obj, then read and resolve config file.
         pConfig = ConfigParser::newInstance(configFilePath); // todo config file from argv.
         if (pConfig->hasError) {
-            kiwi::logs::e("config", "{}\n", pConfig->errorMessage);
+            kiwi::logs::e("config", "{0}\n", pConfig->errorMessage);
             this->abort(2);
         }
     } else {

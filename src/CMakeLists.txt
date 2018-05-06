@@ -19,7 +19,6 @@ configure_file(
 set(HEADER_FILES
         arch_env.hpp
         atom.h
-        create_atom.h
         crystal_md.h
         toml_config.h
         config_values.h
@@ -33,11 +32,11 @@ set(HEADER_FILES
         particledata.h
         pre_config.h
         simulation.h
+        world_builder.h
         )
 
 set(SOURCE_FILES
         atom.cpp
-        create_atom.cpp
         crystal_md.cpp
         toml_config.cpp
         config_values.cpp
@@ -49,6 +48,7 @@ set(SOURCE_FILES
         lat_particle_data.cpp
         particledata.cpp
         simulation.cpp
+        world_builder.cpp
         )
 
 # codes runs on sunway.
