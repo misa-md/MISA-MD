@@ -8,8 +8,6 @@
 #ifndef CRYSTAL_MD_CONFIG_PARSER_H
 #define CRYSTAL_MD_CONFIG_PARSER_H
 
-using namespace std;
-
 /**
  * in our design, rank MASTER read config file,
  * and sync the config data to other processors.
@@ -17,15 +15,6 @@ using namespace std;
 class ConfigParser : public kiwi::config {
 public:
     ConfigParser();
-
-    /**
-     * Error flag while resolving toml config file.
-     */
-    bool hasError;
-    /**
-     * The error message  while resolving toml config file.
-     */
-    string errorMessage;
 
     // config values will be stored here.
     ConfigValues configValues;
@@ -37,7 +26,7 @@ public:
      * @param configureFilePath path of toml config file.
      * @return an pointer to {@class ConfigParser}.
      */
-    static ConfigParser *newInstance(const string &configureFilePath);
+    static ConfigParser *newInstance(const std::string &configureFilePath);
 
     /**
      * Just create an empty {@class ConfigParser} class (not resolve toml config file).
@@ -63,7 +52,7 @@ private:
     void resolveConfigSimulation(std::shared_ptr<cpptoml::table> v);
 
     // resolve "output" section of toml config file.
-    void resolveConfigOutput(shared_ptr<cpptoml::table> v);
+    void resolveConfigOutput(std::shared_ptr<cpptoml::table> v);
 
     /**
      * [master] put data into bundle, in which bundle is used to buffer config data.

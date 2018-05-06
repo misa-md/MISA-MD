@@ -68,28 +68,28 @@ std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
     // simulation section
     os << "===========config of simulation=============" << std::endl;
     os << "simulation.phase_space:" << cv.phaseSpace[0] << "," << cv.phaseSpace[1]
-       << "," << cv.phaseSpace[2] << "," << endl;
-    os << "simulation.cutoff_radius:" << cv.cutoffRadius << endl;
-    os << "simulation.lattice_const:" << cv.latticeConst << endl;
-    os << "simulation.timesteps:" << cv.timeSteps << endl;
+       << "," << cv.phaseSpace[2] << "," << std::endl;
+    os << "simulation.cutoff_radius:" << cv.cutoffRadius << std::endl;
+    os << "simulation.lattice_const:" << cv.latticeConst << std::endl;
+    os << "simulation.timesteps:" << cv.timeSteps << std::endl;
 
-    os << "simulation.createphase.createPhaseMode:" << (cv.createPhaseMode ? "true" : "false") << endl;
-    os << "simulation.createphase.tSet:" << cv.createTSet << endl;
-    os << "simulation.createphase.seed:" << cv.createSeed << endl;
-    os << "simulation.createphase.readPhaseFilename:" << cv.readPhaseFilename << endl;
+    os << "simulation.createphase.createPhaseMode:" << (cv.createPhaseMode ? "true" : "false") << std::endl;
+    os << "simulation.createphase.tSet:" << cv.createTSet << std::endl;
+    os << "simulation.createphase.seed:" << cv.createSeed << std::endl;
+    os << "simulation.createphase.readPhaseFilename:" << cv.readPhaseFilename << std::endl;
 
-    os << "simulation.collision.collision_steps:" << cv.collisionSteps << endl;
+    os << "simulation.collision.collision_steps:" << cv.collisionSteps << std::endl;
     os << "simulation.collision.lat:" << cv.collisionLat[0] << "," << cv.collisionLat[1] << ","
-       << cv.collisionLat[2] << "," << cv.collisionLat[3] << endl;
+       << cv.collisionLat[2] << "," << cv.collisionLat[3] << std::endl;
     os << "simulation.collision.collision_v:" << cv.collisionV[0] << "," << cv.collisionV[1] << ","
-       << cv.collisionV[2] << endl;
+       << cv.collisionV[2] << std::endl;
 
-    os << "simulation.potential_file.type:" << cv.potentialFileType << endl;
-    os << "simulation.potential_file.filename:" << cv.potentialFilename << endl;
+    os << "simulation.potential_file.type:" << cv.potentialFileType << std::endl;
+    os << "simulation.potential_file.filename:" << cv.potentialFilename << std::endl;
 
     // output section
-    os << "output.mode(copy:0,direct:1):" << cv.outputMode << endl;
-    os << "output.dump_filename:" << cv.outputDumpFilename << endl;
+    os << "output.mode(copy:0,direct:1):" << cv.outputMode << std::endl;
+    os << "output.dump_filename:" << cv.outputDumpFilename << std::endl;
     os << "============================================" << std::endl << std::endl;
     return os;
 }

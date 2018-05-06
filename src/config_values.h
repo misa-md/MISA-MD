@@ -9,8 +9,6 @@
 #include <utils/bundle.h>
 #include "pre_config.h"
 
-using namespace std;
-
 #define OUTPUT_COPY_MODE 0
 #define OUTPUT_DIRECT_MODE 1
 #define DEFAULT_OUTPUT_DUMP_FILENAME "crystal_md.out"
@@ -29,18 +27,18 @@ public:
     bool createPhaseMode;
     double createTSet;
     int createSeed;
-    string readPhaseFilename; // for read mode
+    std::string readPhaseFilename; // for read mode
 
     unsigned long collisionSteps;
     int collisionLat[4];
     double collisionV[DIMENSION];
 
-    string potentialFileType;
-    string potentialFilename;
+    std::string potentialFileType;
+    std::string potentialFilename;
     // simulation section ends
     // output section
     int outputMode;
-    string outputDumpFilename;
+    std::string outputDumpFilename;
     // output section ends
     // config values ends
 
