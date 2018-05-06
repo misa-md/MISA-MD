@@ -2,7 +2,7 @@
 #include <fstream>
 
 #define BUF_SIZE 1024
-#define HEADER_SIZE 1024
+#define HEADER_SIZE 128
 #define IN_FILENAME_DEF "md.out"
 #define OUT_FILENAME_DEF "md.out.txt"
 
@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
     }
 
     infile.seekg(HEADER_SIZE, std::ios::beg); // head.
-    byte *buffer = new byte[BUF_SIZE];
+    auto buffer = new byte[BUF_SIZE];
     double *x;
 
     while (!infile.eof()) {
@@ -69,10 +69,10 @@ void parseArgv(std::string &inFilename, std::string &outFilename, int argc, char
     }
 
     // set default values if is empty string.
-    if (inFilename == "") {
+    if (inFilename.empty()) {
         inFilename = IN_FILENAME_DEF;
     }
-    if (outFilename == "") {
+    if (outFilename.empty()) {
         outFilename = OUT_FILENAME_DEF;
     }
     std::clog << "input file will be " << inFilename << std::endl;
