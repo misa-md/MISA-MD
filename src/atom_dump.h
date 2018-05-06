@@ -25,8 +25,18 @@ public:
     AtomDump &setBoundary(_type_lattice_coord begin[DIMENSION], _type_lattice_coord end[DIMENSION],
                           _type_lattice_size atoms_size);
 
+    /**
+     * set dump mode, copy or direct(default).
+     * @param mode  OUTPUT_DIRECT_MODE or OUTPUT_COPY_MODE
+     * @return
+     */
     AtomDump &setMode(_type_out_mode mode);
 
+    /**
+     * set dump file name to store information of dumped atoms.
+     * @param filename
+     * @return
+     */
     AtomDump &setDumpFile(std::string filename);
 
     /**

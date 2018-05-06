@@ -41,6 +41,10 @@ int main(int argc, char *argv[]) {
         infile.read(buffer, BUF_SIZE);
         x = (double *) buffer; // convert byte to double.
         for (int i = 0; i < BUF_SIZE / sizeof(double); i++) {
+            if (i % 4 == 0 && x[i] < 0.5) { // id == 0
+                i += 3;
+                continue;
+            }
             if (i % 4 == 3) {
                 outfile << x[i] << std::endl;
             } else {
