@@ -5,11 +5,10 @@
 #ifndef CRYSTAL_MD_ATOM_H
 #define CRYSTAL_MD_ATOM_H
 
-class Domain;
-
 #include <cstdio>
 #include <vector>
 #include <io/io_writer.h>
+
 #include "domain.h"
 #include "eam.h"
 #include "particledata.h"
@@ -20,8 +19,12 @@ class Domain;
 
 using namespace std;
 
+class Domain; // todo remove.
+
 class atom {
 public :
+    friend class WorldBuilder;
+
     atom(Domain *domain, double latticeconst,
          double cutoffRadiusFactor, int seed);
 
@@ -83,26 +86,16 @@ public :
 
     int getnlocalatom();
 
-    void createphasespace(double factor, int box_x, int box_y, int box_z);
-
-    void vcm(double mass, double masstotal, double *p);
-
-    void zero_momentum(double *vcm);
-
-    double compute_scalar(double mass);
-
-    void rescale(double scalar, double t_set);
-
     void print_force();
 
 private:
     void calculateNeighbourIndices();
 
-    long int IndexOf3DIndex(long int xIndex, long int yIndex, long int zIndex) const;
+    long IndexOf3DIndex(long int xIndex, long int yIndex, long int zIndex) const;
 
-    double uniform();
+//    double uniform();
 
-    Domain *_domain;
+    Domain *p_domain;
     int numberoflattice;
 
     double _cutoffRadius;
@@ -113,7 +106,7 @@ private:
     vector<long int> NeighbourOffsets; // 邻居粒子偏移量
 
     //晶格点原子用数组存储其信息
-    unsigned long *id;
+    unsigned long *id; // including ghost atoms.
     int *type;
     double *x, *v, *f, *rho, *df;
 

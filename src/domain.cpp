@@ -67,7 +67,7 @@ Domain *Domain::createGlobalDomain() {
     return this;
 }
 
-Domain *Domain::createLocalBoxDomain() {
+Domain *Domain::createSubBoxDomain() {
     for (int d = 0; d < DIMENSION; d++) {
         // the lower and upper bounding of current sub-box.
         _meas_sub_box_lower_bounding[d] = _meas_global_box_coord_lower[d] +
@@ -83,15 +83,15 @@ Domain *Domain::createLocalBoxDomain() {
 
     // set lattice size of local sub-box.
     for (int d = 0; d < DIMENSION; d++) {
-        _lattice_size_local[d] = (_grid_coord_sub_box[d] + 1) * _phase_space[d] / _grid_size[d] -
+        _lattice_size_sub_box[d] = (_grid_coord_sub_box[d] + 1) * _phase_space[d] / _grid_size[d] -
                                  (_grid_coord_sub_box[d]) * _phase_space[d] / _grid_size[d];
     }
-    _lattice_size_local[0] *= 2; // todo ?? why
+    _lattice_size_sub_box[0] *= 2; // todo ?? why
 
     /*
-    nghostx = _domain->getSubBoxLatticeSize(0) + 2 * 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
-    nghosty = _domain->getSubBoxLatticeSize(1) + 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
-    nghostz = _domain->getSubBoxLatticeSize(2) + 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
+    nghostx = p_domain->getSubBoxLatticeSize(0) + 2 * 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
+    nghosty = p_domain->getSubBoxLatticeSize(1) + 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
+    nghostz = p_domain->getSubBoxLatticeSize(2) + 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
     */
     // set ghost lattice size.
     for (int d = 0; d < DIMENSION; d++) {
@@ -99,8 +99,9 @@ Domain *Domain::createLocalBoxDomain() {
         _type_lattice_size pure_ghost_lattice_size_dim = (d == 0) ?
                                                          2 * 2 * ceil(_cutoff_radius_factor) :
                                                          2 * ceil(_cutoff_radius_factor);
-        _lattice_size_ghost[d] = _lattice_size_local[d] + pure_ghost_lattice_size_dim;
+        _lattice_size_ghost[d] = _lattice_size_sub_box[d] + pure_ghost_lattice_size_dim;
     }
+
 
     // set lattice coordinate boundary of sub-box.
     for (int d = 0; d < DIMENSION; d++) {
@@ -111,6 +112,11 @@ Domain *Domain::createLocalBoxDomain() {
     _lattice_coord_sub_box_lower[0] *= 2;
     _lattice_coord_sub_box_upper[0] *= 2;
 
+    /*
+   loghostx = p_domain->getSubBoxLatticeCoordLower(0) - 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
+   loghosty = p_domain->getSubBoxLatticeCoordLower(1) - ( ceil( cutoffRadius / _latticeconst ) + 1 );
+   loghostz = p_domain->getSubBoxLatticeCoordLower(2) - ( ceil( cutoffRadius / _latticeconst ) + 1 );
+   */
     // set lattice coordinate boundary for ghost.
     for (int d = 0; d < DIMENSION; d++) {
         _type_lattice_coord pure_ghost_lattice_size_dim = (d == 0) ?

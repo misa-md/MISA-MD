@@ -7,13 +7,12 @@
 
 #include <mpi.h>
 #include <cstring>
+#include <io/io_writer.h>
 
-#include "domain.h"
+#include "toml_config.h"
 #include "integrator.h"
-#include "create_atom.h"
 #include "input.h"
 #include "eam.h"
-#include "toml_config.h"
 
 class simulation {
 public:
@@ -63,10 +62,10 @@ private:
     kiwi::IOWriter *writer = nullptr; // io writer for writing a shared file using mpi-IO lib.
 
     Domain *_domain_decomposition; //仅rank==0的进程有效
-   // GlobalDomain *_domain;  //仅rank==0的进程有效 // todo ??
+   // GlobalDomain *p_domain;  //仅rank==0的进程有效 // todo ??
     atom *_atom;
     integrator *_integrator;
-    create_atom *_createatom;
+
     input *_input;  // 从文件读取原子坐标,速度信息
     eam *_pot;
 

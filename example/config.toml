@@ -1,7 +1,7 @@
 title = "Crystal-MD Configure File"
-version = "0.2.0"
+version = "0.3.0"
 #<a href='https://github.com/toml-lang/toml'>toml</a> configure file for Crystal-MD application,
-#designed by <a href='mailto:genshenchu@gmail.com'>genshen</a>"
+#writen by <a href='mailto:genshenchu@gmail.com'>genshen</a>"
 
 #for BCC struct
 [simulation]
@@ -10,27 +10,35 @@ cutoff_radius_factor = 1.96125  # the real cutoff radius is cutoff_radius_factor
 lattice_const = 2.85532   # lattice const, double type
 timesteps =  10  # unsigned long type
 
-[simulation.createphase]  # read atoms information from file or create atoms.
-#createphase = [600, 466953]
-create_phase = true  # boolean type. true: create atoms,false: read atoms.
-create_t_set = 600.0   # temperature double type, for create mode
-create_seed = 466953 # int type, for create mode
-#read_phase_filename = ""  # string type, for read mode.
+    [simulation.createphase]  # read atoms information from file or create atoms.
+    #createphase = [600, 466953]
+    create_phase = true  # boolean type. true: create atoms,false: read atoms.
+    create_t_set = 600.0   # temperature double type, for create mode
+    create_seed = 466953 # int type, for create mode
+    #read_phase_filename = ""  # string type, for read mode.
 
-[simulation.collision]
-#collision_step [2, 2, 2, 2, 0, 5, 5, 5]
-collision_steps = 2  # unsigned long type
-lat = [2, 2, 2, 0]  # int array type
-collision_v = [5.0, 5.0, 5.0]  # double array type
+    # types of material
+    [simulation.material]
+        mix_seed = 1024 # random seek for creating Fe-Cu-Ni mixed material.
+        [simulation.material.ratio] # all interger type. # Fe:Cu:Ni = 95:2:3
+#            Fe = 95
+#            Cu = 2
+#            Ni = 3
 
-# potential file config
-[simulation.potential_file]
-type = "setfl" # string type
-filename = "FeCuNi.eam.alloy" # string type
+    [simulation.collision]
+    #collision_step [2, 2, 2, 2, 0, 5, 5, 5]
+    collision_steps = 2  # unsigned long type
+    lat = [2, 2, 2, 0]  # int array type
+    collision_v = [5.0, 5.0, 5.0]  # double array type
+
+    # potential file config
+    [simulation.potential_file]
+    type = "setfl" # string type
+    filename = "FeCuNi.eam.alloy" # string type
 
 
 [output]
-mode = "direct" # output mode,string, "copy"(copy all atoms to memory and then output) or "direct" (output atoms directly) ;
+mode = "copy" # output mode,string, "copy"(copy all atoms to memory and then output) or "direct" (output atoms directly) ;
 dump_filename = "md.out" # string,filename or path of dumpped atoms, default value is "crystal_md.out"
 
 

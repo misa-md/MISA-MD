@@ -5,10 +5,10 @@
 #ifndef CRYSTAL_MD_INPUT_H
 #define CRYSTAL_MD_INPUT_H
 
-#include "atom.h"
-
 #include <string>
 #include <fstream>
+
+#include "atom.h"
 
 class input {
 public:

@@ -1,7 +1,9 @@
 #include <utils/mpi_utils.h>
 #include <logs/logs.h>
+
 #include "simulation.h"
 #include "hardware_accelerate.hpp"
+#include "world_builder.h"
 
 simulation::simulation() : _domain_decomposition(nullptr), _input(nullptr) {
     pConfigVal = &(ConfigParser::getInstance()->configValues);
@@ -10,13 +12,12 @@ simulation::simulation() : _domain_decomposition(nullptr), _input(nullptr) {
 }
 
 simulation::~simulation() {
-//    delete _domain;
+//    delete p_domain;
     delete _atom;
     delete _integrator;
     delete _pot;
 
     delete _input; // delete null pointer has no effect.
-    delete _createatom;
 }
 
 void simulation::createDomainDecomposition() {
@@ -25,11 +26,11 @@ void simulation::createDomainDecomposition() {
     //进行区域分解
     kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initializing GlobalDomain decomposition.\n");
     _domain_decomposition = (new Domain(pConfigVal->phaseSpace,
-                                                     pConfigVal->latticeConst,
-                                                     pConfigVal->cutoffRadiusFactor))
+                                        pConfigVal->latticeConst,
+                                        pConfigVal->cutoffRadiusFactor))
             ->decomposition()
             ->createGlobalDomain() // set global box domain.
-            ->createLocalBoxDomain(); // set local sub-box domain.
+            ->createSubBoxDomain(); // set local sub-box domain.
     kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initialization done.\n");
 
 //    _numberOfTimesteps = 1;
@@ -41,9 +42,15 @@ void simulation::createAtoms() {
     const double mass = 55.845;
 
     if (pConfigVal->createPhaseMode) {  //创建原子坐标、速度信息
-        _createatom = new create_atom(pConfigVal->createTSet);
-        _createatom->createphasespace(_atom, mass, pConfigVal->phaseSpace[0],
-                                      pConfigVal->phaseSpace[1], pConfigVal->phaseSpace[2]);
+        WorldBuilder mWorldBuilder;
+        mWorldBuilder.setDomain(_domain_decomposition)
+                .setAtomsContainer(_atom)
+                .setBoxSize(pConfigVal->phaseSpace[0], pConfigVal->phaseSpace[1], pConfigVal->phaseSpace[2])
+                .setRandomSeed(pConfigVal->createSeed)
+                .setLatticeConst(pConfigVal->latticeConst)
+                .setTset(pConfigVal->createTSet)
+                .setMass(mass)
+                .build();
     } else { //读取原子坐标、速度信息
         _input = new input();
         _input->readPhaseSpace(_atom);
