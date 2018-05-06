@@ -2,11 +2,11 @@
 // Created by genshen on 5/6/18.
 //
 
-#include "atom.h"
-#include "config_values.h"
-
 #ifndef CRYSTAL_MD_ATOM_DUMP_H
 #define CRYSTAL_MD_ATOM_DUMP_H
+
+#include "atom.h"
+#include "config_values.h"
 
 /**
  * Dump atoms information(including position and velocity of atoms) to binary or text file(s).

@@ -9,9 +9,6 @@
 
 #include "atom.h"
 
-#define BOLTZ 8.617343e-5 // Boltzmann constant, 8.617343e-5 EV/K; also equals to 1.3806505e-23 J/K.
-#define mvv2e 1.0364269e-4 // todo move to predefine.h
-
 #define IA 16807
 #define IM 2147483647
 #define AM (1.0/IM)

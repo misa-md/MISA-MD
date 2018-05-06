@@ -108,7 +108,7 @@ long atom::IndexOf3DIndex(long int xIndex, long int yIndex, long int zIndex) con
     return (zIndex * p_domain->getGhostLatticeSize(1) + yIndex) * p_domain->getGhostLatticeSize(0) + xIndex;
 }
 
-void atom::addatom(unsigned long id, double rx, double ry, double rz, double vx, double vy, double vz) {
+void atom::addatom(_type_atom_id id, double rx, double ry, double rz, double vx, double vy, double vz) {
     int i;
     if ((rx >= p_domain->getMeasuredSubBoxLowerBounding(0)) &&
         (rx < p_domain->getMeasuredSubBoxUpperBounding(0)) &&
@@ -161,10 +161,11 @@ int atom::decide() {
                     dist += (x[kk + 2] - ztemp) * (x[kk + 2] - ztemp);
                     if (dist > (pow(0.2 * _latticeconst, 2.0))) { /**超过距离则判断为间隙原子*/
                         if (xinter.size() > nlocalinter) {
-                            if (idinter.size() > nlocalinter)
+                            if (idinter.size() > nlocalinter) {
                                 idinter[nlocalinter] = id[kk / 3];
-                            else
+                            } else {
                                 idinter.push_back(id[kk / 3]);
+                            }
                             typeinter[nlocalinter] = type[kk / 3];
                             xinter[nlocalinter][0] = x[kk];
                             xinter[nlocalinter][1] = x[kk + 1];
@@ -213,8 +214,11 @@ int atom::decide() {
         }
     }
 
-    // periodic boundary
-    for (int i = 0; i < nlocalinter; i++) {
+// periodic boundary
+    for (
+            int i = 0;
+            i < nlocalinter;
+            i++) {
         if (xinter[i][0] < p_domain->getMeasuredGlobalBoxCoordLower(0)) {
             xinter[i][0] += p_domain->getMeasuredGlobalLength(0);
         } else if (xinter[i][0] >= p_domain->getMeasuredGlobalBoxCoordUpper(0)) {
@@ -232,8 +236,11 @@ int atom::decide() {
         }
     }
 
-    //判断，如果跑出晶格点的?佑峙芑鼐Ц竦悖蚍呕鼐Ц竦闶榇娲⑵湫畔?
-    for (int i = 0; i < nlocalinter; i++) {
+//判断，如果跑出晶格点的?佑峙芑鼐Ц竦悖蚍呕鼐Ц竦闶榇娲⑵湫畔?
+    for (
+            int i = 0;
+            i < nlocalinter;
+            i++) {
         int j, k, l;
         xtemp = xinter[i][0];
         ytemp = xinter[i][1];
@@ -246,10 +253,16 @@ int atom::decide() {
         j -= p_domain->getGhostLatticeCoordLower(0);
         k -= p_domain->getGhostLatticeCoordLower(1);
         l -= p_domain->getGhostLatticeCoordLower(2);
-        //判断是否在所表示晶格范围内
-        if (j <= (p_domain->getSubBoxLatticeSize(0) + 2 * (ceil(_cutoffRadius / _latticeconst) + 1))
-            && k <= (p_domain->getSubBoxLatticeSize(1) + (ceil(_cutoffRadius / _latticeconst) + 1))
-            && l <= (p_domain->getSubBoxLatticeSize(2) + (ceil(_cutoffRadius / _latticeconst) + 1))) {
+//判断是否在所表示晶格范围内
+        if (j <= (p_domain->getSubBoxLatticeSize(0) + 2 * (
+                ceil(_cutoffRadius
+                     / _latticeconst) + 1))
+            && k <= (p_domain->getSubBoxLatticeSize(1) + (
+                ceil(_cutoffRadius
+                     / _latticeconst) + 1))
+            && l <= (p_domain->getSubBoxLatticeSize(2) + (
+                ceil(_cutoffRadius
+                     / _latticeconst) + 1))) {
             j = IndexOf3DIndex(j, k, l) * 3;
             if (x[j] == COORDINATE_ATOM_OUT_BOX) {
                 id[j / 3] = idinter[i];

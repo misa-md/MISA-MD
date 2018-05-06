@@ -33,7 +33,7 @@ set(HEADER_FILES
         pre_config.h
         simulation.h
         world_builder.h
-        atom_dump.cpp atom_dump.h)
+        atom_dump.cpp atom_dump.h atom_types.h pre_define.h)
 
 set(SOURCE_FILES
         atom.cpp

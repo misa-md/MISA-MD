@@ -7,7 +7,7 @@
 
 #include <string>
 #include <utils/bundle.h>
-#include "pre_config.h"
+#include "pre_define.h"
 
 #define OUTPUT_COPY_MODE 0
 #define OUTPUT_DIRECT_MODE 1
