@@ -13,6 +13,8 @@
 #define OUTPUT_DIRECT_MODE 1
 #define DEFAULT_OUTPUT_DUMP_FILENAME "crystal_md.out"
 
+typedef short _type_out_mode;
+
 class ConfigValues {
     friend std::ostream &operator<<(std::ostream &os, const ConfigValues &cv);
 
@@ -37,7 +39,7 @@ public:
     std::string potentialFilename;
     // simulation section ends
     // output section
-    int outputMode;
+    _type_out_mode outputMode;
     std::string outputDumpFilename;
     // output section ends
     // config values ends

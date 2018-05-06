@@ -140,7 +140,7 @@ void atom::addatom(unsigned long id, double rx, double ry, double rz, double vx,
 int atom::decide() {
     nghostinter = 0;
     int nflag = 0;
-    int kk = 0;
+    long kk = 0;
     double dist;
     double xtemp, ytemp, ztemp;
     int xstart = p_domain->getSubBoxLatticeCoordLower(0) - p_domain->getGhostLatticeCoordLower(0);
@@ -310,7 +310,7 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
     double (*spline)[7];
     double fpair;
     double recip, phi, phip, psip, z2, z2p;
-    int kk;
+    long kk;
     int xstart = p_domain->getSubBoxLatticeCoordLower(0) - p_domain->getGhostLatticeCoordLower(0);
     int ystart = p_domain->getSubBoxLatticeCoordLower(1) - p_domain->getGhostLatticeCoordLower(1);
     int zstart = p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2);
@@ -1166,7 +1166,7 @@ void atom::pack_send(int dimension, int n, vector<int> &sendlist, LatParticleDat
 void atom::unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, vector<vector<int> > &recvlist) {
     int xstart, ystart, zstart;
     int xstop, ystop, zstop;
-    int kk;
+    long kk;
     int m = 0;
     if (d == 0) {
         if (direction == 0) {
@@ -1429,7 +1429,7 @@ void atom::pack_df(vector<int> &sendlist, vector<int> &intersendlist, double *bu
 }
 
 void atom::unpack_df(int n, double *buf, vector<int> &recvlist, vector<int> &interrecvlist) {
-    int kk;
+    long kk;
     int m = 0;
     if (n != (recvlist.size() + interrecvlist.size())) {
         printf("wrong number of dfembed recv!!!");
@@ -1515,7 +1515,7 @@ void atom::unpack_force(int d, int direction, double *buf, vector<vector<int> > 
 }
 
 void atom::computefirst(double dtInv2m, double dt) {
-    int kk;
+    long kk;
     int xstart = p_domain->getSubBoxLatticeCoordLower(0) - p_domain->getGhostLatticeCoordLower(0);
     int ystart = p_domain->getSubBoxLatticeCoordLower(1) - p_domain->getGhostLatticeCoordLower(1);
     int zstart = p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2);
@@ -1545,7 +1545,7 @@ void atom::computefirst(double dtInv2m, double dt) {
 }
 
 void atom::computesecond(double dtInv2m) {
-    int kk;
+    long kk;
     int xstart = p_domain->getSubBoxLatticeCoordLower(0) - p_domain->getGhostLatticeCoordLower(0);
     int ystart = p_domain->getSubBoxLatticeCoordLower(1) - p_domain->getGhostLatticeCoordLower(1);
     int zstart = p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2);
@@ -1573,7 +1573,7 @@ void atom::print_force() {
     sprintf(tmp, "force.txt");
     ofstream outfile;
     outfile.open(tmp);
-    int kk;
+    long kk;
     int xstart = p_domain->getSubBoxLatticeCoordLower(0) - p_domain->getGhostLatticeCoordLower(0);
     int ystart = p_domain->getSubBoxLatticeCoordLower(1) - p_domain->getGhostLatticeCoordLower(1);
     int zstart = p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2);
@@ -1590,7 +1590,7 @@ void atom::print_force() {
 }
 
 void atom::setv(int lat[4], double collision_v[3]) {
-    int kk;
+    long kk;
     if ((lat[0] * 2) >= p_domain->getSubBoxLatticeCoordLower(0) &&
         (lat[0] * 2) < (p_domain->getSubBoxLatticeCoordLower(0) + p_domain->getSubBoxLatticeSize(0))
         && lat[1] >= p_domain->getSubBoxLatticeCoordLower(1) &&
@@ -1603,72 +1603,6 @@ void atom::setv(int lat[4], double collision_v[3]) {
         v[kk] += collision_v[0];
         v[kk + 1] += collision_v[1];
         v[kk + 2] += collision_v[2];
-    }
-}
-
-void atom::printAtoms(int rank, int outMode, kiwi::IOWriter *writer) {
-    long kk;
-    int xstart = p_domain->getSubBoxLatticeCoordLower(0) - p_domain->getGhostLatticeCoordLower(0);
-    int ystart = p_domain->getSubBoxLatticeCoordLower(1) - p_domain->getGhostLatticeCoordLower(1);
-    int zstart = p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2);
-    double start, stop;
-
-    char outfileName[20];
-    sprintf(outfileName, "dump_%d.atom", rank);
-
-    if (outMode == OUTPUT_COPY_MODE) { // todo copy atoms, then write.
-        double *x_io = new double[p_domain->getSubBoxLatticeSize(0) * p_domain->getSubBoxLatticeSize(1) *
-                                  p_domain->getSubBoxLatticeSize(2) * 4];
-//        int fd, ret;
-//        fd = open(outfileName, O_CREAT | O_TRUNC | O_RDWR, 0700);
-//        if (fd == -1) {
-//            printf("ERROR,open file %s failed\n", outfileName);
-//            exit(1);
-//        }
-
-        int n = 0;
-        //outfile << "print_atom" << std::endl;
-        start = MPI_Wtime();
-        for (int k = zstart; k < p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
-            for (int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
-                for (int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
-                    kk = IndexOf3DIndex(i, j, k);
-                    x_io[n * 4] = id[kk];
-                    x_io[n * 4 + 1] = x[kk * 3];
-                    x_io[n * 4 + 2] = x[kk * 3 + 1];
-                    x_io[n * 4 + 3] = x[kk * 3 + 2];
-                    n++;
-                }
-            }
-        }
-        writer->write(x_io, p_domain->getSubBoxLatticeSize(0) * p_domain->getSubBoxLatticeSize(1) *
-                            p_domain->getSubBoxLatticeSize(2) * 4);
-        stop = MPI_Wtime();
-        printf("time of outputting atoms:%lf\n", stop - start);
-        delete[] x_io;
-    } else {
-        ofstream outfile;
-        outfile.open(outfileName);
-
-        start = MPI_Wtime();
-        outfile << "print atoms" << std::endl;
-        for (int k = zstart; k < p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
-            for (int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
-                for (int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
-                    kk = IndexOf3DIndex(i, j, k);
-                    if (x[kk * 3] != COORDINATE_ATOM_OUT_BOX)
-                        outfile << id[kk] << " " << x[kk * 3] << " " << x[kk * 3 + 1] << " " << x[kk * 3 + 2]
-                                << std::endl;
-                }
-            }
-        }
-        outfile << "print_inter" << std::endl;
-        for (int i = 0; i < nlocalinter; i++) {
-            outfile << idinter[i] << " " << xinter[i][0] << " " << xinter[i][1] << " " << xinter[i][2] << std::endl;
-        }
-        stop = MPI_Wtime();
-        kiwi::logs::i("output", "outtime:{}.\n", stop - start);
-        outfile.close();
     }
 }
 

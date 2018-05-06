@@ -33,7 +33,7 @@ set(HEADER_FILES
         pre_config.h
         simulation.h
         world_builder.h
-        )
+        atom_dump.cpp atom_dump.h)
 
 set(SOURCE_FILES
         atom.cpp
@@ -49,7 +49,7 @@ set(SOURCE_FILES
         particledata.cpp
         simulation.cpp
         world_builder.cpp
-        )
+        atom_dump.cpp atom_dump.h)
 
 # codes runs on sunway.
 set(ARCH_SUNWAY_FILES

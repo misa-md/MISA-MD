@@ -24,6 +24,7 @@ class Domain; // todo remove.
 class atom {
 public :
     friend class WorldBuilder;
+    friend class AtomDump;
 
     atom(Domain *domain, double latticeconst,
          double cutoffRadiusFactor, int seed);
@@ -79,8 +80,6 @@ public :
     void pack_force(int n, vector<int> &recvlist, double *buf);
 
     void unpack_force(int d, int direction, double *buf, vector<vector<int>> &sendlist);
-
-    void printAtoms(int rank, int outMode, kiwi::IOWriter *writer);
 
     void setv(int lat[4], double collision_v[3]);
 

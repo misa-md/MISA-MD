@@ -4,8 +4,9 @@
 #include "simulation.h"
 #include "hardware_accelerate.hpp"
 #include "world_builder.h"
+#include "atom_dump.h"
 
-simulation::simulation() : _domain_decomposition(nullptr), _input(nullptr) {
+simulation::simulation() : _p_domain(nullptr), _input(nullptr) {
     pConfigVal = &(ConfigParser::getInstance()->configValues);
 //    createDomainDecomposition();
 //    collision_step = -1;
@@ -25,9 +26,9 @@ void simulation::createDomainDecomposition() {
 
     //进行区域分解
     kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initializing GlobalDomain decomposition.\n");
-    _domain_decomposition = (new Domain(pConfigVal->phaseSpace,
-                                        pConfigVal->latticeConst,
-                                        pConfigVal->cutoffRadiusFactor))
+    _p_domain = (new Domain(pConfigVal->phaseSpace,
+                            pConfigVal->latticeConst,
+                            pConfigVal->cutoffRadiusFactor))
             ->decomposition()
             ->createGlobalDomain() // set global box domain.
             ->createSubBoxDomain(); // set local sub-box domain.
@@ -37,13 +38,13 @@ void simulation::createDomainDecomposition() {
 }
 
 void simulation::createAtoms() {
-    _atom = new atom(_domain_decomposition, pConfigVal->latticeConst,
+    _atom = new atom(_p_domain, pConfigVal->latticeConst,
                      pConfigVal->cutoffRadiusFactor, pConfigVal->createSeed);
     const double mass = 55.845;
 
     if (pConfigVal->createPhaseMode) {  //创建原子坐标、速度信息
         WorldBuilder mWorldBuilder;
-        mWorldBuilder.setDomain(_domain_decomposition)
+        mWorldBuilder.setDomain(_p_domain)
                 .setAtomsContainer(_atom)
                 .setBoxSize(pConfigVal->phaseSpace[0], pConfigVal->phaseSpace[1], pConfigVal->phaseSpace[2])
                 .setRandomSeed(pConfigVal->createSeed)
@@ -72,18 +73,18 @@ void simulation::prepareForStart(int rank) {
     beforeAccelerateRun(_pot); // it runs after atom and boxes creation, but before simulation running.
 
     starttime = MPI_Wtime();
-    _domain_decomposition->exchangeAtomfirst(_atom);
+    _p_domain->exchangeAtomfirst(_atom);
     stoptime = MPI_Wtime();
     commtime = stoptime - starttime;
     _atom->clearForce(); // clear force before running simulation.
     starttime = MPI_Wtime();
-    _atom->computeEam(_pot, _domain_decomposition, comm);
+    _atom->computeEam(_pot, _p_domain, comm);
     stoptime = MPI_Wtime();
     computetime = stoptime - starttime - comm;
     commtime += comm;
     //_atom->print_force();
     starttime = MPI_Wtime();
-    _domain_decomposition->sendForce(_atom);
+    _p_domain->sendForce(_atom);
     stoptime = MPI_Wtime();
     commtime += stoptime - starttime;
     if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
@@ -104,12 +105,12 @@ void simulation::simulate() {
          _simulation_time_step < pConfigVal->timeSteps; _simulation_time_step++) {
         if (_simulation_time_step == pConfigVal->collisionSteps) {
             _atom->setv(pConfigVal->collisionLat, pConfigVal->collisionV);
-            _domain_decomposition->exchangeInter(_atom);
-            _domain_decomposition->borderInter(_atom);
-            _domain_decomposition->exchangeAtom(_atom);
+            _p_domain->exchangeInter(_atom);
+            _p_domain->borderInter(_atom);
+            _p_domain->exchangeAtom(_atom);
             _atom->clearForce();
-            _atom->computeEam(_pot, _domain_decomposition, comm);
-            _domain_decomposition->sendForce(_atom);
+            _atom->computeEam(_pot, _p_domain, comm);
+            _p_domain->sendForce(_atom);
         }
         //先进行求解牛顿运动方程第一步
         _integrator->firststep(_atom);
@@ -125,9 +126,9 @@ void simulation::simulate() {
             kiwi::logs::v("simulation", "start ghost communication:\n");
         }
         starttime = MPI_Wtime();
-        _domain_decomposition->exchangeInter(_atom);
-        _domain_decomposition->borderInter(_atom);
-        _domain_decomposition->exchangeAtom(_atom);
+        _p_domain->exchangeInter(_atom);
+        _p_domain->borderInter(_atom);
+        _p_domain->exchangeAtom(_atom);
         stoptime = MPI_Wtime();
         commtime += stoptime - starttime;
 
@@ -137,7 +138,7 @@ void simulation::simulate() {
         }
         _atom->clearForce();
         starttime = MPI_Wtime();
-        _atom->computeEam(_pot, _domain_decomposition, comm);
+        _atom->computeEam(_pot, _p_domain, comm);
         stoptime = MPI_Wtime();
         computetime += stoptime - starttime - comm;
         commtime += comm;
@@ -147,7 +148,7 @@ void simulation::simulate() {
             kiwi::logs::v("simulation", "start sending force:\n");
         }
         starttime = MPI_Wtime();
-        _domain_decomposition->sendForce(_atom);
+        _p_domain->sendForce(_atom);
         stoptime = MPI_Wtime();
         commtime += stoptime - starttime;
         //求解牛顿运动方程第二步
@@ -168,9 +169,9 @@ void simulation::simulate() {
 }
 
 void simulation::finalize() {
-    if (_domain_decomposition != nullptr) {
-        delete _domain_decomposition;
-        _domain_decomposition = nullptr;
+    if (_p_domain != nullptr) {
+        delete _p_domain;
+        _p_domain = nullptr;
     }
 }
 
@@ -350,10 +351,24 @@ void simulation::eamPotentialInterpolate() {
 }
 
 void simulation::output() {
-    if (writer == nullptr) {
-        writer = new kiwi::IOWriter(pConfigVal->outputDumpFilename);
-    }
-    _atom->printAtoms(kiwi::mpiUtils::own_rank, pConfigVal->outputMode, writer);
+    // atom boundary in array.
+    _type_lattice_coord begin[DIMENSION] = {
+            _p_domain->getSubBoxLatticeCoordLower(0) - _p_domain->getGhostLatticeCoordLower(0),
+            _p_domain->getSubBoxLatticeCoordLower(1) - _p_domain->getGhostLatticeCoordLower(1),
+            _p_domain->getSubBoxLatticeCoordLower(2) - _p_domain->getGhostLatticeCoordLower(2)};
+    _type_lattice_coord end[DIMENSION] = {
+            begin[0] + _p_domain->getSubBoxLatticeSize(0),
+            begin[1] + _p_domain->getSubBoxLatticeSize(1),
+            begin[2] + _p_domain->getSubBoxLatticeSize(2)};
+    _type_lattice_size atoms_size = _p_domain->getSubBoxLatticeSize(0) * _p_domain->getSubBoxLatticeSize(1) *
+                                    _p_domain->getSubBoxLatticeSize(2);
+
+    AtomDump dump;
+    // config dump.
+    dump.setDumpFile(pConfigVal->outputDumpFilename)
+            .setMode(pConfigVal->outputMode)
+            .setBoundary(begin, end, atoms_size);
+    dump.dump(_atom);
 }
 
 void simulation::exit(int exitcode) {
