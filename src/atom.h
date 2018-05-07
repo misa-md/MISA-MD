@@ -13,6 +13,7 @@
 #include "eam.h"
 #include "particledata.h"
 #include "lat_particle_data.h"
+#include "atom_element.h"
 
 
 #define COORDINATE_ATOM_OUT_BOX (-100)
@@ -24,6 +25,7 @@ class Domain; // todo remove.
 class atom {
 public :
     friend class WorldBuilder;
+
     friend class AtomDump;
 
     atom(Domain *domain, double latticeconst,
@@ -105,9 +107,10 @@ private:
     vector<long int> NeighbourOffsets; // 邻居粒子偏移量
 
     //晶格点原子用数组存储其信息
-    unsigned long *id; // including ghost atoms.
-    int *type;
-    double *x, *v, *f, *rho, *df;
+    AtomElement *atoms;
+//    unsigned long *id; // including ghost atoms.
+//    int *type;
+//    double *x, *v, *f, *rho, *df;
 
     vector<unsigned long> idinter;
     vector<int> typeinter;

@@ -22,13 +22,7 @@ atom::atom(Domain *domain, double latticeconst,
     // printf("number:%d, %d, %d, %d, %d\n", numberoflattice,
     // p_domain->getSubBoxLatticeSize(0), p_domain->getSubBoxLatticeSize(1), p_domain->getSubBoxLatticeSize(2),
     // p_domain->getSubBoxLatticeSize(0)*p_domain->getSubBoxLatticeSize(1)*p_domain->getSubBoxLatticeSize(2));
-    id = new unsigned long[numberoflattice];
-    type = new int[numberoflattice];
-    x = new double[numberoflattice * 3];
-    v = new double[numberoflattice * 3];
-    f = new double[numberoflattice * 3];
-    rho = new double[numberoflattice];
-    df = new double[numberoflattice];
+    atoms = new AtomElement[numberoflattice];
 
     calculateNeighbourIndices();
 
@@ -49,13 +43,7 @@ atom::atom(Domain *domain, double latticeconst,
 }
 
 atom::~atom() {
-    delete[] id;
-    delete[] type;
-    delete[] x;
-    delete[] v;
-    delete[] f;
-    delete[] rho;
-    delete[] df;
+    delete[]  atoms;
 }
 
 void atom::calculateNeighbourIndices() {
@@ -127,13 +115,13 @@ void atom::addatom(unsigned long id, double rx, double ry, double rz, double vx,
         lattice[2] -= p_domain->getGhostLatticeCoordLower(2);
         i = ((p_domain->getGhostLatticeSize(1)) * lattice[2] + lattice[1]) *
             (p_domain->getGhostLatticeSize(0)) + lattice[0];
-        this->id[i] = id;
-        x[i * 3] = rx;
-        x[i * 3 + 1] = ry;
-        x[i * 3 + 2] = rz;
-        v[i * 3] = vx;
-        v[i * 3 + 1] = vy;
-        v[i * 3 + 2] = vz;
+        atoms[i].id = id;
+        atoms[i].x[0] = rx;
+        atoms[i].x[1] = ry;
+        atoms[i].x[2] = rz;
+        atoms[i].v[0] = vx;
+        atoms[i].v[1] = vy;
+        atoms[i].v[2] = vz;
     }
 }
 
@@ -151,61 +139,61 @@ int atom::decide() {
     for (int k = zstart; k < p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
         for (int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
             for (int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
-                kk = IndexOf3DIndex(i, j, k) * 3;
-                if (x[kk] != COORDINATE_ATOM_OUT_BOX) {
+                kk = IndexOf3DIndex(i, j, k);
+                if (atoms[kk].x[0] != COORDINATE_ATOM_OUT_BOX) {
                     xtemp = (i + p_domain->getGhostLatticeCoordLower(0)) * 0.5 * _latticeconst;
                     ytemp = (j + p_domain->getGhostLatticeCoordLower(1) + (i % 2) * 0.5) * _latticeconst;
                     ztemp = (k + p_domain->getGhostLatticeCoordLower(2) + (i % 2) * 0.5) * _latticeconst;
-                    dist = (x[kk] - xtemp) * (x[kk] - xtemp);
-                    dist += (x[kk + 1] - ytemp) * (x[kk + 1] - ytemp);
-                    dist += (x[kk + 2] - ztemp) * (x[kk + 2] - ztemp);
+                    dist = (atoms[kk].x[0] - xtemp) * (atoms[kk].x[0] - xtemp);
+                    dist += (atoms[kk].x[1] - ytemp) * (atoms[kk].x[1] - ytemp);
+                    dist += (atoms[kk].x[2] - ztemp) * (atoms[kk].x[2] - ztemp);
                     if (dist > (pow(0.2 * _latticeconst, 2.0))) { /**超过距离则判断为间隙原子*/
                         if (xinter.size() > nlocalinter) {
                             if (idinter.size() > nlocalinter)
-                                idinter[nlocalinter] = id[kk / 3];
+                                idinter[nlocalinter] = atoms[kk].id;
                             else
-                                idinter.push_back(id[kk / 3]);
-                            typeinter[nlocalinter] = type[kk / 3];
-                            xinter[nlocalinter][0] = x[kk];
-                            xinter[nlocalinter][1] = x[kk + 1];
-                            xinter[nlocalinter][2] = x[kk + 2];
+                                idinter.push_back(atoms[kk].id);
+                            typeinter[nlocalinter] = atoms[kk].type;
+                            xinter[nlocalinter][0] = atoms[kk].x[0];
+                            xinter[nlocalinter][1] = atoms[kk].x[1];
+                            xinter[nlocalinter][2] = atoms[kk].x[2];
                             if (vinter.size() > nlocalinter) {
-                                vinter[nlocalinter][0] = v[kk];
-                                vinter[nlocalinter][1] = v[kk + 1];
-                                vinter[nlocalinter][2] = v[kk + 2];
+                                vinter[nlocalinter][0] = atoms[kk].v[0];
+                                vinter[nlocalinter][1] = atoms[kk].v[1];
+                                vinter[nlocalinter][2] = atoms[kk].v[2];
                             } else {
                                 vinter.resize(nlocalinter + 1, vector<double>(3));
-                                vinter[nlocalinter][0] = v[kk];
-                                vinter[nlocalinter][1] = v[kk + 1];
-                                vinter[nlocalinter][2] = v[kk + 2];
+                                vinter[nlocalinter][0] = atoms[kk].v[0];
+                                vinter[nlocalinter][1] = atoms[kk].v[1];
+                                vinter[nlocalinter][2] = atoms[kk].v[2];
                             }
                             nlocalinter++;
                             finter.resize(nlocalinter, vector<double>(3));
                             rhointer.resize(nlocalinter);
                             dfinter.resize(nlocalinter);
                         } else {
-                            idinter.push_back(id[kk / 3]);
-                            typeinter.push_back(type[kk / 3]);
+                            idinter.push_back(atoms[kk].id);
+                            typeinter.push_back(atoms[kk].type);
                             xinter.resize(nlocalinter + 1, vector<double>(3));
-                            xinter[nlocalinter][0] = x[kk];
-                            xinter[nlocalinter][1] = x[kk + 1];
-                            xinter[nlocalinter][2] = x[kk + 2];
+                            xinter[nlocalinter][0] = atoms[kk].x[0];
+                            xinter[nlocalinter][1] = atoms[kk].x[1];
+                            xinter[nlocalinter][2] = atoms[kk].x[2];
                             vinter.resize(nlocalinter + 1, vector<double>(3));
-                            vinter[nlocalinter][0] = v[kk];
-                            vinter[nlocalinter][1] = v[kk + 1];
-                            vinter[nlocalinter][2] = v[kk + 2];
+                            vinter[nlocalinter][0] = atoms[kk].v[0];
+                            vinter[nlocalinter][1] = atoms[kk].v[1];
+                            vinter[nlocalinter][2] = atoms[kk].v[2];
                             nlocalinter++;
                             finter.resize(nlocalinter, vector<double>(3));
                             rhointer.resize(nlocalinter);
                             dfinter.resize(nlocalinter);
                         }
 
-                        x[kk] = COORDINATE_ATOM_OUT_BOX;
-                        x[kk + 1] = COORDINATE_ATOM_OUT_BOX;
-                        x[kk + 2] = COORDINATE_ATOM_OUT_BOX;
-                        v[kk] = 0;
-                        v[kk + 1] = 0;
-                        v[kk + 2] = 0;
+                        atoms[kk].x[0] = COORDINATE_ATOM_OUT_BOX;
+                        atoms[kk].x[1] = COORDINATE_ATOM_OUT_BOX;
+                        atoms[kk].x[2] = COORDINATE_ATOM_OUT_BOX;
+                        atoms[kk].v[0] = 0;
+                        atoms[kk].v[1] = 0;
+                        atoms[kk].v[2] = 0;
                         nflag = 1;
                     }
                 }
@@ -250,16 +238,16 @@ int atom::decide() {
         if (j <= (p_domain->getSubBoxLatticeSize(0) + 2 * (ceil(_cutoffRadius / _latticeconst) + 1))
             && k <= (p_domain->getSubBoxLatticeSize(1) + (ceil(_cutoffRadius / _latticeconst) + 1))
             && l <= (p_domain->getSubBoxLatticeSize(2) + (ceil(_cutoffRadius / _latticeconst) + 1))) {
-            j = IndexOf3DIndex(j, k, l) * 3;
-            if (x[j] == COORDINATE_ATOM_OUT_BOX) {
-                id[j / 3] = idinter[i];
-                type[j / 3] = typeinter[i];
-                x[j] = xinter[i][0];
-                x[j + 1] = xinter[i][1];
-                x[j + 2] = xinter[i][2];
-                v[j] = vinter[i][0];
-                v[j + 1] = vinter[i][1];
-                v[j + 2] = vinter[i][2];
+            j = IndexOf3DIndex(j, k, l);
+            if (atoms[j].x[0] == COORDINATE_ATOM_OUT_BOX) {
+                atoms[j].id = idinter[i];
+                atoms[j].type = typeinter[i];
+                atoms[j].x[0] = xinter[i][0];
+                atoms[j].x[1] = xinter[i][1];
+                atoms[j].x[2] = xinter[i][2];
+                atoms[j].v[0] = vinter[i][0];
+                atoms[j].v[1] = vinter[i][1];
+                atoms[j].v[2] = vinter[i][2];
 
                 idinter[i] = idinter[nlocalinter - 1];
                 typeinter[i] = typeinter[nlocalinter - 1];
@@ -279,11 +267,13 @@ int atom::decide() {
 }
 
 void atom::clearForce() {
-    for (int i = 0; i < numberoflattice * 3; i++) {
-        f[i] = 0;
+    for (int i = 0; i < numberoflattice; i++) {
+        atoms[i].f[0] = 0;
+        atoms[i].f[1] = 0;
+        atoms[i].f[2] = 0;
     }
     for (int i = 0; i < numberoflattice; i++) {
-        rho[i] = 0;
+        atoms[i].rho = 0;
     }
     for (int i = 0; i < finter.size(); i++) {
         finter[i][0] = 0;
@@ -317,24 +307,24 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
 
     // 本地晶格点上的原子计算电子云密度
     if (isAccelerateSupport()) {
-        accelerateEamRhoCalc(&(rho_spline->n), x, rho, &_cutoffRadius,
-                             &(rho_spline->invDx), rho_spline->values);
+        accelerateEamRhoCalc(&(rho_spline->n), atoms, &_cutoffRadius,
+                             &(rho_spline->invDx), rho_spline->values); // fixme
     } else { // calculate rho use cpu only.
         for (int k = zstart; k < p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
             for (int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
                 for (int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
                     kk = IndexOf3DIndex(i, j, k);
-                    xtemp = x[kk * 3];
-                    ytemp = x[kk * 3 + 1];
-                    ztemp = x[kk * 3 + 2];
+                    xtemp = atoms[kk].x[0];
+                    ytemp = atoms[kk].x[1];
+                    ztemp = atoms[kk].x[2];
                     if (xtemp != COORDINATE_ATOM_OUT_BOX) {
                         //对晶格点邻居原子遍历
                         for (neighbourOffsetsIter = NeighbourOffsets.begin();
                              neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
                             n = (kk + *neighbourOffsetsIter);
-                            delx = xtemp - x[n * 3];
-                            dely = ytemp - x[n * 3 + 1];
-                            delz = ztemp - x[n * 3 + 2];
+                            delx = xtemp - atoms[n].x[0];
+                            dely = ytemp - atoms[n].x[1];
+                            delz = ztemp - atoms[n].x[2];
                             dist2 = delx * delx + dely * dely + delz * delz;
                             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                                 r = sqrt(dist2);
@@ -347,8 +337,8 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
                                 spline = rho_spline->spline;
                                 rhoTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p + spline[m][6];
 
-                                rho[kk] += rhoTmp;
-                                rho[n] += rhoTmp;
+                                atoms[kk].rho += rhoTmp;
+                                atoms[n].rho += rhoTmp;
                             }
                         }
                     }
@@ -373,9 +363,9 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
         l -= p_domain->getGhostLatticeCoordLower(2);
         j = IndexOf3DIndex(j, k, l);
 
-        delx = xtemp - x[j * 3];
-        dely = ytemp - x[j * 3 + 1];
-        delz = ztemp - x[j * 3 + 2];
+        delx = xtemp - atoms[j].x[0];
+        dely = ytemp - atoms[j].x[1];
+        delz = ztemp - atoms[j].x[2];
         dist2 = delx * delx + dely * dely + delz * delz;
         if (dist2 < (_cutoffRadius * _cutoffRadius)) {
             r = sqrt(dist2);
@@ -389,15 +379,15 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
             rhoTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p + spline[m][6];
 
             rhointer[i] += rhoTmp;
-            rho[j] += rhoTmp;
+            atoms[j].rho += rhoTmp;
         }
         for (neighbourOffsetsIter = NeighbourOffsets.begin();
              neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
             //计算间隙原子的所有邻居
             n = (j + *neighbourOffsetsIter);
-            delx = xtemp - x[n * 3];
-            dely = ytemp - x[n * 3 + 1];
-            delz = ztemp - x[n * 3 + 2];
+            delx = xtemp - atoms[n].x[0];
+            dely = ytemp - atoms[n].x[1];
+            delz = ztemp - atoms[n].x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                 r = sqrt(dist2);
@@ -411,12 +401,12 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
                 rhoTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p + spline[m][6];
 
                 rhointer[i] += rhoTmp;
-                rho[n] += rhoTmp;
+                atoms[n].rho += rhoTmp;
             }
             n = (j - *neighbourOffsetsIter);
-            delx = xtemp - x[n * 3];
-            dely = ytemp - x[n * 3 + 1];
-            delz = ztemp - x[n * 3 + 2];
+            delx = xtemp - atoms[n].x[0];
+            dely = ytemp - atoms[n].x[1];
+            delz = ztemp - atoms[n].x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                 r = sqrt(dist2);
@@ -430,7 +420,7 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
                 rhoTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p + spline[m][6];
 
                 rhointer[i] += rhoTmp;
-                rho[n] += rhoTmp;
+                atoms[n].rho += rhoTmp;
             }
         }
         //对间隙原子遍历
@@ -474,8 +464,8 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
             for(int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++){
                     for(int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++){
                             kk = IndexOf3DIndex( i, j, k);
-                            if(x[kk * 3] != COORDINATE_ATOM_OUT_BOX)
-                                    outfile << rho[kk] << std::endl;
+                            if(atoms[kk].x[0] != COORDINATE_ATOM_OUT_BOX)
+                                    outfile << atoms[kk].rho << std::endl;
                     }
             }
     }
@@ -497,8 +487,8 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             for(int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++){
                     for(int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++){
                             kk = IndexOf3DIndex( i, j, k);
-                            if(x[kk * 3] != COORDINATE_ATOM_OUT_BOX)
-                                    outfile << rho[kk] << std::endl;
+                            if(atoms[kk].x[0] != COORDINATE_ATOM_OUT_BOX)
+                                    outfile << atoms[kk].rho << std::endl;
                     }
             }
     }
@@ -507,7 +497,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
     //本地晶格点计算嵌入能导数
     if (isAccelerateSupport()) {
 //        std::cout << "df\n";
-        accelerateEamDfCalc(&(f_spline->n), rho, df, &_cutoffRadius,
+        accelerateEamDfCalc(&(f_spline->n), atoms, &_cutoffRadius,
                             &(f_spline->invDx), f_spline->values);
     } else {
         for (int k = zstart; k < p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
@@ -515,14 +505,14 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                 for (int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
                     kk = IndexOf3DIndex(i, j, k);
                     nr = f_spline->n;
-                    p = rho[kk] * f_spline->invDx + 1.0;
+                    p = atoms[kk].rho * f_spline->invDx + 1.0;
                     m = static_cast<int> (p);
                     m = std::max(1, std::min(m, (nr - 1)));
                     p -= m;
                     p = std::min(p, 1.0);
                     spline = f_spline->spline;
                     dfEmbed = (spline[m][0] * p + spline[m][1]) * p + spline[m][2];
-                    df[kk] = dfEmbed;
+                    atoms[kk].df = dfEmbed;
                 }
             }
         }
@@ -543,7 +533,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
 
     if (isAccelerateSupport()) {
 //        std::cout << "f\n";
-        accelerateEamForceCalc(&(phi_spline->n), x, f, df, &_cutoffRadius,
+        accelerateEamForceCalc(&(phi_spline->n), atoms, &_cutoffRadius,
                                &(phi_spline->invDx), phi_spline->values, rho_spline->values);
     } else {
         /*sprintf(tmp, "f.atom");
@@ -552,7 +542,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                 for(int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++){
                         for(int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++){
                                 kk = IndexOf3DIndex( i, j, k);
-                                if(x[kk * 3] != COORDINATE_ATOM_OUT_BOX)
+                                if(atoms[kk].x[0] != COORDINATE_ATOM_OUT_BOX)
                                         outfile << f[kk*3] << std::endl;
                         }
                 }
@@ -563,17 +553,17 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             for (int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
                 for (int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
                     kk = IndexOf3DIndex(i, j, k);
-                    xtemp = x[kk * 3];
-                    ytemp = x[kk * 3 + 1];
-                    ztemp = x[kk * 3 + 2];
+                    xtemp = atoms[kk].x[0];
+                    ytemp = atoms[kk].x[1];
+                    ztemp = atoms[kk].x[2];
                     if (xtemp != COORDINATE_ATOM_OUT_BOX) {
                         //对晶格点邻居原子遍历
                         for (neighbourOffsetsIter = NeighbourOffsets.begin();
                              neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
                             n = (kk + *neighbourOffsetsIter);
-                            delx = xtemp - x[n * 3];
-                            dely = ytemp - x[n * 3 + 1];
-                            delz = ztemp - x[n * 3 + 2];
+                            delx = xtemp - atoms[n].x[0];
+                            dely = ytemp - atoms[n].x[1];
+                            delz = ztemp - atoms[n].x[2];
                             dist2 = delx * delx + dely * dely + delz * delz;
                             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                                 r = sqrt(dist2);
@@ -594,16 +584,16 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                                 recip = 1.0 / r;
                                 phi = z2 * recip;
                                 phip = z2p * recip - phi * recip;
-                                psip = (df[kk] + df[n]) * dRho + phip;
+                                psip = (atoms[kk].df + atoms[n].df) * dRho + phip;
                                 fpair = -psip * recip;
 
-                                f[kk * 3] += delx * fpair;
-                                f[kk * 3 + 1] += dely * fpair;
-                                f[kk * 3 + 2] += delz * fpair;
+                                atoms[kk].f[0] += delx * fpair;
+                                atoms[kk].f[1] += dely * fpair;
+                                atoms[kk].f[2] += delz * fpair;
 
-                                f[n * 3] -= delx * fpair;
-                                f[n * 3 + 1] -= dely * fpair;
-                                f[n * 3 + 2] -= delz * fpair;
+                                atoms[n].f[0] -= delx * fpair;
+                                atoms[n].f[1] -= dely * fpair;
+                                atoms[n].f[2] -= delz * fpair;
                             }
                         }
                     }
@@ -635,9 +625,9 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
         l -= p_domain->getGhostLatticeCoordLower(2);
         j = IndexOf3DIndex(j, k, l);
 
-        delx = xtemp - x[j * 3];
-        dely = ytemp - x[j * 3 + 1];
-        delz = ztemp - x[j * 3 + 2];
+        delx = xtemp - atoms[j].x[0];
+        dely = ytemp - atoms[j].x[1];
+        delz = ztemp - atoms[j].x[2];
         dist2 = delx * delx + dely * dely + delz * delz;
         if (dist2 < (_cutoffRadius * _cutoffRadius)) {
             r = sqrt(dist2);
@@ -658,24 +648,24 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             recip = 1.0 / r;
             phi = z2 * recip;
             phip = z2p * recip - phi * recip;
-            psip = (dfinter[i] + df[j]) * dRho + phip;
+            psip = (dfinter[i] + atoms[j].df) * dRho + phip;
             fpair = -psip * recip;
 
             finter[i][0] += delx * fpair;
             finter[i][1] += dely * fpair;
             finter[i][2] += delz * fpair;
 
-            f[j * 3] -= delx * fpair;
-            f[j * 3 + 1] -= dely * fpair;
-            f[j * 3 + 2] -= delz * fpair;
+            atoms[j].f[0] -= delx * fpair;
+            atoms[j].f[1] -= dely * fpair;
+            atoms[j].f[2] -= delz * fpair;
         }
         for (neighbourOffsetsIter = NeighbourOffsets.begin();
              neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
             //计算间隙原子的所有邻居
             n = (j + *neighbourOffsetsIter);
-            delx = xtemp - x[n * 3];
-            dely = ytemp - x[n * 3 + 1];
-            delz = ztemp - x[n * 3 + 2];
+            delx = xtemp - atoms[n].x[0];
+            dely = ytemp - atoms[n].x[1];
+            delz = ztemp - atoms[n].x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                 r = sqrt(dist2);
@@ -696,21 +686,21 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                 recip = 1.0 / r;
                 phi = z2 * recip;
                 phip = z2p * recip - phi * recip;
-                psip = (dfinter[i] + df[n]) * dRho + phip;
+                psip = (dfinter[i] + atoms[n].df) * dRho + phip;
                 fpair = -psip * recip;
 
                 finter[i][0] += delx * fpair;
                 finter[i][1] += dely * fpair;
                 finter[i][2] += delz * fpair;
 
-                f[n * 3] -= delx * fpair;
-                f[n * 3 + 1] -= dely * fpair;
-                f[n * 3 + 2] -= delz * fpair;
+                atoms[n].f[0] -= delx * fpair;
+                atoms[n].f[1] -= dely * fpair;
+                atoms[n].f[2] -= delz * fpair;
             }
             n = (j - *neighbourOffsetsIter);
-            delx = xtemp - x[n * 3];
-            dely = ytemp - x[n * 3 + 1];
-            delz = ztemp - x[n * 3 + 2];
+            delx = xtemp - atoms[n].x[0];
+            dely = ytemp - atoms[n].x[1];
+            delz = ztemp - atoms[n].x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                 r = sqrt(dist2);
@@ -731,16 +721,16 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                 recip = 1.0 / r;
                 phi = z2 * recip;
                 phip = z2p * recip - phi * recip;
-                psip = (dfinter[i] + df[n]) * dRho + phip;
+                psip = (dfinter[i] + atoms[n].df) * dRho + phip;
                 fpair = -psip * recip;
 
                 finter[i][0] += delx * fpair;
                 finter[i][1] += dely * fpair;
                 finter[i][2] += delz * fpair;
 
-                f[n * 3] -= delx * fpair;
-                f[n * 3 + 1] -= dely * fpair;
-                f[n * 3 + 2] -= delz * fpair;
+                atoms[n].f[0] -= delx * fpair;
+                atoms[n].f[1] -= dely * fpair;
+                atoms[n].f[2] -= delz * fpair;
             }
         }
         //对间隙原子遍历
@@ -1139,26 +1129,26 @@ void atom::pack_send(int dimension, int n, vector<int> &sendlist, LatParticleDat
     if (dimension == 0) {
         for (int i = 0; i < n; i++) {
             j = sendlist[i];
-            buf[i].type = type[j];
-            buf[i].r[0] = x[j * 3] + shift;
-            buf[i].r[1] = x[j * 3 + 1];
-            buf[i].r[2] = x[j * 3 + 2];
+            buf[i].type = atoms[j].type;
+            buf[i].r[0] = atoms[j].x[0] + shift;
+            buf[i].r[1] = atoms[j].x[1];
+            buf[i].r[2] = atoms[j].x[2];
         }
     } else if (dimension == 1) {
         for (int i = 0; i < n; i++) {
             j = sendlist[i];
-            buf[i].type = type[j];
-            buf[i].r[0] = x[j * 3];
-            buf[i].r[1] = x[j * 3 + 1] + shift;
-            buf[i].r[2] = x[j * 3 + 2];
+            buf[i].type = atoms[j].type;
+            buf[i].r[0] = atoms[j].x[0];
+            buf[i].r[1] = atoms[j].x[1] + shift;
+            buf[i].r[2] = atoms[j].x[2];
         }
     } else {
         for (int i = 0; i < n; i++) {
             j = sendlist[i];
-            buf[i].type = type[j];
-            buf[i].r[0] = x[j * 3];
-            buf[i].r[1] = x[j * 3 + 1];
-            buf[i].r[2] = x[j * 3 + 2] + shift;
+            buf[i].type = atoms[j].type;
+            buf[i].r[0] = atoms[j].x[0];
+            buf[i].r[1] = atoms[j].x[1];
+            buf[i].r[2] = atoms[j].x[2] + shift;
         }
     }
 }
@@ -1181,10 +1171,10 @@ void atom::unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, v
                 for (int j = ystart; j < ystop; j++) {
                     for (int i = xstart; i < xstop; i++) {
                         kk = IndexOf3DIndex(i, j, k);
-                        type[kk] = buf[m].type;
-                        x[kk * 3] = buf[m].r[0];
-                        x[kk * 3 + 1] = buf[m].r[1];
-                        x[kk * 3 + 2] = buf[m++].r[2];
+                        atoms[kk].type = buf[m].type;
+                        atoms[kk].x[0] = buf[m].r[0];
+                        atoms[kk].x[1] = buf[m].r[1];
+                        atoms[kk].x[2] = buf[m++].r[2];
                         recvlist[0].push_back(kk);
                     }
                 }
@@ -1202,10 +1192,10 @@ void atom::unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, v
                 for (int j = ystart; j < ystop; j++) {
                     for (int i = xstart; i < xstop; i++) {
                         kk = IndexOf3DIndex(i, j, k);
-                        type[kk] = buf[m].type;
-                        x[kk * 3] = buf[m].r[0];
-                        x[kk * 3 + 1] = buf[m].r[1];
-                        x[kk * 3 + 2] = buf[m++].r[2];
+                        atoms[kk].type = buf[m].type;
+                        atoms[kk].x[0] = buf[m].r[0];
+                        atoms[kk].x[1] = buf[m].r[1];
+                        atoms[kk].x[2] = buf[m++].r[2];
                         recvlist[1].push_back(kk);
                     }
                 }
@@ -1226,10 +1216,10 @@ void atom::unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, v
                 for (int j = ystart; j < ystop; j++) {
                     for (int i = xstart; i < xstop; i++) {
                         kk = IndexOf3DIndex(i, j, k);
-                        type[kk] = buf[m].type;
-                        x[kk * 3] = buf[m].r[0];
-                        x[kk * 3 + 1] = buf[m].r[1];
-                        x[kk * 3 + 2] = buf[m++].r[2];
+                        atoms[kk].type = buf[m].type;
+                        atoms[kk].x[0] = buf[m].r[0];
+                        atoms[kk].x[1] = buf[m].r[1];
+                        atoms[kk].x[2] = buf[m++].r[2];
                         recvlist[2].push_back(kk);
                     }
                 }
@@ -1247,10 +1237,10 @@ void atom::unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, v
                 for (int j = ystart; j < ystop; j++) {
                     for (int i = xstart; i < xstop; i++) {
                         kk = IndexOf3DIndex(i, j, k);
-                        type[kk] = buf[m].type;
-                        x[kk * 3] = buf[m].r[0];
-                        x[kk * 3 + 1] = buf[m].r[1];
-                        x[kk * 3 + 2] = buf[m++].r[2];
+                        atoms[kk].type = buf[m].type;
+                        atoms[kk].x[0] = buf[m].r[0];
+                        atoms[kk].x[1] = buf[m].r[1];
+                        atoms[kk].x[2] = buf[m++].r[2];
                         recvlist[3].push_back(kk);
                     }
                 }
@@ -1271,10 +1261,10 @@ void atom::unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, v
                 for (int j = ystart; j < ystop; j++) {
                     for (int i = xstart; i < xstop; i++) {
                         kk = IndexOf3DIndex(i, j, k);
-                        type[kk] = buf[m].type;
-                        x[kk * 3] = buf[m].r[0];
-                        x[kk * 3 + 1] = buf[m].r[1];
-                        x[kk * 3 + 2] = buf[m++].r[2];
+                        atoms[kk].type = buf[m].type;
+                        atoms[kk].x[0] = buf[m].r[0];
+                        atoms[kk].x[1] = buf[m].r[1];
+                        atoms[kk].x[2] = buf[m++].r[2];
                         recvlist[4].push_back(kk);
                     }
                 }
@@ -1292,10 +1282,10 @@ void atom::unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, v
                 for (int j = ystart; j < ystop; j++) {
                     for (int i = xstart; i < xstop; i++) {
                         kk = IndexOf3DIndex(i, j, k);
-                        type[kk] = buf[m].type;
-                        x[kk * 3] = buf[m].r[0];
-                        x[kk * 3 + 1] = buf[m].r[1];
-                        x[kk * 3 + 2] = buf[m++].r[2];
+                        atoms[kk].type = buf[m].type;
+                        atoms[kk].x[0] = buf[m].r[0];
+                        atoms[kk].x[1] = buf[m].r[1];
+                        atoms[kk].x[2] = buf[m++].r[2];
                         recvlist[5].push_back(kk);
                     }
                 }
@@ -1312,54 +1302,54 @@ void atom::unpack_recv(int d, int direction, int n, LatParticleData *buf, vector
         if (direction == 0) {
             for (int i = 0; i < n; i++) {
                 kk = recvlist[0][i];
-                type[kk] = buf[i].type;
-                x[kk * 3] = buf[i].r[0];
-                x[kk * 3 + 1] = buf[i].r[1];
-                x[kk * 3 + 2] = buf[i].r[2];
+                atoms[kk].type = buf[i].type;
+                atoms[kk].x[0] = buf[i].r[0];
+                atoms[kk].x[1] = buf[i].r[1];
+                atoms[kk].x[2] = buf[i].r[2];
             }
         } else {
             for (int i = 0; i < n; i++) {
                 kk = recvlist[1][i];
-                type[kk] = buf[i].type;
-                x[kk * 3] = buf[i].r[0];
-                x[kk * 3 + 1] = buf[i].r[1];
-                x[kk * 3 + 2] = buf[i].r[2];
+                atoms[kk].type = buf[i].type;
+                atoms[kk].x[0] = buf[i].r[0];
+                atoms[kk].x[1] = buf[i].r[1];
+                atoms[kk].x[2] = buf[i].r[2];
             }
         }
     } else if (d == 1) {
         if (direction == 0) {
             for (int i = 0; i < n; i++) {
                 kk = recvlist[2][i];
-                type[kk] = buf[i].type;
-                x[kk * 3] = buf[i].r[0];
-                x[kk * 3 + 1] = buf[i].r[1];
-                x[kk * 3 + 2] = buf[i].r[2];
+                atoms[kk].type = buf[i].type;
+                atoms[kk].x[0] = buf[i].r[0];
+                atoms[kk].x[1] = buf[i].r[1];
+                atoms[kk].x[2] = buf[i].r[2];
             }
         } else {
             for (int i = 0; i < n; i++) {
                 kk = recvlist[3][i];
-                type[kk] = buf[i].type;
-                x[kk * 3] = buf[i].r[0];
-                x[kk * 3 + 1] = buf[i].r[1];
-                x[kk * 3 + 2] = buf[i].r[2];
+                atoms[kk].type = buf[i].type;
+                atoms[kk].x[0] = buf[i].r[0];
+                atoms[kk].x[1] = buf[i].r[1];
+                atoms[kk].x[2] = buf[i].r[2];
             }
         }
     } else {
         if (direction == 0) {
             for (int i = 0; i < n; i++) {
                 kk = recvlist[4][i];
-                type[kk] = buf[i].type;
-                x[kk * 3] = buf[i].r[0];
-                x[kk * 3 + 1] = buf[i].r[1];
-                x[kk * 3 + 2] = buf[i].r[2];
+                atoms[kk].type = buf[i].type;
+                atoms[kk].x[0] = buf[i].r[0];
+                atoms[kk].x[1] = buf[i].r[1];
+                atoms[kk].x[2] = buf[i].r[2];
             }
         } else {
             for (int i = 0; i < n; i++) {
                 kk = recvlist[5][i];
-                type[kk] = buf[i].type;
-                x[kk * 3] = buf[i].r[0];
-                x[kk * 3 + 1] = buf[i].r[1];
-                x[kk * 3 + 2] = buf[i].r[2];
+                atoms[kk].type = buf[i].type;
+                atoms[kk].x[0] = buf[i].r[0];
+                atoms[kk].x[1] = buf[i].r[1];
+                atoms[kk].x[2] = buf[i].r[2];
             }
         }
     }
@@ -1369,7 +1359,7 @@ void atom::pack_rho(int n, vector<int> &recvlist, double *buf) {
     int j, m = 0;
     for (int i = 0; i < n; i++) {
         j = recvlist[i];
-        buf[m++] = rho[j];
+        buf[m++] = atoms[j].rho;
     }
 }
 
@@ -1379,36 +1369,36 @@ void atom::unpack_rho(int d, int direction, double *buf, vector<vector<int> > &s
         if (direction == 0) {
             for (int i = 0; i < sendlist[1].size(); i++) {
                 j = sendlist[1][i];
-                rho[j] += buf[m++];
+                atoms[j].rho += buf[m++];
             }
         } else {
             for (int i = 0; i < sendlist[0].size(); i++) {
                 j = sendlist[0][i];
-                rho[j] += buf[m++];
+                atoms[j].rho += buf[m++];
             }
         }
     } else if (d == 1) {
         if (direction == 0) {
             for (int i = 0; i < sendlist[3].size(); i++) {
                 j = sendlist[3][i];
-                rho[j] += buf[m++];
+                atoms[j].rho += buf[m++];
             }
         } else {
             for (int i = 0; i < sendlist[2].size(); i++) {
                 j = sendlist[2][i];
-                rho[j] += buf[m++];
+                atoms[j].rho += buf[m++];
             }
         }
     } else {
         if (direction == 0) {
             for (int i = 0; i < sendlist[5].size(); i++) {
                 j = sendlist[5][i];
-                rho[j] += buf[m++];
+                atoms[j].rho += buf[m++];
             }
         } else {
             for (int i = 0; i < sendlist[4].size(); i++) {
                 j = sendlist[4][i];
-                rho[j] += buf[m++];
+                atoms[j].rho += buf[m++];
             }
         }
     }
@@ -1419,7 +1409,7 @@ void atom::pack_df(vector<int> &sendlist, vector<int> &intersendlist, double *bu
     int n = sendlist.size();
     for (int i = 0; i < n; i++) {
         j = sendlist[i];
-        buf[m++] = df[j];
+        buf[m++] = atoms[j].df;
     }
     n = intersendlist.size();
     for (int i = 0; i < n; i++) {
@@ -1438,7 +1428,7 @@ void atom::unpack_df(int n, double *buf, vector<int> &recvlist, vector<int> &int
     n = recvlist.size();
     for (int i = 0; i < n; i++) {
         kk = recvlist[i];
-        df[kk] = buf[m++];
+        atoms[kk].df = buf[m++];
     }
     n = interrecvlist.size();
     for (int i = 0; i < n; i++) {
@@ -1454,10 +1444,10 @@ void atom::unpack_df(int n, double *buf, vector<int> &recvlist, vector<int> &int
 void atom::pack_force(int n, vector<int> &recvlist, double *buf) {
     int j, m = 0;
     for (int i = 0; i < n; i++) {
-        j = recvlist[i] * 3;
-        buf[m++] = f[j];
-        buf[m++] = f[j + 1];
-        buf[m++] = f[j + 2];
+        j = recvlist[i];
+        buf[m++] = atoms[j].f[0];
+        buf[m++] = atoms[j].f[1];
+        buf[m++] = atoms[j].f[2];
     }
 }
 
@@ -1466,49 +1456,49 @@ void atom::unpack_force(int d, int direction, double *buf, vector<vector<int> > 
     if (d == 0) {
         if (direction == 0) {
             for (int i = 0; i < sendlist[1].size(); i++) {
-                j = sendlist[1][i] * 3;
-                f[j] += buf[m++];
-                f[j + 1] += buf[m++];
-                f[j + 2] += buf[m++];
+                j = sendlist[1][i];
+                atoms[j].f[0] += buf[m++];
+                atoms[j].f[1] += buf[m++];
+                atoms[j].f[2] += buf[m++];
             }
         } else {
             for (int i = 0; i < sendlist[0].size(); i++) {
-                j = sendlist[0][i] * 3;
-                f[j] += buf[m++];
-                f[j + 1] += buf[m++];
-                f[j + 2] += buf[m++];
+                j = sendlist[0][i];
+                atoms[j].f[0] += buf[m++];
+                atoms[j].f[1] += buf[m++];
+                atoms[j].f[2] += buf[m++];
             }
         }
     } else if (d == 1) {
         if (direction == 0) {
             for (int i = 0; i < sendlist[3].size(); i++) {
-                j = sendlist[3][i] * 3;
-                f[j] += buf[m++];
-                f[j + 1] += buf[m++];
-                f[j + 2] += buf[m++];
+                j = sendlist[3][i];
+                atoms[j].f[0] += buf[m++];
+                atoms[j].f[1] += buf[m++];
+                atoms[j].f[2] += buf[m++];
             }
         } else {
             for (int i = 0; i < sendlist[2].size(); i++) {
-                j = sendlist[2][i] * 3;
-                f[j] += buf[m++];
-                f[j + 1] += buf[m++];
-                f[j + 2] += buf[m++];
+                j = sendlist[2][i];
+                atoms[j].f[0] += buf[m++];
+                atoms[j].f[1] += buf[m++];
+                atoms[j].f[2] += buf[m++];
             }
         }
     } else {
         if (direction == 0) {
             for (int i = 0; i < sendlist[5].size(); i++) {
-                j = sendlist[5][i] * 3;
-                f[j] += buf[m++];
-                f[j + 1] += buf[m++];
-                f[j + 2] += buf[m++];
+                j = sendlist[5][i];
+                atoms[j].f[0] += buf[m++];
+                atoms[j].f[1] += buf[m++];
+                atoms[j].f[2] += buf[m++];
             }
         } else {
             for (int i = 0; i < sendlist[4].size(); i++) {
-                j = sendlist[4][i] * 3;
-                f[j] += buf[m++];
-                f[j + 1] += buf[m++];
-                f[j + 2] += buf[m++];
+                j = sendlist[4][i];
+                atoms[j].f[0] += buf[m++];
+                atoms[j].f[1] += buf[m++];
+                atoms[j].f[2] += buf[m++];
             }
         }
     }
@@ -1523,14 +1513,14 @@ void atom::computefirst(double dtInv2m, double dt) {
     for (int k = zstart; k < p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
         for (int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
             for (int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
-                kk = IndexOf3DIndex(i, j, k) * 3;
-                if (x[kk] != COORDINATE_ATOM_OUT_BOX) {
-                    v[kk] = v[kk] + dtInv2m * f[kk];
-                    x[kk] += dt * v[kk];
-                    v[kk + 1] = v[kk + 1] + dtInv2m * f[kk + 1];
-                    x[kk + 1] += dt * v[kk + 1];
-                    v[kk + 2] = v[kk + 2] + dtInv2m * f[kk + 2];
-                    x[kk + 2] += dt * v[kk + 2];
+                kk = IndexOf3DIndex(i, j, k);
+                if (atoms[kk].x[0] != COORDINATE_ATOM_OUT_BOX) {
+                    atoms[kk].v[0] = atoms[kk].v[0] + dtInv2m * atoms[kk].f[0];
+                    atoms[kk].x[0] += dt * atoms[kk].v[0];
+                    atoms[kk].v[1] = atoms[kk].v[1] + dtInv2m * atoms[kk].f[1];
+                    atoms[kk].x[1] += dt * atoms[kk].v[1];
+                    atoms[kk].v[2] = atoms[kk].v[2] + dtInv2m * atoms[kk].f[2];
+                    atoms[kk].x[2] += dt * atoms[kk].v[2];
                 }
             }
         }
@@ -1553,9 +1543,9 @@ void atom::computesecond(double dtInv2m) {
     for (int k = zstart; k < p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
         for (int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
             for (int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
-                kk = IndexOf3DIndex(i, j, k) * 3;
+                kk = IndexOf3DIndex(i, j, k);
                 for (unsigned short d = 0; d < 3; ++d) {
-                    v[kk + d] += dtInv2m * f[kk + d];
+                    atoms[kk].v[d] += dtInv2m * atoms[kk].f[d]; // fixme hot!!
                 }
             }
         }
@@ -1581,8 +1571,8 @@ void atom::print_force() {
     for (int k = zstart; k < p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
         for (int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
             for (int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
-                kk = IndexOf3DIndex(i, j, k) * 3;
-                outfile << f[kk] << " " << f[kk + 1] << " " << f[kk + 2] << std::endl;
+                kk = IndexOf3DIndex(i, j, k);
+                outfile << atoms[kk].f[0] << " " << atoms[kk].f[1] << " " << atoms[kk].f[2] << std::endl;
             }
         }
     }
@@ -1599,10 +1589,10 @@ void atom::setv(int lat[4], double collision_v[3]) {
         lat[2] < (p_domain->getSubBoxLatticeCoordLower(2) + p_domain->getSubBoxLatticeSize(2))) {
         kk = (IndexOf3DIndex(lat[0] * 2 - p_domain->getGhostLatticeCoordLower(0),
                              lat[1] - p_domain->getGhostLatticeCoordLower(1),
-                             lat[2] - p_domain->getGhostLatticeCoordLower(2)) + lat[4]) * 3;
-        v[kk] += collision_v[0];
-        v[kk + 1] += collision_v[1];
-        v[kk + 2] += collision_v[2];
+                             lat[2] - p_domain->getGhostLatticeCoordLower(2)) + lat[4]);
+        atoms[kk].v[0] += collision_v[0];
+        atoms[kk].v[1] += collision_v[1];
+        atoms[kk].v[2] += collision_v[2];
     }
 }
 
