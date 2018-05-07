@@ -14,6 +14,11 @@
 #define DEFAULT_OUTPUT_DUMP_FILENAME "crystal_md.out"
 
 typedef short _type_out_mode;
+struct AlloyRatio {
+    int Fe;
+    int Cu;
+    int Ni;
+};
 
 class ConfigValues {
     friend std::ostream &operator<<(std::ostream &os, const ConfigValues &cv);
@@ -31,7 +36,12 @@ public:
     int createSeed;
     std::string readPhaseFilename; // for read mode
 
-    unsigned long collisionSteps;
+    // alloy
+    int alloyCreateSeed;
+    AlloyRatio alloyRatio;
+
+    // collision
+    unsigned long collisionStep;
     int collisionLat[4];
     double collisionV[DIMENSION];
 

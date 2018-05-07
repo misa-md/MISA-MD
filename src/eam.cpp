@@ -58,7 +58,7 @@ void eam::initrho(int i, int nR, double x0, double dR, double *buf) {
     rho[i].initInterpolationObject(nR, x0, dR, buf);
 }
 
-void eam::eamBcast(int rank) {
+void eam::eamBCast(int rank) {
     MPI_Bcast(&_nElems, 1, MPI_INT, 0, MPI_COMM_WORLD);
     if (rank != 0) {
         this->init(_nElems);
@@ -74,7 +74,7 @@ void eam::eamBcast(int rank) {
     }
 }
 
-void eam::interpolatefile() {
+void eam::interpolateFile() {
     for (int i = 0; i < _nElems; i++) {
         rho[i].interpolatefile();
         f[i].interpolatefile();

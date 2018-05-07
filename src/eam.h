@@ -56,9 +56,9 @@ public:
      */
     bool parse(const std::string &potential_filename, const std::string &file_type);
 
-    void eamBcast(int rank);
+    void eamBCast(int rank);
 
-    void interpolatefile();
+    void interpolateFile();
 
     InterpolationObject *phi;  //!< 对势
     InterpolationObject *rho;  //!< 电子云密度

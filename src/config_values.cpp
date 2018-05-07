@@ -8,10 +8,11 @@
 #include "config_values.h"
 
 ConfigValues::ConfigValues() :
-        phaseSpace{0, 0, 0}, cutoffRadiusFactor(0.0), latticeConst(0.0),
-        timeSteps(10), createPhaseMode(true), createTSet(0.0), createSeed(1),
-        readPhaseFilename(""), collisionSteps(0),
-        collisionLat{0, 0, 0, 0}, collisionV{0.0, 0.0, 0.0},
+        phaseSpace{0, 0, 0}, cutoffRadiusFactor(0.0), latticeConst(0.0), timeSteps(10),
+        createPhaseMode(true), createTSet(0.0), createSeed(1024), readPhaseFilename(""),
+        alloyCreateSeed(1024), alloyRatio{1, 0, 0},
+        collisionStep(0), collisionLat{0, 0, 0, 0}, collisionV{0.0, 0.0, 0.0},
+        // todo potential type and filename initialize.
         outputMode(OUTPUT_COPY_MODE), outputDumpFilename(DEFAULT_OUTPUT_DUMP_FILENAME) {}
 
 void ConfigValues::packdata(kiwi::Bundle &bundle) {
@@ -26,7 +27,11 @@ void ConfigValues::packdata(kiwi::Bundle &bundle) {
     bundle.put(MPI_COMM_WORLD, createSeed);
     bundle.put(MPI_COMM_WORLD, readPhaseFilename);
 
-    bundle.put(MPI_COMM_WORLD, collisionSteps);
+    // alloy
+    bundle.put(MPI_COMM_WORLD, alloyCreateSeed);
+    bundle.put(MPI_COMM_WORLD, alloyRatio);
+
+    bundle.put(MPI_COMM_WORLD, collisionStep);
     bundle.put(MPI_COMM_WORLD, 4, collisionLat);
     bundle.put(MPI_COMM_WORLD, DIMENSION, collisionV);
 
@@ -52,7 +57,11 @@ void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
     bundle.get(MPI_COMM_WORLD, cursor, createSeed);
     bundle.get(MPI_COMM_WORLD, cursor, readPhaseFilename);
 
-    bundle.get(MPI_COMM_WORLD, cursor, collisionSteps);
+    // alloy
+    bundle.get(MPI_COMM_WORLD, cursor, alloyCreateSeed);
+    bundle.get(MPI_COMM_WORLD, cursor, alloyRatio);
+
+    bundle.get(MPI_COMM_WORLD, cursor, collisionStep);
     bundle.get(MPI_COMM_WORLD, cursor, 4, collisionLat);
     bundle.get(MPI_COMM_WORLD, cursor, DIMENSION, collisionV);
 
@@ -78,7 +87,12 @@ std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
     os << "simulation.createphase.seed:" << cv.createSeed << std::endl;
     os << "simulation.createphase.readPhaseFilename:" << cv.readPhaseFilename << std::endl;
 
-    os << "simulation.collision.collision_steps:" << cv.collisionSteps << std::endl;
+    // simulation.alloy
+    os << "simulation.alloy.alloyCreateSeed:" << cv.alloyCreateSeed << std::endl;
+    os << "simulation.alloy.ratio Fe:Cu:Ni\t" << cv.alloyRatio.Fe << ":" << cv.alloyRatio.Cu
+       << ":" << cv.alloyRatio.Ni << ":" << std::endl;
+
+    os << "simulation.collision.collision_step:" << cv.collisionStep << std::endl;
     os << "simulation.collision.lat:" << cv.collisionLat[0] << "," << cv.collisionLat[1] << ","
        << cv.collisionLat[2] << "," << cv.collisionLat[3] << std::endl;
     os << "simulation.collision.collision_v:" << cv.collisionV[0] << "," << cv.collisionV[1] << ","

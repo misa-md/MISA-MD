@@ -48,11 +48,17 @@ private:
      */
     void resolveConfig(std::shared_ptr<cpptoml::table> table) override;
 
-    // resolve "simulation" section of toml config file.
-    void resolveConfigSimulation(std::shared_ptr<cpptoml::table> v);
+    // resolve "simulation" section in toml config file.
+    void resolveConfigSimulation(std::shared_ptr<cpptoml::table> table);
 
-    // resolve "output" section of toml config file.
-    void resolveConfigOutput(std::shared_ptr<cpptoml::table> v);
+    // resolve "simulation.alloy" section in toml config file.
+    void resolveConfigAlloy(std::shared_ptr<cpptoml::table> table);
+
+    // resolve "simulation.collision" section in toml config file.
+    void resolveConfigCollision(std::shared_ptr<cpptoml::table> table);
+
+    // resolve "output" section in toml config file.
+    void resolveConfigOutput(std::shared_ptr<cpptoml::table> table);
 
     /**
      * [master] put data into bundle, in which bundle is used to buffer config data.

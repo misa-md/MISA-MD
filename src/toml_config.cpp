@@ -54,9 +54,9 @@ void ConfigParser::getConfigData(kiwi::Bundle &bundle) {
     configValues.unpackdata(bundle);
 }
 
-void ConfigParser::resolveConfigSimulation(std::shared_ptr<cpptoml::table> v) {
+void ConfigParser::resolveConfigSimulation(std::shared_ptr<cpptoml::table> table) {
     // resolve simulation.phasespace
-    auto tomlPhaseSpace = v->get_array_of<int64_t>("phasespace");
+    auto tomlPhaseSpace = table->get_array_of<int64_t>("phasespace");
     if (tomlPhaseSpace) {
         int index = 0;
         for (const auto &val : *tomlPhaseSpace) {
@@ -72,25 +72,25 @@ void ConfigParser::resolveConfigSimulation(std::shared_ptr<cpptoml::table> v) {
     }
 
     //resolve simulation.cutoff_radius
-    auto tomlCutoffRadiusFactor = v->get_as<double>("cutoff_radius_factor");
+    auto tomlCutoffRadiusFactor = table->get_as<double>("cutoff_radius_factor");
     if (tomlCutoffRadiusFactor) {
         configValues.cutoffRadiusFactor = *tomlCutoffRadiusFactor;
     }
 
     //resolve simulation.latticeconst
-    auto tomlLatticeConst = v->get_as<double>("lattice_const");
+    auto tomlLatticeConst = table->get_as<double>("lattice_const");
     if (tomlLatticeConst) {
         configValues.latticeConst = *tomlLatticeConst;
     }
 
     //resolve simulation.timesteps
-    auto tomlTimeSteps = v->get_as<unsigned long>("timesteps");
+    auto tomlTimeSteps = table->get_as<unsigned long>("timesteps");
     if (tomlTimeSteps) {
         configValues.timeSteps = *tomlTimeSteps;
     }
 
     //resolve simulation.createphase
-    auto tableCreatephase = v->get_table("createphase");
+    auto tableCreatephase = table->get_table("createphase");
 
     auto tomlCreatePhase = tableCreatephase->get_as<bool>("create_phase");
     if (tomlCreatePhase) { // todo bool.
@@ -119,45 +119,13 @@ void ConfigParser::resolveConfigSimulation(std::shared_ptr<cpptoml::table> v) {
         return;
     }
 
+    // resolve simulation.alloy
+    resolveConfigAlloy(table->get_table("alloy"));
     //resolve simulation.collision
-    auto tomlCollision = v->get_table("collision");
-
-    auto tomlCollisionSteps = tomlCollision->get_as<unsigned long>("collision_steps");
-    if (tomlCollisionSteps) {
-        configValues.collisionSteps = *tomlCollisionSteps;
-    }
-    auto tomlCollisionLat = tomlCollision->get_array_of<int64_t>("lat");
-    if (tomlCollisionLat) {
-//        const toml::Array &ar = tomlCollisionLat->as<toml::Array>();
-        int index = 0;
-        for (auto &value: *tomlCollisionLat) {
-            if (index < 4) { //the array index must be less than or equal 4
-                configValues.collisionLat[index] = value;  // todo conversion.
-            }
-            index++;
-        }
-        if (index != 4) { //the array length must be 3.
-            setError("array length of value \"simulation..collision.lat\" must be 4.");
-            return;
-        }
-    }
-    auto tomlCollisionV = tomlCollision->get_array_of<double>("collision_v");
-    if (tomlCollisionV) {
-        int index = 0;
-        for (auto &value : *tomlCollisionV) {
-            if (index < DIMENSION) { //the array index must be less than or equal 3
-                configValues.collisionV[index] = value;
-            }
-            index++;
-        }
-        if (index != DIMENSION) { //the array length must be 3.
-            setError("array length of value \"simulation..collision.collision_v\" must be 3.");
-            return;
-        }
-    }
+    resolveConfigCollision(table->get_table("collision"));
 
     //potential_file
-    auto tomlPotentialFile = v->get_table("potential_file");
+    auto tomlPotentialFile = table->get_table("potential_file");
     auto tomlPotentialFileType = tomlPotentialFile->get_as<std::string>("type");
     if (tomlPotentialFileType) {
         configValues.potentialFileType = *tomlPotentialFileType;
@@ -174,8 +142,8 @@ void ConfigParser::resolveConfigSimulation(std::shared_ptr<cpptoml::table> v) {
     }
 }
 
-void ConfigParser::resolveConfigOutput(shared_ptr<cpptoml::table> v) {
-    auto tomlOutputMode = v->get_as<std::string>("mode");
+void ConfigParser::resolveConfigOutput(std::shared_ptr<cpptoml::table> table) {
+    auto tomlOutputMode = table->get_as<std::string>("mode");
     if (tomlOutputMode) {
         if ("copy" == *tomlOutputMode) { // todo equal?
             configValues.outputMode = OUTPUT_COPY_MODE;
@@ -185,10 +153,65 @@ void ConfigParser::resolveConfigOutput(shared_ptr<cpptoml::table> v) {
     }
 
     // todo check if it is a path.
-    auto tomlOutputDumpFilename = v->get_as<std::string>("dump_filename");
+    auto tomlOutputDumpFilename = table->get_as<std::string>("dump_filename");
     if (tomlOutputDumpFilename) {
         configValues.outputDumpFilename = *tomlOutputDumpFilename;
     } else {
         configValues.outputDumpFilename = DEFAULT_OUTPUT_DUMP_FILENAME;
+    }
+}
+
+void ConfigParser::resolveConfigAlloy(std::shared_ptr<cpptoml::table> table) {
+    auto tomlSeed = table->get_as<int>("create_seed");
+    if (tomlSeed) {
+        configValues.alloyCreateSeed = *tomlSeed;
+    }
+    auto tomlAlloyRatioFe = table->get_qualified_as<int>("ratio.Fe");
+    if (tomlAlloyRatioFe) {
+        configValues.alloyRatio.Fe = *tomlAlloyRatioFe;
+    }
+    auto tomlAlloyRatioCu = table->get_qualified_as<int>("ratio.Cu");
+    if (tomlAlloyRatioCu) {
+        configValues.alloyRatio.Cu = *tomlAlloyRatioCu;
+    }
+    auto tomlAlloyRatioNi = table->get_qualified_as<int>("ratio.Ni");
+    if (tomlAlloyRatioNi) {
+        configValues.alloyRatio.Ni = *tomlAlloyRatioNi;
+    }
+}
+
+void ConfigParser::resolveConfigCollision(std::shared_ptr<cpptoml::table> table) {
+    auto tomlCollisionStep = table->get_as<unsigned long>("collision_step");
+    if (tomlCollisionStep) {
+        configValues.collisionStep = *tomlCollisionStep;
+    }
+    auto tomlCollisionLat = table->get_array_of<int64_t>("lat");
+    if (tomlCollisionLat) {
+//        const toml::Array &ar = tomlCollisionLat->as<toml::Array>();
+        int index = 0;
+        for (auto &value: *tomlCollisionLat) {
+            if (index < 4) { //the array index must be less than or equal 4
+                configValues.collisionLat[index] = value;  // todo conversion.
+            }
+            index++;
+        }
+        if (index != 4) { //the array length must be 3.
+            setError("array length of value \"simulation.collision.lat\" must be 4.");
+            return;
+        }
+    }
+    auto tomlCollisionV = table->get_array_of<double>("collision_v");
+    if (tomlCollisionV) {
+        int index = 0;
+        for (auto &value : *tomlCollisionV) {
+            if (index < DIMENSION) { //the array index must be less than or equal 3
+                configValues.collisionV[index] = value;
+            }
+            index++;
+        }
+        if (index != DIMENSION) { //the array length must be 3.
+            setError("array length of value \"simulation..collision.collision_v\" must be 3.");
+            return;
+        }
     }
 }

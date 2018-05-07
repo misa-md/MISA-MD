@@ -70,8 +70,8 @@ void simulation::prepareForStart() {
         }
     }
 
-    _pot->eamBcast(kiwi::mpiUtils::own_rank); // BCast Potential
-    _pot->interpolatefile(); // interpolation.
+    _pot->eamBCast(kiwi::mpiUtils::own_rank); // BCast Potential
+    _pot->interpolateFile(); // interpolation.
 
     beforeAccelerateRun(_pot); // it runs after atom and boxes creation, but before simulation running.
 
@@ -106,7 +106,7 @@ void simulation::simulate() {
     allstart = MPI_Wtime();
     for (_simulation_time_step = 0;
          _simulation_time_step < pConfigVal->timeSteps; _simulation_time_step++) {
-        if (_simulation_time_step == pConfigVal->collisionSteps) {
+        if (_simulation_time_step == pConfigVal->collisionStep) {
             _atom->setv(pConfigVal->collisionLat, pConfigVal->collisionV);
             _p_domain->exchangeInter(_atom);
             _p_domain->borderInter(_atom);
