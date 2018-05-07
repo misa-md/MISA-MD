@@ -42,7 +42,7 @@ inline void beforeAccelerateRun(eam *_pot) {
 }
 
 // accelerate for calculating rho in computing eam potential.
-inline void accelerateEamRhoCalc(int *rho_n, double *x, double *rho, double *cutoffRadius,
+inline void accelerateEamRhoCalc(int *rho_n, AtomElement *atoms, double *cutoffRadius,
                                  double *rhoInvDx, double *rhoSplineValues) {
 #ifdef ARCH_SUNWAY
     athreadAccelerateEamRhoCalc(rho_n, x, rho, cutoffRadius, rhoInvDx, rhoSplineValues);
@@ -50,7 +50,7 @@ inline void accelerateEamRhoCalc(int *rho_n, double *x, double *rho, double *cut
 }
 
 // accelerate for calculating df in computing eam potential.
-inline void accelerateEamDfCalc(int *df_n, double *rho, double *df, double *cutoffRadius,
+inline void accelerateEamDfCalc(int *df_n, AtomElement *atoms, double *cutoffRadius,
                                 double *dfSplineInvDx, double *dfSplineValues) {
 #ifdef ARCH_SUNWAY
     athreadAccelerateEamDfCalc(df_n, rho, df, cutoffRadius, dfSplineInvDx, dfSplineValues);
@@ -58,7 +58,7 @@ inline void accelerateEamDfCalc(int *df_n, double *rho, double *df, double *cuto
 }
 
 // accelerate for calculating force in computing eam potential.
-inline void accelerateEamForceCalc(int *phi_n, double *x, double *f, double *df,
+inline void accelerateEamForceCalc(int *phi_n, AtomElement *atoms,
                                    double *cutoffRadius, double *phiSplineInvDx,
                                    double *phiSplineValues, double *rhoSplineValues) {
 #ifdef ARCH_SUNWAY

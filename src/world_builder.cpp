@@ -104,17 +104,16 @@ void WorldBuilder::createPhaseSpace() {
         for (int j = ystart; j < _p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
             for (int i = xstart; i < _p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
                 kk = _p_atom->IndexOf3DIndex(i, j, k); // todo
-                _p_atom->id[kk] = ++id_pre;
-                kk *= 3;
-                // x[kk] = (_p_domain->getSubBoxLatticeCoordLower(0) + (i - xstart)) * (_lattice_const / 2);
-                _p_atom->x[kk] = (_p_domain->getGhostLatticeCoordLower(0) + i) * 0.5 * (_lattice_const);
-                _p_atom->x[kk + 1] = (_p_domain->getSubBoxLatticeCoordLower(1) + (j - ystart)) * _lattice_const +
-                                     (i % 2) * (_lattice_const / 2);
-                _p_atom->x[kk + 2] = (_p_domain->getSubBoxLatticeCoordLower(2) + (k - zstart)) * _lattice_const +
-                                     (i % 2) * (_lattice_const / 2);
-                _p_atom->v[kk] = (uniform() - 0.5) * _mass_factor;
-                _p_atom->v[kk + 1] = (uniform() - 0.5) * _mass_factor;
-                _p_atom->v[kk + 2] = (uniform() - 0.5) * _mass_factor;
+                _p_atom->atoms[kk].id = ++id_pre;
+                // atoms[kk].x[0] = (_p_domain->getSubBoxLatticeCoordLower(0) + (i - xstart)) * (_lattice_const / 2);
+                _p_atom->atoms[kk].x[0] = (_p_domain->getGhostLatticeCoordLower(0) + i) * 0.5 * (_lattice_const);
+                _p_atom->atoms[kk].x[1] = (_p_domain->getSubBoxLatticeCoordLower(1) + (j - ystart)) * _lattice_const +
+                                          (i % 2) * (_lattice_const / 2);
+                _p_atom->atoms[kk].x[2] = (_p_domain->getSubBoxLatticeCoordLower(2) + (k - zstart)) * _lattice_const +
+                                          (i % 2) * (_lattice_const / 2);
+                _p_atom->atoms[kk].v[0] = (uniform() - 0.5) * _mass_factor;
+                _p_atom->atoms[kk].v[1] = (uniform() - 0.5) * _mass_factor;
+                _p_atom->atoms[kk].v[2] = (uniform() - 0.5) * _mass_factor;
             }
         }
     }
@@ -136,10 +135,10 @@ void WorldBuilder::zeroMomentum(double *vcm) {
     for (int k = zstart; k < _p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
         for (int j = ystart; j < _p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
             for (int i = xstart; i < _p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
-                kk = _p_atom->IndexOf3DIndex(i, j, k) * 3;
-                _p_atom->v[kk] -= vcm[0];
-                _p_atom->v[kk + 1] -= vcm[1];
-                _p_atom->v[kk + 2] -= vcm[2];
+                kk = _p_atom->IndexOf3DIndex(i, j, k);
+                _p_atom->atoms[kk].v[0] -= vcm[0];
+                _p_atom->atoms[kk].v[1] -= vcm[1];
+                _p_atom->atoms[kk].v[2] -= vcm[2];
             }
         }
     }
@@ -154,10 +153,10 @@ double WorldBuilder::computeScalar() {
     for (int k = zstart; k < _p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
         for (int j = ystart; j < _p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
             for (int i = xstart; i < _p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
-                kk = _p_atom->IndexOf3DIndex(i, j, k) * 3;
-                t += (_p_atom->v[kk] * _p_atom->v[kk] +
-                      _p_atom->v[kk + 1] * _p_atom->v[kk + 1] +
-                      _p_atom->v[kk + 2] * _p_atom->v[kk + 2]) * _mass;
+                kk = _p_atom->IndexOf3DIndex(i, j, k);
+                t += (_p_atom->atoms[kk].v[0] * _p_atom->atoms[kk].v[0] +
+                      _p_atom->atoms[kk].v[1] * _p_atom->atoms[kk].v[1] +
+                      _p_atom->atoms[kk].v[2] * _p_atom->atoms[kk].v[2]) * _mass;
             }
         }
     }
@@ -173,10 +172,10 @@ void WorldBuilder::rescale(double scalar) {
     for (int k = zstart; k < _p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
         for (int j = ystart; j < _p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
             for (int i = xstart; i < _p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
-                kk = _p_atom->IndexOf3DIndex(i, j, k) * 3;
-                _p_atom->v[kk] *= factor;
-                _p_atom->v[kk + 1] *= factor;
-                _p_atom->v[kk + 2] *= factor;
+                kk = _p_atom->IndexOf3DIndex(i, j, k);
+                _p_atom->atoms[kk].v[0] *= factor;
+                _p_atom->atoms[kk].v[1] *= factor;
+                _p_atom->atoms[kk].v[2] *= factor;
             }
         }
     }
@@ -207,11 +206,11 @@ void WorldBuilder::vcm(double mass, double masstotal, double *p) {
     for (int k = zstart; k < _p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
         for (int j = ystart; j < _p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
             for (int i = xstart; i < _p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
-                kk = _p_atom->IndexOf3DIndex(i, j, k) * 3;
+                kk = _p_atom->IndexOf3DIndex(i, j, k);
                 massone = mass;
-                p[0] += _p_atom->v[kk] * massone;
-                p[1] += _p_atom->v[kk + 1] * massone;
-                p[2] += _p_atom->v[kk + 2] * massone;
+                p[0] += _p_atom->atoms[kk].v[0] * massone;
+                p[1] += _p_atom->atoms[kk].v[1] * massone;
+                p[2] += _p_atom->atoms[kk].v[2] * massone;
             }
         }
     }
