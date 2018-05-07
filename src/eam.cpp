@@ -63,7 +63,7 @@ void eam::eamBcast(int rank) {
     if (rank != 0) {
         this->init(_nElems);
     }
-    MPI_Bcast(&mass, _nElems, MPI_DOUBLE, 0, MPI_COMM_WORLD);  // todo
+    MPI_Bcast(mass, _nElems, MPI_DOUBLE, 0, MPI_COMM_WORLD);  // fixme orgin code: &mass,
 
     for (int i = 0; i < _nElems; i++) {
         rho[i].bcastInterpolationObject(rank);
