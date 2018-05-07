@@ -56,7 +56,7 @@ void AtomDump::dumpModeCopy(atom *atom) {
 //        fd = open(outfileName, O_CREAT | O_TRUNC | O_RDWR, 0700);
 //        if (fd == -1) {
 //            printf("ERROR,open file %s failed\n", outfileName);
-//            exit(1);
+//            abort(1);
 //        }
 
     int n = 0;

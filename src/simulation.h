@@ -39,15 +39,11 @@ public:
 
     void initEamPotential(string file_type);
 
-    void eamBCastPotential(int rank);
-
-    void eamPotentialInterpolate();
-
     void grab(FILE *fptr, int n, double *list);
 
     void output();
 
-    void exit(int exitcode);
+    void abort(int exitcode);
 
 private:
     /**

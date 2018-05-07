@@ -103,7 +103,7 @@ private:
     //晶格点原子用数组存储其信息
     _type_atom_id *id; // including ghost atoms.
     int *type;
-    double *x, *v, *f, *rho, *df;
+    double *x, *v, *f, *rho, *df; // position,velocity, force.
 
     vector<unsigned long> idinter;
     vector<int> typeinter;

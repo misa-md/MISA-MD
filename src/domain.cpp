@@ -22,11 +22,9 @@ Domain *Domain::decomposition() {
     // Assume N can be decomposed as N = N_x * N_y * N_z,
     // then we have: _grid_size[0] = N_x, _grid_size[1] = N_y, _grid_size[1] = N_z.
     // Fill in the _grid_size array such that the product of _grid_size[i] for i=0 to DIMENSION-1 equals N.
-    MPI_Dims_create(kiwi::mpiUtils::all_ranks, DIMENSION, (int *) &_grid_size);
-    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
-        kiwi::logs::i("decomposition", "MPI grid dimensions: {0},{1},{2}\n",
-                      _grid_size[0], _grid_size[1], _grid_size[2]);
-    }
+    MPI_Dims_create(kiwi::mpiUtils::all_ranks, DIMENSION, _grid_size); // fixme origin code: (int *) &_grid_size
+    kiwi::logs::i(MASTER_PROCESSOR, "decomposition", "MPI grid dimensions: {0},{1},{2}\n",
+                  _grid_size[0], _grid_size[1], _grid_size[2]);
 
     int period[DIMENSION];
     // 3维拓扑
