@@ -5,7 +5,7 @@
 #include <cmath>
 #include "world_builder.h"
 
-WorldBuilder::WorldBuilder() : _random_seed(1024), tset(0), _mass(1), _mass_factor(1),
+WorldBuilder::WorldBuilder() : _random_seed(1024), tset(0),
                                box_x(0), box_y(0), box_z(0) {
     _p_domain = nullptr;
     _p_atom = nullptr;
@@ -36,9 +36,12 @@ WorldBuilder &WorldBuilder::setLatticeConst(double lattice_const) {
     return *this;
 }
 
-WorldBuilder &WorldBuilder::setMass(double mass) {
-    this->_mass = mass;
-    this->_mass_factor = 1 / sqrt(mass);
+WorldBuilder &WorldBuilder::setAlloyRatio(int ratio[atom_type::num_atom_types]) {
+    for (int i = 0; i < atom_type::num_atom_types; i++) {
+        _atoms_ratio[i] = ratio[i];
+    }
+//  fixme  this->_mass = mass;
+//  fixme  this->_mass_factor = 1 / sqrt(mass);
     return *this;
 }
 

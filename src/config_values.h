@@ -8,17 +8,13 @@
 #include <string>
 #include <utils/bundle.h>
 #include "pre_define.h"
+#include "atom_types.h"
 
 #define OUTPUT_COPY_MODE 0
 #define OUTPUT_DIRECT_MODE 1
 #define DEFAULT_OUTPUT_DUMP_FILENAME "crystal_md.out"
 
 typedef short _type_out_mode;
-struct AlloyRatio {
-    int Fe;
-    int Cu;
-    int Ni;
-};
 
 class ConfigValues {
     friend std::ostream &operator<<(std::ostream &os, const ConfigValues &cv);
@@ -38,7 +34,7 @@ public:
 
     // alloy
     int alloyCreateSeed;
-    AlloyRatio alloyRatio;
+    int alloyRatio[atom_type::num_atom_types];
 
     // collision
     unsigned long collisionStep;

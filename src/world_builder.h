@@ -8,6 +8,7 @@
 #define CRYSTALMD_WORLD_BUILDER_H
 
 #include "atom.h"
+#include "atom_types.h"
 
 #define IA 16807
 #define IM 2147483647
@@ -30,7 +31,12 @@ public:
 
     WorldBuilder &setLatticeConst(double lattice_const);
 
-    WorldBuilder &setMass(double mass);
+    /**
+     * set the ratio of alloy(e.g. Fe-Cu-Ni alloy)
+     * @param mass
+     * @return
+     */
+    WorldBuilder &setAlloyRatio(int ratio[atom_type::num_atom_types]);
 
     WorldBuilder &setBoxSize(int box_x, int box_y, int box_z);
 
@@ -44,6 +50,8 @@ private:
     int box_x = 0, box_y = 0, box_z = 0;
     double tset;
     double _lattice_const;
+    int _atoms_ratio[atom_type::num_atom_types];
+//    fixme double _mass, _mass_factor;
     double _mass, _mass_factor;
 
     double dofCompute(unsigned long natom);

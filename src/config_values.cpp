@@ -29,7 +29,7 @@ void ConfigValues::packdata(kiwi::Bundle &bundle) {
 
     // alloy
     bundle.put(MPI_COMM_WORLD, alloyCreateSeed);
-    bundle.put(MPI_COMM_WORLD, alloyRatio);
+    bundle.put(MPI_COMM_WORLD, atom_type::num_atom_types, alloyRatio);
 
     bundle.put(MPI_COMM_WORLD, collisionStep);
     bundle.put(MPI_COMM_WORLD, 4, collisionLat);
@@ -59,7 +59,7 @@ void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
 
     // alloy
     bundle.get(MPI_COMM_WORLD, cursor, alloyCreateSeed);
-    bundle.get(MPI_COMM_WORLD, cursor, alloyRatio);
+    bundle.get(MPI_COMM_WORLD, cursor, atom_type::num_atom_types, alloyRatio);
 
     bundle.get(MPI_COMM_WORLD, cursor, collisionStep);
     bundle.get(MPI_COMM_WORLD, cursor, 4, collisionLat);
@@ -89,8 +89,8 @@ std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
 
     // simulation.alloy
     os << "simulation.alloy.alloyCreateSeed:" << cv.alloyCreateSeed << std::endl;
-    os << "simulation.alloy.ratio Fe:Cu:Ni\t" << cv.alloyRatio.Fe << ":" << cv.alloyRatio.Cu
-       << ":" << cv.alloyRatio.Ni << ":" << std::endl;
+    os << "simulation.alloy.ratio Fe:Cu:Ni\t" << cv.alloyRatio[atom_type::Fe] <<
+       ":" << cv.alloyRatio[atom_type::Cu] << ":" << cv.alloyRatio[atom_type::Ni] << ":" << std::endl;
 
     os << "simulation.collision.collision_step:" << cv.collisionStep << std::endl;
     os << "simulation.collision.lat:" << cv.collisionLat[0] << "," << cv.collisionLat[1] << ","

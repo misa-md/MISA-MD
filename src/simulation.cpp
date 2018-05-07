@@ -40,7 +40,6 @@ void simulation::createDomainDecomposition() {
 void simulation::createAtoms() {
     _atom = new atom(_p_domain, pConfigVal->latticeConst,
                      pConfigVal->cutoffRadiusFactor, pConfigVal->createSeed);
-    const double mass = 55.845;
 
     if (pConfigVal->createPhaseMode) {  //创建原子坐标、速度信息
         WorldBuilder mWorldBuilder;
@@ -50,7 +49,7 @@ void simulation::createAtoms() {
                 .setRandomSeed(pConfigVal->createSeed)
                 .setLatticeConst(pConfigVal->latticeConst)
                 .setTset(pConfigVal->createTSet)
-                .setMass(mass)
+                .setAlloyRatio(pConfigVal->alloyRatio)
                 .build();
     } else { //读取原子坐标、速度信息
         _input = new input();

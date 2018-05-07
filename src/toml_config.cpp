@@ -168,15 +168,15 @@ void ConfigParser::resolveConfigAlloy(std::shared_ptr<cpptoml::table> table) {
     }
     auto tomlAlloyRatioFe = table->get_qualified_as<int>("ratio.Fe");
     if (tomlAlloyRatioFe) {
-        configValues.alloyRatio.Fe = *tomlAlloyRatioFe;
+        configValues.alloyRatio[atom_type::Fe] = *tomlAlloyRatioFe;
     }
     auto tomlAlloyRatioCu = table->get_qualified_as<int>("ratio.Cu");
     if (tomlAlloyRatioCu) {
-        configValues.alloyRatio.Cu = *tomlAlloyRatioCu;
+        configValues.alloyRatio[atom_type::Cu] = *tomlAlloyRatioCu;
     }
     auto tomlAlloyRatioNi = table->get_qualified_as<int>("ratio.Ni");
     if (tomlAlloyRatioNi) {
-        configValues.alloyRatio.Ni = *tomlAlloyRatioNi;
+        configValues.alloyRatio[atom_type::Ni] = *tomlAlloyRatioNi;
     }
 }
 
