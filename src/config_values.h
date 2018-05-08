@@ -7,7 +7,8 @@
 
 #include <string>
 #include <utils/bundle.h>
-#include "pre_config.h"
+#include "pre_define.h"
+#include "atom_types.h"
 
 #define OUTPUT_COPY_MODE 0
 #define OUTPUT_DIRECT_MODE 1
@@ -31,7 +32,12 @@ public:
     int createSeed;
     std::string readPhaseFilename; // for read mode
 
-    unsigned long collisionSteps;
+    // alloy
+    int alloyCreateSeed;
+    int alloyRatio[atom_type::num_atom_types];
+
+    // collision
+    unsigned long collisionStep;
     int collisionLat[4];
     double collisionV[DIMENSION];
 

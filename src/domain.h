@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "atom.h"
-#include "pre_config.h"
+#include "pre_define.h"
 
 #undef SEEK_SET
 #undef SEEK_END
@@ -41,9 +41,6 @@ class atom;
  *
  * 4.variables for lattice count in box or in global box have a prefix "lattice_size" or "_lattice_size", with int type.
  */
-
-typedef int _type_lattice_size;
-typedef _type_lattice_size _type_lattice_coord;
 
 class Domain {
 public:
@@ -90,7 +87,7 @@ public:
 
     void borderInter(atom *_atom);
 
-    void exchangeAtomfirst(atom *_atom);
+    void exchangeAtomFirst(atom *_atom);
 
     void exchangeAtom(atom *_atom);
 

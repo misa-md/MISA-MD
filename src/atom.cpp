@@ -96,7 +96,7 @@ long atom::IndexOf3DIndex(long int xIndex, long int yIndex, long int zIndex) con
     return (zIndex * p_domain->getGhostLatticeSize(1) + yIndex) * p_domain->getGhostLatticeSize(0) + xIndex;
 }
 
-void atom::addatom(unsigned long id, double rx, double ry, double rz, double vx, double vy, double vz) {
+void atom::addAtom(_type_atom_id id, double rx, double ry, double rz, double vx, double vy, double vz) {
     int i;
     if ((rx >= p_domain->getMeasuredSubBoxLowerBounding(0)) &&
         (rx < p_domain->getMeasuredSubBoxUpperBounding(0)) &&
@@ -149,14 +149,16 @@ int atom::decide() {
                     dist += (atoms[kk].x[2] - ztemp) * (atoms[kk].x[2] - ztemp);
                     if (dist > (pow(0.2 * _latticeconst, 2.0))) { /**超过距离则判断为间隙原子*/
                         if (xinter.size() > nlocalinter) {
-                            if (idinter.size() > nlocalinter)
+                            if (idinter.size() > nlocalinter) {
                                 idinter[nlocalinter] = atoms[kk].id;
-                            else
+                            } else {
                                 idinter.push_back(atoms[kk].id);
+                            }
                             typeinter[nlocalinter] = atoms[kk].type;
                             xinter[nlocalinter][0] = atoms[kk].x[0];
                             xinter[nlocalinter][1] = atoms[kk].x[1];
                             xinter[nlocalinter][2] = atoms[kk].x[2];
+
                             if (vinter.size() > nlocalinter) {
                                 vinter[nlocalinter][0] = atoms[kk].v[0];
                                 vinter[nlocalinter][1] = atoms[kk].v[1];
@@ -201,8 +203,11 @@ int atom::decide() {
         }
     }
 
-    // periodic boundary
-    for (int i = 0; i < nlocalinter; i++) {
+// periodic boundary
+    for (
+            int i = 0;
+            i < nlocalinter;
+            i++) {
         if (xinter[i][0] < p_domain->getMeasuredGlobalBoxCoordLower(0)) {
             xinter[i][0] += p_domain->getMeasuredGlobalLength(0);
         } else if (xinter[i][0] >= p_domain->getMeasuredGlobalBoxCoordUpper(0)) {
@@ -220,8 +225,11 @@ int atom::decide() {
         }
     }
 
-    //判断，如果跑出晶格点的?佑峙芑鼐Ц竦悖蚍呕鼐Ц竦闶榇娲⑵湫畔?
-    for (int i = 0; i < nlocalinter; i++) {
+//判断，如果跑出晶格点的?佑峙芑鼐Ц竦悖蚍呕鼐Ц竦闶榇娲⑵湫畔?
+    for (
+            int i = 0;
+            i < nlocalinter;
+            i++) {
         int j, k, l;
         xtemp = xinter[i][0];
         ytemp = xinter[i][1];
@@ -335,7 +343,8 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
                                 p -= m;
                                 p = std::min(p, 1.0);
                                 spline = rho_spline->spline;
-                                rhoTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p + spline[m][6];
+                                rhoTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p +
+                                         spline[m][6];
 
                                 atoms[kk].rho += rhoTmp;
                                 atoms[n].rho += rhoTmp;
@@ -574,7 +583,8 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                                 p -= m;
                                 p = std::min(p, 1.0);
                                 spline = phi_spline->spline;
-                                phiTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p + spline[m][6];
+                                phiTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p +
+                                         spline[m][6];
                                 dPhi = (spline[m][0] * p + spline[m][1]) * p + spline[m][2];
                                 spline = rho_spline->spline;
                                 dRho = (spline[m][0] * p + spline[m][1]) * p + spline[m][2];
@@ -1597,5 +1607,6 @@ void atom::setv(int lat[4], double collision_v[3]) {
 }
 
 int atom::getnlocalatom() {
-    return (p_domain->getSubBoxLatticeSize(0) * p_domain->getSubBoxLatticeSize(1) * p_domain->getSubBoxLatticeSize(2));
+    return (p_domain->getSubBoxLatticeSize(0) * p_domain->getSubBoxLatticeSize(1) *
+            p_domain->getSubBoxLatticeSize(2));
 }

@@ -33,6 +33,7 @@ set(HEADER_FILES
         lat_particle_data.h
         particledata.h
         pre_config.h
+        pre_define.h
         simulation.h
         world_builder.h
         )

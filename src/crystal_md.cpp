@@ -71,32 +71,25 @@ void crystalMD::onCreate() {
 
 bool crystalMD::prepare() {
     pSimulation = new simulation();
-    pSimulation->createDomainDecomposition(); //区域分解
+    pSimulation->createDomainDecomposition(); // 区域分解
     pSimulation->createAtoms();
     return true;
 }
 
 void crystalMD::onStart() {
-    pSimulation->prepareForStart(kiwi::mpiUtils::own_rank);
-    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
-        kiwi::logs::v("simulation", "Start simulation.\n");
-    }
-    //开始模拟
-    pSimulation->simulate();
+    pSimulation->prepareForStart();
+    kiwi::logs::v(MASTER_PROCESSOR, "simulation", "Start simulation.\n");
+    pSimulation->simulate(); // start simulation.
 }
 
 void crystalMD::onFinish() {
-    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
-        kiwi::logs::s("simulation", "finalizing simulation\n");
-    }
+    kiwi::logs::s(MASTER_PROCESSOR, "simulation", "finalizing simulation\n");
     //模拟结束
     pSimulation->finalize();
 }
 
 void crystalMD::beforeDestroy() {
-    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
-        kiwi::logs::v("app", "app was detached.\n");
-    }
+    kiwi::logs::v(MASTER_PROCESSOR, "app", "app was detached.\n");
     archEnvFinalize(); // clean architectures environment.
 }
 

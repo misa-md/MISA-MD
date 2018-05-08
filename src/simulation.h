@@ -31,7 +31,7 @@ public:
 
     void createAtoms();
 
-    void prepareForStart(int rank);
+    void prepareForStart();
 
     void simulate();
 
@@ -39,15 +39,11 @@ public:
 
     void initEamPotential(string file_type);
 
-    void eamBCastPotential(int rank);
-
-    void eamPotentialInterpolate();
-
     void grab(FILE *fptr, int n, double *list);
 
     void output();
 
-    void exit(int exitcode);
+    void abort(int exitcode);
 
 private:
     /**
@@ -58,15 +54,15 @@ private:
     /**
      * pointer to config data.
      */
-    ConfigValues *pConfigVal; // todo config value.
+    ConfigValues *pConfigVal;
 
     Domain *_p_domain; //仅rank==0的进程有效
-   // GlobalDomain *p_domain;  //仅rank==0的进程有效 // todo ??
+    // GlobalDomain *p_domain;  //仅rank==0的进程有效 // todo ??
     atom *_atom;
     integrator *_integrator;
 
     input *_input;  // 从文件读取原子坐标,速度信息
-    eam *_pot;
+    eam *_pot; // eam potential
 
     bool _finalCheckpoint;
 };

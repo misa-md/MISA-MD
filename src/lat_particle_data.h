@@ -2,8 +2,8 @@
 // Created by baihe back to 2016-06-28.
 //
 
-#ifndef CRYSTAL_MD_LATPARTICLE_DATA_H
-#define CRYSTAL_MD_LATPARTICLE_DATA_H
+#ifndef CRYSTAL_MD_LAT_PARTICLE_DATA_H
+#define CRYSTAL_MD_LAT_PARTICLE_DATA_H
 
 #include <mpi.h>
 
@@ -18,4 +18,4 @@ public:
     double r[3];
 };
 
-#endif //CRYSTAL_MD_LATPARTICLE_DATA_H
+#endif //CRYSTAL_MD_LAT_PARTICLE_DATA_H

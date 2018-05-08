@@ -9,16 +9,12 @@
 #include <vector>
 #include <io/io_writer.h>
 
+#include "pre_define.h"
 #include "domain.h"
 #include "eam.h"
 #include "particledata.h"
 #include "lat_particle_data.h"
 #include "atom_element.h"
-
-
-#define COORDINATE_ATOM_OUT_BOX (-100)
-
-using namespace std;
 
 class Domain; // todo remove.
 
@@ -33,7 +29,7 @@ public :
 
     ~atom();
 
-    void addatom(unsigned long id, double rx, double ry, double rz, double vx, double vy, double vz);
+    void addAtom(unsigned long id, double rx, double ry, double rz, double vx, double vy, double vz);
 
     int decide();
 

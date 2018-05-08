@@ -12,7 +12,7 @@
  * This class describes the attributes of one atom, such as location, force, velocity.etc.
  */
 
-typedef unsigned long _type_atom_id;
+typedef unsigned long _type_atom_id; // todo merge in pre_define.h
 typedef int _type_atom_type;
 typedef double _type_atom_location;
 typedef double _type_atom_velocity;

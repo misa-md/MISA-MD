@@ -8,9 +8,7 @@
 #define CRYSTALMD_WORLD_BUILDER_H
 
 #include "atom.h"
-
-#define BOLTZ 8.617343e-5 // Boltzmann constant, 8.617343e-5 EV/K; also equals to 1.3806505e-23 J/K.
-#define mvv2e 1.0364269e-4 // todo move to predefine.h
+#include "atom_types.h"
 
 #define IA 16807
 #define IM 2147483647
@@ -33,7 +31,12 @@ public:
 
     WorldBuilder &setLatticeConst(double lattice_const);
 
-    WorldBuilder &setMass(double mass);
+    /**
+     * set the ratio of alloy(e.g. Fe-Cu-Ni alloy)
+     * @param mass
+     * @return
+     */
+    WorldBuilder &setAlloyRatio(int ratio[atom_type::num_atom_types]);
 
     WorldBuilder &setBoxSize(int box_x, int box_y, int box_z);
 
@@ -47,7 +50,9 @@ private:
     int box_x = 0, box_y = 0, box_z = 0;
     double tset;
     double _lattice_const;
-    double _mass, _mass_factor;
+    int _atoms_ratio[atom_type::num_atom_types];
+//    fixme double _mass, _mass_factor;
+//    double _mass, _mass_factor;
 
     double dofCompute(unsigned long natom);
 
@@ -63,9 +68,13 @@ private:
      */
     void zeroMomentum(double *vcm);
 
-    double computeScalar();
+    /**
+     * due to: (1/2)* mv^2 = (3/2)* kT. In which, k is boltzmann constant.
+     *  =>  T = sum{mv^2} /(3* n* k), T is the return value of this function (n is the count of atoms).
+     */
+    double computeScalar(_type_atom_count n_atoms);
 
-    void rescale(double scalar);
+    void rescale(double rescale_factor);
 };
 
 
