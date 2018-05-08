@@ -30,7 +30,7 @@ public:
     _type_atom_force f[DIMENSION];  // atom force.
 
     _type_atom_rho rho;
-    _type_atom_rho df;
+    _type_atom_df df;
 };
 
 

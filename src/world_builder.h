@@ -42,6 +42,9 @@ public:
 
     void build();
 
+protected:
+    double uniform();
+
 private:
     Domain *_p_domain;
     atom *_p_atom;
@@ -59,8 +62,6 @@ private:
     void createPhaseSpace();
 
     void vcm(double mass, double masstotal, double *p);
-
-    double uniform();
 
     /**
      * change velocity of each atom to make the total momentum of the system equals to zero.
