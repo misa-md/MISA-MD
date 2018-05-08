@@ -14,12 +14,12 @@
 #include "eam.h"
 #include "particledata.h"
 #include "lat_particle_data.h"
+#include "atom_list.h"
 
 class Domain; // todo remove.
 
 class atom {
 public :
-    friend class WorldBuilder;
 
     friend class AtomDump;
 
@@ -28,6 +28,9 @@ public :
 
     ~atom();
 
+    /**
+     * used in read creating mode.
+     */
     void addAtom(unsigned long id, double rx, double ry, double rz, double vx, double vy, double vz);
 
     int decide();
@@ -84,6 +87,10 @@ public :
 
     void print_force();
 
+    AtomList *getAtomList() {
+        return atom_list;
+    }
+
 private:
     void calculateNeighbourIndices();
 
@@ -101,12 +108,10 @@ private:
 
     vector<long int> NeighbourOffsets; // 邻居粒子偏移量
 
-    //晶格点原子用数组存储其信息
-    AtomElement *atoms;
-//    unsigned long *id; // including ghost atoms.
+    AtomList *atom_list;
+//    unsigned long *id; //
 //    int *type;
 //    double *x, *v, *f, *rho, *df;
-
     vector<unsigned long> idinter;
     vector<int> typeinter;
     vector<vector<double>> xinter; // 间隙原子坐标

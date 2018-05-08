@@ -64,10 +64,11 @@ void AtomDump::dumpModeCopy(atom *atom) {
         for (int j = _begin[1]; j < _end[1]; j++) {
             for (int i = _begin[0]; i < _end[0]; i++) {
                 kk = atom->IndexOf3DIndex(i, j, k);
-                x_io[n * 4] = atom->atoms[kk].id;
-                x_io[n * 4 + 1] = atom->atoms[kk].x[0];
-                x_io[n * 4 + 2] = atom->atoms[kk].x[1];
-                x_io[n * 4 + 3] = atom->atoms[kk].x[2];
+                AtomElement &atom_ = atom->getAtomList()->getAtomEleByLinearIndex(kk);
+                x_io[n * 4] = atom_.id;
+                x_io[n * 4 + 1] = atom_.x[0];
+                x_io[n * 4 + 2] = atom_.x[1];
+                x_io[n * 4 + 3] = atom_.x[2];
                 n++;
             }
         }
@@ -90,11 +91,12 @@ void AtomDump::dumpModeDirect(atom *atom) {
         for (int j = _begin[1]; j < _end[1]; j++) {
             for (int i = _begin[0]; i < _end[0]; i++) {
                 kk = atom->IndexOf3DIndex(i, j, k);
-                if (atom->atoms[kk].x[0] != COORDINATE_ATOM_OUT_BOX)
-                    outfile << atom->atoms[kk].id << " "
-                            << atom->atoms[kk].x[0] << " "
-                            << atom->atoms[kk].x[1] << " "
-                            << atom->atoms[kk].x[2] << std::endl;
+                AtomElement &atom_ = atom->getAtomList()->getAtomEleByLinearIndex(i);
+                if (atom_.x[0] != COORDINATE_ATOM_OUT_BOX)
+                    outfile << atom_.id << " "
+                            << atom_.x[0] << " "
+                            << atom_.x[1] << " "
+                            << atom_.x[2] << std::endl;
             }
         }
     }

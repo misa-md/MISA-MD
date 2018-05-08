@@ -26,6 +26,7 @@ typedef _type_lattice_size _type_lattice_coord;
 
 // atom
 typedef unsigned long _type_atom_id;
+typedef unsigned long _type_atom_index;
 typedef unsigned long _type_atom_count;
 
 #endif //CRYSTAL_MD_PRE_DEFINE_H

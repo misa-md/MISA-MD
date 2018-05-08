@@ -37,6 +37,7 @@ set(HEADER_FILES
         pre_define.h
         simulation.h
         world_builder.h
+        atom_list.h
         )
 
 set(SOURCE_FILES
@@ -55,6 +56,7 @@ set(SOURCE_FILES
         particledata.cpp
         simulation.cpp
         world_builder.cpp
+        atom_list.cpp
         )
 
 # codes runs on sunway.

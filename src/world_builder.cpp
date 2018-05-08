@@ -98,24 +98,25 @@ void WorldBuilder::createPhaseSpace() {
         uniform();
         uniform();
     }*/
-    int xstart = _p_domain->getSubBoxLatticeCoordLower(0) - _p_domain->getGhostLatticeCoordLower(0);
-    int ystart = _p_domain->getSubBoxLatticeCoordLower(1) - _p_domain->getGhostLatticeCoordLower(1);
-    int zstart = _p_domain->getSubBoxLatticeCoordLower(2) - _p_domain->getGhostLatticeCoordLower(2);
-    unsigned long kk;
-    for (int k = zstart; k < _p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
-        for (int j = ystart; j < _p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
-            for (int i = xstart; i < _p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
-                kk = _p_atom->IndexOf3DIndex(i, j, k); // todo
-                _p_atom->atoms[kk].id = ++id_pre;
+//    int xstart = _p_domain->getSubBoxLatticeCoordLower(0) - _p_domain->getGhostLatticeCoordLower(0);
+//    int ystart = _p_domain->getSubBoxLatticeCoordLower(1) - _p_domain->getGhostLatticeCoordLower(1);
+//    int zstart = _p_domain->getSubBoxLatticeCoordLower(2) - _p_domain->getGhostLatticeCoordLower(2);
+//    unsigned long kk;
+    for (int k = 0; k < _p_domain->getSubBoxLatticeSize(2) ; k++) {
+        for (int j = 0; j < _p_domain->getSubBoxLatticeSize(1) ; j++) {
+            for (int i = 0; i < _p_domain->getSubBoxLatticeSize(0) ; i++) {
+                AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i,j,k);
+//                kk = _p_atom->IndexOf3DIndex(i, j, k); // todo
+                atom_.id = ++id_pre;
                 // atoms[kk].x[0] = (_p_domain->getSubBoxLatticeCoordLower(0) + (i - xstart)) * (_lattice_const / 2);
-                _p_atom->atoms[kk].x[0] = (_p_domain->getGhostLatticeCoordLower(0) + i) * 0.5 * (_lattice_const);
-                _p_atom->atoms[kk].x[1] = (_p_domain->getSubBoxLatticeCoordLower(1) + (j - ystart)) * _lattice_const +
+                atom_.x[0] = (_p_domain->getGhostLatticeCoordLower(0) + i) * 0.5 * (_lattice_const);
+                atom_.x[1] = (_p_domain->getSubBoxLatticeCoordLower(1) + (j)) * _lattice_const +
                                           (i % 2) * (_lattice_const / 2);
-                _p_atom->atoms[kk].x[2] = (_p_domain->getSubBoxLatticeCoordLower(2) + (k - zstart)) * _lattice_const +
+                atom_.x[2] = (_p_domain->getSubBoxLatticeCoordLower(2) + (k)) * _lattice_const +
                                           (i % 2) * (_lattice_const / 2);
-                _p_atom->atoms[kk].v[0] = (uniform() - 0.5) /atom_type::getAtomMass(atom_type::Fe); // fixme
-                _p_atom->atoms[kk].v[1] = (uniform() - 0.5) /atom_type::getAtomMass(atom_type::Fe);
-                _p_atom->atoms[kk].v[2] = (uniform() - 0.5) /atom_type::getAtomMass(atom_type::Fe);
+                atom_.v[0] = (uniform() - 0.5) /atom_type::getAtomMass(atom_type::Fe); // fixme
+                atom_.v[1] = (uniform() - 0.5) /atom_type::getAtomMass(atom_type::Fe);
+                atom_.v[2] = (uniform() - 0.5) /atom_type::getAtomMass(atom_type::Fe);
             }
         }
     }
@@ -130,17 +131,18 @@ void WorldBuilder::createPhaseSpace() {
  * Because, \sum_{i=1}^{n} v_i * m = \sum_{i=1}^{n} m*vcm/M , in which, vcm = \sum_{i=1}^{n} v_i * m.
  */
 void WorldBuilder::zeroMomentum(double *vcm) {
-    int xstart = _p_domain->getSubBoxLatticeCoordLower(0) - _p_domain->getGhostLatticeCoordLower(0);
-    int ystart = _p_domain->getSubBoxLatticeCoordLower(1) - _p_domain->getGhostLatticeCoordLower(1);
-    int zstart = _p_domain->getSubBoxLatticeCoordLower(2) - _p_domain->getGhostLatticeCoordLower(2);
-    long kk; // todo unsigned
-    for (int k = zstart; k < _p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
-        for (int j = ystart; j < _p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
-            for (int i = xstart; i < _p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
-                kk = _p_atom->IndexOf3DIndex(i, j, k);
-                _p_atom->atoms[kk].v[0] -= vcm[0];
-                _p_atom->atoms[kk].v[1] -= vcm[1];
-                _p_atom->atoms[kk].v[2] -= vcm[2];
+//    int xstart = _p_domain->getSubBoxLatticeCoordLower(0) - _p_domain->getGhostLatticeCoordLower(0);
+//    int ystart = _p_domain->getSubBoxLatticeCoordLower(1) - _p_domain->getGhostLatticeCoordLower(1);
+//    int zstart = _p_domain->getSubBoxLatticeCoordLower(2) - _p_domain->getGhostLatticeCoordLower(2);
+//    long kk; // todo unsigned
+    for (int k = 0; k < _p_domain->getSubBoxLatticeSize(2) ; k++) {
+        for (int j = 0; j < _p_domain->getSubBoxLatticeSize(1) ; j++) {
+            for (int i = 0; i < _p_domain->getSubBoxLatticeSize(0) ; i++) {
+                AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i,j,k);
+//                kk = _p_atom->IndexOf3DIndex(i, j, k);
+                atom_.v[0] -= vcm[0];
+                atom_.v[1] -= vcm[1];
+                atom_.v[2] -= vcm[2];
             }
         }
     }
@@ -148,17 +150,18 @@ void WorldBuilder::zeroMomentum(double *vcm) {
 
 double WorldBuilder::computeScalar(_type_atom_count n_atoms) {
     double t = 0.0;
-    int xstart = _p_domain->getSubBoxLatticeCoordLower(0) - _p_domain->getGhostLatticeCoordLower(0);
-    int ystart = _p_domain->getSubBoxLatticeCoordLower(1) - _p_domain->getGhostLatticeCoordLower(1);
-    int zstart = _p_domain->getSubBoxLatticeCoordLower(2) - _p_domain->getGhostLatticeCoordLower(2);
-    long kk; // todo unsigned
-    for (int k = zstart; k < _p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
-        for (int j = ystart; j < _p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
-            for (int i = xstart; i < _p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
-                kk = _p_atom->IndexOf3DIndex(i, j, k);
-                t += (_p_atom->atoms[kk].v[0] * _p_atom->atoms[kk].v[0] +
-                      _p_atom->atoms[kk].v[1] * _p_atom->atoms[kk].v[1] +
-                      _p_atom->atoms[kk].v[2] * _p_atom->atoms[kk].v[2]) * atom_type::getAtomMass(atom_type::Fe); // fixme
+//    int xstart = _p_domain->getSubBoxLatticeCoordLower(0) - _p_domain->getGhostLatticeCoordLower(0);
+//    int ystart = _p_domain->getSubBoxLatticeCoordLower(1) - _p_domain->getGhostLatticeCoordLower(1);
+//    int zstart = _p_domain->getSubBoxLatticeCoordLower(2) - _p_domain->getGhostLatticeCoordLower(2);
+//    long kk; // todo unsigned
+    for (int k = 0; k < _p_domain->getSubBoxLatticeSize(2) ; k++) {
+        for (int j = 0; j < _p_domain->getSubBoxLatticeSize(1) ; j++) {
+            for (int i = 0; i < _p_domain->getSubBoxLatticeSize(0) ; i++) {
+                AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i,j,k);
+//                kk = _p_atom->IndexOf3DIndex(i, j, k);
+                t += (atom_.v[0] * atom_.v[0] +
+                      atom_.v[1] * atom_.v[1] +
+                      atom_.v[2] * atom_.v[2]) * atom_type::getAtomMass(atom_type::Fe); // fixme
             }
         }
     }
@@ -170,17 +173,18 @@ double WorldBuilder::computeScalar(_type_atom_count n_atoms) {
 }
 
 void WorldBuilder::rescale(double rescale_factor) {
-    int xstart = _p_domain->getSubBoxLatticeCoordLower(0) - _p_domain->getGhostLatticeCoordLower(0);
-    int ystart = _p_domain->getSubBoxLatticeCoordLower(1) - _p_domain->getGhostLatticeCoordLower(1);
-    int zstart = _p_domain->getSubBoxLatticeCoordLower(2) - _p_domain->getGhostLatticeCoordLower(2);
-    long kk;
-    for (int k = zstart; k < _p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
-        for (int j = ystart; j < _p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
-            for (int i = xstart; i < _p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
-                kk = _p_atom->IndexOf3DIndex(i, j, k);
-                _p_atom->atoms[kk].v[0] *= rescale_factor;
-                _p_atom->atoms[kk].v[1] *= rescale_factor;
-                _p_atom->atoms[kk].v[2] *= rescale_factor;
+//    int xstart = _p_domain->getSubBoxLatticeCoordLower(0) - _p_domain->getGhostLatticeCoordLower(0);
+//    int ystart = _p_domain->getSubBoxLatticeCoordLower(1) - _p_domain->getGhostLatticeCoordLower(1);
+//    int zstart = _p_domain->getSubBoxLatticeCoordLower(2) - _p_domain->getGhostLatticeCoordLower(2);
+//    long kk;
+    for (int k = 0; k < _p_domain->getSubBoxLatticeSize(2) ; k++) {
+        for (int j = 0; j < _p_domain->getSubBoxLatticeSize(1) ; j++) {
+            for (int i = 0; i < _p_domain->getSubBoxLatticeSize(0) ; i++) {
+                AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i,j,k);
+//                kk = _p_atom->IndexOf3DIndex(i, j, k);
+                atom_.v[0] *= rescale_factor;
+                atom_.v[1] *= rescale_factor;
+                atom_.v[2] *= rescale_factor;
             }
         }
     }
@@ -204,18 +208,19 @@ double WorldBuilder::uniform() {
 
 void WorldBuilder::vcm(double mass, double masstotal, double *p) {
     double massone;
-    int xstart = _p_domain->getSubBoxLatticeCoordLower(0) - _p_domain->getGhostLatticeCoordLower(0);
-    int ystart = _p_domain->getSubBoxLatticeCoordLower(1) - _p_domain->getGhostLatticeCoordLower(1);
-    int zstart = _p_domain->getSubBoxLatticeCoordLower(2) - _p_domain->getGhostLatticeCoordLower(2);
-    long kk; // todo unsigned
-    for (int k = zstart; k < _p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
-        for (int j = ystart; j < _p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
-            for (int i = xstart; i < _p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
-                kk = _p_atom->IndexOf3DIndex(i, j, k);
+//    int xstart = _p_domain->getSubBoxLatticeCoordLower(0) - _p_domain->getGhostLatticeCoordLower(0);
+//    int ystart = _p_domain->getSubBoxLatticeCoordLower(1) - _p_domain->getGhostLatticeCoordLower(1);
+//    int zstart = _p_domain->getSubBoxLatticeCoordLower(2) - _p_domain->getGhostLatticeCoordLower(2);
+//    long kk; // todo unsigned
+    for (int k = 0; k < _p_domain->getSubBoxLatticeSize(2) ; k++) {
+        for (int j = 0; j < _p_domain->getSubBoxLatticeSize(1) ; j++) {
+            for (int i = 0; i < _p_domain->getSubBoxLatticeSize(0) ; i++) {
+                AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i,j,k);
+//                kk = _p_atom->IndexOf3DIndex(i, j, k);
                 massone = mass;
-                p[0] += _p_atom->atoms[kk].v[0] * massone;
-                p[1] += _p_atom->atoms[kk].v[1] * massone;
-                p[2] += _p_atom->atoms[kk].v[2] * massone;
+                p[0] += atom_.v[0] * massone;
+                p[1] += atom_.v[1] * massone;
+                p[2] += atom_.v[2] * massone;
             }
         }
     }

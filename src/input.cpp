@@ -1,7 +1,7 @@
-#include "input.h"
-#include "domain.h"
 #include <iostream>
 #include <logs/logs.h>
+#include "input.h"
+#include "atom.h"
 
 input::input() {}
 
