@@ -21,6 +21,7 @@ set(HEADER_FILES
         atom.h
         atom_dump.h
         atom_element.h
+        atom_types.h
         crystal_md.h
         toml_config.h
         config_values.h

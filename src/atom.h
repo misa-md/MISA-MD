@@ -9,12 +9,11 @@
 #include <vector>
 #include <io/io_writer.h>
 
-#include "pre_define.h"
+#include "atom_element.h"
 #include "domain.h"
 #include "eam.h"
 #include "particledata.h"
 #include "lat_particle_data.h"
-#include "atom_element.h"
 
 class Domain; // todo remove.
 

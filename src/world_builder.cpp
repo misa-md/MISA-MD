@@ -63,10 +63,10 @@ void WorldBuilder::build() {
     createPhaseSpace();
 
     _type_atom_count n_atoms = 2 * (unsigned long) box_x * (unsigned long) box_y * (unsigned long) box_z; // todo type
-    double mass_total = n_atoms * _mass; // todo multiple type.
+    double mass_total = n_atoms * atom_type::getAtomMass(atom_type::Fe); // todo multiple type.
 
     double p[3] = {0.0, 0.0, 0.0}, _vcm[3];
-    vcm(_mass, mass_total, p);
+    vcm(atom_type::getAtomMass(atom_type::Fe), mass_total, p); // fixme
     MPI_Allreduce(p, _vcm, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     if (mass_total > 0.0) {
         _vcm[0] /= mass_total;
@@ -113,9 +113,9 @@ void WorldBuilder::createPhaseSpace() {
                                           (i % 2) * (_lattice_const / 2);
                 _p_atom->atoms[kk].x[2] = (_p_domain->getSubBoxLatticeCoordLower(2) + (k - zstart)) * _lattice_const +
                                           (i % 2) * (_lattice_const / 2);
-                _p_atom->atoms[kk].v[0] = (uniform() - 0.5) * _mass_factor;
-                _p_atom->atoms[kk].v[1] = (uniform() - 0.5) * _mass_factor;
-                _p_atom->atoms[kk].v[2] = (uniform() - 0.5) * _mass_factor;
+                _p_atom->atoms[kk].v[0] = (uniform() - 0.5) /atom_type::getAtomMass(atom_type::Fe); // fixme
+                _p_atom->atoms[kk].v[1] = (uniform() - 0.5) /atom_type::getAtomMass(atom_type::Fe);
+                _p_atom->atoms[kk].v[2] = (uniform() - 0.5) /atom_type::getAtomMass(atom_type::Fe);
             }
         }
     }
@@ -158,7 +158,7 @@ double WorldBuilder::computeScalar(_type_atom_count n_atoms) {
                 kk = _p_atom->IndexOf3DIndex(i, j, k);
                 t += (_p_atom->atoms[kk].v[0] * _p_atom->atoms[kk].v[0] +
                       _p_atom->atoms[kk].v[1] * _p_atom->atoms[kk].v[1] +
-                      _p_atom->atoms[kk].v[2] * _p_atom->atoms[kk].v[2]) * _mass;
+                      _p_atom->atoms[kk].v[2] * _p_atom->atoms[kk].v[2]) * atom_type::getAtomMass(atom_type::Fe); // fixme
             }
         }
     }

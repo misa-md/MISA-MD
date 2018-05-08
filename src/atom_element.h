@@ -6,13 +6,13 @@
 #define CRYSTAL_MD_ATOM_ELEMENT_H
 
 
-#include "pre_config.h"
+#include "pre_define.h"
 
 /**
  * This class describes the attributes of one atom, such as location, force, velocity.etc.
  */
 
-typedef unsigned long _type_atom_id; // todo merge in pre_define.h
+//typedef unsigned long _type_atom_id; // todo merge in pre_define.h
 typedef int _type_atom_type;
 typedef double _type_atom_location;
 typedef double _type_atom_velocity;
