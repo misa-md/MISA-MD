@@ -30,7 +30,9 @@ set(TEST_SOURCE_FILES
         test_config.h
         main.cpp
         f_test.cpp
-        domain_test.cpp)
+        domain_test.cpp
+        atom_iterator.cpp
+        )
 
 # set binary path and lib storage path wile compiling process.
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)

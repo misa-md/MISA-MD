@@ -1,4 +1,3 @@
-#include <iostream>
 #include <logs/logs.h>
 #include "domain.h"
 

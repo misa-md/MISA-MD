@@ -91,7 +91,7 @@ void AtomDump::dumpModeDirect(atom *atom) {
         for (int j = _begin[1]; j < _end[1]; j++) {
             for (int i = _begin[0]; i < _end[0]; i++) {
                 kk = atom->IndexOf3DIndex(i, j, k);
-                AtomElement &atom_ = atom->getAtomList()->getAtomEleByLinearIndex(i);
+                AtomElement &atom_ = atom->getAtomList()->getAtomEleByLinearIndex(kk);
                 if (atom_.x[0] != COORDINATE_ATOM_OUT_BOX)
                     outfile << atom_.id << " "
                             << atom_.x[0] << " "
