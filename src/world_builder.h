@@ -52,7 +52,7 @@ private:
     double _lattice_const;
     int _atoms_ratio[atom_type::num_atom_types];
 //    fixme double _mass, _mass_factor;
-    double _mass, _mass_factor;
+//    double _mass, _mass_factor;
 
     double dofCompute(unsigned long natom);
 
@@ -68,9 +68,13 @@ private:
      */
     void zeroMomentum(double *vcm);
 
-    double computeScalar();
+    /**
+     * due to: (1/2)* mv^2 = (3/2)* kT. In which, k is boltzmann constant.
+     *  =>  T = sum{mv^2} /(3* n* k), T is the return value of this function (n is the count of atoms).
+     */
+    double computeScalar(_type_atom_count n_atoms);
 
-    void rescale(double scalar);
+    void rescale(double rescale_factor);
 };
 
 

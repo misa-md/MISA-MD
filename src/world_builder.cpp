@@ -62,7 +62,7 @@ void WorldBuilder::build() {
 
     createPhaseSpace();
 
-    unsigned long n_atoms = 2 * (unsigned long) box_x * (unsigned long) box_y * (unsigned long) box_z;
+    _type_atom_count n_atoms = 2 * (unsigned long) box_x * (unsigned long) box_y * (unsigned long) box_z; // todo type
     double mass_total = n_atoms * _mass; // todo multiple type.
 
     double p[3] = {0.0, 0.0, 0.0}, _vcm[3];
@@ -76,16 +76,15 @@ void WorldBuilder::build() {
 
     zeroMomentum(_vcm);
 
-    double scalar, tfactor;
+//    double scalar, tfactor;
     //double t_test, scalar_test;
     //t_test = t;
-    double t = computeScalar();
-    MPI_Allreduce(&t, &scalar, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    tfactor = dofCompute(n_atoms);
-    scalar *= tfactor;
+    double scalar = computeScalar(n_atoms);
+
     //t_test *= tfactor;
     //MPI_Allreduce(&t_test,&scalar_test,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-    rescale(scalar); // todo
+    double rescale_factor = sqrt(tset / scalar);
+    rescale(rescale_factor); // todo
 }
 
 void WorldBuilder::createPhaseSpace() {
@@ -148,7 +147,7 @@ void WorldBuilder::zeroMomentum(double *vcm) {
     }
 }
 
-double WorldBuilder::computeScalar() {
+double WorldBuilder::computeScalar(_type_atom_count n_atoms) {
     double t = 0.0;
     int xstart = _p_domain->getSubBoxLatticeCoordLower(0) - _p_domain->getGhostLatticeCoordLower(0);
     int ystart = _p_domain->getSubBoxLatticeCoordLower(1) - _p_domain->getGhostLatticeCoordLower(1);
@@ -164,11 +163,14 @@ double WorldBuilder::computeScalar() {
             }
         }
     }
-    return t;
+
+    double t_global;
+    MPI_Allreduce(&t, &t_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    t_global *= dofCompute(n_atoms);
+    return t_global;
 }
 
-void WorldBuilder::rescale(double scalar) {
-    double factor = sqrt(tset / scalar);
+void WorldBuilder::rescale(double rescale_factor) {
     int xstart = _p_domain->getSubBoxLatticeCoordLower(0) - _p_domain->getGhostLatticeCoordLower(0);
     int ystart = _p_domain->getSubBoxLatticeCoordLower(1) - _p_domain->getGhostLatticeCoordLower(1);
     int zstart = _p_domain->getSubBoxLatticeCoordLower(2) - _p_domain->getGhostLatticeCoordLower(2);
@@ -177,9 +179,9 @@ void WorldBuilder::rescale(double scalar) {
         for (int j = ystart; j < _p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
             for (int i = xstart; i < _p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
                 kk = _p_atom->IndexOf3DIndex(i, j, k) * 3;
-                _p_atom->v[kk] *= factor;
-                _p_atom->v[kk + 1] *= factor;
-                _p_atom->v[kk + 2] *= factor;
+                _p_atom->v[kk] *= rescale_factor;
+                _p_atom->v[kk + 1] *= rescale_factor;
+                _p_atom->v[kk + 2] *= rescale_factor;
             }
         }
     }
