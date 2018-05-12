@@ -17,7 +17,6 @@
 #define _R_A_M_Ni 58.6934
 
 namespace atom_type {
-    typedef short _type_atom_types;
 
     enum atom_type {
         Fe, Cu, Ni /*,Co */
@@ -34,7 +33,7 @@ namespace atom_type {
      * @param type
      * @return relative atomic mass
      */
-    inline double getAtomMass(atom_type atom) {
+    inline _type_atom_mass getAtomMass(atom_type atom) {
         switch (atom) {
             case Fe:
                 return _R_A_M_Fe;
@@ -45,6 +44,14 @@ namespace atom_type {
         }
     }
 
+    /**
+     * get the ith atom type.
+     * @param i index of atom numbered starting 0.
+     * @return atom_type.
+     */
+    inline atom_type getAtomTypeByNum(int i) {
+        return static_cast<atom_type>(i);
+    }
 }
 
 #endif //CRYSTAL_MD_ATOM_TYPES_H

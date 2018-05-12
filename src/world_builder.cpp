@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <logs/logs.h>
 #include "world_builder.h"
 
 WorldBuilder::WorldBuilder() : _random_seed(1024), tset(0),
@@ -46,7 +47,7 @@ WorldBuilder &WorldBuilder::setAlloyRatio(int ratio[atom_type::num_atom_types]) 
     return *this;
 }
 
-WorldBuilder &WorldBuilder::setBoxSize(int box_x, int box_y, int box_z) {
+WorldBuilder &WorldBuilder::setBoxSize(int64_t box_x, int64_t box_y, int64_t box_z) {
     this->box_x = box_x;
     this->box_y = box_y;
     this->box_z = box_z;
@@ -63,27 +64,40 @@ void WorldBuilder::build() {
 
     createPhaseSpace();
 
-    _type_atom_count n_atoms = 2 * (unsigned long) box_x * (unsigned long) box_y * (unsigned long) box_z; // todo type
-    double mass_total = n_atoms * atom_type::getAtomMass(atom_type::Fe); // todo multiple type.
+    double p[4] = {0.0, 0.0, 0.0, 0.0}; // index 0-2: mv in 3 d; index 3: mass total at local.
+    double _vcm[4]; // same as @var p, but global.
+    vcm(p);
+    MPI_Allreduce(p, _vcm, 4, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
-    double p[3] = {0.0, 0.0, 0.0}, _vcm[3];
-    vcm(atom_type::getAtomMass(atom_type::Fe), mass_total, p); // fixme
-    MPI_Allreduce(p, _vcm, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    _type_atom_count n_atoms_global = 2 * (unsigned long) box_x * (unsigned long) box_y * (unsigned long) box_z;
+//    double mass_total = n_atoms_global * atom_type::getAtomMass(atom_type::Fe); // todo multiple type.
+    double &mass_total = _vcm[3];
+
     if (mass_total > 0.0) {
-        _vcm[0] /= mass_total;
-        _vcm[1] /= mass_total;
-        _vcm[2] /= mass_total;
+        _vcm[0] /= n_atoms_global; // the momentum to be cut off.
+        _vcm[1] /= n_atoms_global;
+        _vcm[2] /= n_atoms_global;
     }
 
     zeroMomentum(_vcm);
+#ifdef DEV_MODE
+    vcm(p);
+    kiwi::logs::d("momentum", "momentum:{0} {1} {2}\n", p[0], p[1], p[2]);
+#endif
 
-//    double scalar, tfactor;
-    //double t_test, scalar_test;
-    //t_test = t;
-    double scalar = computeScalar(n_atoms);
+    // double scalar, tfactor;
+    // double t_test, scalar_test;
+    // t_test = t;
+    double scalar = computeScalar(n_atoms_global);
 
     //t_test *= tfactor;
     //MPI_Allreduce(&t_test,&scalar_test,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+
+    /**
+     * \sum m_i(v_i)^2 = 3*nkT  => rescale_factor^2 = T = \sum m_i(v_i)^2 / 3nk
+     * thus: T / T_set =  \sum m_i(v_i)^2 / \sum m_i(v'_i)^2
+     * then:
+     */
     double rescale_factor = sqrt(tset / scalar);
     rescale(rescale_factor); // todo
 }
@@ -99,25 +113,24 @@ void WorldBuilder::createPhaseSpace() {
         uniform();
         uniform();
     }*/
-//    int xstart = _p_domain->getSubBoxLatticeCoordLower(0) - _p_domain->getGhostLatticeCoordLower(0);
-//    int ystart = _p_domain->getSubBoxLatticeCoordLower(1) - _p_domain->getGhostLatticeCoordLower(1);
-//    int zstart = _p_domain->getSubBoxLatticeCoordLower(2) - _p_domain->getGhostLatticeCoordLower(2);
-//    unsigned long kk;
+    _type_atom_mass mass = 0;
     for (int k = 0; k < _p_domain->getSubBoxLatticeSize(2); k++) {
         for (int j = 0; j < _p_domain->getSubBoxLatticeSize(1); j++) {
             for (int i = 0; i < _p_domain->getSubBoxLatticeSize(0); i++) {
                 AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
 //                kk = _p_atom->IndexOf3DIndex(i, j, k); // todo
                 atom_.id = ++id_pre;
+                atom_._tp = randomAtomsType(); // set random atom type.
+                mass = atom_type::getAtomMass(atom_._tp); // get atom mass of this kind of atom.
                 // atoms[kk].x[0] = (_p_domain->getSubBoxLatticeCoordLower(0) + (i - xstart)) * (_lattice_const / 2);
                 atom_.x[0] = (_p_domain->getSubBoxLatticeCoordLower(0) + i) * 0.5 * (_lattice_const);
                 atom_.x[1] = (_p_domain->getSubBoxLatticeCoordLower(1) + j) * _lattice_const +
                              (i % 2) * (_lattice_const / 2);
                 atom_.x[2] = (_p_domain->getSubBoxLatticeCoordLower(2) + k) * _lattice_const +
                              (i % 2) * (_lattice_const / 2);
-                atom_.v[0] = (uniform() - 0.5) / atom_type::getAtomMass(atom_type::Fe); // fixme
-                atom_.v[1] = (uniform() - 0.5) / atom_type::getAtomMass(atom_type::Fe);
-                atom_.v[2] = (uniform() - 0.5) / atom_type::getAtomMass(atom_type::Fe);
+                atom_.v[0] = (uniform() - 0.5) / mass;
+                atom_.v[1] = (uniform() - 0.5) / mass;
+                atom_.v[2] = (uniform() - 0.5) / mass;
             }
         }
     }
@@ -126,24 +139,28 @@ void WorldBuilder::createPhaseSpace() {
 /**
  * To achieve the goal of zero momentum,
  * we denote the total momentum of the system as vcm, the total mass of all atoms in system as M.
- * And we assume there only one type of atoms.
+ * And we assume the total count of atoms is N.
  *
- * We cutoff the velocity of each atom by vcm/M, that is $ v_i = v_i - vcm/M $.
- * Because, \sum_{i=1}^{n} v_i * m = \sum_{i=1}^{n} m*vcm/M , in which, vcm = \sum_{i=1}^{n} v_i * m.
+ * We cutoff the momentum of each atom by vcm/N, that is $ v_i' = v_i - vcm/(N * m_i) $.
+ * in which, v_i is the velocity before cutting of, v_i' is the velocity after cutting of.
+ * Because, \sum_{i=1}^{N} v_i * m_i = \sum_{i=1}^{N} vcm/N = vcm.
+ * Thus, \sum_{i=1}^{N} v_i' * m_i  =0.
  */
 void WorldBuilder::zeroMomentum(double *vcm) {
 //    int xstart = _p_domain->getSubBoxLatticeCoordLower(0) - _p_domain->getGhostLatticeCoordLower(0);
 //    int ystart = _p_domain->getSubBoxLatticeCoordLower(1) - _p_domain->getGhostLatticeCoordLower(1);
 //    int zstart = _p_domain->getSubBoxLatticeCoordLower(2) - _p_domain->getGhostLatticeCoordLower(2);
 //    long kk; // todo unsigned
+    _type_atom_mass mass;
     for (int k = 0; k < _p_domain->getSubBoxLatticeSize(2); k++) {
         for (int j = 0; j < _p_domain->getSubBoxLatticeSize(1); j++) {
             for (int i = 0; i < _p_domain->getSubBoxLatticeSize(0); i++) {
                 AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
 //                kk = _p_atom->IndexOf3DIndex(i, j, k);
-                atom_.v[0] -= vcm[0];
-                atom_.v[1] -= vcm[1];
-                atom_.v[2] -= vcm[2];
+                mass = atom_type::getAtomMass(atom_._tp);
+                atom_.v[0] -= (vcm[0] / mass);
+                atom_.v[1] -= (vcm[1] / mass);
+                atom_.v[2] -= (vcm[2] / mass);
             }
         }
     }
@@ -162,7 +179,7 @@ double WorldBuilder::computeScalar(_type_atom_count n_atoms) {
 //                kk = _p_atom->IndexOf3DIndex(i, j, k);
                 t += (atom_.v[0] * atom_.v[0] +
                       atom_.v[1] * atom_.v[1] +
-                      atom_.v[2] * atom_.v[2]) * atom_type::getAtomMass(atom_type::Fe); // fixme
+                      atom_.v[2] * atom_.v[2]) * atom_type::getAtomMass(atom_._tp); // fixme
             }
         }
     }
@@ -191,13 +208,16 @@ void WorldBuilder::rescale(double rescale_factor) {
     }
 }
 
-double WorldBuilder::dofCompute(unsigned long natom) {
-    unsigned long dof = 3 * natom;
-    dof -= 3;
+double WorldBuilder::dofCompute(unsigned long n_atoms) {
+    unsigned long dof = 3 * n_atoms;
+    dof -= 3; // fixme, why?
     return mvv2e / (dof * BOLTZ);
 }
 
 double WorldBuilder::uniform() {
+//#ifdef DEV_MODE
+//    return 1;
+//#else
     int k = _random_seed / IQ;
     _random_seed = IA * (_random_seed - k * IQ) - IR * k;
     if (_random_seed < 0) {
@@ -205,24 +225,54 @@ double WorldBuilder::uniform() {
     }
     double ans = AM * _random_seed;
     return ans;
+//#endif
 }
 
-void WorldBuilder::vcm(double mass, double masstotal, double *p) {
-    double massone;
+void WorldBuilder::vcm(double p[DIMENSION + 1]) {
+    _type_atom_mass mass_one = 0.0;
 //    int xstart = _p_domain->getSubBoxLatticeCoordLower(0) - _p_domain->getGhostLatticeCoordLower(0);
 //    int ystart = _p_domain->getSubBoxLatticeCoordLower(1) - _p_domain->getGhostLatticeCoordLower(1);
 //    int zstart = _p_domain->getSubBoxLatticeCoordLower(2) - _p_domain->getGhostLatticeCoordLower(2);
-//    long kk; // todo unsigned
+    // reset p.
+    for (int i = 0; i < DIMENSION; i++) {
+        p[i] = 0;
+    }
+    p[DIMENSION] = 0;
+
+//    long kk = 0;
     for (int k = 0; k < _p_domain->getSubBoxLatticeSize(2); k++) {
         for (int j = 0; j < _p_domain->getSubBoxLatticeSize(1); j++) {
             for (int i = 0; i < _p_domain->getSubBoxLatticeSize(0); i++) {
                 AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
 //                kk = _p_atom->IndexOf3DIndex(i, j, k);
-                massone = mass;
-                p[0] += atom_.v[0] * massone;
-                p[1] += atom_.v[1] * massone;
-                p[2] += atom_.v[2] * massone;
+                mass_one = atom_type::getAtomMass(atom_._tp);
+                p[0] += atom_.v[0] * mass_one;
+                p[1] += atom_.v[1] * mass_one;
+                p[2] += atom_.v[2] * mass_one;
+                p[3] += mass_one; // all mass.
+//                kk++;
             }
         }
     }
+}
+
+atom_type::atom_type WorldBuilder::randomAtomsType() {
+    int ratio_total = 0;
+    for (int i = 0; i < atom_type::num_atom_types; i++) {
+        ratio_total += _atoms_ratio[i];
+    }
+#ifdef DEV_MODE
+    int rand_ = rand() % ratio_total;
+#else
+    int rand_ = rand() % ratio_total; // todo srank. Rand() has limited randomness; use C++ lib instead.
+#endif
+//    return atom_type::getAtomTypeByOrder();
+    int rank_local = 0;
+    for (int i = 0; i < atom_type::num_atom_types; i++) {
+        rank_local += _atoms_ratio[i];
+        if (rand_ < rank_local) {
+            return atom_type::getAtomTypeByNum(i);
+        }
+    }
+//    return atom_type::Fe;
 }

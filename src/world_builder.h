@@ -38,42 +38,49 @@ public:
      */
     WorldBuilder &setAlloyRatio(int ratio[atom_type::num_atom_types]);
 
-    WorldBuilder &setBoxSize(int box_x, int box_y, int box_z);
+    WorldBuilder &setBoxSize(int64_t box_x, int64_t box_y, int64_t box_z);
 
     void build();
 
+    /**
+     * calculate the total momentum of atom in this sub-box, returned by array p.
+     * @param p for return value. p[0] to p[DIMENSION -1] is the momentum at each dimension;
+     *          p[DIMENSION] is the total mass of atoms in this box.
+     */
+    void vcm(double p[DIMENSION + 1]);
+
+    /**
+    *  due to: (1/2)* mv^2 = (3/2)* kT. In which, k is boltzmann constant.
+    *  =>  T = sum{mv^2} /(3* n* k), T is the return value of this function (n is the count of atoms).
+    */
+    double computeScalar(_type_atom_count n_atoms);
+
 protected:
-    double uniform();
+    virtual double uniform();
+
+    atom_type::atom_type randomAtomsType();
 
 private:
     Domain *_p_domain;
     atom *_p_atom;
 
     int _random_seed; // random seed for creating atoms.
-    int box_x = 0, box_y = 0, box_z = 0;
+    int64_t box_x = 0, box_y = 0, box_z = 0; // todo re type
     double tset;
     double _lattice_const;
     int _atoms_ratio[atom_type::num_atom_types];
 //    fixme double _mass, _mass_factor;
 //    double _mass, _mass_factor;
 
-    double dofCompute(unsigned long natom);
+    double dofCompute(unsigned long n_atoms);
 
     void createPhaseSpace();
-
-    void vcm(double mass, double masstotal, double *p);
 
     /**
      * change velocity of each atom to make the total momentum of the system equals to zero.
      * @param vcm the total momentum of system at each dimension.
      */
     void zeroMomentum(double *vcm);
-
-    /**
-     * due to: (1/2)* mv^2 = (3/2)* kT. In which, k is boltzmann constant.
-     *  =>  T = sum{mv^2} /(3* n* k), T is the return value of this function (n is the count of atoms).
-     */
-    double computeScalar(_type_atom_count n_atoms);
 
     void rescale(double rescale_factor);
 };

@@ -5,15 +5,8 @@
 #include <catch2.hpp>
 #include <utils/mpi_utils.h>
 #include <iostream>
+#include "domain_test_utils.h"
 #include "atom.h"
-#include "domain.h"
-
-Domain *getDomainInstance(int64_t space[3], double lattice_const, double cutoff_radius) {
-    return (new Domain(space, lattice_const, cutoff_radius))
-            ->decomposition()
-            ->createGlobalDomain()
-            ->createSubBoxDomain();
-}
 
 TEST_CASE("domain-test-decomposition", "domain-test") {
     int64_t space[3] = {50, 60, 72};

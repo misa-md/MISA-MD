@@ -28,11 +28,13 @@ configure_file(
 set(TEST_SOURCE_FILES
         catch2_test_env.hpp
         test_config.h
+        domain_test_utils.h
         main.cpp
         f_test.cpp
         domain_test.cpp
         atom_iterator.cpp
-        )
+        world_builder_test.cpp
+        domain_test_utils.cpp)
 
 # set binary path and lib storage path wile compiling process.
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)

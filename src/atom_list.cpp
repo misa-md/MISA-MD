@@ -23,8 +23,7 @@ AtomList::AtomList(_type_atom_count size_x, _type_atom_count size_y, _type_atom_
 
 AtomList::~AtomList() {
     for (_type_atom_count z = 0; z < _size_z; z++) {
-        _atoms[z] = new AtomElement *[_size_y];
-        for (_type_atom_count y = 0; y < _size_z; y++) {
+        for (_type_atom_count y = 0; y < _size_y; y++) {
             delete[] _atoms[z][y];
         }
         delete[] _atoms[z];

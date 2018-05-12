@@ -210,11 +210,8 @@ int atom::decide() {
         }
     }
 
-// periodic boundary
-    for (
-            int i = 0;
-            i < nlocalinter;
-            i++) {
+    // periodic boundary
+    for (int i = 0; i < nlocalinter; i++) {
         if (xinter[i][0] < p_domain->getMeasuredGlobalBoxCoordLower(0)) {
             xinter[i][0] += p_domain->getMeasuredGlobalLength(0);
         } else if (xinter[i][0] >= p_domain->getMeasuredGlobalBoxCoordUpper(0)) {
@@ -232,11 +229,8 @@ int atom::decide() {
         }
     }
 
-//判断，如果跑出晶格点的?佑峙芑鼐Ц竦悖蚍呕鼐Ц竦闶榇娲⑵湫畔?
-    for (
-            int i = 0;
-            i < nlocalinter;
-            i++) {
+    //判断，如果跑出晶格点的?佑峙芑鼐Ц竦悖蚍呕鼐Ц竦闶榇娲⑵湫畔?
+    for (int i = 0; i < nlocalinter; i++) {
         int j, k, l;
         xtemp = xinter[i][0];
         ytemp = xinter[i][1];
@@ -1046,7 +1040,6 @@ void atom::unpack_interrecv(int d, int n, particledata *buf) {
     vector<double> vtemp(3);
     unsigned long id;
     int type;
-    int m = 0;
     for (int i = 0; i < n; i++) {
         id = buf[i].id;
         type = buf[i].type;
@@ -1068,10 +1061,11 @@ void atom::unpack_interrecv(int d, int n, particledata *buf) {
                 rhointer.resize(nlocalinter);
                 dfinter.resize(nlocalinter);
             } else {
-                if (idinter.size() == nlocalinter)
+                if (idinter.size() == nlocalinter) {
                     idinter.push_back(id);
-                else
+                } else {
                     idinter[nlocalinter] = id;
+                }
                 typeinter[nlocalinter] = type;
                 xinter[nlocalinter][0] = xtemp[0];
                 xinter[nlocalinter][1] = xtemp[1];

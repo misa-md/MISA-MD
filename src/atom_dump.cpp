@@ -94,6 +94,7 @@ void AtomDump::dumpModeDirect(atom *atom) {
                 AtomElement &atom_ = atom->getAtomList()->getAtomEleByLinearIndex(kk);
                 if (atom_.x[0] != COORDINATE_ATOM_OUT_BOX)
                     outfile << atom_.id << " "
+//                            << "ty" << atom_.type << " "
                             << atom_.x[0] << " "
                             << atom_.x[1] << " "
                             << atom_.x[2] << std::endl;
@@ -103,6 +104,7 @@ void AtomDump::dumpModeDirect(atom *atom) {
     outfile << "print inter" << std::endl;
     for (int i = 0; i < atom->nlocalinter; i++) {
         outfile << atom->idinter[i] << " "
+//                << "ty" << atom->typeinter[i] << " "
                 << atom->xinter[i][0] << " "
                 << atom->xinter[i][1] << " "
                 << atom->xinter[i][2] << std::endl;

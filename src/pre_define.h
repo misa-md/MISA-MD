@@ -28,5 +28,14 @@ typedef _type_lattice_size _type_lattice_coord;
 typedef unsigned long _type_atom_id;
 typedef unsigned long _type_atom_index;
 typedef unsigned long _type_atom_count;
+typedef int _type_atom_type; // @deprecated
+typedef short _type_atom_types; // the count of all types of atoms.
+
+typedef double _type_atom_mass;
+typedef double _type_atom_location;
+typedef double _type_atom_velocity;
+typedef double _type_atom_force;
+typedef double _type_atom_rho;
+typedef double _type_atom_df;
 
 #endif //CRYSTAL_MD_PRE_DEFINE_H
