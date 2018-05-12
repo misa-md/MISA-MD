@@ -23,12 +23,14 @@ TEST_CASE("zero momentum test", "[world_builder_test]") {
             .setBoxSize(space[0], space[1], space[2])
             .setRandomSeed(rand_seek)
             .setLatticeConst(lattice_const)
-            .setTset(100)
+            .setTset(600)
             .setAlloyRatio(ra)
             .build();
 
     double p[4];
     mWorldBuilder.vcm(p);
+    std::cout << "<<<<<"
+              << mWorldBuilder.computeScalar(static_cast<_type_atom_count>(2 * space[0] * space[1] * space[2]));
 
     for (int i = 0; i < DIMENSION; i++) {
         double a = p[i];

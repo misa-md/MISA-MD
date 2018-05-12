@@ -69,7 +69,7 @@ void WorldBuilder::build() {
     vcm(p);
     MPI_Allreduce(p, _vcm, 4, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
-    _type_atom_count n_atoms_global = 2 * (unsigned long) box_x * (unsigned long) box_y * (unsigned long) box_z;
+    _type_atom_count n_atoms_global = 2 * (unsigned long) box_x * (unsigned long) box_y * (unsigned long) box_z;  // todo type
 //    double mass_total = n_atoms_global * atom_type::getAtomMass(atom_type::Fe); // todo multiple type.
     double &mass_total = _vcm[3];
 
@@ -90,13 +90,13 @@ void WorldBuilder::build() {
     // t_test = t;
     double scalar = computeScalar(n_atoms_global);
 
-    //t_test *= tfactor;
     //MPI_Allreduce(&t_test,&scalar_test,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 
     /**
-     * \sum m_i(v_i)^2 = 3*nkT  => rescale_factor^2 = T = \sum m_i(v_i)^2 / 3nk
-     * thus: T / T_set =  \sum m_i(v_i)^2 / \sum m_i(v'_i)^2
-     * then:
+     * \sum { m_i(v_i)^2 }= 3*nkT  => scale = T = \sum { m_i(v_i)^2 / 3nk }
+     * thus: T / T_set =  \sum { m_i(v_i)^2 } / \sum { m_i(v'_i)^2 }
+     * then: \sum { m_i(v'_i)^2 } = \sum{ m_i(v_i)^2 }* (T_set / T) = \sum{ m_i(v_i * rescale_factor)^2 }
+     * so, v'_i = v_i * rescale_factor
      */
     double rescale_factor = sqrt(tset / scalar);
     rescale(rescale_factor); // todo
