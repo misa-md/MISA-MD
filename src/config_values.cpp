@@ -21,6 +21,7 @@ void ConfigValues::packdata(kiwi::Bundle &bundle) {
     bundle.put(MPI_COMM_WORLD, cutoffRadiusFactor);
     bundle.put(MPI_COMM_WORLD, latticeConst);
     bundle.put(MPI_COMM_WORLD, timeSteps);
+    bundle.put(MPI_COMM_WORLD, timeStepLength);
 
     bundle.put(MPI_COMM_WORLD, createPhaseMode);
     bundle.put(MPI_COMM_WORLD, createTSet);
@@ -51,6 +52,7 @@ void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
     bundle.get(MPI_COMM_WORLD, cursor, cutoffRadiusFactor);
     bundle.get(MPI_COMM_WORLD, cursor, latticeConst);
     bundle.get(MPI_COMM_WORLD, cursor, timeSteps);
+    bundle.get(MPI_COMM_WORLD, cursor, timeStepLength);
 
     bundle.get(MPI_COMM_WORLD, cursor, createPhaseMode);
     bundle.get(MPI_COMM_WORLD, cursor, createTSet);
