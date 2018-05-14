@@ -55,7 +55,7 @@ void simulation::createAtoms() {
         _input = new input();
         _input->readPhaseSpace(_atom);
     }
-    _integrator = new integrator(DEFAULT_TIME_STEP_LENGTH); // time step length.
+    _integrator = new integrator(pConfigVal->timeStepLength); // time step length.
 }
 
 void simulation::prepareForStart() {

@@ -88,35 +88,30 @@ void ConfigParser::resolveConfigSimulation(std::shared_ptr<cpptoml::table> table
     if (tomlTimeSteps) {
         configValues.timeSteps = *tomlTimeSteps;
     }
+    configValues.timeStepLength = table->get_as<double>("timesteps_length").value_or(const_default_time_length);
 
     //resolve simulation.createphase
     auto tableCreatephase = table->get_table("createphase");
 
-    auto tomlCreatePhase = tableCreatephase->get_as<bool>("create_phase");
-    if (tomlCreatePhase) { // todo bool.
-        configValues.createPhaseMode = *tomlCreatePhase;
-
-        if (configValues.createPhaseMode) { //create mode
-            auto tomlTSet = tableCreatephase->get_as<double>("create_t_set");
-            if (tomlTSet) {
-                configValues.createTSet = *tomlTSet;
-            }
-            auto tomlSeed = tableCreatephase->get_as<int>("create_seed");
-            if (tomlSeed) {
-                configValues.createSeed = *tomlSeed;
-            }
-        } else {  //read mode.
-            auto tomlTSet = tableCreatephase->get_as<std::string>("read_phase_filename");
-            if (tomlTSet) {
-                configValues.readPhaseFilename = *tomlTSet;
-            } else {
-                setError("read phase file must be specified.");
-                return;
-            }
+    configValues.createPhaseMode = tableCreatephase->get_as<bool>("create_phase")
+            .value_or(const_default_create_phase); // default value is true
+    if (configValues.createPhaseMode) { //create mode
+        auto tomlTSet = tableCreatephase->get_as<double>("create_t_set");
+        if (tomlTSet) {
+            configValues.createTSet = *tomlTSet;
+        } else {
+            setError("creation t_set must be specified.");
+            return;
         }
-    } else {
-        setError("create phase mode(read/create) is required.");
-        return;
+        configValues.createSeed = tableCreatephase->get_as<int>("create_seed").value_or(const_default_random_seek);
+    } else {  //read mode.
+        auto tomlTSet = tableCreatephase->get_as<std::string>("read_phase_filename");
+        if (tomlTSet) {
+            configValues.readPhaseFilename = *tomlTSet;
+        } else {
+            setError("read phase file must be specified.");
+            return;
+        }
     }
 
     // resolve simulation.alloy
@@ -162,10 +157,7 @@ void ConfigParser::resolveConfigOutput(std::shared_ptr<cpptoml::table> table) {
 }
 
 void ConfigParser::resolveConfigAlloy(std::shared_ptr<cpptoml::table> table) {
-    auto tomlSeed = table->get_as<int>("create_seed");
-    if (tomlSeed) {
-        configValues.alloyCreateSeed = *tomlSeed;
-    }
+    configValues.alloyCreateSeed = table->get_as<int>("create_seed").value_or(const_default_random_seek);
     auto tomlAlloyRatioFe = table->get_qualified_as<int>("ratio.Fe");
     if (tomlAlloyRatioFe) {
         configValues.alloyRatio[atom_type::Fe] = *tomlAlloyRatioFe;

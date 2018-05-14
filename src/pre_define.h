@@ -10,13 +10,11 @@
 // constance
 #define BOLTZ 8.617343e-5 // Boltzmann constant, 8.617343e-5 EV/K; also equals to 1.3806505e-23 J/K.
 #define mvv2e 1.0364269e-4 // todo move to predefine.h
-#define ftm2v (1.0 / mvv2e)
+#define ftm2v ( 1.0 / mvv2e)
+
 
 // some value definition here.
 #define DIMENSION 3
-
-// simulation
-#define DEFAULT_TIME_STEP_LENGTH 0.001
 
 // domain
 #define COORDINATE_ATOM_OUT_BOX (-100)
@@ -37,5 +35,8 @@ typedef double _type_atom_velocity;
 typedef double _type_atom_force;
 typedef double _type_atom_rho;
 typedef double _type_atom_df;
+
+// simulation default default valuse
+#include "def_config_values.h"
 
 #endif //CRYSTAL_MD_PRE_DEFINE_H

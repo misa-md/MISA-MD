@@ -38,7 +38,7 @@ set(HEADER_FILES
         simulation.h
         world_builder.h
         atom_list.h
-        )
+        newton_motion.cpp newton_motion.h def_config_values.h)
 
 set(SOURCE_FILES
         atom.cpp
@@ -57,7 +57,7 @@ set(SOURCE_FILES
         simulation.cpp
         world_builder.cpp
         atom_list.cpp
-        )
+        newton_motion.cpp newton_motion.h)
 
 # codes runs on sunway.
 set(ARCH_SUNWAY_FILES

@@ -26,6 +26,7 @@ public:
     double cutoffRadiusFactor;
     double latticeConst;
     unsigned long timeSteps;
+    double timeStepLength;
 
     bool createPhaseMode;
     double createTSet;

@@ -9,6 +9,7 @@ phasespace = [50, 50, 50] # box size, the count of lattice at each dimension. #i
 cutoff_radius_factor = 1.96125  # the real cutoff radius is cutoff_radius_factor*lattice_cosnt , double type
 lattice_const = 2.85532   # lattice const, double type
 timesteps =  10  # unsigned long type
+timesteps_length = 0.001  # simulation time steps length for each timestep, double type.
 
     [simulation.createphase]  # read atoms information from file or create atoms.
     #createphase = [600, 466953]
