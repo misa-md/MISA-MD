@@ -59,11 +59,11 @@ void eam::initrho(int i, int nR, double x0, double dR, double *buf) {
 }
 
 void eam::eamBCast(int rank) {
-    MPI_Bcast(&_nElems, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&_nElems, 1, MPI_INT, MASTER_PROCESSOR, MPI_COMM_WORLD);
     if (rank != 0) {
         this->init(_nElems);
     }
-    MPI_Bcast(mass, _nElems, MPI_DOUBLE, 0, MPI_COMM_WORLD);  // fixme orgin code: &mass,
+    MPI_Bcast(mass, _nElems, MPI_DOUBLE, MASTER_PROCESSOR, MPI_COMM_WORLD);  // fixme orgin code: &mass,
 
     for (int i = 0; i < _nElems; i++) {
         rho[i].bcastInterpolationObject(rank);

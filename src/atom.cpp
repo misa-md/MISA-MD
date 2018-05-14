@@ -282,9 +282,6 @@ void atom::clearForce() {
         atom_.f[0] = 0;
         atom_.f[1] = 0;
         atom_.f[2] = 0;
-    }
-    for (int i = 0; i < numberoflattice; i++) {
-        AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(i);
         atom_.rho = 0;
     }
     for (int i = 0; i < finter.size(); i++) {
@@ -300,9 +297,9 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
     double xtemp, ytemp, ztemp;
     double delx, dely, delz;
     vector<long int>::iterator neighbourOffsetsIter;
-    InterpolationObject *rho_spline = &pot->rho[0];
-    InterpolationObject *f_spline = &pot->f[0];
-    InterpolationObject *phi_spline = &pot->phi[0];
+    InterpolationObject *rho_spline = pot->rho;
+    InterpolationObject *f_spline = pot->f;
+    InterpolationObject *phi_spline = pot->phi;
     int n;
     double dist2;
     double r;
@@ -363,8 +360,8 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
     }
 
     //间隙原子电子云密度
+    int j, k, l;
     for (int i = 0; i < nlocalinter; i++) {
-        int j, k, l;
         xtemp = xinter[i][0];
         ytemp = xinter[i][1];
         ztemp = xinter[i][2];
@@ -474,7 +471,7 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
         dfinter[i] = dfEmbed;
     }
 
-    ofstream outfile;
+//    ofstream outfile;
     /* char tmp[20];
     sprintf(tmp, "rho.atom");
     outfile.open(tmp);
@@ -802,7 +799,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
     }
 }
 
-int atom::getinteridsendsize() {
+unsigned long atom::getinteridsendsize() {
     return interbuf.size();
 }
 

@@ -39,7 +39,7 @@ public :
 
     void computeEam(eam *pot, Domain *domain, double &comm);
 
-    int getinteridsendsize();
+    unsigned long getinteridsendsize();
 
     void computefirst(double dtInv2m, double dt);
 
