@@ -1143,35 +1143,21 @@ void atom::unpack_borderrecv(int n, LatParticleData *buf, vector<int> &recvlist)
     }
 }
 
-void atom::pack_send(int dimension, int n, vector<_type_atom_id> &sendlist, LatParticleData *buf, double shift) {
-    int j;
-    if (dimension == 0) {
-        for (int i = 0; i < n; i++) {
-            j = sendlist[i];
-            AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(j);
-            buf[i].type = atom_.type;
-            buf[i].r[0] = atom_.x[0] + shift;
-            buf[i].r[1] = atom_.x[1];
-            buf[i].r[2] = atom_.x[2];
-        }
-    } else if (dimension == 1) {
-        for (int i = 0; i < n; i++) {
-            j = sendlist[i];
-            AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(j);
-            buf[i].type = atom_.type;
-            buf[i].r[0] = atom_.x[0];
-            buf[i].r[1] = atom_.x[1] + shift;
-            buf[i].r[2] = atom_.x[2];
-        }
-    } else {
-        for (int i = 0; i < n; i++) {
-            j = sendlist[i];
-            AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(j);
-            buf[i].type = atom_.type;
-            buf[i].r[0] = atom_.x[0];
-            buf[i].r[1] = atom_.x[1];
-            buf[i].r[2] = atom_.x[2] + shift;
-        }
+/**
+ *
+ * In @var shift[i] ,i =0,1,2; at most one dimension has a non-zero shift[i].
+ */
+void atom::pack_send(int dimension, int n, vector<_type_atom_id> &sendlist,
+                     LatParticleData *buf, double shift[DIMENSION]) {
+    _type_atom_id j;
+    for (int i = 0; i < n; i++) {
+        j = sendlist[i];
+        AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(j);
+        // for ghost atoms, we just care their position and atom type(eam calculating), so positions and types are enough.
+        buf[i].type = atom_.type;
+        buf[i].r[0] = atom_.x[0] + shift[0];
+        buf[i].r[1] = atom_.x[1] + shift[1];
+        buf[i].r[2] = atom_.x[2] + shift[2];
     }
 }
 

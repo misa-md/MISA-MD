@@ -68,7 +68,16 @@ public :
 
     void unpack_borderrecv(int n, LatParticleData *buf, vector<int> &recvlist);
 
-    void pack_send(int dimension, int n, vector<_type_atom_id> &sendlist, LatParticleData *buf, double shift);
+    /**
+     * package ghost atom to its neighbors processors
+     * @param dimension 0,1,2. which refers to x,y,z dimension.
+     * @param n the atoms count to be packed.
+     * @param sendlist id list of atoms to be packed.
+     * @param buf buffer to store packed ghost atoms data (e.g. atom type and atom location).
+     * @param shift coordinate offset used for periodic boundary.
+     * e.g: it will add [global box length] to the coordinate of ghost atoms at leftmost sub-box to fit periodic boundary.
+     */
+    void pack_send(int dimension, int n, vector<_type_atom_id> &sendlist, LatParticleData *buf, double shift[DIMENSION]);
 
     void unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, vector<vector<_type_atom_id> > &recvlist);
 

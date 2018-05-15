@@ -155,21 +155,6 @@ void Domain::exchangeAtomFirst(atom *_atom) {
     int direction;
     int iswap = 0;
     for (unsigned short d = 0; d < DIMENSION; d++) {
-        // 当原子要跨越周期性边界, 原子坐标必须要做出调整
-        double offsetLower[DIMENSION];
-        double offsetHigher[DIMENSION];
-        offsetLower[d] = 0.0;
-        offsetHigher[d] = 0.0;
-
-        // 进程在左侧边界
-        if (_grid_coord_sub_box[d] == 0) {
-            offsetLower[d] = getMeasuredGlobalLength(d);
-        }
-        // 进程在右侧边界
-        if (_grid_coord_sub_box[d] == _grid_size[d] - 1) {
-            offsetHigher[d] = -(getMeasuredGlobalLength(d));
-        }
-
         for (direction = LOWER; direction <= HIGHER; direction++) {
             // 找到要发送给邻居的原子
             switch (d) {
@@ -186,29 +171,34 @@ void Domain::exchangeAtomFirst(atom *_atom) {
                     break;
             }
 
-            double shift = 0.0;
-            if (direction == LOWER) {
-                shift = offsetLower[d];
+            // 当原子要跨越周期性边界, 原子坐标必须要做出调整
+            // only one periodic boundary appears at one dimension, so the length of array can be 3, not 6.
+            double offset[DIMENSION] = { 0.0,0.0,0.0};
+            // 进程在左侧边界
+            if (_grid_coord_sub_box[d] == 0 && direction == LOWER) {
+                offset[d] = getMeasuredGlobalLength(d);
             }
-            if (direction == HIGHER) {
-                shift = offsetHigher[d];
+
+            // 进程在右侧边界
+            if (_grid_coord_sub_box[d] == _grid_size[d] - 1 && direction == HIGHER) {
+                offset[d] = -(getMeasuredGlobalLength(d));
             }
 
             // 初始化发送缓冲区
             numPartsToSend[d][direction] = sendlist[iswap].size();
             sendbuf[direction] = new LatParticleData[numPartsToSend[d][direction]];
-            _atom->pack_send(d, numPartsToSend[d][direction], sendlist[iswap++], sendbuf[direction], shift);
+            _atom->pack_send(d, numPartsToSend[d][direction], sendlist[iswap++], sendbuf[direction], offset);
         }
 
         // 与上下邻居通信
+        // send ghost atoms.
         for (direction = LOWER; direction <= HIGHER; direction++) {
             int numsend = numPartsToSend[d][direction];
             int numrecv;
 
             // 向下/上发送并从上/下接收
             MPI_Isend(sendbuf[direction], numsend, _mpi_latParticle_data, _rank_id_neighbours[d][direction], 99,
-                      kiwi::mpiUtils::global_comm,
-                      &send_requests[d][direction]);
+                      kiwi::mpiUtils::global_comm, &send_requests[d][direction]);
             MPI_Probe(_rank_id_neighbours[d][(direction + 1) % 2], 99, kiwi::mpiUtils::global_comm,
                       &status);//测试邻居是否有信息发送给本地
             MPI_Get_count(&status, _mpi_latParticle_data, &numrecv);//得到要接收的粒子数目
@@ -217,11 +207,10 @@ void Domain::exchangeAtomFirst(atom *_atom) {
             recvbuf[direction] = new LatParticleData[numrecv];
             numPartsToRecv[d][direction] = numrecv;
             MPI_Irecv(recvbuf[direction], numrecv, _mpi_latParticle_data,
-                      _rank_id_neighbours[d][(direction + 1) % 2],
-                      99,
+                      _rank_id_neighbours[d][(direction + 1) % 2], 99,
                       kiwi::mpiUtils::global_comm, &recv_requests[d][direction]);
         }
-
+        // receive ghost atoms
         for (direction = LOWER; direction <= HIGHER; direction++) {
             int numrecv = numPartsToRecv[d][direction];
             MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
@@ -261,31 +250,22 @@ void Domain::exchangeAtom(atom *_atom) {
     int direction;
     int iswap = 0;
     for (unsigned short d = 0; d < DIMENSION; d++) {
-        // 当原子要跨越周期性边界, 原子坐标必须要做出调整
-
-        double offsetLower[DIMENSION];
-        double offsetHigher[DIMENSION];
-        offsetLower[d] = 0.0;
-        offsetHigher[d] = 0.0;
-
-        // 进程在左侧边界
-        if (_grid_coord_sub_box[d] == 0)
-            offsetLower[d] = getMeasuredGlobalLength(d);
-        // 进程在右侧边界
-        if (_grid_coord_sub_box[d] == _grid_size[d] - 1)
-            offsetHigher[d] = -(getMeasuredGlobalLength(d));
-
         for (direction = LOWER; direction <= HIGHER; direction++) {
-            double shift = 0.0;
-            if (direction == LOWER)
-                shift = offsetLower[d];
-            if (direction == HIGHER)
-                shift = offsetHigher[d];
+            // 当原子要跨越周期性边界, 原子坐标必须要做出调整
+            double offset[DIMENSION] = {0.0, 0.0, 0.0};
+            // 进程在左侧边界
+            if (_grid_coord_sub_box[d] == 0 && direction == LOWER) {
+                offset[d] = getMeasuredGlobalLength(d);
+            }
+            // 进程在右侧边界
+            if (_grid_coord_sub_box[d] == _grid_size[d] - 1 && direction == HIGHER) {
+                offset[d] = -(getMeasuredGlobalLength(d));
+            }
 
             // 初始化发送缓冲区
             numPartsToSend[d][direction] = sendlist[iswap].size();
             sendbuf[direction] = new LatParticleData[numPartsToSend[d][direction]];
-            _atom->pack_send(d, numPartsToSend[d][direction], sendlist[iswap++], sendbuf[direction], shift);
+            _atom->pack_send(d, numPartsToSend[d][direction], sendlist[iswap++], sendbuf[direction], offset);
         }
 
         // 与上下邻居通信
@@ -305,8 +285,7 @@ void Domain::exchangeAtom(atom *_atom) {
             recvbuf[direction] = new LatParticleData[numrecv];
             numPartsToRecv[d][direction] = numrecv;
             MPI_Irecv(recvbuf[direction], numrecv, _mpi_latParticle_data,
-                      _rank_id_neighbours[d][(direction + 1) % 2],
-                      99,
+                      _rank_id_neighbours[d][(direction + 1) % 2], 99,
                       kiwi::mpiUtils::global_comm, &recv_requests[d][direction]);
         }
 
