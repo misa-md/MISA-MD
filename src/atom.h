@@ -50,11 +50,11 @@ public :
 
     void computesecond(double dtInv2m);
 
-    void getatomx(int direction, vector<vector<int>> &sendlist);
+    void getatomx(int direction, vector<vector<_type_atom_id>> &sendlist);
 
-    void getatomy(int direction, vector<vector<int>> &sendlist);
+    void getatomy(int direction, vector<vector<_type_atom_id>> &sendlist);
 
-    void getatomz(int direction, vector<vector<int>> &sendlist);
+    void getatomz(int direction, vector<vector<_type_atom_id>> &sendlist);
 
     void getIntertosend(int d, int direction, double ghostlengh, vector<int> &sendlist);
 
@@ -68,23 +68,23 @@ public :
 
     void unpack_borderrecv(int n, LatParticleData *buf, vector<int> &recvlist);
 
-    void pack_send(int dimension, int n, vector<int> &sendlist, LatParticleData *buf, double shift);
+    void pack_send(int dimension, int n, vector<_type_atom_id> &sendlist, LatParticleData *buf, double shift);
 
-    void unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, vector<vector<int> > &recvlist);
+    void unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, vector<vector<_type_atom_id> > &recvlist);
 
-    void unpack_recv(int d, int direction, int n, LatParticleData *buf, vector<vector<int>> &recvlist);
+    void unpack_recv(int d, int direction, int n, LatParticleData *buf, vector<vector<_type_atom_id>> &recvlist);
 
-    void pack_rho(int n, vector<int> &recvlist, double *buf);
+    void pack_rho(int n, vector<_type_atom_id> &recvlist, double *buf);
 
-    void unpack_rho(int d, int direction, double *buf, vector<vector<int>> &sendlist);
+    void unpack_rho(int d, int direction, double *buf, vector<vector<_type_atom_id>> &sendlist);
 
-    void pack_df(vector<int> &sendlist, vector<int> &intersendlist, double *buf);
+    void pack_df(vector<_type_atom_id> &sendlist, vector<int> &intersendlist, double *buf);
 
-    void unpack_df(int n, double *buf, vector<int> &recvlist, vector<int> &interrecvlist);
+    void unpack_df(int n, double *buf, vector<_type_atom_id> &recvlist, vector<int> &interrecvlist);
 
-    void pack_force(int n, vector<int> &recvlist, double *buf);
+    void pack_force(int n, vector<_type_atom_id> &recvlist, double *buf);
 
-    void unpack_force(int d, int direction, double *buf, vector<vector<int>> &sendlist);
+    void unpack_force(int d, int direction, double *buf, vector<vector<_type_atom_id>> &sendlist);
 
     void setv(int lat[4], double collision_v[3]);
 

@@ -280,10 +280,6 @@ void atom::clearForce() {
         atom_.f[0] = 0;
         atom_.f[1] = 0;
         atom_.f[2] = 0;
-
-    }
-    for (int i = 0; i < numberoflattice; i++) {
-        AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(i);
         atom_.rho = 0;
     }
     for (int i = 0; i < finter.size(); i++) {
@@ -804,8 +800,8 @@ unsigned long atom::getinteridsendsize() {
     return interbuf.size();
 }
 
-void atom::getatomx(int direction, vector<vector<int> > &sendlist) {
-    int i;
+void atom::getatomx(int direction, vector<vector<_type_atom_id> > &sendlist) {
+    _type_atom_id i;
     if (direction == 0) {
         //找到要发送到邻居进程的区域
         int xstart = p_domain->getGhostLatticeSize(0);
@@ -845,7 +841,7 @@ void atom::getatomx(int direction, vector<vector<int> > &sendlist) {
     }
 }
 
-void atom::getatomy(int direction, vector<vector<int> > &sendlist) {
+void atom::getatomy(int direction, vector<vector<_type_atom_id> > &sendlist) {
     int i;
     if (direction == 0) {
         //找到要发送到邻居进程的区域
@@ -889,7 +885,7 @@ void atom::getatomy(int direction, vector<vector<int> > &sendlist) {
     }
 }
 
-void atom::getatomz(int direction, vector<vector<int> > &sendlist) {
+void atom::getatomz(int direction, vector<vector<_type_atom_id> > &sendlist) {
     int i;
     if (direction == 0) {
         //找到要发送到邻居进程的区域
@@ -1147,7 +1143,7 @@ void atom::unpack_borderrecv(int n, LatParticleData *buf, vector<int> &recvlist)
     }
 }
 
-void atom::pack_send(int dimension, int n, vector<int> &sendlist, LatParticleData *buf, double shift) {
+void atom::pack_send(int dimension, int n, vector<_type_atom_id> &sendlist, LatParticleData *buf, double shift) {
     int j;
     if (dimension == 0) {
         for (int i = 0; i < n; i++) {
@@ -1179,15 +1175,15 @@ void atom::pack_send(int dimension, int n, vector<int> &sendlist, LatParticleDat
     }
 }
 
-void atom::unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, vector<vector<int> > &recvlist) {
+void
+atom::unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, vector<vector<_type_atom_id> > &recvlist) {
     int xstart, ystart, zstart;
     int xstop, ystop, zstop;
     long kk;
     int m = 0;
     if (d == 0) {
-        if (direction == 0) {
-            xstart = p_domain->getGhostLatticeSize(0) +
-                     p_domain->getSubBoxLatticeSize(0);
+        if (direction == 0) { // mirror with send.
+            xstart = p_domain->getGhostLatticeSize(0) + p_domain->getSubBoxLatticeSize(0);
             xstop = p_domain->getGhostExtLatticeSize(0);
             ystart = p_domain->getGhostLatticeSize(1);
             ystop = ystart + p_domain->getSubBoxLatticeSize(1);
@@ -1206,8 +1202,9 @@ void atom::unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, v
                     }
                 }
             }
-            if (n != recvlist[0].size()) // todo error.
-                printf("wrong!!!\n");
+            if (n != recvlist[0].size()) { // todo error.
+                kiwi::logs::e("unpack_recvfirst", "received data size does not match the Mpi_Proble size.\n");
+            }
         } else {
             xstart = 0;
             xstop = p_domain->getGhostLatticeSize(0);
@@ -1328,7 +1325,7 @@ void atom::unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, v
     }
 }
 
-void atom::unpack_recv(int d, int direction, int n, LatParticleData *buf, vector<vector<int> > &recvlist) {
+void atom::unpack_recv(int d, int direction, int n, LatParticleData *buf, vector<vector<_type_atom_id> > &recvlist) {
     long kk;
     if (d == 0) {
         if (direction == 0) {
@@ -1393,7 +1390,7 @@ void atom::unpack_recv(int d, int direction, int n, LatParticleData *buf, vector
     }
 }
 
-void atom::pack_rho(int n, vector<int> &recvlist, double *buf) {
+void atom::pack_rho(int n, vector<_type_atom_id> &recvlist, double *buf) {
     int j, m = 0;
     for (int i = 0; i < n; i++) {
         j = recvlist[i];
@@ -1402,7 +1399,7 @@ void atom::pack_rho(int n, vector<int> &recvlist, double *buf) {
     }
 }
 
-void atom::unpack_rho(int d, int direction, double *buf, vector<vector<int> > &sendlist) {
+void atom::unpack_rho(int d, int direction, double *buf, vector<vector<_type_atom_id> > &sendlist) {
     int j, m = 0;
     if (d == 0) {
         if (direction == 0) {
@@ -1449,7 +1446,7 @@ void atom::unpack_rho(int d, int direction, double *buf, vector<vector<int> > &s
     }
 }
 
-void atom::pack_df(vector<int> &sendlist, vector<int> &intersendlist, double *buf) {
+void atom::pack_df(vector<_type_atom_id> &sendlist, vector<int> &intersendlist, double *buf) {
     int j, m = 0;
     int n = sendlist.size();
     for (int i = 0; i < n; i++) {
@@ -1464,7 +1461,7 @@ void atom::pack_df(vector<int> &sendlist, vector<int> &intersendlist, double *bu
     }
 }
 
-void atom::unpack_df(int n, double *buf, vector<int> &recvlist, vector<int> &interrecvlist) {
+void atom::unpack_df(int n, double *buf, vector<_type_atom_id> &recvlist, vector<int> &interrecvlist) {
     long kk;
     int m = 0;
     if (n != (recvlist.size() + interrecvlist.size())) {
@@ -1488,7 +1485,7 @@ void atom::unpack_df(int n, double *buf, vector<int> &recvlist, vector<int> &int
     }
 }
 
-void atom::pack_force(int n, vector<int> &recvlist, double *buf) {
+void atom::pack_force(int n, vector<_type_atom_id> &recvlist, double *buf) {
     int j, m = 0;
     for (int i = 0; i < n; i++) {
         j = recvlist[i];
@@ -1499,7 +1496,7 @@ void atom::pack_force(int n, vector<int> &recvlist, double *buf) {
     }
 }
 
-void atom::unpack_force(int d, int direction, double *buf, vector<vector<int> > &sendlist) {
+void atom::unpack_force(int d, int direction, double *buf, vector<vector<_type_atom_id> > &sendlist) {
     int j, m = 0;
     if (d == 0) {
         if (direction == 0) {

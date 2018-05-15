@@ -315,8 +315,8 @@ private:
     MPI_Datatype _mpi_Particle_data;
     MPI_Datatype _mpi_latParticle_data;
 
-    std::vector<std::vector<int> > sendlist;
-    std::vector<std::vector<int> > recvlist;
+    std::vector<std::vector<_type_atom_id> > sendlist;
+    std::vector<std::vector<_type_atom_id> > recvlist;
 
     std::vector<std::vector<int> > intersendlist;
     std::vector<std::vector<int> > interrecvlist;
