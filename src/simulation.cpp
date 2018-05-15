@@ -40,6 +40,7 @@ void simulation::createDomainDecomposition() {
 void simulation::createAtoms() {
     _atom = new atom(_p_domain, pConfigVal->latticeConst,
                      pConfigVal->cutoffRadiusFactor, pConfigVal->createSeed);
+    _atom->calculateNeighbourIndices(); // establish index offset for neighbour.
 
     if (pConfigVal->createPhaseMode) {  //创建原子坐标、速度信息
         WorldBuilder mWorldBuilder;
@@ -176,9 +177,9 @@ void simulation::finalize() {
 void simulation::output() {
     // atom boundary in array.
     _type_lattice_coord begin[DIMENSION] = {
-            _p_domain->getSubBoxLatticeCoordLower(0) - _p_domain->getGhostLatticeCoordLower(0),
-            _p_domain->getSubBoxLatticeCoordLower(1) - _p_domain->getGhostLatticeCoordLower(1),
-            _p_domain->getSubBoxLatticeCoordLower(2) - _p_domain->getGhostLatticeCoordLower(2)};
+            _p_domain->getGlobalSubBoxLatticeCoordLower(0) - _p_domain->getGlobalGhostLatticeCoordLower(0),
+            _p_domain->getGlobalSubBoxLatticeCoordLower(1) - _p_domain->getGlobalGhostLatticeCoordLower(1),
+            _p_domain->getGlobalSubBoxLatticeCoordLower(2) - _p_domain->getGlobalGhostLatticeCoordLower(2)};
     _type_lattice_coord end[DIMENSION] = {
             begin[0] + _p_domain->getSubBoxLatticeSize(0),
             begin[1] + _p_domain->getSubBoxLatticeSize(1),

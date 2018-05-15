@@ -33,6 +33,11 @@ public :
      */
     void addAtom(unsigned long id, double rx, double ry, double rz, double vx, double vy, double vz);
 
+    /**
+     * compute the index offset of neighbour atoms.
+     */
+    void calculateNeighbourIndices();
+
     int decide();
 
     void clearForce();
@@ -45,11 +50,11 @@ public :
 
     void computesecond(double dtInv2m);
 
-    void getatomx(int direction, vector<vector<int>> &sendlist);
+    void getatomx(int direction, vector<vector<_type_atom_id>> &sendlist);
 
-    void getatomy(int direction, vector<vector<int>> &sendlist);
+    void getatomy(int direction, vector<vector<_type_atom_id>> &sendlist);
 
-    void getatomz(int direction, vector<vector<int>> &sendlist);
+    void getatomz(int direction, vector<vector<_type_atom_id>> &sendlist);
 
     void getIntertosend(int d, int direction, double ghostlengh, vector<int> &sendlist);
 
@@ -63,23 +68,32 @@ public :
 
     void unpack_borderrecv(int n, LatParticleData *buf, vector<int> &recvlist);
 
-    void pack_send(int dimension, int n, vector<int> &sendlist, LatParticleData *buf, double shift);
+    /**
+     * package ghost atom to its neighbors processors
+     * @param dimension 0,1,2. which refers to x,y,z dimension.
+     * @param n the atoms count to be packed.
+     * @param sendlist id list of atoms to be packed.
+     * @param buf buffer to store packed ghost atoms data (e.g. atom type and atom location).
+     * @param shift coordinate offset used for periodic boundary.
+     * e.g: it will add [global box length] to the coordinate of ghost atoms at leftmost sub-box to fit periodic boundary.
+     */
+    void pack_send(int dimension, int n, vector<_type_atom_id> &sendlist, LatParticleData *buf, double shift[DIMENSION]);
 
-    void unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, vector<vector<int> > &recvlist);
+    void unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, vector<vector<_type_atom_id> > &recvlist);
 
-    void unpack_recv(int d, int direction, int n, LatParticleData *buf, vector<vector<int>> &recvlist);
+    void unpack_recv(int d, int direction, int n, LatParticleData *buf, vector<vector<_type_atom_id>> &recvlist);
 
-    void pack_rho(int n, vector<int> &recvlist, double *buf);
+    void pack_rho(int n, vector<_type_atom_id> &recvlist, double *buf);
 
-    void unpack_rho(int d, int direction, double *buf, vector<vector<int>> &sendlist);
+    void unpack_rho(int d, int direction, double *buf, vector<vector<_type_atom_id>> &sendlist);
 
-    void pack_df(vector<int> &sendlist, vector<int> &intersendlist, double *buf);
+    void pack_df(vector<_type_atom_id> &sendlist, vector<int> &intersendlist, double *buf);
 
-    void unpack_df(int n, double *buf, vector<int> &recvlist, vector<int> &interrecvlist);
+    void unpack_df(int n, double *buf, vector<_type_atom_id> &recvlist, vector<int> &interrecvlist);
 
-    void pack_force(int n, vector<int> &recvlist, double *buf);
+    void pack_force(int n, vector<_type_atom_id> &recvlist, double *buf);
 
-    void unpack_force(int d, int direction, double *buf, vector<vector<int>> &sendlist);
+    void unpack_force(int d, int direction, double *buf, vector<vector<_type_atom_id>> &sendlist);
 
     void setv(int lat[4], double collision_v[3]);
 
@@ -92,7 +106,6 @@ public :
     }
 
 private:
-    void calculateNeighbourIndices();
 
     long IndexOf3DIndex(long int xIndex, long int yIndex, long int zIndex) const;
 
@@ -109,6 +122,7 @@ private:
     vector<long int> NeighbourOffsets; // 邻居粒子偏移量
 
     AtomList *atom_list;
+
 //    unsigned long *id; //
 //    int *type;
 //    double *x, *v, *f, *rho, *df;

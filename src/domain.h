@@ -172,36 +172,73 @@ public:
     /**
      * get lattice count in ghost area plus local area of current sub-box.
      */
+    inline _type_lattice_size getGhostExtLatticeSize(unsigned short dimension) const {
+        return _lattice_size_ghost_extended[dimension];
+    }
+
+    /**
+     * get lattice count in ghost area plus local area of current sub-box.
+     * which  @var _lattice_size_ghost_extended[d] = @var _lattice_size_sub_box[d] + 2 * @var_ lattice_size_ghost[d];
+     * and also equals to _lattice_coord_sub_box_lower[d] - _lattice_coord_ghost_lower[d]
+     */
     inline _type_lattice_size getGhostLatticeSize(unsigned short dimension) const {
         return _lattice_size_ghost[dimension];
     }
 
     /**
-     * get lower boundary of lattice coordinate of current sub-box.
+     * get lower boundary of lattice coordinate of current sub-box, in global coordinate system(GCY).
      */
-    inline _type_lattice_size getSubBoxLatticeCoordLower(unsigned short dimension) const {
+    inline _type_lattice_size getGlobalSubBoxLatticeCoordLower(unsigned short dimension) const {
         return _lattice_coord_sub_box_lower[dimension];
     }
 
     /**
-     * get upper boundary of lattice coordinate of current sub-box.
+     * get upper boundary of lattice coordinate of current sub-box, in global coordinate system(GCY).
      */
-    inline _type_lattice_size getSubBoxLatticeCoordUpper(unsigned short dimension) const {
+    inline _type_lattice_size getGlobalSubBoxLatticeCoordUpper(unsigned short dimension) const {
         return _lattice_coord_sub_box_upper[dimension];
     }
 
     /**
-     * get lower boundary of lattice coordinate of ghost of current sub-box.
+     * get lower boundary of lattice coordinate of ghost of current sub-box, in global coordinate system(GCY).
      */
-    inline _type_lattice_size getGhostLatticeCoordLower(unsigned short dimension) const {
+    inline _type_lattice_size getGlobalGhostLatticeCoordLower(unsigned short dimension) const {
         return _lattice_coord_ghost_lower[dimension];
     }
 
     /**
-     * get upper boundary of lattice coordinate of ghost of current sub-box.
+     * get upper boundary of lattice coordinate of ghost of current sub-box, in global coordinate system(GCY).
      */
-    inline _type_lattice_size getGhostLatticeCoordUpper(unsigned short dimension) const {
+    inline _type_lattice_size getGlobalGhostLatticeCoordUpper(unsigned short dimension) const {
         return _lattice_coord_ghost_upper[dimension];
+    }
+
+    /**
+     * get lower boundary of lattice coordinate of current sub-box, in local coordinate system(LCY).
+     */
+    inline _type_lattice_size getLocalSubBoxLatticeCoordLower(unsigned short dimension) const {
+        return _local_lattice_coord_sub_box_lower[dimension];
+    }
+
+    /**
+     * get upper boundary of lattice coordinate of current sub-box, in local coordinate system(LCY).
+     */
+    inline _type_lattice_size getLocalSubBoxLatticeCoordUpper(unsigned short dimension) const {
+        return _local_lattice_coord_sub_box_upper[dimension];
+    }
+
+    /**
+     * get lower boundary of lattice coordinate of ghost of current sub-box, in local coordinate system(LCY).
+     */
+    inline _type_lattice_size getLocalGhostLatticeCoordLower(unsigned short dimension) const {
+        return _local_lattice_coord_ghost_lower[dimension];
+    }
+
+    /**
+     * get upper boundary of lattice coordinate of ghost of current sub-box, in local coordinate system(LCY).
+     */
+    inline _type_lattice_size getLocalGhostLatticeCoordUpper(unsigned short dimension) const {
+        return _local_lattice_coord_ghost_upper[dimension];
     }
 
 private:
@@ -236,7 +273,7 @@ private:
     int _rank_id_neighbours[DIMENSION][2];
 
     /**boundary of local sub-box**/
-    // the measured lower and upper boundary of current sub-box.
+    // the measured lower and upper boundary of current sub-box (global box Coordinate System).
     double _meas_sub_box_lower_bounding[DIMENSION], _meas_sub_box_upper_bounding[DIMENSION];
 
     /**boundary of ghost of local sub-box**/
@@ -250,25 +287,49 @@ private:
     // lattice count in local sub-box area at each dimension (upper boundary - lower boundary).
     _type_lattice_size _lattice_size_sub_box[DIMENSION];
     // lattice count in ghost area plus sub-box area at each dimension (upper boundary - lower boundary).
+    _type_lattice_size _lattice_size_ghost_extended[DIMENSION];
+    // purge ghost size, just lattice count in ghost area.
     _type_lattice_size _lattice_size_ghost[DIMENSION];
 
-    /*lattice boundary of local sub-box and ghost*/
-    // lower and upper boundary of lattice coordinate in local sub-box area at each dimension.
+    /*lattice boundary of local sub-box and ghost, but, the Coordinate System is still the global box.*/
+    // lower and upper boundary of lattice coordinate of local sub-box at each dimension.
     _type_lattice_coord _lattice_coord_sub_box_lower[DIMENSION], _lattice_coord_sub_box_upper[DIMENSION];
 
     // lower and upper boundary of lattice coordinate in ghost area of current sub-box area at each dimension.
     _type_lattice_coord _lattice_coord_ghost_lower[DIMENSION], _lattice_coord_ghost_upper[DIMENSION];
 
+
+    /*
+     * lattice boundary of local sub-box and ghost, this is in local box Coordinate System(not global box.).
+     * For convenience usage for atom index in local sub-box.
+     *  | 0:ghost_lower                 | sub_box_lower                   | sub_box_upper               | ghost_upper
+     *  |-------------------------------|---------...---------------------|-----------------------------|
+     */
+    // lower and upper boundary of lattice coordinate of local sub-box at each dimension in local coordinate system.
+    _type_lattice_coord _local_lattice_coord_sub_box_lower[DIMENSION], _local_lattice_coord_sub_box_upper[DIMENSION];
+
+    // lower and upper boundary of lattice coordinate in ghost area of current sub-box area at each dimension in local coordinate system.
+    _type_lattice_coord _local_lattice_coord_ghost_lower[DIMENSION], _local_lattice_coord_ghost_upper[DIMENSION];
+
     /** mpi data struct. **/
     MPI_Datatype _mpi_Particle_data;
     MPI_Datatype _mpi_latParticle_data;
 
-    std::vector<std::vector<int> > sendlist;
-    std::vector<std::vector<int> > recvlist;
+    std::vector<std::vector<_type_atom_id> > sendlist;
+    std::vector<std::vector<_type_atom_id> > recvlist;
 
     std::vector<std::vector<int> > intersendlist;
     std::vector<std::vector<int> > interrecvlist;
 
+    /**
+     * set lattice coordinate boundary of current sub-box in global coordinate system(GCY).
+     */
+    void setSubBoxDomainGCS();
+
+    /**
+     * set lattice coordinate boundary of current sub-box in local coordinate system(LCY).
+     */
+    void setSubBoxDomainLCS(); // todo test.
 };
 
 #endif // CRYSTAL_MD_DOMAIN_DECOMPOSITION_H

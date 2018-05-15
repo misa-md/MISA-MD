@@ -6,6 +6,7 @@
 #define CRYSTALMD_ATOM_LIST_H
 
 #include <iterator>
+#include <vector>
 #include "pre_define.h"
 #include "atom_element.h"
 
@@ -97,7 +98,7 @@ public:
      * @return reference of {@class AtomElement} at corresponding position.
      */
     inline AtomElement &
-    getAtomEleBySubBoxIndex(_type_atom_count index_x, _type_atom_count index_y, _type_atom_count index_z) {
+    getAtomEleBySubBoxIndex(_type_atom_index index_x, _type_atom_index index_y, _type_atom_index index_z) {
         return _atoms[purge_ghost_count_z + index_z][purge_ghost_count_y + index_y][purge_ghost_count_x + index_x];
     }
 
@@ -109,7 +110,7 @@ public:
      * @return
      */
     inline AtomElement &
-    getAtomEleByGhostIndex(_type_atom_count index_x, _type_atom_count index_y, _type_atom_count index_z) {
+    getAtomEleByGhostIndex(_type_atom_index index_x, _type_atom_index index_y, _type_atom_index index_z) {
         return _atoms[index_z][index_y][index_x];
     }
 
@@ -119,7 +120,7 @@ public:
      * @param index
      * @return
      */
-    inline AtomElement &getAtomEleByLinearIndex(_type_atom_count index) {
+    inline AtomElement &getAtomEleByLinearIndex(_type_atom_index index) {
         _type_atom_count x = index % _size_x;
         index = index / _size_x;
         _type_atom_count y = index % _size_y;
@@ -127,9 +128,23 @@ public:
         return _atoms[z][y][x];
     }
 
+    /**
+     * append/set an atom to inter. // todo unit test.
+     * @param atom_id atom id.
+     */
+    void appendInter(_type_atom_id atom_id);
+
 private:
     // 晶格点原子用数组存储其信息,including ghost atoms.
     AtomElement ***_atoms; // atoms in 3d.
+
+    /**
+    * pointer of element in atom_list (pointer of {@class AtomElement}).
+    * // todo use avl tree.
+    * // todo use pointer.
+    */
+    std::vector<AtomElement> inter_list;
+
     const _type_atom_count _size;
     const _type_atom_count _size_x, _size_y, _size_z;
     const _type_atom_count purge_ghost_count_x, purge_ghost_count_y, purge_ghost_count_z;
