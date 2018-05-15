@@ -93,13 +93,17 @@ Domain *Domain::createSubBoxDomain() {
     // set ghost lattice size.
     for (int d = 0; d < DIMENSION; d++) {
         // i * ceil(x) >= ceil(i*x) for all x ∈ R and i ∈ Z
-        _type_lattice_size pure_ghost_lattice_size_dim = (d == 0) ?
-                                                         2 * 2 * ceil(_cutoff_radius_factor) :
-                                                         2 * ceil(_cutoff_radius_factor);
-        _lattice_size_ghost[d] = _lattice_size_sub_box[d] + pure_ghost_lattice_size_dim;
+        _lattice_size_ghost[d] = (d == 0) ? 2 * ceil(_cutoff_radius_factor) : ceil(_cutoff_radius_factor);
+        _lattice_size_ghost_extended[d] = _lattice_size_sub_box[d] + 2 * _lattice_size_ghost[d];
     }
 
+    // set lattice coordinate boundary in global and local coordinate system(GCS and LCS).
+    setSubBoxDomainGCS();
+    setSubBoxDomainLCS();
+    return this;
+}
 
+void Domain::setSubBoxDomainGCS() {
     // set lattice coordinate boundary of sub-box.
     for (int d = 0; d < DIMENSION; d++) {
         // floor equals to "/" if all operation number >=0.
@@ -112,18 +116,23 @@ Domain *Domain::createSubBoxDomain() {
     /*
    loghostx = p_domain->getSubBoxLatticeCoordLower(0) - 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
    loghosty = p_domain->getSubBoxLatticeCoordLower(1) - ( ceil( cutoffRadius / _latticeconst ) + 1 );
-   loghostz = p_domain->getSubBoxLatticeCoordLower(2) - ( ceil( cutoffRadius / _latticeconst ) + 1 );
+   loghostz = p_domain->getGlobalSubBoxLatticeCoordLower(2) - ( ceil( cutoffRadius / _latticeconst ) + 1 );
    */
     // set lattice coordinate boundary for ghost.
     for (int d = 0; d < DIMENSION; d++) {
-        _type_lattice_coord pure_ghost_lattice_size_dim = (d == 0) ?
-                                                          2 * ceil(_cutoff_radius_factor) :
-                                                          ceil(_cutoff_radius_factor);
-        _lattice_coord_ghost_lower[d] =
-                _lattice_coord_sub_box_lower[d] - pure_ghost_lattice_size_dim; // todo too integer minus, cut too many??
-        _lattice_coord_ghost_upper[d] = _lattice_coord_sub_box_upper[d] + pure_ghost_lattice_size_dim;
+        // todo too integer minus, cut too many??
+        _lattice_coord_ghost_lower[d] = _lattice_coord_sub_box_lower[d] - _lattice_size_ghost[d];
+        _lattice_coord_ghost_upper[d] = _lattice_coord_sub_box_upper[d] + _lattice_size_ghost[d];
     }
-    return this;
+}
+
+void Domain::setSubBoxDomainLCS() {
+    for (int d = 0; d < DIMENSION; d++) {
+        _local_lattice_coord_ghost_lower[d] = 0;
+        _local_lattice_coord_ghost_upper[d] = _lattice_size_ghost_extended[d];
+        _local_lattice_coord_sub_box_lower[d] = _lattice_size_ghost[d];
+        _local_lattice_coord_sub_box_upper[d] = _lattice_size_ghost[d] + _lattice_size_sub_box[d];
+    }
 }
 
 void Domain::exchangeAtomFirst(atom *_atom) {
@@ -153,11 +162,13 @@ void Domain::exchangeAtomFirst(atom *_atom) {
         offsetHigher[d] = 0.0;
 
         // 进程在左侧边界
-        if (_grid_coord_sub_box[d] == 0)
+        if (_grid_coord_sub_box[d] == 0) {
             offsetLower[d] = getMeasuredGlobalLength(d);
+        }
         // 进程在右侧边界
-        if (_grid_coord_sub_box[d] == _grid_size[d] - 1)
+        if (_grid_coord_sub_box[d] == _grid_size[d] - 1) {
             offsetHigher[d] = -(getMeasuredGlobalLength(d));
+        }
 
         for (direction = LOWER; direction <= HIGHER; direction++) {
             // 找到要发送给邻居的原子

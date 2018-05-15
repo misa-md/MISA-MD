@@ -103,10 +103,10 @@ void WorldBuilder::build() {
 }
 
 void WorldBuilder::createPhaseSpace() {
-    unsigned long id_pre = (unsigned long) box_x * box_y * _p_domain->getSubBoxLatticeCoordLower(2)
-                           + (unsigned long) _p_domain->getSubBoxLatticeCoordLower(1) *
+    unsigned long id_pre = (unsigned long) box_x * box_y * _p_domain->getGlobalSubBoxLatticeCoordLower(2)
+                           + (unsigned long) _p_domain->getGlobalSubBoxLatticeCoordLower(1) *
                              box_x * _p_domain->getSubBoxLatticeSize(2)
-                           + (unsigned long) _p_domain->getSubBoxLatticeCoordLower(0) *
+                           + (unsigned long) _p_domain->getGlobalSubBoxLatticeCoordLower(0) *
                              _p_domain->getSubBoxLatticeSize(1) * _p_domain->getSubBoxLatticeSize(2);
     /*for(int i = 0; i < id_pre; i++){
         uniform();
@@ -122,11 +122,11 @@ void WorldBuilder::createPhaseSpace() {
                 atom_.id = ++id_pre;
                 atom_._tp = randomAtomsType(); // set random atom type.
                 mass = atom_type::getAtomMass(atom_._tp); // get atom mass of this kind of atom.
-                // atoms[kk].x[0] = (_p_domain->getSubBoxLatticeCoordLower(0) + (i - xstart)) * (_lattice_const / 2);
-                atom_.x[0] = (_p_domain->getSubBoxLatticeCoordLower(0) + i) * 0.5 * (_lattice_const);
-                atom_.x[1] = (_p_domain->getSubBoxLatticeCoordLower(1) + j) * _lattice_const +
+                // atoms[kk].x[0] = (_p_domain->getGlobalSubBoxLatticeCoordLower(0) + (i - xstart)) * (_lattice_const / 2);
+                atom_.x[0] = (_p_domain->getGlobalSubBoxLatticeCoordLower(0) + i) * 0.5 * (_lattice_const);
+                atom_.x[1] = (_p_domain->getGlobalSubBoxLatticeCoordLower(1) + j) * _lattice_const +
                              (i % 2) * (_lattice_const / 2);
-                atom_.x[2] = (_p_domain->getSubBoxLatticeCoordLower(2) + k) * _lattice_const +
+                atom_.x[2] = (_p_domain->getGlobalSubBoxLatticeCoordLower(2) + k) * _lattice_const +
                              (i % 2) * (_lattice_const / 2);
                 atom_.v[0] = (uniform() - 0.5) / mass;
                 atom_.v[1] = (uniform() - 0.5) / mass;
@@ -147,9 +147,9 @@ void WorldBuilder::createPhaseSpace() {
  * Thus, \sum_{i=1}^{N} v_i' * m_i  =0.
  */
 void WorldBuilder::zeroMomentum(double *vcm) {
-//    int xstart = _p_domain->getSubBoxLatticeCoordLower(0) - _p_domain->getGhostLatticeCoordLower(0);
-//    int ystart = _p_domain->getSubBoxLatticeCoordLower(1) - _p_domain->getGhostLatticeCoordLower(1);
-//    int zstart = _p_domain->getSubBoxLatticeCoordLower(2) - _p_domain->getGhostLatticeCoordLower(2);
+//    int xstart = _p_domain->getGlobalSubBoxLatticeCoordLower(0) - _p_domain->getGlobalGhostLatticeCoordLower(0);
+//    int ystart = _p_domain->getGlobalSubBoxLatticeCoordLower(1) - _p_domain->getGlobalGhostLatticeCoordLower(1);
+//    int zstart = _p_domain->getGlobalSubBoxLatticeCoordLower(2) - _p_domain->getGlobalGhostLatticeCoordLower(2);
 //    long kk; // todo unsigned
     _type_atom_mass mass;
     for (int k = 0; k < _p_domain->getSubBoxLatticeSize(2); k++) {
@@ -168,9 +168,9 @@ void WorldBuilder::zeroMomentum(double *vcm) {
 
 double WorldBuilder::computeScalar(_type_atom_count n_atoms) {
     double t = 0.0;
-//    int xstart = _p_domain->getSubBoxLatticeCoordLower(0) - _p_domain->getGhostLatticeCoordLower(0);
-//    int ystart = _p_domain->getSubBoxLatticeCoordLower(1) - _p_domain->getGhostLatticeCoordLower(1);
-//    int zstart = _p_domain->getSubBoxLatticeCoordLower(2) - _p_domain->getGhostLatticeCoordLower(2);
+//    int xstart = _p_domain->getGlobalSubBoxLatticeCoordLower(0) - _p_domain->getGlobalGhostLatticeCoordLower(0);
+//    int ystart = _p_domain->getGlobalSubBoxLatticeCoordLower(1) - _p_domain->getGlobalGhostLatticeCoordLower(1);
+//    int zstart = _p_domain->getGlobalSubBoxLatticeCoordLower(2) - _p_domain->getGlobalGhostLatticeCoordLower(2);
 //    long kk; // todo unsigned
     for (int k = 0; k < _p_domain->getSubBoxLatticeSize(2); k++) {
         for (int j = 0; j < _p_domain->getSubBoxLatticeSize(1); j++) {
@@ -191,9 +191,9 @@ double WorldBuilder::computeScalar(_type_atom_count n_atoms) {
 }
 
 void WorldBuilder::rescale(double rescale_factor) {
-//    int xstart = _p_domain->getSubBoxLatticeCoordLower(0) - _p_domain->getGhostLatticeCoordLower(0);
-//    int ystart = _p_domain->getSubBoxLatticeCoordLower(1) - _p_domain->getGhostLatticeCoordLower(1);
-//    int zstart = _p_domain->getSubBoxLatticeCoordLower(2) - _p_domain->getGhostLatticeCoordLower(2);
+//    int xstart = _p_domain->getGlobalSubBoxLatticeCoordLower(0) - _p_domain->getGlobalGhostLatticeCoordLower(0);
+//    int ystart = _p_domain->getGlobalSubBoxLatticeCoordLower(1) - _p_domain->getGlobalGhostLatticeCoordLower(1);
+//    int zstart = _p_domain->getGlobalSubBoxLatticeCoordLower(2) - _p_domain->getGlobalGhostLatticeCoordLower(2);
 //    long kk;
     for (int k = 0; k < _p_domain->getSubBoxLatticeSize(2); k++) {
         for (int j = 0; j < _p_domain->getSubBoxLatticeSize(1); j++) {
@@ -230,9 +230,9 @@ double WorldBuilder::uniform() {
 
 void WorldBuilder::vcm(double p[DIMENSION + 1]) {
     _type_atom_mass mass_one = 0.0;
-//    int xstart = _p_domain->getSubBoxLatticeCoordLower(0) - _p_domain->getGhostLatticeCoordLower(0);
-//    int ystart = _p_domain->getSubBoxLatticeCoordLower(1) - _p_domain->getGhostLatticeCoordLower(1);
-//    int zstart = _p_domain->getSubBoxLatticeCoordLower(2) - _p_domain->getGhostLatticeCoordLower(2);
+//    int xstart = _p_domain->getGlobalSubBoxLatticeCoordLower(0) - _p_domain->getGlobalGhostLatticeCoordLower(0);
+//    int ystart = _p_domain->getGlobalSubBoxLatticeCoordLower(1) - _p_domain->getGlobalGhostLatticeCoordLower(1);
+//    int zstart = _p_domain->getGlobalSubBoxLatticeCoordLower(2) - _p_domain->getGlobalGhostLatticeCoordLower(2);
     // reset p.
     for (int i = 0; i < DIMENSION; i++) {
         p[i] = 0;

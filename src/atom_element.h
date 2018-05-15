@@ -30,8 +30,12 @@ public:
     _type_atom_rho rho;
     _type_atom_df df;
 
+    /**
+     * check whether this atom is Inter atom.
+     * @return
+     */
+    bool isInterElement() const;
 
 };
-
 
 #endif //CRYSTAL_MD_ATOM_ELEMENT_H

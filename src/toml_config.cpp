@@ -9,7 +9,6 @@
 // Created by gensh(genshenchu@gmail.com) on 2017/4/16.
 //
 
-using namespace std;
 ConfigParser *ConfigParser::m_pInstance = nullptr;
 
 ConfigParser::ConfigParser() : kiwi::config::config() {
@@ -24,7 +23,7 @@ ConfigParser *ConfigParser::getInstance() {
     return m_pInstance; // make sure there is a configure instance.
 }
 
-ConfigParser *ConfigParser::newInstance(const string &configureFilePath) {
+ConfigParser *ConfigParser::newInstance(const std::string &configureFilePath) {
     if (m_pInstance == nullptr) {
         m_pInstance = new ConfigParser();  // todo delete
         m_pInstance->resolve(configureFilePath);

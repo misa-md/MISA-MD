@@ -33,6 +33,11 @@ public :
      */
     void addAtom(unsigned long id, double rx, double ry, double rz, double vx, double vy, double vz);
 
+    /**
+     * compute the index offset of neighbour atoms.
+     */
+    void calculateNeighbourIndices();
+
     int decide();
 
     void clearForce();
@@ -92,7 +97,6 @@ public :
     }
 
 private:
-    void calculateNeighbourIndices();
 
     long IndexOf3DIndex(long int xIndex, long int yIndex, long int zIndex) const;
 
@@ -109,6 +113,7 @@ private:
     vector<long int> NeighbourOffsets; // 邻居粒子偏移量
 
     AtomList *atom_list;
+
 //    unsigned long *id; //
 //    int *type;
 //    double *x, *v, *f, *rho, *df;

@@ -3,3 +3,7 @@
 //
 
 #include "atom_element.h"
+
+bool AtomElement::isInterElement() const {
+    return x[0] == COORDINATE_ATOM_OUT_BOX;
+}

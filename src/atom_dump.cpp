@@ -15,7 +15,7 @@ AtomDump &AtomDump::setMode(_type_out_mode mode) {
     return *this;
 }
 
-AtomDump &AtomDump::setDumpFile(std::string filename) {
+AtomDump &AtomDump::setDumpFile(const std::string &filename) {
     this->dump_file_name = filename;
     return *this;
 }
@@ -92,7 +92,7 @@ void AtomDump::dumpModeDirect(atom *atom) {
             for (int i = _begin[0]; i < _end[0]; i++) {
                 kk = atom->IndexOf3DIndex(i, j, k);
                 AtomElement &atom_ = atom->getAtomList()->getAtomEleByLinearIndex(kk);
-                if (atom_.x[0] != COORDINATE_ATOM_OUT_BOX)
+                if (!atom_.isInterElement())
                     outfile << atom_.id << " "
 //                            << "ty" << atom_.type << " "
                             << atom_.x[0] << " "

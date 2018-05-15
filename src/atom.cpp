@@ -17,33 +17,31 @@ atom::atom(Domain *domain, double latticeconst,
     nlocalinter = 0;
     nghostinter = 0;
 
-    numberoflattice =
-            p_domain->getGhostLatticeSize(0) * p_domain->getGhostLatticeSize(1) * p_domain->getGhostLatticeSize(2);
+    numberoflattice = p_domain->getGhostExtLatticeSize(0) * p_domain->getGhostExtLatticeSize(1) *
+                      p_domain->getGhostExtLatticeSize(2);
     // printf("number:%d, %d, %d, %d, %d\n", numberoflattice,
     // p_domain->getSubBoxLatticeSize(0), p_domain->getSubBoxLatticeSize(1), p_domain->getSubBoxLatticeSize(2),
     // p_domain->getSubBoxLatticeSize(0)*p_domain->getSubBoxLatticeSize(1)*p_domain->getSubBoxLatticeSize(2));
-    atom_list = new AtomList(p_domain->getGhostLatticeSize(0),
+    atom_list = new AtomList(p_domain->getGhostExtLatticeSize(0),
+                             p_domain->getGhostExtLatticeSize(1),
+                             p_domain->getGhostExtLatticeSize(2),
+                             p_domain->getGhostLatticeSize(0),
                              p_domain->getGhostLatticeSize(1),
-                             p_domain->getGhostLatticeSize(2),
-                             p_domain->getSubBoxLatticeCoordLower(0) - p_domain->getGhostLatticeCoordLower(0),
-                             p_domain->getSubBoxLatticeCoordLower(1) - p_domain->getGhostLatticeCoordLower(1),
-                             p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2));
-
-    calculateNeighbourIndices();
+                             p_domain->getGhostLatticeSize(2));
 
     if (isAccelerateSupport()) {
-        accelerateInit(p_domain->getSubBoxLatticeCoordLower(0),
-                       p_domain->getSubBoxLatticeCoordLower(1),
-                       p_domain->getSubBoxLatticeCoordLower(2),
+        accelerateInit(p_domain->getGlobalSubBoxLatticeCoordLower(0),
+                       p_domain->getGlobalSubBoxLatticeCoordLower(1),
+                       p_domain->getGlobalSubBoxLatticeCoordLower(2),
                        p_domain->getSubBoxLatticeSize(0),
                        p_domain->getSubBoxLatticeSize(1),
                        p_domain->getSubBoxLatticeSize(2),
-                       p_domain->getGhostLatticeCoordLower(0),
-                       p_domain->getGhostLatticeCoordLower(1),
-                       p_domain->getGhostLatticeCoordLower(2),
-                       p_domain->getGhostLatticeSize(0),
-                       p_domain->getGhostLatticeSize(1),
-                       p_domain->getGhostLatticeSize(2));
+                       p_domain->getGlobalGhostLatticeCoordLower(0),
+                       p_domain->getGlobalGhostLatticeCoordLower(1),
+                       p_domain->getGlobalGhostLatticeCoordLower(2),
+                       p_domain->getGhostExtLatticeSize(0),
+                       p_domain->getGhostExtLatticeSize(1),
+                       p_domain->getGhostExtLatticeSize(2));
     }
 }
 
@@ -54,7 +52,7 @@ atom::~atom() {
 void atom::calculateNeighbourIndices() {
     double x, y, z;
     int mark = 0;
-    double cut_times_lattice = _cutoffRadius / _latticeconst;
+    double cut_times_lattice = _cutoffRadius / _latticeconst; // todo use cutoffRadiusFactor.
     vector<long int>::iterator neighbourOffsetsIter;
     for (int zIndex = -_cutlattice; zIndex <= _cutlattice; zIndex++) { // loop for (2*_cutlattice + 1) times.
         for (int yIndex = -_cutlattice; yIndex <= _cutlattice; yIndex++) {
@@ -98,7 +96,7 @@ void atom::calculateNeighbourIndices() {
 }
 
 long atom::IndexOf3DIndex(long int xIndex, long int yIndex, long int zIndex) const {
-    return (zIndex * p_domain->getGhostLatticeSize(1) + yIndex) * p_domain->getGhostLatticeSize(0) + xIndex;
+    return (zIndex * p_domain->getGhostExtLatticeSize(1) + yIndex) * p_domain->getGhostExtLatticeSize(0) + xIndex;
 }
 
 void atom::addAtom(_type_atom_id id, double rx, double ry, double rz, double vx, double vy, double vz) {
@@ -115,11 +113,11 @@ void atom::addAtom(_type_atom_id id, double rx, double ry, double rz, double vx,
         lattice[2] = rz * 2 / _latticeconst + 0.5;
         lattice[1] = lattice[1] / 2;
         lattice[2] = lattice[2] / 2;
-        lattice[0] -= p_domain->getGhostLatticeCoordLower(0);
-        lattice[1] -= p_domain->getGhostLatticeCoordLower(1);
-        lattice[2] -= p_domain->getGhostLatticeCoordLower(2);
-        i = ((p_domain->getGhostLatticeSize(1)) * lattice[2] + lattice[1]) *
-            (p_domain->getGhostLatticeSize(0)) + lattice[0];
+        lattice[0] -= p_domain->getGlobalGhostLatticeCoordLower(0);
+        lattice[1] -= p_domain->getGlobalGhostLatticeCoordLower(1);
+        lattice[2] -= p_domain->getGlobalGhostLatticeCoordLower(2);
+        i = ((p_domain->getGhostExtLatticeSize(1)) * lattice[2] + lattice[1]) *
+            (p_domain->getGhostExtLatticeSize(0)) + lattice[0];
         AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(i);
         atom_.id = id;
         atom_.x[0] = rx;
@@ -137,20 +135,20 @@ int atom::decide() {
     long kk = 0;
     double dist;
     double xtemp, ytemp, ztemp;
-    int xstart = p_domain->getSubBoxLatticeCoordLower(0) - p_domain->getGhostLatticeCoordLower(0);
-    int ystart = p_domain->getSubBoxLatticeCoordLower(1) - p_domain->getGhostLatticeCoordLower(1);
-    int zstart = p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2);
+//    int xstart = p_domain->getGhostLatticeSize(0);
+//    int ystart = p_domain->getGhostLatticeSize(1);
+//    int zstart = p_domain->getGhostLatticeSize(2);
 
     //对本地晶格点原子进行判断，看是否运动为间隙原子
-    for (int k = zstart; k < p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
-        for (int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
-            for (int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
-                kk = IndexOf3DIndex(i, j, k);
-                AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
-                if (atom_.x[0] != COORDINATE_ATOM_OUT_BOX) {
-                    xtemp = (i + p_domain->getGhostLatticeCoordLower(0)) * 0.5 * _latticeconst;
-                    ytemp = (j + p_domain->getGhostLatticeCoordLower(1) + (i % 2) * 0.5) * _latticeconst;
-                    ztemp = (k + p_domain->getGhostLatticeCoordLower(2) + (i % 2) * 0.5) * _latticeconst;
+    for (int k = 0; k < p_domain->getSubBoxLatticeSize(2); k++) {
+        for (int j = 0; j < p_domain->getSubBoxLatticeSize(1); j++) {
+            for (int i = 0; i < p_domain->getSubBoxLatticeSize(0); i++) {
+//                kk = IndexOf3DIndex(i, j, k);
+                AtomElement &atom_ = atom_list->getAtomEleBySubBoxIndex(i, j, k); // todo long type
+                if (!atom_.isInterElement()) {
+                    xtemp = (i + p_domain->getGlobalSubBoxLatticeCoordLower(0)) * 0.5 * _latticeconst;
+                    ytemp = (j + p_domain->getGlobalSubBoxLatticeCoordLower(1) + (i % 2) * 0.5) * _latticeconst;
+                    ztemp = (k + p_domain->getGlobalSubBoxLatticeCoordLower(2) + (i % 2) * 0.5) * _latticeconst;
                     dist = (atom_.x[0] - xtemp) * (atom_.x[0] - xtemp);
                     dist += (atom_.x[1] - ytemp) * (atom_.x[1] - ytemp);
                     dist += (atom_.x[2] - ztemp) * (atom_.x[2] - ztemp);
@@ -161,7 +159,7 @@ int atom::decide() {
                             } else {
                                 idinter.push_back(atom_.id);
                             }
-                            typeinter[nlocalinter] = atom_.type;
+                            typeinter[nlocalinter] = atom_.type; // todo type.
                             xinter[nlocalinter][0] = atom_.x[0];
                             xinter[nlocalinter][1] = atom_.x[1];
                             xinter[nlocalinter][2] = atom_.x[2];
@@ -240,16 +238,16 @@ int atom::decide() {
         l = ztemp * 2 / _latticeconst + 0.5;
         k = k / 2;
         l = l / 2;
-        j -= p_domain->getGhostLatticeCoordLower(0);
-        k -= p_domain->getGhostLatticeCoordLower(1);
-        l -= p_domain->getGhostLatticeCoordLower(2);
+        j -= p_domain->getGlobalGhostLatticeCoordLower(0);
+        k -= p_domain->getGlobalGhostLatticeCoordLower(1);
+        l -= p_domain->getGlobalGhostLatticeCoordLower(2);
         //判断是否在所表示晶格范围内
         if (j <= (p_domain->getSubBoxLatticeSize(0) + 2 * (ceil(_cutoffRadius / _latticeconst) + 1))
             && k <= (p_domain->getSubBoxLatticeSize(1) + (ceil(_cutoffRadius / _latticeconst) + 1))
             && l <= (p_domain->getSubBoxLatticeSize(2) + (ceil(_cutoffRadius / _latticeconst) + 1))) {
             j = IndexOf3DIndex(j, k, l);
             AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(j);
-            if (atom_.x[0] == COORDINATE_ATOM_OUT_BOX) {
+            if (atom_.isInterElement()) {
                 atom_.id = idinter[i];
                 atom_.type = typeinter[i];
                 atom_.x[0] = xinter[i][0];
@@ -282,6 +280,10 @@ void atom::clearForce() {
         atom_.f[0] = 0;
         atom_.f[1] = 0;
         atom_.f[2] = 0;
+
+    }
+    for (int i = 0; i < numberoflattice; i++) {
+        AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(i);
         atom_.rho = 0;
     }
     for (int i = 0; i < finter.size(); i++) {
@@ -310,9 +312,9 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
     double fpair;
     double recip, phi, phip, psip, z2, z2p;
     long kk;
-    int xstart = p_domain->getSubBoxLatticeCoordLower(0) - p_domain->getGhostLatticeCoordLower(0);
-    int ystart = p_domain->getSubBoxLatticeCoordLower(1) - p_domain->getGhostLatticeCoordLower(1);
-    int zstart = p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2);
+    int xstart = p_domain->getGhostLatticeSize(0);
+    int ystart = p_domain->getGhostLatticeSize(1);
+    int zstart = p_domain->getGhostLatticeSize(2);
 
     // 本地晶格点上的原子计算电子云密度
     if (isAccelerateSupport()) {
@@ -327,7 +329,7 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
                     xtemp = atom_.x[0];
                     ytemp = atom_.x[1];
                     ztemp = atom_.x[2];
-                    if (xtemp != COORDINATE_ATOM_OUT_BOX) {
+                    if (!atom_.isInterElement()) {
                         //对晶格点邻居原子遍历
                         for (neighbourOffsetsIter = NeighbourOffsets.begin();
                              neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
@@ -370,9 +372,9 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
         l = ztemp * 2 / _latticeconst + 0.5;
         k = k / 2;
         l = l / 2;
-        j -= p_domain->getGhostLatticeCoordLower(0);
-        k -= p_domain->getGhostLatticeCoordLower(1);
-        l -= p_domain->getGhostLatticeCoordLower(2);
+        j -= p_domain->getGlobalGhostLatticeCoordLower(0);
+        k -= p_domain->getGlobalGhostLatticeCoordLower(1);
+        l -= p_domain->getGlobalGhostLatticeCoordLower(2);
         j = IndexOf3DIndex(j, k, l);
         AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(j);
 
@@ -475,12 +477,11 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
     /* char tmp[20];
     sprintf(tmp, "rho.atom");
     outfile.open(tmp);
-    for(int k = zstart; k < p_domain->getSubBoxLatticeSize(2) + zstart; k++){
-            for(int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++){
-                    for(int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++){
-                            kk = IndexOf3DIndex( i, j, k);
-                             AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
-                            if(atom_.x[0] != COORDINATE_ATOM_OUT_BOX)
+    for(int k =0; k < p_domain->getSubBoxLatticeSize(2) ; k++){
+            for(int j = 0; j < p_domain->getSubBoxLatticeSize(1); j++){
+                    for(int i =0; i < p_domain->getSubBoxLatticeSize(0) ; i++){
+                             AtomElement &atom_ = atom_list->getAtomEleBySubBoxIndex(i,j,k);
+                            if(!atom_.isInterElement())
                                     outfile << atom_.rho << std::endl;
                     }
             }
@@ -499,12 +500,12 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
     /*sprintf(tmp, "rho2.atom");
     outfile;
     outfile.open(tmp);
-    for(int k = zstart; k < p_domain->getSubBoxLatticeSize(2) + zstart; k++){
-            for(int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++){
-                    for(int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++){
-                            kk = IndexOf3DIndex( i, j, k);
-                             AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
-                            if(atom_.x[0] != COORDINATE_ATOM_OUT_BOX)
+
+    for(int k =0; k < p_domain->getSubBoxLatticeSize(2) ; k++){
+            for(int j = 0; j < p_domain->getSubBoxLatticeSize(1); j++){
+                    for(int i =0; i < p_domain->getSubBoxLatticeSize(0) ; i++){
+                             AtomElement &atom_ = atom_list->getAtomEleBySubBoxIndex(i,j,k);
+                            if(!atom_.isInterElement())
                                     outfile << atom_.rho << std::endl;
                     }
             }
@@ -556,12 +557,12 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
     } else {
         /*sprintf(tmp, "f.atom");
         outfile.open(tmp);
-        for(int k = zstart; k < p_domain->getSubBoxLatticeSize(2) + zstart; k++){
-                for(int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++){
-                        for(int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++){
-                                kk = IndexOf3DIndex( i, j, k);
-                                 AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
-                                if(atom_.x[0] != COORDINATE_ATOM_OUT_BOX)
+
+    for(int k =0; k < p_domain->getSubBoxLatticeSize(2) ; k++){
+            for(int j = 0; j < p_domain->getSubBoxLatticeSize(1); j++){
+                    for(int i =0; i < p_domain->getSubBoxLatticeSize(0) ; i++){
+                             AtomElement &atom_ = atom_list->getAtomEleBySubBoxIndex(i,j,k);
+                                if(!atom_.isInterElement())
                                         outfile << f[kk*3] << std::endl;
                         }
                 }
@@ -576,7 +577,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                     xtemp = atom_.x[0];
                     ytemp = atom_.x[1];
                     ztemp = atom_.x[2];
-                    if (xtemp != COORDINATE_ATOM_OUT_BOX) {
+                    if (!atom_.isInterElement()) {
                         //对晶格点邻居原子遍历
                         for (neighbourOffsetsIter = NeighbourOffsets.begin();
                              neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
@@ -642,9 +643,9 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
         l = ztemp * 2 / _latticeconst + 0.5;
         k = k / 2;
         l = l / 2;
-        j -= p_domain->getGhostLatticeCoordLower(0);
-        k -= p_domain->getGhostLatticeCoordLower(1);
-        l -= p_domain->getGhostLatticeCoordLower(2);
+        j -= p_domain->getGlobalGhostLatticeCoordLower(0);
+        k -= p_domain->getGlobalGhostLatticeCoordLower(1);
+        l -= p_domain->getGlobalGhostLatticeCoordLower(2);
         j = IndexOf3DIndex(j, k, l);
         AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(j);
 
@@ -807,10 +808,10 @@ void atom::getatomx(int direction, vector<vector<int> > &sendlist) {
     int i;
     if (direction == 0) {
         //找到要发送到邻居进程的区域
-        int xstart = p_domain->getSubBoxLatticeCoordLower(0) - p_domain->getGhostLatticeCoordLower(0);
-        int ystart = p_domain->getSubBoxLatticeCoordLower(1) - p_domain->getGhostLatticeCoordLower(1);
-        int zstart = p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2);
-        int xstop = xstart + (_cutlattice) * 2;
+        int xstart = p_domain->getGhostLatticeSize(0);
+        int ystart = p_domain->getGhostLatticeSize(1);
+        int zstart = p_domain->getGhostLatticeSize(2);
+        int xstop = xstart + p_domain->getGhostLatticeSize(0); // note: this is ghost lattice size.
         int ystop = ystart + p_domain->getSubBoxLatticeSize(1);
         int zstop = zstart + p_domain->getSubBoxLatticeSize(2);
 
@@ -825,12 +826,10 @@ void atom::getatomx(int direction, vector<vector<int> > &sendlist) {
         }
     } else {
         //找到要发送到邻居进程的区域
-        int xstart = p_domain->getSubBoxLatticeCoordLower(0) - p_domain->getGhostLatticeCoordLower(0) +
-                     p_domain->getSubBoxLatticeSize(0) - ((_cutlattice) * 2);
-        int ystart = p_domain->getSubBoxLatticeCoordLower(1) - p_domain->getGhostLatticeCoordLower(1);
-        int zstart = p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2);
-        int xstop = p_domain->getSubBoxLatticeCoordLower(0) - p_domain->getGhostLatticeCoordLower(0) +
-                    p_domain->getSubBoxLatticeSize(0);
+        int xstart = p_domain->getGhostLatticeSize(0) + p_domain->getSubBoxLatticeSize(0) - ((_cutlattice) * 2);
+        int ystart = p_domain->getGhostLatticeSize(1);
+        int zstart = p_domain->getGhostLatticeSize(2);
+        int xstop = p_domain->getGhostLatticeSize(0) + p_domain->getSubBoxLatticeSize(0);
         int ystop = ystart + p_domain->getSubBoxLatticeSize(1);
         int zstop = zstart + p_domain->getSubBoxLatticeSize(2);
 
@@ -851,9 +850,9 @@ void atom::getatomy(int direction, vector<vector<int> > &sendlist) {
     if (direction == 0) {
         //找到要发送到邻居进程的区域
         int xstart = 0;
-        int ystart = p_domain->getSubBoxLatticeCoordLower(1) - p_domain->getGhostLatticeCoordLower(1);
-        int zstart = p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2);
-        int xstop = p_domain->getGhostLatticeSize(0);
+        int ystart = p_domain->getGhostLatticeSize(1);
+        int zstart = p_domain->getGhostLatticeSize(2);
+        int xstop = p_domain->getGhostExtLatticeSize(0);
         int ystop = ystart + _cutlattice;
         int zstop = zstart + p_domain->getSubBoxLatticeSize(2);
 
@@ -870,11 +869,11 @@ void atom::getatomy(int direction, vector<vector<int> > &sendlist) {
         //找到要发送到邻居进程的区域
         int xstart = 0;
         int ystart =
-                p_domain->getSubBoxLatticeCoordLower(1) - p_domain->getGhostLatticeCoordLower(1) +
+                p_domain->getGhostLatticeSize(1) +
                 p_domain->getSubBoxLatticeSize(1) - (_cutlattice);
-        int zstart = p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2);
-        int xstop = p_domain->getGhostLatticeSize(0);
-        int ystop = p_domain->getSubBoxLatticeCoordLower(1) - p_domain->getGhostLatticeCoordLower(1) +
+        int zstart = p_domain->getGhostLatticeSize(2);
+        int xstop = p_domain->getGhostExtLatticeSize(0);
+        int ystop = p_domain->getGhostLatticeSize(1) +
                     p_domain->getSubBoxLatticeSize(1);
         int zstop = zstart + p_domain->getSubBoxLatticeSize(2);
 
@@ -896,9 +895,9 @@ void atom::getatomz(int direction, vector<vector<int> > &sendlist) {
         //找到要发送到邻居进程的区域
         int xstart = 0;
         int ystart = 0;
-        int zstart = p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2);
-        int xstop = p_domain->getGhostLatticeSize(0);
-        int ystop = p_domain->getGhostLatticeSize(1);
+        int zstart = p_domain->getGhostLatticeSize(2);
+        int xstop = p_domain->getGhostExtLatticeSize(0);
+        int ystop = p_domain->getGhostExtLatticeSize(1);
         int zstop = zstart + _cutlattice;
 
         //要发送要邻居进程区域内的分子指针
@@ -914,12 +913,10 @@ void atom::getatomz(int direction, vector<vector<int> > &sendlist) {
         //找到要发送到邻居进程的区域
         int xstart = 0;
         int ystart = 0;
-        int zstart = p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2) +
-                     p_domain->getSubBoxLatticeSize(2) - (_cutlattice);
-        int xstop = p_domain->getGhostLatticeSize(0);
-        int ystop = p_domain->getGhostLatticeSize(1);
-        int zstop = p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2) +
-                    p_domain->getSubBoxLatticeSize(2);
+        int zstart = p_domain->getGhostLatticeSize(2) + p_domain->getSubBoxLatticeSize(2) - (_cutlattice);
+        int xstop = p_domain->getGhostExtLatticeSize(0);
+        int ystop = p_domain->getGhostExtLatticeSize(1);
+        int zstop = p_domain->getGhostLatticeSize(2) + p_domain->getSubBoxLatticeSize(2);
 
         //要发送要邻居进程区域内的分子指针
         for (int iz = zstart; iz < zstop; iz++) {
@@ -1189,12 +1186,12 @@ void atom::unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, v
     int m = 0;
     if (d == 0) {
         if (direction == 0) {
-            xstart = p_domain->getSubBoxLatticeCoordLower(0) - p_domain->getGhostLatticeCoordLower(0) +
+            xstart = p_domain->getGhostLatticeSize(0) +
                      p_domain->getSubBoxLatticeSize(0);
-            xstop = p_domain->getGhostLatticeSize(0);
-            ystart = p_domain->getSubBoxLatticeCoordLower(1) - p_domain->getGhostLatticeCoordLower(1);
+            xstop = p_domain->getGhostExtLatticeSize(0);
+            ystart = p_domain->getGhostLatticeSize(1);
             ystop = ystart + p_domain->getSubBoxLatticeSize(1);
-            zstart = p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2);
+            zstart = p_domain->getGhostLatticeSize(2);
             zstop = zstart + p_domain->getSubBoxLatticeSize(2);
             for (int k = zstart; k < zstop; k++) {
                 for (int j = ystart; j < ystop; j++) {
@@ -1213,10 +1210,10 @@ void atom::unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, v
                 printf("wrong!!!\n");
         } else {
             xstart = 0;
-            xstop = p_domain->getSubBoxLatticeCoordLower(0) - p_domain->getGhostLatticeCoordLower(0);
-            ystart = p_domain->getSubBoxLatticeCoordLower(1) - p_domain->getGhostLatticeCoordLower(1);
+            xstop = p_domain->getGhostLatticeSize(0);
+            ystart = p_domain->getGhostLatticeSize(1);
             ystop = ystart + p_domain->getSubBoxLatticeSize(1);
-            zstart = p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2);
+            zstart = p_domain->getGhostLatticeSize(2);
             zstop = zstart + p_domain->getSubBoxLatticeSize(2);
             for (int k = zstart; k < zstop; k++) {
                 for (int j = ystart; j < ystop; j++) {
@@ -1237,11 +1234,11 @@ void atom::unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, v
     } else if (d == 1) {
         if (direction == 0) {
             xstart = 0;
-            xstop = p_domain->getGhostLatticeSize(0);
-            ystart = p_domain->getSubBoxLatticeCoordLower(1) - p_domain->getGhostLatticeCoordLower(1) +
+            xstop = p_domain->getGhostExtLatticeSize(0);
+            ystart = p_domain->getGhostLatticeSize(1) +
                      p_domain->getSubBoxLatticeSize(1);
-            ystop = p_domain->getGhostLatticeSize(1);
-            zstart = p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2);
+            ystop = p_domain->getGhostExtLatticeSize(1);
+            zstart = p_domain->getGhostLatticeSize(2);
             zstop = zstart + p_domain->getSubBoxLatticeSize(2);
             for (int k = zstart; k < zstop; k++) {
                 for (int j = ystart; j < ystop; j++) {
@@ -1260,10 +1257,10 @@ void atom::unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, v
                 printf("wrong!!!\n");
         } else {
             xstart = 0;
-            xstop = p_domain->getGhostLatticeSize(0);
+            xstop = p_domain->getGhostExtLatticeSize(0);
             ystart = 0;
-            ystop = p_domain->getSubBoxLatticeCoordLower(1) - p_domain->getGhostLatticeCoordLower(1);
-            zstart = p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2);
+            ystop = p_domain->getGhostLatticeSize(1);
+            zstart = p_domain->getGhostLatticeSize(2);
             zstop = zstart + p_domain->getSubBoxLatticeSize(2);
             for (int k = zstart; k < zstop; k++) {
                 for (int j = ystart; j < ystop; j++) {
@@ -1284,12 +1281,12 @@ void atom::unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, v
     } else {
         if (direction == 0) {
             xstart = 0;
-            xstop = p_domain->getGhostLatticeSize(0);
+            xstop = p_domain->getGhostExtLatticeSize(0);
             ystart = 0;
-            ystop = p_domain->getGhostLatticeSize(1);
-            zstart = p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2) +
+            ystop = p_domain->getGhostExtLatticeSize(1);
+            zstart = p_domain->getGhostLatticeSize(2) +
                      p_domain->getSubBoxLatticeSize(2);
-            zstop = p_domain->getGhostLatticeSize(2);
+            zstop = p_domain->getGhostExtLatticeSize(2);
             for (int k = zstart; k < zstop; k++) {
                 for (int j = ystart; j < ystop; j++) {
                     for (int i = xstart; i < xstop; i++) {
@@ -1307,11 +1304,11 @@ void atom::unpack_recvfirst(int d, int direction, int n, LatParticleData *buf, v
                 printf("wrong!!!\n");
         } else {
             xstart = 0;
-            xstop = p_domain->getGhostLatticeSize(0);
+            xstop = p_domain->getGhostExtLatticeSize(0);
             ystart = 0;
-            ystop = p_domain->getGhostLatticeSize(1);
+            ystop = p_domain->getGhostExtLatticeSize(1);
             zstart = 0;
-            zstop = p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2);
+            zstop = p_domain->getGhostLatticeSize(2);
             for (int k = zstart; k < zstop; k++) {
                 for (int j = ystart; j < ystop; j++) {
                     for (int i = xstart; i < xstop; i++) {
@@ -1563,16 +1560,16 @@ void atom::unpack_force(int d, int direction, double *buf, vector<vector<int> > 
 
 void atom::computefirst(double dtInv2m, double dt) {
     long kk;
-    int xstart = p_domain->getSubBoxLatticeCoordLower(0) - p_domain->getGhostLatticeCoordLower(0);
-    int ystart = p_domain->getSubBoxLatticeCoordLower(1) - p_domain->getGhostLatticeCoordLower(1);
-    int zstart = p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2);
+    int xstart = p_domain->getGhostLatticeSize(0);
+    int ystart = p_domain->getGhostLatticeSize(1);
+    int zstart = p_domain->getGhostLatticeSize(2);
     //本地晶格点上的原子求解运动方程第一步
     for (int k = zstart; k < p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
         for (int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
             for (int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
                 kk = IndexOf3DIndex(i, j, k);
                 AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
-                if (atom_.x[0] != COORDINATE_ATOM_OUT_BOX) {
+                if (!atom_.isInterElement()) {
                     atom_.v[0] = atom_.v[0] + dtInv2m * atom_.f[0];
                     atom_.x[0] += dt * atom_.v[0];
                     atom_.v[1] = atom_.v[1] + dtInv2m * atom_.f[1];
@@ -1594,9 +1591,9 @@ void atom::computefirst(double dtInv2m, double dt) {
 
 void atom::computesecond(double dtInv2m) {
     long kk;
-    int xstart = p_domain->getSubBoxLatticeCoordLower(0) - p_domain->getGhostLatticeCoordLower(0);
-    int ystart = p_domain->getSubBoxLatticeCoordLower(1) - p_domain->getGhostLatticeCoordLower(1);
-    int zstart = p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2);
+    int xstart = p_domain->getGhostLatticeSize(0);
+    int ystart = p_domain->getGhostLatticeSize(1);
+    int zstart = p_domain->getGhostLatticeSize(2);
     //本地晶格点上的原子求解运动方程第二步
     for (int k = zstart; k < p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
         for (int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
@@ -1623,9 +1620,9 @@ void atom::print_force() {
     ofstream outfile;
     outfile.open(tmp);
     long kk;
-    int xstart = p_domain->getSubBoxLatticeCoordLower(0) - p_domain->getGhostLatticeCoordLower(0);
-    int ystart = p_domain->getSubBoxLatticeCoordLower(1) - p_domain->getGhostLatticeCoordLower(1);
-    int zstart = p_domain->getSubBoxLatticeCoordLower(2) - p_domain->getGhostLatticeCoordLower(2);
+    int xstart = p_domain->getGhostLatticeSize(0);
+    int ystart = p_domain->getGhostLatticeSize(1);
+    int zstart = p_domain->getGhostLatticeSize(2);
     std::cout << "print_force" << std::endl;
     for (int k = zstart; k < p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
         for (int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
@@ -1641,15 +1638,15 @@ void atom::print_force() {
 
 void atom::setv(int lat[4], double collision_v[3]) {
     long kk;
-    if ((lat[0] * 2) >= p_domain->getSubBoxLatticeCoordLower(0) &&
-        (lat[0] * 2) < (p_domain->getSubBoxLatticeCoordLower(0) + p_domain->getSubBoxLatticeSize(0))
-        && lat[1] >= p_domain->getSubBoxLatticeCoordLower(1) &&
-        lat[1] < (p_domain->getSubBoxLatticeCoordLower(1) + p_domain->getSubBoxLatticeSize(1))
-        && lat[2] >= p_domain->getSubBoxLatticeCoordLower(2) &&
-        lat[2] < (p_domain->getSubBoxLatticeCoordLower(2) + p_domain->getSubBoxLatticeSize(2))) {
-        kk = (IndexOf3DIndex(lat[0] * 2 - p_domain->getGhostLatticeCoordLower(0),
-                             lat[1] - p_domain->getGhostLatticeCoordLower(1),
-                             lat[2] - p_domain->getGhostLatticeCoordLower(2)) + lat[4]);
+    if ((lat[0] * 2) >= p_domain->getGlobalSubBoxLatticeCoordLower(0) &&
+        (lat[0] * 2) < (p_domain->getGlobalSubBoxLatticeCoordLower(0) + p_domain->getSubBoxLatticeSize(0))
+        && lat[1] >= p_domain->getGlobalSubBoxLatticeCoordLower(1) &&
+        lat[1] < (p_domain->getGlobalSubBoxLatticeCoordLower(1) + p_domain->getSubBoxLatticeSize(1))
+        && lat[2] >= p_domain->getGlobalSubBoxLatticeCoordLower(2) &&
+        lat[2] < (p_domain->getGlobalSubBoxLatticeCoordLower(2) + p_domain->getSubBoxLatticeSize(2))) {
+        kk = (IndexOf3DIndex(lat[0] * 2 - p_domain->getGlobalGhostLatticeCoordLower(0),
+                             lat[1] - p_domain->getGlobalGhostLatticeCoordLower(1),
+                             lat[2] - p_domain->getGlobalGhostLatticeCoordLower(2)) + lat[4]);
         AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
         atom_.v[0] += collision_v[0];
         atom_.v[1] += collision_v[1];

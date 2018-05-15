@@ -37,7 +37,7 @@ public:
      * @param filename
      * @return
      */
-    AtomDump &setDumpFile(std::string filename);
+    AtomDump &setDumpFile(const std::string &filename);
 
     /**
      * dump atoms to file(s).
