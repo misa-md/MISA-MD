@@ -77,6 +77,8 @@ void simulation::prepareForStart() {
 
     starttime = MPI_Wtime();
     _p_domain->exchangeAtomFirst(_atom);
+    // fixme those code does not fit [read atom mode], because in [create atom mode], inter is empty at first step;
+    // so borderInter is not get called.
     stoptime = MPI_Wtime();
     commtime = stoptime - starttime;
 
@@ -104,8 +106,10 @@ void simulation::simulate() {
     double alltime, allstart, allstop;
 
     allstart = MPI_Wtime();
-    for (_simulation_time_step = 0;
-         _simulation_time_step < pConfigVal->timeSteps; _simulation_time_step++) {
+    for (_simulation_time_step = 0; _simulation_time_step < pConfigVal->timeSteps; _simulation_time_step++) {
+        kiwi::logs::s(MASTER_PROCESSOR, "simulation", "simulating steps: {}/{}\r",
+                      _simulation_time_step + 1, pConfigVal->timeSteps);
+
         if (_simulation_time_step == pConfigVal->collisionStep) {
             _atom->setv(pConfigVal->collisionLat, pConfigVal->collisionV);
             _p_domain->exchangeInter(_atom);
@@ -119,13 +123,9 @@ void simulation::simulate() {
         _integrator->firststep(_atom);
 
         //判断是否有粒子跑出晶格点
-        kiwi::logs::v(MASTER_PROCESSOR, "simulation", "start deciding atoms:\n");
         _atom->decide();
 
         //通信ghost区域，交换粒子
-        if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
-            kiwi::logs::v("simulation", "start ghost communication:\n");
-        }
         starttime = MPI_Wtime();
         _p_domain->exchangeInter(_atom);
         _p_domain->borderInter(_atom);
@@ -134,9 +134,6 @@ void simulation::simulate() {
         commtime += stoptime - starttime;
 
         //计算力
-        if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
-            kiwi::logs::v("simulation", "start calculating force:\n");
-        }
         _atom->clearForce();
         starttime = MPI_Wtime();
         _atom->computeEam(_pot, _p_domain, comm);
@@ -145,7 +142,6 @@ void simulation::simulate() {
         commtime += comm;
 
         //发送力
-        kiwi::logs::v(MASTER_PROCESSOR, "simulation", "start sending force:\n");
         starttime = MPI_Wtime();
         _p_domain->sendForce(_atom);
         stoptime = MPI_Wtime();

@@ -86,25 +86,21 @@ void AtomDump::dumpModeDirect(atom *atom) {
 
     outfile << "print atoms" << std::endl;
 
-    long kk = 0;
-    for (int k = _begin[2]; k < _end[2]; k++) { // todo int type of k.
-        for (int j = _begin[1]; j < _end[1]; j++) {
-            for (int i = _begin[0]; i < _end[0]; i++) {
-                kk = atom->IndexOf3DIndex(i, j, k);
-                AtomElement &atom_ = atom->getAtomList()->getAtomEleByLinearIndex(kk);
-                if (!atom_.isInterElement())
-                    outfile << atom_.id << " "
-//                            << "ty" << atom_.type << " "
-                            << atom_.x[0] << " "
-                            << atom_.x[1] << " "
-                            << atom_.x[2] << std::endl;
+    atom->atom_list->foreachSubBoxAtom(
+            [&outfile](AtomElement &_atom_ref) {
+                if (!_atom_ref.isInterElement()) {
+                    outfile << _atom_ref.id << " "
+                            //                            << "ty" << atom_.type << " "
+                            << _atom_ref.x[0] << " "
+                            << _atom_ref.x[1] << " "
+                            << _atom_ref.x[2] << std::endl;
+                }
             }
-        }
-    }
+    );
     outfile << "print inter" << std::endl;
     for (int i = 0; i < atom->nlocalinter; i++) {
         outfile << atom->idinter[i] << " "
-//                << "ty" << atom->typeinter[i] << " "
+                //                << "ty" << atom->typeinter[i] << " "
                 << atom->xinter[i][0] << " "
                 << atom->xinter[i][1] << " "
                 << atom->xinter[i][2] << std::endl;

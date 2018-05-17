@@ -7,8 +7,10 @@
 
 #include <iterator>
 #include <vector>
+#include <functional>
 #include "pre_define.h"
 #include "atom_element.h"
+
 
 class AtomList {
 public:
@@ -18,6 +20,7 @@ public:
 
     // @see https://gist.github.com/jeetsukumaran/307264
     // @see https://stackoverflow.com/questions/3846296/how-to-overload-the-operator-in-two-different-ways-for-postfix-a-and-prefix
+    // dont use it.
     class iterator {
     public:
         typedef iterator self_type;
@@ -31,9 +34,9 @@ public:
 //            return *this;
 //        }
 
-        self_type &operator++();
+        self_type &operator++(); // PREFIX
 
-        self_type operator++(int);
+        self_type operator++(int);  // POST
 
         AtomElement &operator*();
 
@@ -72,6 +75,14 @@ public:
         AtomElement *ptr_;
     };
 
+    iterator begin();
+
+    iterator end();
+
+    const_iterator begin() const;
+
+    const_iterator end() const;
+
     // todo override []
     // todo document.
     /**
@@ -84,6 +95,7 @@ public:
      * @param ghost_count_z the same as above at z dimension.
      */
     AtomList(_type_atom_count size_x, _type_atom_count size_y, _type_atom_count size_z,
+             _type_atom_count size_sub_box_x, _type_atom_count size_sub_box_y, _type_atom_count size_sub_box_z,
              _type_atom_count ghost_count_x,
              _type_atom_count ghost_count_y,
              _type_atom_count ghost_count_z);
@@ -129,6 +141,12 @@ public:
     }
 
     /**
+     *
+     */
+    template<typename Callable>
+    void foreachSubBoxAtom(Callable callback);
+
+    /**
      * append/set an atom to inter. // todo unit test.
      * @param atom_id atom id.
      */
@@ -147,8 +165,20 @@ private:
 
     const _type_atom_count _size;
     const _type_atom_count _size_x, _size_y, _size_z;
+    const _type_atom_count _size_sub_box_x, _size_sub_box_y, _size_sub_box_z;
     const _type_atom_count purge_ghost_count_x, purge_ghost_count_y, purge_ghost_count_z;
 };
 
+
+template<typename Callable>
+void AtomList::foreachSubBoxAtom(Callable callback) {
+    for (long z = purge_ghost_count_z; z < _size_sub_box_z + purge_ghost_count_z; z++) {
+        for (long y = purge_ghost_count_y; y < _size_sub_box_y + purge_ghost_count_y; y++) {
+            for (long x = purge_ghost_count_x; x < _size_sub_box_x + purge_ghost_count_x; x++) {
+                callback(_atoms[z][y][x]);
+            }
+        }
+    }
+}
 
 #endif //CRYSTALMD_ATOM_LIST_H

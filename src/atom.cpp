@@ -25,6 +25,9 @@ atom::atom(Domain *domain, double latticeconst,
     atom_list = new AtomList(p_domain->getGhostExtLatticeSize(0),
                              p_domain->getGhostExtLatticeSize(1),
                              p_domain->getGhostExtLatticeSize(2),
+                             p_domain->getSubBoxLatticeSize(0),
+                             p_domain->getSubBoxLatticeSize(1),
+                             p_domain->getSubBoxLatticeSize(2),
                              p_domain->getGhostLatticeSize(0),
                              p_domain->getGhostLatticeSize(1),
                              p_domain->getGhostLatticeSize(2));
@@ -864,13 +867,10 @@ void atom::getatomy(int direction, vector<vector<_type_atom_id> > &sendlist) {
     } else {
         //找到要发送到邻居进程的区域
         int xstart = 0;
-        int ystart =
-                p_domain->getGhostLatticeSize(1) +
-                p_domain->getSubBoxLatticeSize(1) - (_cutlattice);
+        int ystart = p_domain->getGhostLatticeSize(1) + p_domain->getSubBoxLatticeSize(1) - (_cutlattice);
         int zstart = p_domain->getGhostLatticeSize(2);
         int xstop = p_domain->getGhostExtLatticeSize(0);
-        int ystop = p_domain->getGhostLatticeSize(1) +
-                    p_domain->getSubBoxLatticeSize(1);
+        int ystop = p_domain->getGhostLatticeSize(1) + p_domain->getSubBoxLatticeSize(1);
         int zstop = zstart + p_domain->getSubBoxLatticeSize(2);
 
         //要发送要邻居进程区域内的分子指针
@@ -989,6 +989,8 @@ int atom::getintersendnum(int dimension, int direction) {
     interbuf.clear();
     for (int i = 0; i < nlocalinter; i++) {
         if (direction == 0) {
+            // we assume that, a atom cannot cross 2 or more than 2 sub-boxes
+            // todo think: what if a atom is at the north-west corner?
             if (xinter[i][dimension] < p_domain->getMeasuredSubBoxLowerBounding(dimension)) {
                 interbuf.push_back(i);
             }
@@ -1013,6 +1015,8 @@ void atom::pack_intersend(particledata *buf) {
         buf[i].v[0] = vinter[j][0];
         buf[i].v[1] = vinter[j][1];
         buf[i].v[2] = vinter[j][2];
+        // remove the inter atom.
+        // exchange the atom at end of vector to the position of atom (inter[j]) te be removed .
         idinter[j] = idinter[nlocalinter - 1];
         typeinter[j] = typeinter[nlocalinter - 1];
         xinter[j][0] = xinter[nlocalinter - 1][0];
@@ -1154,7 +1158,7 @@ void atom::pack_send(int dimension, int n, vector<_type_atom_id> &sendlist,
         j = sendlist[i];
         AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(j);
         // for ghost atoms, we just care their position and atom type(eam calculating), so positions and types are enough.
-        buf[i].type = atom_.type;
+        buf[i].type = atom_.type; // fixme --type
         buf[i].r[0] = atom_.x[0] + shift[0];
         buf[i].r[1] = atom_.x[1] + shift[1];
         buf[i].r[2] = atom_.x[2] + shift[2];
@@ -1542,27 +1546,20 @@ void atom::unpack_force(int d, int direction, double *buf, vector<vector<_type_a
 }
 
 void atom::computefirst(double dtInv2m, double dt) {
-    long kk;
-    int xstart = p_domain->getGhostLatticeSize(0);
-    int ystart = p_domain->getGhostLatticeSize(1);
-    int zstart = p_domain->getGhostLatticeSize(2);
     //本地晶格点上的原子求解运动方程第一步
-    for (int k = zstart; k < p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
-        for (int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
-            for (int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
-                kk = IndexOf3DIndex(i, j, k);
-                AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
-                if (!atom_.isInterElement()) {
-                    atom_.v[0] = atom_.v[0] + dtInv2m * atom_.f[0];
-                    atom_.x[0] += dt * atom_.v[0];
-                    atom_.v[1] = atom_.v[1] + dtInv2m * atom_.f[1];
-                    atom_.x[1] += dt * atom_.v[1];
-                    atom_.v[2] = atom_.v[2] + dtInv2m * atom_.f[2];
-                    atom_.x[2] += dt * atom_.v[2];
+    atom_list->foreachSubBoxAtom(
+            [dtInv2m,dt](AtomElement &_atom_ref) {
+                if (!_atom_ref.isInterElement()) {
+                    _atom_ref.v[0] = _atom_ref.v[0] + dtInv2m * _atom_ref.f[0];
+                    _atom_ref.v[1] = _atom_ref.v[1] + dtInv2m * _atom_ref.f[1];
+                    _atom_ref.v[2] = _atom_ref.v[2] + dtInv2m * _atom_ref.f[2];
+                    _atom_ref.x[0] += dt * _atom_ref.v[0];
+                    _atom_ref.x[1] += dt * _atom_ref.v[1];
+                    _atom_ref.x[2] += dt * _atom_ref.v[2];
                 }
             }
-        }
-    }
+    );
+
     //本地间隙原子求解运动方程第一步
     for (int i = 0; i < nlocalinter; i++) {
         for (unsigned short d = 0; d < 3; ++d) {
@@ -1573,22 +1570,15 @@ void atom::computefirst(double dtInv2m, double dt) {
 }
 
 void atom::computesecond(double dtInv2m) {
-    long kk;
-    int xstart = p_domain->getGhostLatticeSize(0);
-    int ystart = p_domain->getGhostLatticeSize(1);
-    int zstart = p_domain->getGhostLatticeSize(2);
     //本地晶格点上的原子求解运动方程第二步
-    for (int k = zstart; k < p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
-        for (int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
-            for (int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
-                kk = IndexOf3DIndex(i, j, k);
-                AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
-                for (unsigned short d = 0; d < 3; ++d) {
-                    atom_.v[d] += dtInv2m * atom_.f[d]; // fixme hot!!
+    atom_list->foreachSubBoxAtom(
+            [dtInv2m](AtomElement &_atom_ref) {
+                // fixme, excluding InterElement. (add if: isInterElement)
+                for (unsigned short d = 0; d < DIMENSION; ++d) {
+                    _atom_ref.v[d] += dtInv2m * _atom_ref.f[d];
                 }
             }
-        }
-    }
+    );
     //本地间隙原子求解运动方程第二步
     for (int i = 0; i < nlocalinter; i++) {
         for (unsigned short d = 0; d < 3; ++d) {
@@ -1602,6 +1592,13 @@ void atom::print_force() {
     sprintf(tmp, "force.txt");
     ofstream outfile;
     outfile.open(tmp);
+
+    atom_list->foreachSubBoxAtom(
+            [&outfile](AtomElement &_atom_ref) {
+                outfile << _atom_ref.f[0] << " " << _atom_ref.f[1] << " " << _atom_ref.f[2] << std::endl;
+            }
+    );
+
     long kk;
     int xstart = p_domain->getGhostLatticeSize(0);
     int ystart = p_domain->getGhostLatticeSize(1);

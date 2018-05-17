@@ -42,8 +42,6 @@ WorldBuilder &WorldBuilder::setAlloyRatio(int ratio[atom_type::num_atom_types]) 
     for (int i = 0; i < atom_type::num_atom_types; i++) {
         _atoms_ratio[i] = ratio[i];
     }
-//  fixme  this->_mass = mass;
-//  fixme  this->_mass_factor = 1 / sqrt(mass);
     return *this;
 }
 
