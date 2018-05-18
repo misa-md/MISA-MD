@@ -21,29 +21,33 @@ set(HEADER_FILES
         atom.h
         atom_dump.h
         atom_element.h
+        atom_list.h
         atom_types.h
         crystal_md.h
         toml_config.h
         config_values.h
+        def_config_values.h
         domain.h
         eam.h
         hardware_accelerate.hpp
         input.h
         integrator.h
         interpolation_object.h
-        lat_particle_data.h
-        particledata.h
+        newton_motion.h
         pre_config.h
         pre_define.h
         simulation.h
         world_builder.h
-        atom_list.h
-        newton_motion.cpp newton_motion.h def_config_values.h)
+        pack/lat_particle_data.h
+        pack/pack.h
+        pack/particledata.h
+        )
 
 set(SOURCE_FILES
         atom.cpp
         atom_dump.cpp
         atom_element.cpp
+        atom_list.cpp
         crystal_md.cpp
         toml_config.cpp
         config_values.cpp
@@ -52,12 +56,13 @@ set(SOURCE_FILES
         input.cpp
         integrator.cpp
         interpolation_object.cpp
-        lat_particle_data.cpp
-        particledata.cpp
+        newton_motion.cpp
         simulation.cpp
         world_builder.cpp
-        atom_list.cpp
-        newton_motion.cpp newton_motion.h)
+        pack/lat_particle_data.cpp
+        pack/pack.cpp
+        pack/particledata.cpp
+        )
 
 # codes runs on sunway.
 set(ARCH_SUNWAY_FILES

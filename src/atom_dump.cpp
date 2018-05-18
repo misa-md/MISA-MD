@@ -63,7 +63,7 @@ void AtomDump::dumpModeCopy(atom *atom) {
     for (int k = _begin[2]; k < _end[2]; k++) {
         for (int j = _begin[1]; j < _end[1]; j++) {
             for (int i = _begin[0]; i < _end[0]; i++) {
-                kk = atom->IndexOf3DIndex(i, j, k);
+                kk = atom->atom_list->IndexOf3DIndex(i, j, k);
                 AtomElement &atom_ = atom->getAtomList()->getAtomEleByLinearIndex(kk);
                 x_io[n * 4] = atom_.id;
                 x_io[n * 4 + 1] = atom_.x[0];
