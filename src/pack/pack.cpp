@@ -59,8 +59,8 @@ void pack::unpack_interrecv(int d, int n, InterAtomList *inter,
                 inter->vinter.push_back(vtemp);
                 inter->nlocalinter++;
                 inter->finter.resize(inter->nlocalinter, std::vector<double>(3));
-                inter-> rhointer.resize(inter->nlocalinter);
-                inter->  dfinter.resize(inter->nlocalinter);
+                inter->rhointer.resize(inter->nlocalinter);
+                inter->dfinter.resize(inter->nlocalinter);
             } else {
                 if (inter->idinter.size() == inter->nlocalinter) {
                     inter->idinter.push_back(id);
@@ -80,7 +80,7 @@ void pack::unpack_interrecv(int d, int n, InterAtomList *inter,
                 }
                 inter->nlocalinter++;
                 inter->finter.resize(inter->nlocalinter, std::vector<double>(3));
-                inter-> rhointer.resize(inter->nlocalinter);
+                inter->rhointer.resize(inter->nlocalinter);
                 inter->dfinter.resize(inter->nlocalinter);
             }
         }
@@ -189,141 +189,86 @@ void pack::unpack_recvfirst(int d, int direction, int n, AtomList &atom_list,
         if (direction == 0) { // mirror with send.
             xstart = ghost[0] + box[0];
             xstop = ext[0];
-            ystart = ghost[1];
-            ystop = ystart + box[1];
-            zstart = ghost[2];
-            zstop = zstart + box[2];
-            for (int k = zstart; k < zstop; k++) {
-                for (int j = ystart; j < ystop; j++) {
-                    for (int i = xstart; i < xstop; i++) {
-//                        kk = IndexOf3DIndex(i, j, k);
-                        AtomElement &atom_ = atom_list.getAtomEleByGhostIndex(i, j, k);
-                        atom_.type = buf[m].type;
-                        atom_.x[0] = buf[m].r[0];
-                        atom_.x[1] = buf[m].r[1];
-                        atom_.x[2] = buf[m++].r[2];
-                        recvlist[0].push_back(atom_list.IndexOf3DIndex(i, j, k));
-                    }
-                }
-            }
-            if (n != recvlist[0].size()) { // todo error.
-                kiwi::logs::e("unpack_recvfirst", "received data size does not match the Mpi_Proble size.\n");
-            }
         } else {
             xstart = 0;
             xstop = ghost[0];
-            ystart = ghost[1];
-            ystop = ystart + box[1];
-            zstart = ghost[2];
-            zstop = zstart + box[2];
-            for (int k = zstart; k < zstop; k++) {
-                for (int j = ystart; j < ystop; j++) {
-                    for (int i = xstart; i < xstop; i++) {
+        }
+        ystart = ghost[1];
+        ystop = ystart + box[1];
+        zstart = ghost[2];
+        zstop = zstart + box[2];
+        for (int k = zstart; k < zstop; k++) {
+            for (int j = ystart; j < ystop; j++) {
+                for (int i = xstart; i < xstop; i++) {
 //                        kk = IndexOf3DIndex(i, j, k);
-                        AtomElement &atom_ = atom_list.getAtomEleByGhostIndex(i, j, k);
-                        atom_.type = buf[m].type;
-                        atom_.x[0] = buf[m].r[0];
-                        atom_.x[1] = buf[m].r[1];
-                        atom_.x[2] = buf[m++].r[2];
-                        recvlist[1].push_back(atom_list.IndexOf3DIndex(i, j, k));
-                    }
+                    AtomElement &atom_ = atom_list.getAtomEleByGhostIndex(i, j, k);
+                    atom_.type = buf[m].type;
+                    atom_.x[0] = buf[m].r[0];
+                    atom_.x[1] = buf[m].r[1];
+                    atom_.x[2] = buf[m++].r[2];
+                    recvlist[recv_idnex].push_back(atom_list.IndexOf3DIndex(i, j, k));
                 }
             }
-            if (n != recvlist[1].size()) // todo error handling in dataReuse feature.
-                printf("wrong-01 !!!\n");
         }
+        if (n != recvlist[recv_idnex].size()) { // todo error handling in dataReuse feature.
+            kiwi::logs::e("unpack_recvfirst", "received data size does not match the Mpi_Proble size.\n");
+        }
+
     } else if (d == 1) {
         if (direction == 0) {
-            xstart = 0;
-            xstop = ext[0];
             ystart = ghost[1] + box[1];
             ystop = ext[1];
-            zstart = ghost[2];
-            zstop = zstart + box[2];
-            for (int k = zstart; k < zstop; k++) {
-                for (int j = ystart; j < ystop; j++) {
-                    for (int i = xstart; i < xstop; i++) {
-//                        kk = IndexOf3DIndex(i, j, k);
-                        AtomElement &atom_ = atom_list.getAtomEleByGhostIndex(i, j, k);
-                        atom_.type = buf[m].type;
-                        atom_.x[0] = buf[m].r[0];
-                        atom_.x[1] = buf[m].r[1];
-                        atom_.x[2] = buf[m++].r[2];
-                        recvlist[2].push_back(atom_list.IndexOf3DIndex(i, j, k));
-                    }
-                }
-            }
-            if (n != recvlist[2].size()) // todo error handling in dataReuse feature.
-                printf("wrong-10!!!\n");
         } else {
-            xstart = 0;
-            xstop = ext[0];
             ystart = 0;
             ystop = ghost[1];
-            zstart = ghost[2];
-            zstop = zstart + box[2];
-            for (int k = zstart; k < zstop; k++) {
-                for (int j = ystart; j < ystop; j++) {
-                    for (int i = xstart; i < xstop; i++) {
-                        AtomElement &atom_ = atom_list.getAtomEleByGhostIndex(i, j, k);
-                        atom_.type = buf[m].type;
-                        atom_.x[0] = buf[m].r[0];
-                        atom_.x[1] = buf[m].r[1];
-                        atom_.x[2] = buf[m++].r[2];
-                        recvlist[3].push_back(atom_list.IndexOf3DIndex(i, j, k));
-                    }
+        }
+        xstart = 0;
+        xstop = ext[0];
+        zstart = ghost[2];
+        zstop = zstart + box[2];
+
+        for (int k = zstart; k < zstop; k++) {
+            for (int j = ystart; j < ystop; j++) {
+                for (int i = xstart; i < xstop; i++) {
+                    AtomElement &atom_ = atom_list.getAtomEleByGhostIndex(i, j, k);
+                    atom_.type = buf[m].type;
+                    atom_.x[0] = buf[m].r[0];
+                    atom_.x[1] = buf[m].r[1];
+                    atom_.x[2] = buf[m++].r[2];
+                    recvlist[recv_idnex].push_back(atom_list.IndexOf3DIndex(i, j, k));
                 }
             }
-            if (n != recvlist[3].size()) // todo error handling in dataReuse feature.
-                printf("wrong-11 !!!\n");
+        }
+        if (n != recvlist[recv_idnex].size()) { // todo error handling in dataReuse feature.
+            kiwi::logs::e("unpack_recvfirst", "received data size does not match the Mpi_Proble size.\n");
         }
     } else {
         if (direction == 0) {
-            xstart = 0;
-            xstop = ext[0];
-            ystart = 0;
-            ystop = ext[1];
             zstart = ghost[2] + box[2];
             zstop = ext[2];
-            for (int k = zstart; k < zstop; k++) {
-                for (int j = ystart; j < ystop; j++) {
-                    for (int i = xstart; i < xstop; i++) {
-//                        kk = IndexOf3DIndex(i, j, k);
-                        AtomElement &atom_ = atom_list.getAtomEleByGhostIndex(i, j, k);
-                        atom_.type = buf[m].type;
-                        atom_.x[0] = buf[m].r[0];
-                        atom_.x[1] = buf[m].r[1];
-                        atom_.x[2] = buf[m++].r[2];
-                        recvlist[4].push_back(atom_list.IndexOf3DIndex(i, j, k));
-                    }
-                }
-            }
-            if (n != recvlist[4].size()) { // todo error handling in dataReuse feature.
-                printf("wrong-20 !!\n");
-            }
         } else {
-            xstart = 0;
-            xstop = ext[0];
-            ystart = 0;
-            ystop = ext[1];
             zstart = 0;
             zstop = ghost[2];
-            for (int k = zstart; k < zstop; k++) {
-                for (int j = ystart; j < ystop; j++) {
-                    for (int i = xstart; i < xstop; i++) {
+        }
+        xstart = 0;
+        xstop = ext[0];
+        ystart = 0;
+        ystop = ext[1];
+        for (int k = zstart; k < zstop; k++) {
+            for (int j = ystart; j < ystop; j++) {
+                for (int i = xstart; i < xstop; i++) {
 //                        kk = IndexOf3DIndex(i, j, k);
-                        AtomElement &atom_ = atom_list.getAtomEleByGhostIndex(i, j, k);
-                        atom_.type = buf[m].type;
-                        atom_.x[0] = buf[m].r[0];
-                        atom_.x[1] = buf[m].r[1];
-                        atom_.x[2] = buf[m++].r[2];
-                        recvlist[5].push_back(atom_list.IndexOf3DIndex(i, j, k));
-                    }
+                    AtomElement &atom_ = atom_list.getAtomEleByGhostIndex(i, j, k);
+                    atom_.type = buf[m].type;
+                    atom_.x[0] = buf[m].r[0];
+                    atom_.x[1] = buf[m].r[1];
+                    atom_.x[2] = buf[m++].r[2];
+                    recvlist[recv_idnex].push_back(atom_list.IndexOf3DIndex(i, j, k));
                 }
             }
-            if (n != recvlist[5].size()) { // todo error handling in dataReuse feature.
-                printf("wrong-30 !!!\n");
-            }
+        }
+        if (n != recvlist[recv_idnex].size()) { // todo error handling in dataReuse feature.
+            kiwi::logs::e("unpack_recvfirst", "received data size does not match the Mpi_Proble size.\n");
         }
     }
 }
