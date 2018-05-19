@@ -21,11 +21,9 @@ set(HEADER_FILES
         config_values.h
         def_config_values.h
         domain.h
-        eam.h
         hardware_accelerate.hpp
         input.h
         integrator.h
-        interpolation_object.h
         newton_motion.h
         pre_config.h
         pre_define.h
@@ -38,6 +36,8 @@ set(HEADER_FILES
         pack/lat_particle_data.h
         pack/pack.h
         pack/particledata.h
+        potential/eam.h
+        potential/interpolation_object.h
         )
 
 set(SOURCE_FILES
@@ -47,10 +47,8 @@ set(SOURCE_FILES
         toml_config.cpp
         config_values.cpp
         domain.cpp
-        eam.cpp
         input.cpp
         integrator.cpp
-        interpolation_object.cpp
         newton_motion.cpp
         simulation.cpp
         world_builder.cpp
@@ -60,6 +58,8 @@ set(SOURCE_FILES
         pack/lat_particle_data.cpp
         pack/pack.cpp
         pack/particledata.cpp
+        potential/eam.cpp
+        potential/interpolation_object.cpp
         )
 
 # codes runs on sunway.

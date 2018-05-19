@@ -32,8 +32,6 @@ static const double hartreeToEv = 27.21138505;
 /// Bohrs to Angstroms
 static const double bohrToAngs = 0.52917721092;
 
-using namespace std;
-
 class eam {
 public:
     eam();

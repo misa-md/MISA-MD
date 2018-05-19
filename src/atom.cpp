@@ -56,7 +56,7 @@ void atom::calculateNeighbourIndices() {
     double x, y, z;
     int mark = 0;
     double cut_times_lattice = _cutoffRadius / _latticeconst; // todo use cutoffRadiusFactor.
-    vector<long int>::iterator neighbourOffsetsIter;
+    std::vector<long int>::iterator neighbourOffsetsIter;
     for (int zIndex = -_cutlattice; zIndex <= _cutlattice; zIndex++) { // loop for (2*_cutlattice + 1) times.
         for (int yIndex = -_cutlattice; yIndex <= _cutlattice; yIndex++) {
             for (int xIndex = -_cutlattice * 2; xIndex <= _cutlattice * 2; xIndex++) {
@@ -168,28 +168,28 @@ int atom::decide() {
                                 inter_atom_list->vinter[inter_atom_list->nlocalinter][1] = atom_.v[1];
                                 inter_atom_list->vinter[inter_atom_list->nlocalinter][2] = atom_.v[2];
                             } else {
-                                inter_atom_list->vinter.resize(inter_atom_list->nlocalinter + 1, vector<double>(3));
+                                inter_atom_list->vinter.resize(inter_atom_list->nlocalinter + 1, std::vector<double>(3));
                                 inter_atom_list->vinter[inter_atom_list->nlocalinter][0] = atom_.v[0];
                                 inter_atom_list->vinter[inter_atom_list->nlocalinter][1] = atom_.v[1];
                                 inter_atom_list->vinter[inter_atom_list->nlocalinter][2] = atom_.v[2];
                             }
                             inter_atom_list->nlocalinter++;
-                            inter_atom_list->finter.resize(inter_atom_list->nlocalinter, vector<double>(3));
+                            inter_atom_list->finter.resize(inter_atom_list->nlocalinter, std::vector<double>(3));
                             inter_atom_list->rhointer.resize(inter_atom_list->nlocalinter);
                             inter_atom_list->dfinter.resize(inter_atom_list->nlocalinter);
                         } else {
                             inter_atom_list->idinter.push_back(atom_.id);
                             inter_atom_list->typeinter.push_back(atom_.type);
-                            inter_atom_list->xinter.resize(inter_atom_list->nlocalinter + 1, vector<double>(3));
+                            inter_atom_list->xinter.resize(inter_atom_list->nlocalinter + 1, std::vector<double>(3));
                             inter_atom_list->xinter[inter_atom_list->nlocalinter][0] = atom_.x[0];
                             inter_atom_list->xinter[inter_atom_list->nlocalinter][1] = atom_.x[1];
                             inter_atom_list->xinter[inter_atom_list->nlocalinter][2] = atom_.x[2];
-                            inter_atom_list->vinter.resize(inter_atom_list->nlocalinter + 1, vector<double>(3));
+                            inter_atom_list->vinter.resize(inter_atom_list->nlocalinter + 1, std::vector<double>(3));
                             inter_atom_list->vinter[inter_atom_list->nlocalinter][0] = atom_.v[0];
                             inter_atom_list->vinter[inter_atom_list->nlocalinter][1] = atom_.v[1];
                             inter_atom_list->vinter[inter_atom_list->nlocalinter][2] = atom_.v[2];
                             inter_atom_list->nlocalinter++;
-                            inter_atom_list->finter.resize(inter_atom_list->nlocalinter, vector<double>(3));
+                            inter_atom_list->finter.resize(inter_atom_list->nlocalinter, std::vector<double>(3));
                             inter_atom_list->rhointer.resize(inter_atom_list->nlocalinter);
                             inter_atom_list->dfinter.resize(inter_atom_list->nlocalinter);
                         }
@@ -293,7 +293,7 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
     double starttime, stoptime;
     double xtemp, ytemp, ztemp;
     double delx, dely, delz;
-    vector<long int>::iterator neighbourOffsetsIter;
+    std::vector<long int>::iterator neighbourOffsetsIter;
     InterpolationObject *rho_spline = pot->rho;
     InterpolationObject *f_spline = pot->f;
     InterpolationObject *phi_spline = pot->phi;
@@ -799,7 +799,7 @@ unsigned long atom::getinteridsendsize() {
     return interbuf.size();
 }
 
-void atom::getatomx(int direction, vector<vector<_type_atom_id> > &sendlist) {
+void atom::getatomx(int direction, std::vector<std::vector<_type_atom_id> > &sendlist) {
     _type_atom_id i;
     if (direction == 0) {
         //找到要发送到邻居进程的区域
@@ -840,7 +840,7 @@ void atom::getatomx(int direction, vector<vector<_type_atom_id> > &sendlist) {
     }
 }
 
-void atom::getatomy(int direction, vector<vector<_type_atom_id> > &sendlist) {
+void atom::getatomy(int direction, std::vector<std::vector<_type_atom_id> > &sendlist) {
     int i;
     if (direction == 0) {
         //找到要发送到邻居进程的区域
@@ -881,7 +881,7 @@ void atom::getatomy(int direction, vector<vector<_type_atom_id> > &sendlist) {
     }
 }
 
-void atom::getatomz(int direction, vector<vector<_type_atom_id> > &sendlist) {
+void atom::getatomz(int direction, std::vector<std::vector<_type_atom_id> > &sendlist) {
     int i;
     if (direction == 0) {
         //找到要发送到邻居进程的区域
@@ -922,7 +922,7 @@ void atom::getatomz(int direction, vector<vector<_type_atom_id> > &sendlist) {
     }
 }
 
-void atom::getIntertosend(int d, int direction, double ghostlengh, vector<int> &sendlist) {
+void atom::getIntertosend(int d, int direction, double ghostlengh, std::vector<int> &sendlist) {
     double low, high;
     if (d == 0) {
         if (direction == 0) {
@@ -1043,7 +1043,7 @@ void atom::computesecond(double dtInv2m) {
 void atom::print_force() {
     char tmp[20];
     sprintf(tmp, "force.txt");
-    ofstream outfile;
+    std::ofstream outfile;
     outfile.open(tmp);
 
     atom_list->foreachSubBoxAtom(

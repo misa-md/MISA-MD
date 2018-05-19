@@ -81,7 +81,7 @@ void AtomDump::dumpModeDirect(atom *atom) {
     char outfileName[20];
     sprintf(outfileName, "dump_%d.atom", kiwi::mpiUtils::own_rank);
 
-    ofstream outfile;
+    std::ofstream outfile;
     outfile.open(outfileName);
 
     outfile << "print atoms" << std::endl;

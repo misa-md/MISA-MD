@@ -11,7 +11,7 @@
 
 #include "atom/atom_element.h"
 #include "domain.h"
-#include "eam.h"
+#include "potential/eam.h"
 #include "pack/particledata.h"
 #include "pack/lat_particle_data.h"
 #include "atom/atom_list.h"
@@ -51,13 +51,13 @@ public :
 
     void computesecond(double dtInv2m);
 
-    void getatomx(int direction, vector<vector<_type_atom_id>> &sendlist);
+    void getatomx(int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
 
-    void getatomy(int direction, vector<vector<_type_atom_id>> &sendlist);
+    void getatomy(int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
 
-    void getatomz(int direction, vector<vector<_type_atom_id>> &sendlist);
+    void getatomz(int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
 
-    void getIntertosend(int d, int direction, double ghostlengh, vector<int> &sendlist);
+    void getIntertosend(int d, int direction, double ghostlengh, std::vector<int> &sendlist);
 
     int getintersendnum(int dimension, int direction);
 
@@ -85,12 +85,12 @@ private:
     double _latticeconst;
     int _seed;
 
-    vector<long int> NeighbourOffsets; // 邻居粒子偏移量
+    std::vector<long int> NeighbourOffsets; // 邻居粒子偏移量
 
     AtomList *atom_list;
     InterAtomList *inter_atom_list;
 
-    vector<unsigned long> interbuf;
+    std::vector<unsigned long> interbuf;
 };
 
 #endif // CRYSTAL_MD_ATOM_H

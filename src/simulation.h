@@ -12,7 +12,7 @@
 #include "toml_config.h"
 #include "integrator.h"
 #include "input.h"
-#include "eam.h"
+#include "potential/eam.h"
 
 class simulation {
 public:
@@ -36,10 +36,6 @@ public:
     void simulate();
 
     void finalize();
-
-    void initEamPotential(string file_type);
-
-    void grab(FILE *fptr, int n, double *list);
 
     void output();
 

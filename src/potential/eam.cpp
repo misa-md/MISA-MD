@@ -41,7 +41,7 @@ void eam::setcutoff(double _cutoff) {
 void eam::init(int nElems) {
     _nElems = nElems;
     f = new InterpolationObject[nElems];
-    phi = new InterpolationObject[nElems + nElems * (nElems - 1) / 2];
+    phi = new InterpolationObject[nElems + nElems * (nElems - 1) / 2]; // self to self plus self to others
     rho = new InterpolationObject[nElems];
     mass = new double[nElems];
 }
@@ -60,10 +60,10 @@ void eam::initrho(int i, int nR, double x0, double dR, double *buf) {
 
 void eam::eamBCast(int rank) {
     MPI_Bcast(&_nElems, 1, MPI_INT, MASTER_PROCESSOR, MPI_COMM_WORLD);
-    if (rank != 0) {
-        this->init(_nElems);
+    if (rank != MASTER_PROCESSOR) {
+        this->init(_nElems); // initialize array for storing eam data.
     }
-    MPI_Bcast(mass, _nElems, MPI_DOUBLE, MASTER_PROCESSOR, MPI_COMM_WORLD);  // fixme orgin code: &mass,
+    MPI_Bcast(mass, _nElems, MPI_DOUBLE, MASTER_PROCESSOR, MPI_COMM_WORLD);
 
     for (int i = 0; i < _nElems; i++) {
         rho[i].bcastInterpolationObject(rank);
@@ -122,7 +122,7 @@ bool eam::parse(const std::string &potential_filename, const std::string &file_t
         double x0 = 0.0;
 
         // 申请读取数据的空间
-        int bufSize = max(nRho, nR);
+        int bufSize = std::max(nRho, nR);
         double *buf = new double[bufSize];
 
         // 读取嵌入能表
@@ -151,7 +151,7 @@ bool eam::parse(const std::string &potential_filename, const std::string &file_t
         initrho(0, nR, x0, dR, buf);
 
         delete[] buf;
-    } else if (string(file_type) == string("setfl")) {
+    } else if (file_type == std::string("setfl")) {
         char tmp[4096];
         sprintf(tmp, "%s", potential_filename.c_str());
 
@@ -208,7 +208,7 @@ bool eam::parse(const std::string &potential_filename, const std::string &file_t
         setcutoff(cutoff);
 
         // 申请读取数据空间
-        int bufSize = max(nRho, nR);
+        int bufSize = std::max(nRho, nR);
         double *buf = new double[bufSize];
         double x0 = 0.0;
         // 每种原子信息
