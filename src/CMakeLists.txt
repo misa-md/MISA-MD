@@ -41,7 +41,7 @@ set(HEADER_FILES
         pack/lat_particle_data.h
         pack/pack.h
         pack/particledata.h
-        )
+        inter_atom_list.cpp inter_atom_list.h)
 
 set(SOURCE_FILES
         atom.cpp
@@ -62,7 +62,7 @@ set(SOURCE_FILES
         pack/lat_particle_data.cpp
         pack/pack.cpp
         pack/particledata.cpp
-        )
+        inter_atom_list.cpp inter_atom_list.h)
 
 # codes runs on sunway.
 set(ARCH_SUNWAY_FILES

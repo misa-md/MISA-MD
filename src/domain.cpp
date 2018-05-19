@@ -335,17 +335,8 @@ void Domain::exchangeInter(atom *_atom) {
         for (direction = LOWER; direction <= HIGHER; direction++) {
             numPartsToSend[d][direction] = _atom->getintersendnum(d, direction);
             sendbuf[direction] = new particledata[numPartsToSend[d][direction]];
-            pack::pack_intersend(_atom->nlocalinter,
-//                                   _atom->nghostinter,
-                                 _atom->idinter,
-                                 _atom->typeinter,
-                                 _atom->xinter,
-                                 _atom->vinter,
-//                                 _atom->finter,
-//                                 _atom->rhointer,
-//                                 _atom->dfinter,
+            pack::pack_intersend(_atom->inter_atom_list,
                                  _atom->interbuf, sendbuf[direction]);
-//            _atom->pack_intersend(sendbuf[direction]);
         }
 
         // 与上下邻居通信
@@ -372,16 +363,7 @@ void Domain::exchangeInter(atom *_atom) {
             MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
 
             //将收到的粒子位置信息加到对应存储位置上
-            pack::unpack_interrecv(d, numrecv,
-                                   _atom->nlocalinter,
-//                                   _atom->nghostinter,
-                                   _atom->idinter,
-                                   _atom->typeinter,
-                                   _atom->xinter,
-                                   _atom->vinter,
-                                   _atom->finter,
-                                   _atom->rhointer,
-                                   _atom->dfinter,
+            pack::unpack_interrecv(d, numrecv, _atom->inter_atom_list,
                                    _meas_sub_box_lower_bounding,
                                    _meas_sub_box_upper_bounding,
                                    recvbuf[direction]);
@@ -446,8 +428,7 @@ void Domain::borderInter(atom *_atom) {
             numPartsToSend[d][direction] = intersendlist[iswap].size();
             sendbuf[direction] = new LatParticleData[numPartsToSend[d][direction]];
             pack::pack_bordersend(d, numPartsToSend[d][direction],
-                                  _atom->typeinter,
-                                  _atom->xinter,
+                                  _atom->inter_atom_list,
                                   intersendlist[iswap++], sendbuf[direction], shift);
 //            _atom->pack_bordersend(d, numPartsToSend[d][direction], intersendlist[iswap++], sendbuf[direction], shift);
         }
@@ -478,16 +459,7 @@ void Domain::borderInter(atom *_atom) {
             MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
 
             //将收到的粒子位置信息加到对应存储位置上
-            pack::unpack_borderrecv(numrecv,
-                                    _atom->nlocalinter,
-                                    _atom->nghostinter,
-//                                    _atom->idinter,
-                                    _atom->typeinter,
-                                    _atom->xinter,
-//                                    _atom->vinter,
-                                    _atom->finter,
-                                    _atom->rhointer,
-                                    _atom->dfinter,
+            pack::unpack_borderrecv(numrecv, _atom->inter_atom_list,
                                     _meas_ghost_lower_bounding,
                                     _meas_ghost_upper_bounding,
                                     recvbuf[direction], interrecvlist[jswap++]);
@@ -575,15 +547,7 @@ void Domain::sendDfEmbed(atom *_atom) {
             numPartsToSend[d][direction] = sendlist[iswap].size() + intersendlist[iswap].size();
             sendbuf[direction] = new double[numPartsToSend[d][direction]];
             pack::pack_df(_atom->getAtomListRef(), sendbuf[direction],
-//                          _atom->nlocalinter,
-//                          _atom->nghostinter,
-//                          _atom->idinter,
-//                          _atom->typeinter,
-//                          _atom->xinter,
-//                          _atom->vinter,
-//                          _atom->finter,
-//                          _atom->rhointer,
-                          _atom->dfinter,
+                          _atom->inter_atom_list,
                           sendlist[iswap], intersendlist[iswap]);
 //            _atom->pack_df(sendlist[iswap], intersendlist[iswap], sendbuf[direction]);
             iswap++;
@@ -614,15 +578,7 @@ void Domain::sendDfEmbed(atom *_atom) {
 
             //将收到的嵌入能导数信息加到对应存储位置上
             pack::unpack_df(numrecv, _atom->getAtomListRef(), recvbuf[direction],
-//                            _atom->nlocalinter,
-//                            _atom->nghostinter,
-//                            _atom->idinter,
-//                            _atom->typeinter,
-//                            _atom->xinter,
-//                            _atom->vinter,
-//                            _atom->finter,
-//                            _atom->rhointer,
-                            _atom->dfinter,
+                            _atom->inter_atom_list,
                             recvlist[jswap], interrecvlist[jswap]);
 //            _atom->unpack_df(numrecv, recvbuf[direction], recvlist[jswap], interrecvlist[jswap]);
             jswap++;

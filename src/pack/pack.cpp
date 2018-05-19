@@ -1,67 +1,39 @@
 //
-// Created by genshen on 5/17/18.
+// Created by genshen on 2018-05-17.
 //
 
 #include <logs/logs.h>
 #include "pack.h"
 #include "../atom_element.h"
 
-/*
-_atom->nlocalinter,
-//_atom->nghostinter,
-_atom->idinter,
-_atom->typeinter,
-_atom->xinter,
-_atom->vinter,
-_atom->finter,
-_atom->rhointer,
-_atom->dfinter,
- */
-
-void pack::pack_intersend(
-        int &nlocalinter,
-//        int &nghostinter,
-        std::vector<_type_atom_id> &idinter,
-        std::vector<_type_atom_type> &typeinter,
-        std::vector<std::vector<double>> &xinter,
-        std::vector<std::vector<double>> &vinter,
-//        std::vector<std::vector<double>> &finter,
-//        std::vector<double> &rhointer,
-//        std::vector<double> &dfinter,
-        std::vector<unsigned long> interbuf, particledata *buf) {
+void pack::pack_intersend(InterAtomList *inter, std::vector<unsigned long> interbuf,
+                          particledata *buf) {
     int j;
     for (int i = 0; i < interbuf.size(); i++) {
         j = interbuf[i];
-        buf[i].id = idinter[j];
-        buf[i].type = typeinter[j];
-        buf[i].r[0] = xinter[j][0];
-        buf[i].r[1] = xinter[j][1];
-        buf[i].r[2] = xinter[j][2];
-        buf[i].v[0] = vinter[j][0];
-        buf[i].v[1] = vinter[j][1];
-        buf[i].v[2] = vinter[j][2];
+        buf[i].id = inter->idinter[j];
+        buf[i].type = inter->typeinter[j];
+        buf[i].r[0] = inter->xinter[j][0];
+        buf[i].r[1] = inter->xinter[j][1];
+        buf[i].r[2] = inter->xinter[j][2];
+        buf[i].v[0] = inter->vinter[j][0];
+        buf[i].v[1] = inter->vinter[j][1];
+        buf[i].v[2] = inter->vinter[j][2];
         // remove the inter atom.
         // exchange the atom at end of vector to the position of atom (inter[j]) te be removed .
-        idinter[j] = idinter[nlocalinter - 1];
-        typeinter[j] = typeinter[nlocalinter - 1];
-        xinter[j][0] = xinter[nlocalinter - 1][0];
-        xinter[j][1] = xinter[nlocalinter - 1][1];
-        xinter[j][2] = xinter[nlocalinter - 1][2];
-        vinter[j][0] = vinter[nlocalinter - 1][0];
-        vinter[j][1] = vinter[nlocalinter - 1][1];
-        vinter[j][2] = vinter[nlocalinter - 1][2];
-        nlocalinter--;
+        inter->idinter[j] = inter->idinter[inter->nlocalinter - 1];
+        inter->typeinter[j] = inter->typeinter[inter->nlocalinter - 1];
+        inter->xinter[j][0] = inter->xinter[inter->nlocalinter - 1][0];
+        inter->xinter[j][1] = inter->xinter[inter->nlocalinter - 1][1];
+        inter->xinter[j][2] = inter->xinter[inter->nlocalinter - 1][2];
+        inter->vinter[j][0] = inter->vinter[inter->nlocalinter - 1][0];
+        inter->vinter[j][1] = inter->vinter[inter->nlocalinter - 1][1];
+        inter->vinter[j][2] = inter->vinter[inter->nlocalinter - 1][2];
+        inter->nlocalinter--;
     }
 }
 
-void pack::unpack_interrecv(int d, int n, int &nlocalinter,
-                            std::vector<_type_atom_id> &idinter,
-                            std::vector<_type_atom_type> &typeinter,
-                            std::vector<std::vector<double>> &xinter,
-                            std::vector<std::vector<double>> &vinter,
-                            std::vector<std::vector<double>> &finter,
-                            std::vector<double> &rhointer,
-                            std::vector<double> &dfinter,
+void pack::unpack_interrecv(int d, int n, InterAtomList *inter,
                             double lower[DIMENSION], // p_domain->getMeasuredSubBoxLowerBounding(d)
                             double upper[DIMENSION], // p_domain->getMeasuredSubBoxUpperBounding(d)
                             particledata *buf) {
@@ -80,83 +52,72 @@ void pack::unpack_interrecv(int d, int n, int &nlocalinter,
         vtemp[2] = buf[i].v[2];
         if (xtemp[d] >= lower[d] &&
             xtemp[d] < upper[d]) {
-            if (nlocalinter == xinter.size()) {
-                idinter.push_back(id);
-                typeinter.push_back(type);
-                xinter.push_back(xtemp);
-                vinter.push_back(vtemp);
-                nlocalinter++;
-                finter.resize(nlocalinter, std::vector<double>(3));
-                rhointer.resize(nlocalinter);
-                dfinter.resize(nlocalinter);
+            if (inter->nlocalinter == inter->xinter.size()) {
+                inter->idinter.push_back(id);
+                inter->typeinter.push_back(type);
+                inter->xinter.push_back(xtemp);
+                inter->vinter.push_back(vtemp);
+                inter->nlocalinter++;
+                inter->finter.resize(inter->nlocalinter, std::vector<double>(3));
+                inter-> rhointer.resize(inter->nlocalinter);
+                inter->  dfinter.resize(inter->nlocalinter);
             } else {
-                if (idinter.size() == nlocalinter) {
-                    idinter.push_back(id);
+                if (inter->idinter.size() == inter->nlocalinter) {
+                    inter->idinter.push_back(id);
                 } else {
-                    idinter[nlocalinter] = id;
+                    inter->idinter[inter->nlocalinter] = id;
                 }
-                typeinter[nlocalinter] = type;
-                xinter[nlocalinter][0] = xtemp[0];
-                xinter[nlocalinter][1] = xtemp[1];
-                xinter[nlocalinter][2] = xtemp[2];
-                if (nlocalinter == vinter.size()) {
-                    vinter.push_back(vtemp);
+                inter->typeinter[inter->nlocalinter] = type;
+                inter->xinter[inter->nlocalinter][0] = xtemp[0];
+                inter->xinter[inter->nlocalinter][1] = xtemp[1];
+                inter->xinter[inter->nlocalinter][2] = xtemp[2];
+                if (inter->nlocalinter == inter->vinter.size()) {
+                    inter->vinter.push_back(vtemp);
                 } else {
-                    vinter[nlocalinter][0] = vtemp[0];
-                    vinter[nlocalinter][1] = vtemp[1];
-                    vinter[nlocalinter][2] = vtemp[2];
+                    inter->vinter[inter->nlocalinter][0] = vtemp[0];
+                    inter->vinter[inter->nlocalinter][1] = vtemp[1];
+                    inter->vinter[inter->nlocalinter][2] = vtemp[2];
                 }
-                nlocalinter++;
-                finter.resize(nlocalinter, std::vector<double>(3));
-                rhointer.resize(nlocalinter);
-                dfinter.resize(nlocalinter);
+                inter->nlocalinter++;
+                inter->finter.resize(inter->nlocalinter, std::vector<double>(3));
+                inter-> rhointer.resize(inter->nlocalinter);
+                inter->dfinter.resize(inter->nlocalinter);
             }
         }
     }
 }
 
-void pack::pack_bordersend(int dimension, int n,
-                           std::vector<_type_atom_type> &typeinter,
-                           std::vector<std::vector<double>> &xinter,
+void pack::pack_bordersend(int dimension, int n, InterAtomList *inter,
                            std::vector<int> &sendlist, LatParticleData *buf, double shift) {
     int j;
     if (dimension == 0) {
         for (int i = 0; i < n; i++) {
             j = sendlist[i];
-            buf[i].type = typeinter[j];
-            buf[i].r[0] = xinter[j][0] + shift;
-            buf[i].r[1] = xinter[j][1];
-            buf[i].r[2] = xinter[j][2];
+            buf[i].type = inter->typeinter[j];
+            buf[i].r[0] = inter->xinter[j][0] + shift;
+            buf[i].r[1] = inter->xinter[j][1];
+            buf[i].r[2] = inter->xinter[j][2];
         }
     } else if (dimension == 1) {
         for (int i = 0; i < n; i++) {
             j = sendlist[i];
-            buf[i].type = typeinter[j];
-            buf[i].r[0] = xinter[j][0];
-            buf[i].r[1] = xinter[j][1] + shift;
-            buf[i].r[2] = xinter[j][2];
+            buf[i].type = inter->typeinter[j];
+            buf[i].r[0] = inter->xinter[j][0];
+            buf[i].r[1] = inter->xinter[j][1] + shift;
+            buf[i].r[2] = inter->xinter[j][2];
         }
     } else {
         for (int i = 0; i < n; i++) {
             j = sendlist[i];
-            buf[i].type = typeinter[j];
-            buf[i].r[0] = xinter[j][0];
-            buf[i].r[1] = xinter[j][1];
-            buf[i].r[2] = xinter[j][2] + shift;
+            buf[i].type = inter->typeinter[j];
+            buf[i].r[0] = inter->xinter[j][0];
+            buf[i].r[1] = inter->xinter[j][1];
+            buf[i].r[2] = inter->xinter[j][2] + shift;
         }
     }
 }
 
-void pack::unpack_borderrecv(int n,
-                             int &nlocalinter,
-                             int &nghostinter,
-//                             std::vector<_type_atom_id> &idinter,
-                             std::vector<_type_atom_type> &typeinter,
-                             std::vector<std::vector<double>> &xinter,
-//                             std::vector<std::vector<double>> &vinter,
-                             std::vector<std::vector<double>> &finter,
-                             std::vector<double> &rhointer,
-                             std::vector<double> &dfinter,
+void pack::unpack_borderrecv(int n, InterAtomList *inter,
                              double lower[DIMENSION], // p_domain->getMeasuredGhostLowerBounding(d)
                              double upper[DIMENSION], // p_domain->getMeasuredGhostUpperBounding(d)
                              LatParticleData *buf, std::vector<int> &recvlist) {
@@ -173,24 +134,24 @@ void pack::unpack_borderrecv(int n,
             xtemp[1] < upper[1] &&
             xtemp[2] >= lower[2] &&
             xtemp[2] < upper[2]) {
-            if (xinter.size() == nlocalinter + nghostinter) {
-                typeinter.push_back(type);
-                xinter.push_back(xtemp);
-                nghostinter++;
-                recvlist[i] = nlocalinter + nghostinter - 1;
-                finter.resize(nlocalinter + nghostinter, std::vector<double>(3));
-                rhointer.resize(nlocalinter + nghostinter);
-                dfinter.resize(nlocalinter + nghostinter);
+            if (inter->xinter.size() == inter->nlocalinter + inter->nghostinter) {
+                inter->typeinter.push_back(type);
+                inter->xinter.push_back(xtemp);
+                inter->nghostinter++;
+                recvlist[i] = inter->nlocalinter + inter->nghostinter - 1;
+                inter->finter.resize(inter->nlocalinter + inter->nghostinter, std::vector<double>(3));
+                inter->rhointer.resize(inter->nlocalinter + inter->nghostinter);
+                inter->dfinter.resize(inter->nlocalinter + inter->nghostinter);
             } else {
-                typeinter[nlocalinter + nghostinter] = type;
-                xinter[nlocalinter + nghostinter][0] = xtemp[0];
-                xinter[nlocalinter + nghostinter][1] = xtemp[1];
-                xinter[nlocalinter + nghostinter][2] = xtemp[2];
-                nghostinter++;
-                recvlist[i] = nlocalinter + nghostinter - 1;
-                finter.resize(nlocalinter + nghostinter, std::vector<double>(3));
-                rhointer.resize(nlocalinter + nghostinter);
-                dfinter.resize(nlocalinter + nghostinter);
+                inter->typeinter[inter->nlocalinter + inter->nghostinter] = type;
+                inter->xinter[inter->nlocalinter + inter->nghostinter][0] = xtemp[0];
+                inter->xinter[inter->nlocalinter + inter->nghostinter][1] = xtemp[1];
+                inter->xinter[inter->nlocalinter + inter->nghostinter][2] = xtemp[2];
+                inter->nghostinter++;
+                recvlist[i] = inter->nlocalinter + inter->nghostinter - 1;
+                inter->finter.resize(inter->nlocalinter + inter->nghostinter, std::vector<double>(3));
+                inter->rhointer.resize(inter->nlocalinter + inter->nghostinter);
+                inter->dfinter.resize(inter->nlocalinter + inter->nghostinter);
             }
         } else
             recvlist[i] = -1;
@@ -241,7 +202,7 @@ void pack::unpack_recvfirst(int d, int direction, int n, AtomList &atom_list,
                         atom_.x[0] = buf[m].r[0];
                         atom_.x[1] = buf[m].r[1];
                         atom_.x[2] = buf[m++].r[2];
-                        recvlist[0].push_back(atom_list.IndexOf3DIndex(i,j,k));
+                        recvlist[0].push_back(atom_list.IndexOf3DIndex(i, j, k));
                     }
                 }
             }
@@ -264,7 +225,7 @@ void pack::unpack_recvfirst(int d, int direction, int n, AtomList &atom_list,
                         atom_.x[0] = buf[m].r[0];
                         atom_.x[1] = buf[m].r[1];
                         atom_.x[2] = buf[m++].r[2];
-                        recvlist[1].push_back(atom_list.IndexOf3DIndex(i,j,k));
+                        recvlist[1].push_back(atom_list.IndexOf3DIndex(i, j, k));
                     }
                 }
             }
@@ -288,7 +249,7 @@ void pack::unpack_recvfirst(int d, int direction, int n, AtomList &atom_list,
                         atom_.x[0] = buf[m].r[0];
                         atom_.x[1] = buf[m].r[1];
                         atom_.x[2] = buf[m++].r[2];
-                        recvlist[2].push_back(atom_list.IndexOf3DIndex(i,j,k));
+                        recvlist[2].push_back(atom_list.IndexOf3DIndex(i, j, k));
                     }
                 }
             }
@@ -309,7 +270,7 @@ void pack::unpack_recvfirst(int d, int direction, int n, AtomList &atom_list,
                         atom_.x[0] = buf[m].r[0];
                         atom_.x[1] = buf[m].r[1];
                         atom_.x[2] = buf[m++].r[2];
-                        recvlist[3].push_back(atom_list.IndexOf3DIndex(i,j,k));
+                        recvlist[3].push_back(atom_list.IndexOf3DIndex(i, j, k));
                     }
                 }
             }
@@ -333,7 +294,7 @@ void pack::unpack_recvfirst(int d, int direction, int n, AtomList &atom_list,
                         atom_.x[0] = buf[m].r[0];
                         atom_.x[1] = buf[m].r[1];
                         atom_.x[2] = buf[m++].r[2];
-                        recvlist[4].push_back(atom_list.IndexOf3DIndex(i,j,k));
+                        recvlist[4].push_back(atom_list.IndexOf3DIndex(i, j, k));
                     }
                 }
             }
@@ -356,7 +317,7 @@ void pack::unpack_recvfirst(int d, int direction, int n, AtomList &atom_list,
                         atom_.x[0] = buf[m].r[0];
                         atom_.x[1] = buf[m].r[1];
                         atom_.x[2] = buf[m++].r[2];
-                        recvlist[5].push_back(atom_list.IndexOf3DIndex(i,j,k));
+                        recvlist[5].push_back(atom_list.IndexOf3DIndex(i, j, k));
                     }
                 }
             }
@@ -490,16 +451,7 @@ void pack::unpack_rho(int d, int direction, AtomList &atom_list,
     }
 }
 
-void pack::pack_df(AtomList &atom_list, double *buf,
-//                   int &nlocalinter,
-//                   int &nghostinter,
-//                   std::vector<_type_atom_id> &idinter,
-//                   std::vector<_type_atom_type> &typeinter,
-//                   std::vector<std::vector<double>> &xinter,
-//                   std::vector<std::vector<double>> &vinter,
-//                   std::vector<std::vector<double>> &finter,
-//                   std::vector<double> &rhointer,
-                   std::vector<double> &dfinter,
+void pack::pack_df(AtomList &atom_list, double *buf, InterAtomList *inter,
                    std::vector<_type_atom_id> &sendlist, std::vector<int> &intersendlist) {
     int j, m = 0;
     int n = sendlist.size();
@@ -511,20 +463,12 @@ void pack::pack_df(AtomList &atom_list, double *buf,
     n = intersendlist.size();
     for (int i = 0; i < n; i++) {
         j = intersendlist[i];
-        buf[m++] = dfinter[j];
+        buf[m++] = inter->dfinter[j];
     }
 }
 
-void pack::unpack_df(int n, AtomList &atom_list, double *buf,
-//                     int &nlocalinter,
-//                     int &nghostinter,
-//                     std::vector<_type_atom_id> &idinter,
-//                     std::vector<_type_atom_type> &typeinter,
-//                     std::vector<std::vector<double>> &xinter,
-//                     std::vector<std::vector<double>> &vinter,
-//                     std::vector<std::vector<double>> &finter,
-//                     std::vector<double> &rhointer,
-                     std::vector<double> &dfinter,
+void pack::unpack_df(int n, AtomList &atom_list,
+                     double *buf, InterAtomList *inter,
                      std::vector<_type_atom_id> &recvlist, std::vector<int> &interrecvlist) {
     long kk;
     int m = 0;
@@ -545,7 +489,7 @@ void pack::unpack_df(int n, AtomList &atom_list, double *buf,
             m++;
             continue;
         }
-        dfinter[kk] = buf[m++];
+        inter->dfinter[kk] = buf[m++];
     }
 }
 

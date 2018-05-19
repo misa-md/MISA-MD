@@ -10,49 +10,22 @@
 #include "../atom_list.h"
 #include "lat_particle_data.h"
 #include "particledata.h"
+#include "../inter_atom_list.h"
 
 namespace pack {
 
-    void pack_intersend(
-            int &nlocalinter,
-//            int &nghostinter,
-            std::vector<_type_atom_id> &idinter,
-            std::vector<_type_atom_type> &typeinter,
-            std::vector<std::vector<double>> &xinter,
-            std::vector<std::vector<double>> &vinter,
-//            std::vector<std::vector<double>> &finter,
-//            std::vector<double> &rhointer,
-//            std::vector<double> &dfinter,
-            std::vector<unsigned long> interbuf, particledata *buf);
+    void pack_intersend(InterAtomList *inter,
+                        std::vector<unsigned long> interbuf, particledata *buf);
 
-    void unpack_interrecv(int d, int n, int &nlocalinter,
-//                          int &nghostinter,
-                          std::vector<_type_atom_id> &idinter,
-                          std::vector<_type_atom_type> &typeinter,
-                          std::vector<std::vector<double>> &xinter,
-                          std::vector<std::vector<double>> &vinter,
-                          std::vector<std::vector<double>> &finter,
-                          std::vector<double> &rhointer,
-                          std::vector<double> &dfinter,
+    void unpack_interrecv(int d, int n, InterAtomList *inter,
                           double lower[DIMENSION], // p_domain->getMeasuredSubBoxLowerBounding(d)
                           double upper[DIMENSION], // p_domain->getMeasuredSubBoxUpperBounding(d)
                           particledata *buf);
 
-    void pack_bordersend(int dimension, int n,
-                         std::vector<_type_atom_type> &typeinter,
-                         std::vector<std::vector<double>> &xinter,
+    void pack_bordersend(int dimension, int n, InterAtomList *inter,
                          std::vector<int> &sendlist, LatParticleData *buf, double shift);
 
-    void unpack_borderrecv(int n,
-                           int &nlocalinter,
-                           int &nghostinter,
-//                             std::vector<_type_atom_id> &idinter,
-                           std::vector<_type_atom_type> &typeinter,
-                           std::vector<std::vector<double>> &xinter,
-//                             std::vector<std::vector<double>> &vinter,
-                           std::vector<std::vector<double>> &finter,
-                           std::vector<double> &rhointer,
-                           std::vector<double> &dfinter,
+    void unpack_borderrecv(int n, InterAtomList *inter,
                            double lower[DIMENSION], // p_domain->getMeasuredGhostLowerBounding(d)
                            double upper[DIMENSION], // p_domain->getMeasuredGhostUpperBounding(d)
                            LatParticleData *buf, std::vector<int> &recvlist);
@@ -96,28 +69,10 @@ namespace pack {
     void unpack_rho(int d, int direction, AtomList &atom_list,
                     double *buf, std::vector<std::vector<_type_atom_id>> &sendlist);
 
-    void pack_df(AtomList &atom_list, double *buf,
-//                 int &nlocalinter,
-//                 int &nghostinter,
-//                 std::vector<_type_atom_id> &idinter,
-//                 std::vector<_type_atom_type> &typeinter,
-//                 std::vector<std::vector<double>> &xinter,
-//                 std::vector<std::vector<double>> &vinter,
-//                 std::vector<std::vector<double>> &finter,
-//                 std::vector<double> &rhointer,
-                 std::vector<double> &dfinter,
+    void pack_df(AtomList &atom_list, double *buf, InterAtomList *inter,
                  std::vector<_type_atom_id> &sendlist, std::vector<int> &intersendlist);
 
-    void unpack_df(int n, AtomList &atom_list, double *buf,
-//                   int &nlocalinter,
-//                   int &nghostinter,
-//                   std::vector<_type_atom_id> &idinter,
-//                   std::vector<_type_atom_type> &typeinter,
-//                   std::vector<std::vector<double>> &xinter,
-//                   std::vector<std::vector<double>> &vinter,
-//                   std::vector<std::vector<double>> &finter,
-//                   std::vector<double> &rhointer,
-                   std::vector<double> &dfinter,
+    void unpack_df(int n, AtomList &atom_list, double *buf, InterAtomList *inter,
                    std::vector<_type_atom_id> &recvlist, std::vector<int> &interrecvlist);
 
     void pack_force(int n, AtomList &atom_list, double *buf, std::vector<_type_atom_id> &recvlist);

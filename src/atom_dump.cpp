@@ -1,5 +1,5 @@
 //
-// Created by genshen on 5/6/18.
+// Created by genshen on 2018-05-06.
 //
 
 #include <cstdio>
@@ -90,7 +90,7 @@ void AtomDump::dumpModeDirect(atom *atom) {
             [&outfile](AtomElement &_atom_ref) {
                 if (!_atom_ref.isInterElement()) {
                     outfile << _atom_ref.id << " "
-                            //                            << "ty" << atom_.type << " "
+                            // << "ty" << atom_.type << " "
                             << _atom_ref.x[0] << " "
                             << _atom_ref.x[1] << " "
                             << _atom_ref.x[2] << std::endl;
@@ -98,12 +98,12 @@ void AtomDump::dumpModeDirect(atom *atom) {
             }
     );
     outfile << "print inter" << std::endl;
-    for (int i = 0; i < atom->nlocalinter; i++) {
-        outfile << atom->idinter[i] << " "
+    for (int i = 0; i < atom->inter_atom_list->nlocalinter; i++) {
+        outfile << atom->inter_atom_list->idinter[i] << " "
                 //                << "ty" << atom->typeinter[i] << " "
-                << atom->xinter[i][0] << " "
-                << atom->xinter[i][1] << " "
-                << atom->xinter[i][2] << std::endl;
+                << atom->inter_atom_list->xinter[i][0] << " "
+                << atom->inter_atom_list->xinter[i][1] << " "
+                << atom->inter_atom_list->xinter[i][2] << std::endl;
     }
     outfile.close();
 }

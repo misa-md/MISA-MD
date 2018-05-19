@@ -15,6 +15,7 @@
 #include "pack/particledata.h"
 #include "pack/lat_particle_data.h"
 #include "atom_list.h"
+#include "inter_atom_list.h"
 
 class Domain; // todo remove.
 
@@ -88,22 +89,22 @@ private:
     vector<long int> NeighbourOffsets; // 邻居粒子偏移量
 
     AtomList *atom_list;
+    InterAtomList *inter_atom_list;
 
 //    unsigned long *id; //
 //    int *type;
 //    double *x, *v, *f, *rho, *df;
-    vector<_type_atom_id > idinter;
-    vector<_type_atom_type > typeinter;
-    vector<vector<double>> xinter; // 间隙原子坐标
-    vector<vector<double>> vinter; // 间隙原子速度
-    vector<vector<double>> finter; // 间隙原子力
-    vector<double> rhointer;
-    vector<double> dfinter;
-    int nlocalinter, nghostinter; // 本地间隙原子数和ghost间隙原子数
+//    vector<_type_atom_id > idinter;
+//    vector<_type_atom_type > typeinter;
+//    vector<vector<double>> xinter; // 间隙原子坐标
+//    vector<vector<double>> vinter; // 间隙原子速度
+//    vector<vector<double>> finter; // 间隙原子力
+//    vector<double> rhointer;
+//    vector<double> dfinter;
+//    int nlocalinter, nghostinter; // 本地间隙原子数和ghost间隙原子数
 
     vector<unsigned long> interbuf;
 
-    void pack_intersend(particledata *buf);
 };
 
 #endif // CRYSTAL_MD_ATOM_H

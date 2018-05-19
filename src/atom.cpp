@@ -14,9 +14,6 @@ atom::atom(Domain *domain, double latticeconst,
 
     _cutlattice = static_cast<int>(ceil(cutoffRadiusFactor));
 
-    nlocalinter = 0;
-    nghostinter = 0;
-
     numberoflattice = p_domain->getGhostExtLatticeSize(0) * p_domain->getGhostExtLatticeSize(1) *
                       p_domain->getGhostExtLatticeSize(2);
     // printf("number:%d, %d, %d, %d, %d\n", numberoflattice,
@@ -31,6 +28,8 @@ atom::atom(Domain *domain, double latticeconst,
                              p_domain->getGhostLatticeSize(0),
                              p_domain->getGhostLatticeSize(1),
                              p_domain->getGhostLatticeSize(2));
+
+    inter_atom_list = new InterAtomList();
 
     if (isAccelerateSupport()) {
         accelerateInit(p_domain->getGlobalSubBoxLatticeCoordLower(0),
@@ -50,6 +49,7 @@ atom::atom(Domain *domain, double latticeconst,
 
 atom::~atom() {
     delete atom_list;
+    delete inter_atom_list;
 }
 
 void atom::calculateNeighbourIndices() {
@@ -129,7 +129,7 @@ void atom::addAtom(_type_atom_id id, double rx, double ry, double rz, double vx,
 }
 
 int atom::decide() {
-    nghostinter = 0;
+    inter_atom_list->nghostinter = 0;
     int nflag = 0;
     long kk = 0;
     double dist;
@@ -152,46 +152,46 @@ int atom::decide() {
                     dist += (atom_.x[1] - ytemp) * (atom_.x[1] - ytemp);
                     dist += (atom_.x[2] - ztemp) * (atom_.x[2] - ztemp);
                     if (dist > (pow(0.2 * _latticeconst, 2.0))) { /**超过距离则判断为间隙原子*/
-                        if (xinter.size() > nlocalinter) {
-                            if (idinter.size() > nlocalinter) {
-                                idinter[nlocalinter] = atom_.id;
+                        if (inter_atom_list->xinter.size() > inter_atom_list->nlocalinter) {
+                            if (inter_atom_list->idinter.size() > inter_atom_list->nlocalinter) {
+                                inter_atom_list->idinter[inter_atom_list->nlocalinter] = atom_.id;
                             } else {
-                                idinter.push_back(atom_.id);
+                                inter_atom_list->idinter.push_back(atom_.id);
                             }
-                            typeinter[nlocalinter] = atom_.type; // todo type.
-                            xinter[nlocalinter][0] = atom_.x[0];
-                            xinter[nlocalinter][1] = atom_.x[1];
-                            xinter[nlocalinter][2] = atom_.x[2];
+                            inter_atom_list->typeinter[inter_atom_list->nlocalinter] = atom_.type; // todo type.
+                            inter_atom_list->xinter[inter_atom_list->nlocalinter][0] = atom_.x[0];
+                            inter_atom_list->xinter[inter_atom_list->nlocalinter][1] = atom_.x[1];
+                            inter_atom_list->xinter[inter_atom_list->nlocalinter][2] = atom_.x[2];
 
-                            if (vinter.size() > nlocalinter) {
-                                vinter[nlocalinter][0] = atom_.v[0];
-                                vinter[nlocalinter][1] = atom_.v[1];
-                                vinter[nlocalinter][2] = atom_.v[2];
+                            if (inter_atom_list->vinter.size() > inter_atom_list->nlocalinter) {
+                                inter_atom_list->vinter[inter_atom_list->nlocalinter][0] = atom_.v[0];
+                                inter_atom_list->vinter[inter_atom_list->nlocalinter][1] = atom_.v[1];
+                                inter_atom_list->vinter[inter_atom_list->nlocalinter][2] = atom_.v[2];
                             } else {
-                                vinter.resize(nlocalinter + 1, vector<double>(3));
-                                vinter[nlocalinter][0] = atom_.v[0];
-                                vinter[nlocalinter][1] = atom_.v[1];
-                                vinter[nlocalinter][2] = atom_.v[2];
+                                inter_atom_list->vinter.resize(inter_atom_list->nlocalinter + 1, vector<double>(3));
+                                inter_atom_list->vinter[inter_atom_list->nlocalinter][0] = atom_.v[0];
+                                inter_atom_list->vinter[inter_atom_list->nlocalinter][1] = atom_.v[1];
+                                inter_atom_list->vinter[inter_atom_list->nlocalinter][2] = atom_.v[2];
                             }
-                            nlocalinter++;
-                            finter.resize(nlocalinter, vector<double>(3));
-                            rhointer.resize(nlocalinter);
-                            dfinter.resize(nlocalinter);
+                            inter_atom_list->nlocalinter++;
+                            inter_atom_list->finter.resize(inter_atom_list->nlocalinter, vector<double>(3));
+                            inter_atom_list->rhointer.resize(inter_atom_list->nlocalinter);
+                            inter_atom_list->dfinter.resize(inter_atom_list->nlocalinter);
                         } else {
-                            idinter.push_back(atom_.id);
-                            typeinter.push_back(atom_.type);
-                            xinter.resize(nlocalinter + 1, vector<double>(3));
-                            xinter[nlocalinter][0] = atom_.x[0];
-                            xinter[nlocalinter][1] = atom_.x[1];
-                            xinter[nlocalinter][2] = atom_.x[2];
-                            vinter.resize(nlocalinter + 1, vector<double>(3));
-                            vinter[nlocalinter][0] = atom_.v[0];
-                            vinter[nlocalinter][1] = atom_.v[1];
-                            vinter[nlocalinter][2] = atom_.v[2];
-                            nlocalinter++;
-                            finter.resize(nlocalinter, vector<double>(3));
-                            rhointer.resize(nlocalinter);
-                            dfinter.resize(nlocalinter);
+                            inter_atom_list->idinter.push_back(atom_.id);
+                            inter_atom_list->typeinter.push_back(atom_.type);
+                            inter_atom_list->xinter.resize(inter_atom_list->nlocalinter + 1, vector<double>(3));
+                            inter_atom_list->xinter[inter_atom_list->nlocalinter][0] = atom_.x[0];
+                            inter_atom_list->xinter[inter_atom_list->nlocalinter][1] = atom_.x[1];
+                            inter_atom_list->xinter[inter_atom_list->nlocalinter][2] = atom_.x[2];
+                            inter_atom_list->vinter.resize(inter_atom_list->nlocalinter + 1, vector<double>(3));
+                            inter_atom_list->vinter[inter_atom_list->nlocalinter][0] = atom_.v[0];
+                            inter_atom_list->vinter[inter_atom_list->nlocalinter][1] = atom_.v[1];
+                            inter_atom_list->vinter[inter_atom_list->nlocalinter][2] = atom_.v[2];
+                            inter_atom_list->nlocalinter++;
+                            inter_atom_list->finter.resize(inter_atom_list->nlocalinter, vector<double>(3));
+                            inter_atom_list->rhointer.resize(inter_atom_list->nlocalinter);
+                            inter_atom_list->dfinter.resize(inter_atom_list->nlocalinter);
                         }
 
                         atom_.x[0] = COORDINATE_ATOM_OUT_BOX;
@@ -208,30 +208,30 @@ int atom::decide() {
     }
 
     // periodic boundary
-    for (int i = 0; i < nlocalinter; i++) {
-        if (xinter[i][0] < p_domain->getMeasuredGlobalBoxCoordLower(0)) {
-            xinter[i][0] += p_domain->getMeasuredGlobalLength(0);
-        } else if (xinter[i][0] >= p_domain->getMeasuredGlobalBoxCoordUpper(0)) {
-            xinter[i][0] -= p_domain->getMeasuredGlobalLength(0);
+    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
+        if (inter_atom_list->xinter[i][0] < p_domain->getMeasuredGlobalBoxCoordLower(0)) {
+            inter_atom_list->xinter[i][0] += p_domain->getMeasuredGlobalLength(0);
+        } else if (inter_atom_list->xinter[i][0] >= p_domain->getMeasuredGlobalBoxCoordUpper(0)) {
+            inter_atom_list->xinter[i][0] -= p_domain->getMeasuredGlobalLength(0);
         }
-        if (xinter[i][1] < p_domain->getMeasuredGlobalBoxCoordLower(1)) {
-            xinter[i][1] += p_domain->getMeasuredGlobalLength(1);
-        } else if (xinter[i][1] >= p_domain->getMeasuredGlobalBoxCoordUpper(1)) {
-            xinter[i][1] -= p_domain->getMeasuredGlobalLength(1);
+        if (inter_atom_list->xinter[i][1] < p_domain->getMeasuredGlobalBoxCoordLower(1)) {
+            inter_atom_list->xinter[i][1] += p_domain->getMeasuredGlobalLength(1);
+        } else if (inter_atom_list->xinter[i][1] >= p_domain->getMeasuredGlobalBoxCoordUpper(1)) {
+            inter_atom_list->xinter[i][1] -= p_domain->getMeasuredGlobalLength(1);
         }
-        if (xinter[i][2] < p_domain->getMeasuredGlobalBoxCoordLower(1)) {
-            xinter[i][2] += p_domain->getMeasuredGlobalLength(2);
-        } else if (xinter[i][2] >= p_domain->getMeasuredGlobalBoxCoordUpper(1)) {
-            xinter[i][2] -= p_domain->getMeasuredGlobalLength(2);
+        if (inter_atom_list->xinter[i][2] < p_domain->getMeasuredGlobalBoxCoordLower(1)) {
+            inter_atom_list->xinter[i][2] += p_domain->getMeasuredGlobalLength(2);
+        } else if (inter_atom_list->xinter[i][2] >= p_domain->getMeasuredGlobalBoxCoordUpper(1)) {
+            inter_atom_list->xinter[i][2] -= p_domain->getMeasuredGlobalLength(2);
         }
     }
 
     //判断，如果跑出晶格点的?佑峙芑鼐Ц竦悖蚍呕鼐Ц竦闶榇娲⑵湫畔?
-    for (int i = 0; i < nlocalinter; i++) {
+    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
         int j, k, l;
-        xtemp = xinter[i][0];
-        ytemp = xinter[i][1];
-        ztemp = xinter[i][2];
+        xtemp = inter_atom_list->xinter[i][0];
+        ytemp = inter_atom_list->xinter[i][1];
+        ztemp = inter_atom_list->xinter[i][2];
         j = xtemp * 2 / _latticeconst + 0.5;
         k = ytemp * 2 / _latticeconst + 0.5;
         l = ztemp * 2 / _latticeconst + 0.5;
@@ -247,26 +247,26 @@ int atom::decide() {
             j = atom_list->IndexOf3DIndex(j, k, l);
             AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(j);
             if (atom_.isInterElement()) {
-                atom_.id = idinter[i];
-                atom_.type = typeinter[i];
-                atom_.x[0] = xinter[i][0];
-                atom_.x[1] = xinter[i][1];
-                atom_.x[2] = xinter[i][2];
-                atom_.v[0] = vinter[i][0];
-                atom_.v[1] = vinter[i][1];
-                atom_.v[2] = vinter[i][2];
+                atom_.id = inter_atom_list->idinter[i];
+                atom_.type = inter_atom_list->typeinter[i];
+                atom_.x[0] = inter_atom_list->xinter[i][0];
+                atom_.x[1] = inter_atom_list->xinter[i][1];
+                atom_.x[2] = inter_atom_list->xinter[i][2];
+                atom_.v[0] = inter_atom_list->vinter[i][0];
+                atom_.v[1] = inter_atom_list->vinter[i][1];
+                atom_.v[2] = inter_atom_list->vinter[i][2];
 
-                idinter[i] = idinter[nlocalinter - 1];
-                typeinter[i] = typeinter[nlocalinter - 1];
-                xinter[i][0] = xinter[nlocalinter - 1][0];
-                xinter[i][1] = xinter[nlocalinter - 1][1];
-                xinter[i][2] = xinter[nlocalinter - 1][2];
-                vinter[i][0] = vinter[nlocalinter - 1][0];
-                vinter[i][1] = vinter[nlocalinter - 1][1];
-                vinter[i][2] = vinter[nlocalinter - 1][2];
+                inter_atom_list->idinter[i] = inter_atom_list->idinter[inter_atom_list->nlocalinter - 1];
+                inter_atom_list->typeinter[i] = inter_atom_list->typeinter[inter_atom_list->nlocalinter - 1];
+                inter_atom_list->xinter[i][0] = inter_atom_list->xinter[inter_atom_list->nlocalinter - 1][0];
+                inter_atom_list->xinter[i][1] = inter_atom_list->xinter[inter_atom_list->nlocalinter - 1][1];
+                inter_atom_list->xinter[i][2] = inter_atom_list->xinter[inter_atom_list->nlocalinter - 1][2];
+                inter_atom_list->vinter[i][0] = inter_atom_list->vinter[inter_atom_list->nlocalinter - 1][0];
+                inter_atom_list->vinter[i][1] = inter_atom_list->vinter[inter_atom_list->nlocalinter - 1][1];
+                inter_atom_list->vinter[i][2] = inter_atom_list->vinter[inter_atom_list->nlocalinter - 1][2];
 
                 i--;
-                nlocalinter--;
+                inter_atom_list->nlocalinter--;
             }
         }
     }
@@ -281,11 +281,11 @@ void atom::clearForce() {
         atom_.f[2] = 0;
         atom_.rho = 0;
     }
-    for (int i = 0; i < finter.size(); i++) {
-        finter[i][0] = 0;
-        finter[i][1] = 0;
-        finter[i][2] = 0;
-        rhointer[i] = 0;
+    for (int i = 0; i < inter_atom_list->finter.size(); i++) {
+        inter_atom_list->finter[i][0] = 0;
+        inter_atom_list->finter[i][1] = 0;
+        inter_atom_list->finter[i][2] = 0;
+        inter_atom_list->rhointer[i] = 0;
     }
 }
 
@@ -358,10 +358,10 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
 
     //间隙原子电子云密度
     int j, k, l;
-    for (int i = 0; i < nlocalinter; i++) {
-        xtemp = xinter[i][0];
-        ytemp = xinter[i][1];
-        ztemp = xinter[i][2];
+    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
+        xtemp = inter_atom_list->xinter[i][0];
+        ytemp = inter_atom_list->xinter[i][1];
+        ztemp = inter_atom_list->xinter[i][2];
         j = xtemp * 2 / _latticeconst + 0.5;
         k = ytemp * 2 / _latticeconst + 0.5;
         l = ztemp * 2 / _latticeconst + 0.5;
@@ -388,7 +388,7 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
             spline = rho_spline->spline;
             rhoTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p + spline[m][6];
 
-            rhointer[i] += rhoTmp;
+            inter_atom_list->rhointer[i] += rhoTmp;
             atom_.rho += rhoTmp;
         }
         for (neighbourOffsetsIter = NeighbourOffsets.begin();
@@ -411,7 +411,7 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
                 spline = rho_spline->spline;
                 rhoTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p + spline[m][6];
 
-                rhointer[i] += rhoTmp;
+                inter_atom_list->rhointer[i] += rhoTmp;
                 atom_n.rho += rhoTmp;
             }
             n = (j - *neighbourOffsetsIter);
@@ -431,15 +431,15 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
                 spline = rho_spline->spline;
                 rhoTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p + spline[m][6];
 
-                rhointer[i] += rhoTmp;
+                inter_atom_list->rhointer[i] += rhoTmp;
                 atom_n.rho += rhoTmp;
             }
         }
         //对间隙原子遍历
-        for (int k = i + 1; k < (nghostinter + nlocalinter); k++) {
-            delx = xtemp - xinter[k][0];
-            dely = ytemp - xinter[k][1];
-            delz = ztemp - xinter[k][2];
+        for (int k = i + 1; k < (inter_atom_list->nghostinter + inter_atom_list->nlocalinter); k++) {
+            delx = xtemp - inter_atom_list->xinter[k][0];
+            dely = ytemp - inter_atom_list->xinter[k][1];
+            delz = ztemp - inter_atom_list->xinter[k][2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                 r = sqrt(dist2);
@@ -452,20 +452,20 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
                 spline = rho_spline->spline;
                 rhoTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p + spline[m][6];
 
-                rhointer[i] += rhoTmp;
-                rhointer[k] += rhoTmp;
+                inter_atom_list->rhointer[i] += rhoTmp;
+                inter_atom_list->rhointer[k] += rhoTmp;
             }
         }
         //计算间隙原子嵌入能导数
         nr = f_spline->n;
-        p = rhointer[i] * f_spline->invDx + 1.0;
+        p = inter_atom_list->rhointer[i] * f_spline->invDx + 1.0;
         m = static_cast<int> (p);
         m = std::max(1, std::min(m, (nr - 1)));
         p -= m;
         p = std::min(p, 1.0);
         spline = f_spline->spline;
         dfEmbed = (spline[m][0] * p + spline[m][1]) * p + spline[m][2];
-        dfinter[i] = dfEmbed;
+        inter_atom_list->dfinter[i] = dfEmbed;
     }
 
 //    ofstream outfile;
@@ -628,11 +628,11 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
       outfile.close();*/ // 2.todo remove end.
 
     //间隙原子计算嵌入能和对势带来的力
-    for (int i = 0; i < nlocalinter; i++) {
+    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
         int j, k, l;
-        xtemp = xinter[i][0];
-        ytemp = xinter[i][1];
-        ztemp = xinter[i][2];
+        xtemp = inter_atom_list->xinter[i][0];
+        ytemp = inter_atom_list->xinter[i][1];
+        ztemp = inter_atom_list->xinter[i][2];
         j = xtemp * 2 / _latticeconst + 0.5;
         k = ytemp * 2 / _latticeconst + 0.5;
         l = ztemp * 2 / _latticeconst + 0.5;
@@ -667,12 +667,12 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             recip = 1.0 / r;
             phi = z2 * recip;
             phip = z2p * recip - phi * recip;
-            psip = (dfinter[i] + atom_.df) * dRho + phip;
+            psip = (inter_atom_list->dfinter[i] + atom_.df) * dRho + phip;
             fpair = -psip * recip;
 
-            finter[i][0] += delx * fpair;
-            finter[i][1] += dely * fpair;
-            finter[i][2] += delz * fpair;
+            inter_atom_list->finter[i][0] += delx * fpair;
+            inter_atom_list->finter[i][1] += dely * fpair;
+            inter_atom_list->finter[i][2] += delz * fpair;
 
             atom_.f[0] -= delx * fpair;
             atom_.f[1] -= dely * fpair;
@@ -706,12 +706,12 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                 recip = 1.0 / r;
                 phi = z2 * recip;
                 phip = z2p * recip - phi * recip;
-                psip = (dfinter[i] + atom_n.df) * dRho + phip;
+                psip = (inter_atom_list->dfinter[i] + atom_n.df) * dRho + phip;
                 fpair = -psip * recip;
 
-                finter[i][0] += delx * fpair;
-                finter[i][1] += dely * fpair;
-                finter[i][2] += delz * fpair;
+                inter_atom_list->finter[i][0] += delx * fpair;
+                inter_atom_list->finter[i][1] += dely * fpair;
+                inter_atom_list->finter[i][2] += delz * fpair;
 
                 atom_n.f[0] -= delx * fpair;
                 atom_n.f[1] -= dely * fpair;
@@ -743,12 +743,12 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                 recip = 1.0 / r;
                 phi = z2 * recip;
                 phip = z2p * recip - phi * recip;
-                psip = (dfinter[i] + atom_.df) * dRho + phip;
+                psip = (inter_atom_list->dfinter[i] + atom_.df) * dRho + phip;
                 fpair = -psip * recip;
 
-                finter[i][0] += delx * fpair;
-                finter[i][1] += dely * fpair;
-                finter[i][2] += delz * fpair;
+                inter_atom_list->finter[i][0] += delx * fpair;
+                inter_atom_list->finter[i][1] += dely * fpair;
+                inter_atom_list->finter[i][2] += delz * fpair;
 
                 atom_.f[0] -= delx * fpair;
                 atom_.f[1] -= dely * fpair;
@@ -756,10 +756,10 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             }
         }
         //对间隙原子遍历
-        for (int k = i + 1; k < (nghostinter + nlocalinter); k++) {
-            delx = xtemp - xinter[k][0];
-            dely = ytemp - xinter[k][1];
-            delz = ztemp - xinter[k][2];
+        for (int k = i + 1; k < (inter_atom_list->nghostinter + inter_atom_list->nlocalinter); k++) {
+            delx = xtemp - inter_atom_list->xinter[k][0];
+            dely = ytemp - inter_atom_list->xinter[k][1];
+            delz = ztemp - inter_atom_list->xinter[k][2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                 r = sqrt(dist2);
@@ -780,16 +780,16 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                 recip = 1.0 / r;
                 phi = z2 * recip;
                 phip = z2p * recip - phi * recip;
-                psip = (dfinter[i] + dfinter[k]) * dRho + phip;
+                psip = (inter_atom_list->dfinter[i] + inter_atom_list->dfinter[k]) * dRho + phip;
                 fpair = -psip * recip;
 
-                finter[i][0] += delx * fpair;
-                finter[i][1] += dely * fpair;
-                finter[i][2] += delz * fpair;
+                inter_atom_list->finter[i][0] += delx * fpair;
+                inter_atom_list->finter[i][1] += dely * fpair;
+                inter_atom_list->finter[i][2] += delz * fpair;
 
-                finter[k][0] -= delx * fpair;
-                finter[k][1] -= dely * fpair;
-                finter[k][2] -= delz * fpair;
+                inter_atom_list->finter[k][0] -= delx * fpair;
+                inter_atom_list->finter[k][1] -= dely * fpair;
+                inter_atom_list->finter[k][2] -= delz * fpair;
             }
         }
     }
@@ -928,16 +928,16 @@ void atom::getIntertosend(int d, int direction, double ghostlengh, vector<int> &
         if (direction == 0) {
             low = p_domain->getMeasuredSubBoxLowerBounding(0);
             high = p_domain->getMeasuredSubBoxLowerBounding(0) + ghostlengh;
-            for (int i = 0; i < nlocalinter; i++) {
-                if (xinter[i][0] < high && xinter[i][0] >= low) {
+            for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
+                if (inter_atom_list->xinter[i][0] < high && inter_atom_list->xinter[i][0] >= low) {
                     sendlist.push_back(i);
                 }
             }
         } else {
             low = p_domain->getMeasuredSubBoxUpperBounding(0) - ghostlengh;
             high = p_domain->getMeasuredSubBoxUpperBounding(0);
-            for (int i = 0; i < nlocalinter; i++) {
-                if (xinter[i][0] <= high && xinter[i][0] > low) {
+            for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
+                if (inter_atom_list->xinter[i][0] <= high && inter_atom_list->xinter[i][0] > low) {
                     sendlist.push_back(i);
                 }
             }
@@ -946,16 +946,16 @@ void atom::getIntertosend(int d, int direction, double ghostlengh, vector<int> &
         if (direction == 0) {
             low = p_domain->getMeasuredSubBoxLowerBounding(1);
             high = p_domain->getMeasuredSubBoxLowerBounding(1) + ghostlengh;
-            for (int i = 0; i < nlocalinter + nghostinter; i++) {
-                if (xinter[i][1] < high && xinter[i][1] >= low) {
+            for (int i = 0; i < inter_atom_list->nlocalinter + inter_atom_list->nghostinter; i++) {
+                if (inter_atom_list->xinter[i][1] < high && inter_atom_list->xinter[i][1] >= low) {
                     sendlist.push_back(i);
                 }
             }
         } else {
             low = p_domain->getMeasuredSubBoxUpperBounding(1) - ghostlengh;
             high = p_domain->getMeasuredSubBoxUpperBounding(1);
-            for (int i = 0; i < nlocalinter + nghostinter; i++) {
-                if (xinter[i][1] <= high && xinter[i][1] > low) {
+            for (int i = 0; i < inter_atom_list->nlocalinter + inter_atom_list->nghostinter; i++) {
+                if (inter_atom_list->xinter[i][1] <= high && inter_atom_list->xinter[i][1] > low) {
                     sendlist.push_back(i);
                 }
             }
@@ -964,16 +964,16 @@ void atom::getIntertosend(int d, int direction, double ghostlengh, vector<int> &
         if (direction == 0) {
             low = p_domain->getMeasuredSubBoxLowerBounding(2);
             high = p_domain->getMeasuredSubBoxLowerBounding(2) + ghostlengh;
-            for (int i = 0; i < nlocalinter + nghostinter; i++) {
-                if (xinter[i][2] < high && xinter[i][2] >= low) {
+            for (int i = 0; i < inter_atom_list->nlocalinter + inter_atom_list->nghostinter; i++) {
+                if (inter_atom_list->xinter[i][2] < high && inter_atom_list->xinter[i][2] >= low) {
                     sendlist.push_back(i);
                 }
             }
         } else {
             low = p_domain->getMeasuredSubBoxUpperBounding(2) - ghostlengh;
             high = p_domain->getMeasuredSubBoxUpperBounding(2);
-            for (int i = 0; i < nlocalinter + nghostinter; i++) {
-                if (xinter[i][2] <= high && xinter[i][2] > low) {
+            for (int i = 0; i < inter_atom_list->nlocalinter + inter_atom_list->nghostinter; i++) {
+                if (inter_atom_list->xinter[i][2] <= high && inter_atom_list->xinter[i][2] > low) {
                     sendlist.push_back(i);
                 }
             }
@@ -983,15 +983,15 @@ void atom::getIntertosend(int d, int direction, double ghostlengh, vector<int> &
 
 int atom::getintersendnum(int dimension, int direction) {
     interbuf.clear();
-    for (int i = 0; i < nlocalinter; i++) {
+    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
         if (direction == 0) {
             // we assume that, a atom cannot cross 2 or more than 2 sub-boxes
             // todo think: what if a atom is at the north-west corner?
-            if (xinter[i][dimension] < p_domain->getMeasuredSubBoxLowerBounding(dimension)) {
+            if (inter_atom_list->xinter[i][dimension] < p_domain->getMeasuredSubBoxLowerBounding(dimension)) {
                 interbuf.push_back(i);
             }
         } else {
-            if (xinter[i][dimension] >= p_domain->getMeasuredSubBoxUpperBounding(dimension)) {
+            if (inter_atom_list->xinter[i][dimension] >= p_domain->getMeasuredSubBoxUpperBounding(dimension)) {
                 interbuf.push_back(i);
             }
         }
@@ -999,36 +999,10 @@ int atom::getintersendnum(int dimension, int direction) {
     return interbuf.size();
 }
 
-void atom::pack_intersend(particledata *buf) {
-    int j;
-    for (int i = 0; i < interbuf.size(); i++) {
-        j = interbuf[i];
-        buf[i].id = idinter[j];
-        buf[i].type = typeinter[j];
-        buf[i].r[0] = xinter[j][0];
-        buf[i].r[1] = xinter[j][1];
-        buf[i].r[2] = xinter[j][2];
-        buf[i].v[0] = vinter[j][0];
-        buf[i].v[1] = vinter[j][1];
-        buf[i].v[2] = vinter[j][2];
-        // remove the inter atom.
-        // exchange the atom at end of vector to the position of atom (inter[j]) te be removed .
-        idinter[j] = idinter[nlocalinter - 1];
-        typeinter[j] = typeinter[nlocalinter - 1];
-        xinter[j][0] = xinter[nlocalinter - 1][0];
-        xinter[j][1] = xinter[nlocalinter - 1][1];
-        xinter[j][2] = xinter[nlocalinter - 1][2];
-        vinter[j][0] = vinter[nlocalinter - 1][0];
-        vinter[j][1] = vinter[nlocalinter - 1][1];
-        vinter[j][2] = vinter[nlocalinter - 1][2];
-        nlocalinter--;
-    }
-}
-
 void atom::computefirst(double dtInv2m, double dt) {
     //本地晶格点上的原子求解运动方程第一步
     atom_list->foreachSubBoxAtom(
-            [dtInv2m,dt](AtomElement &_atom_ref) {
+            [dtInv2m, dt](AtomElement &_atom_ref) {
                 if (!_atom_ref.isInterElement()) {
                     _atom_ref.v[0] = _atom_ref.v[0] + dtInv2m * _atom_ref.f[0];
                     _atom_ref.v[1] = _atom_ref.v[1] + dtInv2m * _atom_ref.f[1];
@@ -1041,10 +1015,10 @@ void atom::computefirst(double dtInv2m, double dt) {
     );
 
     //本地间隙原子求解运动方程第一步
-    for (int i = 0; i < nlocalinter; i++) {
+    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
         for (unsigned short d = 0; d < 3; ++d) {
-            vinter[i][d] = vinter[i][d] + dtInv2m * finter[i][d];
-            xinter[i][d] += dt * vinter[i][d];
+            inter_atom_list->vinter[i][d] = inter_atom_list->vinter[i][d] + dtInv2m * inter_atom_list->finter[i][d];
+            inter_atom_list->xinter[i][d] += dt * inter_atom_list->vinter[i][d];
         }
     }
 }
@@ -1060,9 +1034,9 @@ void atom::computesecond(double dtInv2m) {
             }
     );
     //本地间隙原子求解运动方程第二步
-    for (int i = 0; i < nlocalinter; i++) {
+    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
         for (unsigned short d = 0; d < 3; ++d) {
-            vinter[i][d] = vinter[i][d] + dtInv2m * finter[i][d];
+            inter_atom_list->vinter[i][d] = inter_atom_list->vinter[i][d] + dtInv2m * inter_atom_list->finter[i][d];
         }
     }
 }
@@ -1105,8 +1079,8 @@ void atom::setv(int lat[4], double collision_v[3]) {
         && lat[2] >= p_domain->getGlobalSubBoxLatticeCoordLower(2) &&
         lat[2] < (p_domain->getGlobalSubBoxLatticeCoordLower(2) + p_domain->getSubBoxLatticeSize(2))) {
         kk = (atom_list->IndexOf3DIndex(lat[0] * 2 - p_domain->getGlobalGhostLatticeCoordLower(0),
-                             lat[1] - p_domain->getGlobalGhostLatticeCoordLower(1),
-                             lat[2] - p_domain->getGlobalGhostLatticeCoordLower(2)) + lat[4]);
+                                        lat[1] - p_domain->getGlobalGhostLatticeCoordLower(1),
+                                        lat[2] - p_domain->getGlobalGhostLatticeCoordLower(2)) + lat[4]);
         AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
         atom_.v[0] += collision_v[0];
         atom_.v[1] += collision_v[1];
