@@ -6,7 +6,7 @@
 #define CRYSTAL_MD_INTER_ATOM_LIST_H
 
 #include <vector>
-#include "pre_define.h"
+#include "../pre_define.h"
 
 /**
  * storing inter atoms
@@ -23,6 +23,8 @@ public:
     int nlocalinter, nghostinter; // 本地间隙原子数和ghost间隙原子数
 
     InterAtomList();
+
+    void appendInter(_type_atom_id atom_id);
 };
 
 

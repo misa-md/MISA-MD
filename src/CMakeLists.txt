@@ -12,17 +12,10 @@ configure_file(
         "${PROJECT_SOURCE_DIR}/src/pre_config.h"
 )
 
-#set(INCLUDE_FILES
-#        args.hpp
-#        toml.hpp)
-
 set(HEADER_FILES
         arch_env.hpp
         atom.h
         atom_dump.h
-        atom_element.h
-        atom_list.h
-        atom_types.h
         crystal_md.h
         toml_config.h
         config_values.h
@@ -38,16 +31,18 @@ set(HEADER_FILES
         pre_define.h
         simulation.h
         world_builder.h
+        atom/atom_element.h
+        atom/atom_list.h
+        atom/atom_types.h
+        atom/inter_atom_list.h
         pack/lat_particle_data.h
         pack/pack.h
         pack/particledata.h
-        inter_atom_list.cpp inter_atom_list.h)
+        )
 
 set(SOURCE_FILES
         atom.cpp
         atom_dump.cpp
-        atom_element.cpp
-        atom_list.cpp
         crystal_md.cpp
         toml_config.cpp
         config_values.cpp
@@ -59,10 +54,13 @@ set(SOURCE_FILES
         newton_motion.cpp
         simulation.cpp
         world_builder.cpp
+        atom/atom_element.cpp
+        atom/atom_list.cpp
+        atom/inter_atom_list.cpp
         pack/lat_particle_data.cpp
         pack/pack.cpp
         pack/particledata.cpp
-        inter_atom_list.cpp inter_atom_list.h)
+        )
 
 # codes runs on sunway.
 set(ARCH_SUNWAY_FILES

@@ -297,7 +297,7 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
     InterpolationObject *rho_spline = pot->rho;
     InterpolationObject *f_spline = pot->f;
     InterpolationObject *phi_spline = pot->phi;
-    int n;
+    _type_atom_index n;
     double dist2;
     double r;
     double rhoTmp, dRho, dEmbed, dfEmbed, phiTmp, dPhi;
@@ -306,7 +306,7 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
     double (*spline)[7];
     double fpair;
     double recip, phi, phip, psip, z2, z2p;
-    long kk;
+    _type_atom_index kk;
     int xstart = p_domain->getGhostLatticeSize(0);
     int ystart = p_domain->getGhostLatticeSize(1);
     int zstart = p_domain->getGhostLatticeSize(2);
@@ -986,7 +986,6 @@ int atom::getintersendnum(int dimension, int direction) {
     for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
         if (direction == 0) {
             // we assume that, a atom cannot cross 2 or more than 2 sub-boxes
-            // todo think: what if a atom is at the north-west corner?
             if (inter_atom_list->xinter[i][dimension] < p_domain->getMeasuredSubBoxLowerBounding(dimension)) {
                 interbuf.push_back(i);
             }

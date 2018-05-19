@@ -4,7 +4,7 @@
 
 #include <logs/logs.h>
 #include "pack.h"
-#include "../atom_element.h"
+#include "../atom/atom_element.h"
 
 void pack::pack_intersend(InterAtomList *inter, std::vector<unsigned long> interbuf,
                           particledata *buf) {

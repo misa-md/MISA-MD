@@ -35,10 +35,6 @@ AtomList::~AtomList() {
     delete[] _atoms;
 }
 
-void AtomList::appendInter(_type_atom_id atom_id) {
-
-}
-
 AtomList::iterator AtomList::begin() {
     return AtomList::iterator(nullptr);
 }

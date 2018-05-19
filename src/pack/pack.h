@@ -7,10 +7,10 @@
 
 #include <vector>
 #include "../pre_define.h"
-#include "../atom_list.h"
+#include "../atom/atom_list.h"
 #include "lat_particle_data.h"
 #include "particledata.h"
-#include "../inter_atom_list.h"
+#include "../atom/inter_atom_list.h"
 
 namespace pack {
 

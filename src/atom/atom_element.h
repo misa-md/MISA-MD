@@ -6,7 +6,7 @@
 #define CRYSTAL_MD_ATOM_ELEMENT_H
 
 
-#include "pre_define.h"
+#include "../pre_define.h"
 #include "atom_types.h"
 
 /**
@@ -19,7 +19,7 @@ class AtomElement {
 public:
     _type_atom_id id; // atom id.
     // <del> @deprecated
-    _type_atom_type type; // atom type
+    _type_atom_type type; // atom type @depresed
     // </del>
     _type_atom_type_enum _tp; // atom type
 
