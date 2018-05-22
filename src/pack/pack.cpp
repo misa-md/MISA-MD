@@ -153,8 +153,9 @@ void pack::unpack_borderrecv(int n, InterAtomList *inter,
                 inter->rhointer.resize(inter->nlocalinter + inter->nghostinter);
                 inter->dfinter.resize(inter->nlocalinter + inter->nghostinter);
             }
-        } else
+        } else {
             recvlist[i] = -1;
+        }
     }
 }
 
@@ -168,7 +169,7 @@ void pack::pack_send(const int dimension, const int n, const double shift[DIMENS
     for (int i = 0; i < n; i++) {
         j = sendlist[i];
         AtomElement &atom_ = atom_list.getAtomEleByLinearIndex(j);
-        // for ghost atoms, we just care their position and atom type(eam calculating), so positions and types are enough.
+        // for ghost atoms, we just care their position and atom type(EamParser calculating), so positions and types are enough.
         buf[i].type = atom_.type; // fixme --type
         buf[i].r[0] = atom_.x[0] + shift[0];
         buf[i].r[1] = atom_.x[1] + shift[1];

@@ -8,6 +8,7 @@
 /**
  * @see also config_values.h#AlloyRatio
  */
+#include "../pre_define.h"
 
 #define _ATOM_TYPES 3 // 3 different types of atoms(Fe-Cu-Ni).
 

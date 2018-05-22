@@ -6,6 +6,7 @@
 #include "atom.h"
 #include "toml_config.h"
 #include "hardware_accelerate.hpp" // use hardware(eg.GPU, MIC,Sunway slave cores.) to achieve calculate accelerating.
+#include "potential/eam.h"
 
 atom::atom(Domain *domain, double latticeconst,
            double cutoffRadiusFactor, int seed) :

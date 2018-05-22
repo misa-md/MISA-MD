@@ -2,6 +2,7 @@
 #include <logs/logs.h>
 
 #include "simulation.h"
+#include "potential/eam_parser.h"
 #include "hardware_accelerate.hpp"
 #include "world_builder.h"
 #include "atom_dump.h"
@@ -63,9 +64,10 @@ void simulation::prepareForStart() {
     double starttime, stoptime;
     double commtime, computetime, comm;
     _pot = new eam();
+    EamParser parser(pConfigVal->potentialFilename, pConfigVal->potentialFileType);
     // 读取势函数文件
     if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
-        if (!(_pot->parse(pConfigVal->potentialFilename, pConfigVal->potentialFileType))) { // parse potential file.
+        if (!(parser.parse(_pot))) { // parse potential file.
             abort(1); // todo log, reason
         }
     }
