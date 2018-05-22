@@ -169,7 +169,8 @@ int atom::decide() {
                                 inter_atom_list->vinter[inter_atom_list->nlocalinter][1] = atom_.v[1];
                                 inter_atom_list->vinter[inter_atom_list->nlocalinter][2] = atom_.v[2];
                             } else {
-                                inter_atom_list->vinter.resize(inter_atom_list->nlocalinter + 1, std::vector<double>(3));
+                                inter_atom_list->vinter.resize(inter_atom_list->nlocalinter + 1,
+                                                               std::vector<double>(3));
                                 inter_atom_list->vinter[inter_atom_list->nlocalinter][0] = atom_.v[0];
                                 inter_atom_list->vinter[inter_atom_list->nlocalinter][1] = atom_.v[1];
                                 inter_atom_list->vinter[inter_atom_list->nlocalinter][2] = atom_.v[2];
@@ -297,7 +298,7 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
     std::vector<long int>::iterator neighbourOffsetsIter;
     InterpolationObject *rho_spline = pot->rho;
     InterpolationObject *f_spline = pot->f;
-    InterpolationObject *phi_spline = pot->phi;
+//    InterpolationObject *phi_spline = pot->phi;
     _type_atom_index n;
     double dist2;
     double r;
@@ -548,8 +549,8 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
 
     if (isAccelerateSupport()) {
 //        std::cout << "f\n";
-        accelerateEamForceCalc(&(phi_spline->n), atom_list, &_cutoffRadius,
-                               &(phi_spline->invDx), phi_spline->values, rho_spline->values);
+        accelerateEamForceCalc(nullptr, atom_list, &_cutoffRadius,
+                               nullptr, nullptr, rho_spline->values);
     } else {
         /*sprintf(tmp, "f.atom");
         outfile.open(tmp);
@@ -584,6 +585,8 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                             delz = ztemp - atom_n.x[2];
                             dist2 = delx * delx + dely * dely + delz * delz;
                             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
+                                InterpolationObject *phi_spline = pot->eam_phi.getPhiByEamPhiByType(
+                                        atom_._tp, atom_n._tp);
                                 r = sqrt(dist2);
                                 nr = phi_spline->n;
                                 p = r * phi_spline->invDx + 1.0;
@@ -651,6 +654,8 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
         dist2 = delx * delx + dely * dely + delz * delz;
         if (dist2 < (_cutoffRadius * _cutoffRadius)) {
             r = sqrt(dist2);
+            InterpolationObject *phi_spline = pot->eam_phi.getPhiByEamPhiByType(
+                    atom_type::Fe, atom_type::Fe); // fixme
             nr = phi_spline->n;
             p = r * phi_spline->invDx + 1.0;
             m = static_cast<int> (p);
@@ -690,6 +695,8 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                 r = sqrt(dist2);
+                InterpolationObject *phi_spline = pot->eam_phi.getPhiByEamPhiByType(
+                        atom_._tp, atom_n._tp); // fixme
                 nr = phi_spline->n;
                 p = r * phi_spline->invDx + 1.0;
                 m = static_cast<int> (p);
@@ -727,6 +734,8 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                 r = sqrt(dist2);
+                InterpolationObject *phi_spline = pot->eam_phi.getPhiByEamPhiByType(
+                        atom_type::Fe, atom_type::Fe); // fixme
                 nr = phi_spline->n;
                 p = r * phi_spline->invDx + 1.0;
                 m = static_cast<int> (p);
@@ -764,6 +773,8 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                 r = sqrt(dist2);
+                InterpolationObject *phi_spline = pot->eam_phi.getPhiByEamPhiByType(
+                        atom_type::Fe,atom_type::Fe); // fixme
                 nr = phi_spline->n;
                 p = r * phi_spline->invDx + 1.0;
                 m = static_cast<int> (p);

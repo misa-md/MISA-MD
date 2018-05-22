@@ -53,6 +53,14 @@ namespace atom_type {
     inline atom_type getAtomTypeByNum(int i) {
         return static_cast<atom_type>(i);
     }
+
+//    inline int getAtomTypeIndex(atom_type type) {
+//        return type;
+//    }
+//
+//    inline int getAtomTypeMatrisIndex(atom_type type1, atom_type type2) {
+//        return num_atom_types * type1 + type2;
+//    }
 }
 
 #endif //CRYSTAL_MD_ATOM_TYPES_H

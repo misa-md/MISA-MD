@@ -57,7 +57,10 @@ inline void accelerateEamDfCalc(int *df_n, AtomList *atom_list, double *cutoffRa
 #endif
 }
 
-// accelerate for calculating force in computing eam potential.
+/**
+ * accelerate for calculating force in computing eam potential.
+ * // fixme many atom types.
+ */
 inline void accelerateEamForceCalc(int *phi_n, AtomList *atom_list,
                                    double *cutoffRadius, double *phiSplineInvDx,
                                    double *phiSplineValues, double *rhoSplineValues) {

@@ -37,7 +37,7 @@ set(HEADER_FILES
         pack/pack.h
         pack/particledata.h
         potential/eam.h
-        potential/eam_hpi.h
+        potential/eam_phi.h
         potential/eam_parser.h
         potential/interpolation_object.h
         )
