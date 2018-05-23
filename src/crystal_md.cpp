@@ -2,36 +2,34 @@
 // Created by gensh(genshenchu@gmail.com) on 2017/4/19.
 //
 
-#include <iostream>
 #include <args.hpp>
 #include <utils/mpi_utils.h>
+#include <logs/logs.h>
 
 #include "crystal_md.h"
 #include "arch_env.hpp"
-
-using namespace std;
 
 bool crystalMD::beforeCreate(int argc, char *argv[]) {
     // parser arguments
     // see https://github.com/Taywee/args for using args.
     args::ArgumentParser parser("This is CrystalMD program.", "authors:BaiHe.");
     args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
-    args::ValueFlag<string> conf(parser, "conf", "The configure file", {'c', "conf"});
+    args::ValueFlag<std::string> conf(parser, "conf", "The configure file", {'c', "conf"});
     try {
         parser.ParseCLI(argc, (const char *const *) argv);
     }
     catch (args::Help) {
-        cout << parser;
+        std::cout << parser;
         return false;
     }
     catch (args::ParseError e) {
-        cerr << e.what() << endl;
-        cerr << parser;
+        std::cerr << e.what() << std::endl;
+        std::cerr << parser;
         return false;
     }
     catch (args::ValidationError e) {
-        cerr << e.what() << endl;
-        cerr << parser;
+        std::cerr << e.what() << std::endl;
+        std::cerr << parser;
         return false;
     }
 
@@ -49,12 +47,12 @@ bool crystalMD::beforeCreate(int argc, char *argv[]) {
 
 void crystalMD::onCreate() {
     ConfigParser *pConfig;
-    if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR) {
-        std::cout << "mpi env was initialed." << std::endl;
+    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
+        kiwi::logs::s("env", "mpi env is initialized.\n");
         // initial config Obj, then read and resolve config file.
         pConfig = ConfigParser::newInstance(configFilePath); // todo config file from argv.
         if (pConfig->hasError) {
-            std::cerr << "[Error] " << pConfig->errorMessage << std::endl;
+            kiwi::logs::e("config", "{0}\n", pConfig->errorMessage);
             this->abort(2);
         }
     } else {
@@ -64,8 +62,8 @@ void crystalMD::onCreate() {
     pConfig->sync(); // sync config data to other processors from master processor.
 #ifdef DEV_MODE
 // print configure.
-    if (kiwi::mpiUtils::ownRank != MASTER_PROCESSOR) {
-        cout << pConfig->configValues;
+    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
+        std::cout << pConfig->configValues;
     }
 #endif
     archEnvInit(); // initialize architectures environment.
@@ -73,30 +71,25 @@ void crystalMD::onCreate() {
 
 bool crystalMD::prepare() {
     pSimulation = new simulation();
-    pSimulation->domainDecomposition(); //区域分解
-    pSimulation->createBoxedAndAtoms();
+    pSimulation->createDomainDecomposition(); // 区域分解
+    pSimulation->createAtoms();
     return true;
 }
 
 void crystalMD::onStart() {
-    pSimulation->prepareForStart(kiwi::mpiUtils::ownRank);
-    if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR)
-        std::cout << "Start simulation" << std::endl;
-    //开始模拟
-    pSimulation->simulate();
+    pSimulation->prepareForStart();
+    kiwi::logs::v(MASTER_PROCESSOR, "simulation", "Start simulation.\n");
+    pSimulation->simulate(); // start simulation.
 }
 
 void crystalMD::onFinish() {
-    if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR)
-        std::cout << "finalizing simulation" << std::endl;
+    kiwi::logs::s(MASTER_PROCESSOR, "simulation", "finalizing simulation\n");
     //模拟结束
     pSimulation->finalize();
 }
 
 void crystalMD::beforeDestroy() {
-    if (kiwi::mpiUtils::ownRank == MASTER_PROCESSOR) {
-        cout << "app was detached" << endl;
-    }
+    kiwi::logs::v(MASTER_PROCESSOR, "app", "app was detached.\n");
     archEnvFinalize(); // clean architectures environment.
 }
 

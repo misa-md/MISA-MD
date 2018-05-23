@@ -12,7 +12,7 @@
 
 #include <iostream>
 #include "test_config.h"
-#include "catch.hpp"
+#include "catch2.hpp"
 
 #ifdef TEST_MPI_ENABLE_FLAG
 

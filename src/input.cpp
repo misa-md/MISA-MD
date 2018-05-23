@@ -1,8 +1,7 @@
-#include "input.h"
-#include "domaindecomposition.h"
 #include <iostream>
-
-using namespace std;
+#include <logs/logs.h>
+#include "input.h"
+#include "atom.h"
 
 input::input() {}
 
@@ -11,19 +10,19 @@ input::~input() {}
 void input::readPhaseSpace(atom *_atom) {
     particledata *sendbuf;
     _phaseSpaceFile = "dump.atom";
-    cout << "Opening phase space file " << _phaseSpaceFile << endl;
+    kiwi::logs::e("phase-space", "Opening phase space file {}.\n", _phaseSpaceFile);
     _phaseSpaceFileStream.open(_phaseSpaceFile.c_str());
     if (!_phaseSpaceFileStream.is_open()) {
-        cout << "Could not open phaseSpaceFile " << _phaseSpaceFile << endl;
+        kiwi::logs::e("phase-space", "Could not open phaseSpaceFile {}.\n ", _phaseSpaceFile);
     }
-    cout << "Reading phase space file " << _phaseSpaceFile << endl;
+    kiwi::logs::e("phase-space", "Reading phase space file {}.\n", _phaseSpaceFile);
     double x, y, z, vx, vy, vz;
     unsigned long id;
     int type;
     x = y = z = vx = vy = vz = 0.;
     for (unsigned long i = 0; i < 432; i++) {
         _phaseSpaceFileStream >> id >> x >> y >> z >> vx >> vy >> vz;
-        _atom->addatom(id, x, y, z, vx, vy, vz);
+        _atom->addAtom(id, x, y, z, vx, vy, vz);
     }
     _phaseSpaceFileStream.close();
 }

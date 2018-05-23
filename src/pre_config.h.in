@@ -13,9 +13,6 @@
 
 #define DEV_MODE
 
-// some value definition here.
-#define DIMENSION 3
-
 #ifdef ARCH_SW
 #define ARCH_SUNWAY
 #endif

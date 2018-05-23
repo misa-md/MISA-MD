@@ -5,7 +5,7 @@
 #ifndef CRYSTAL_MD_HARDWARE_ACCELERATE_H
 #define CRYSTAL_MD_HARDWARE_ACCELERATE_H
 
-#include "pre_config.h"
+#include "pre_define.h"
 
 #ifdef ARCH_SUNWAY
 
@@ -37,28 +37,31 @@ inline void accelerateInit(const int lolocalx, const int lolocaly, const int lol
 // it runs after atom and boxes creation, but before simulation running.
 inline void beforeAccelerateRun(eam *_pot) {
 #ifdef ARCH_SUNWAY
-    initSpline(_pot->rho->spline, _pot->f->spline, _pot->phi->spline);
+    initSpline(_pot->electron_density->spline, _pot->f->spline, _pot->phi->spline);
 #endif
 }
 
-// accelerate for calculating rho in computing eam potential.
-inline void accelerateEamRhoCalc(int *rho_n, double *x, double *rho, double *cutoffRadius,
+// accelerate for calculating electron_density in computing eam potential.
+inline void accelerateEamRhoCalc(int *rho_n, AtomList *atom_list, double *cutoffRadius,
                                  double *rhoInvDx, double *rhoSplineValues) {
 #ifdef ARCH_SUNWAY
-    athreadAccelerateEamRhoCalc(rho_n, x, rho, cutoffRadius, rhoInvDx, rhoSplineValues);
+    athreadAccelerateEamRhoCalc(rho_n, x, electron_density, cutoffRadius, rhoInvDx, rhoSplineValues);
 #endif
 }
 
 // accelerate for calculating df in computing eam potential.
-inline void accelerateEamDfCalc(int *df_n, double *rho, double *df, double *cutoffRadius,
+inline void accelerateEamDfCalc(int *df_n, AtomList *atom_list, double *cutoffRadius,
                                 double *dfSplineInvDx, double *dfSplineValues) {
 #ifdef ARCH_SUNWAY
-    athreadAccelerateEamDfCalc(df_n, rho, df, cutoffRadius, dfSplineInvDx, dfSplineValues);
+    athreadAccelerateEamDfCalc(df_n, electron_density, df, cutoffRadius, dfSplineInvDx, dfSplineValues);
 #endif
 }
 
-// accelerate for calculating force in computing eam potential.
-inline void accelerateEamForceCalc(int *phi_n, double *x, double *f, double *df,
+/**
+ * accelerate for calculating force in computing eam potential.
+ * // fixme many atom types.
+ */
+inline void accelerateEamForceCalc(int *phi_n, AtomList *atom_list,
                                    double *cutoffRadius, double *phiSplineInvDx,
                                    double *phiSplineValues, double *rhoSplineValues) {
 #ifdef ARCH_SUNWAY

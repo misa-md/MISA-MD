@@ -17,6 +17,9 @@ option(TOOLS_BUILD_ENABLE_FLAG "Enable tools building" ON) # enable tools buildi
 ## architecture ralated values.
 option(ARCH_SW "Enable sunway athread" OFF) # enable sunway athread if its running on sunway system.
 
+## debug
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
+
 #############
 ## const ##
 #############
