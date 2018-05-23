@@ -296,18 +296,16 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
     double xtemp, ytemp, ztemp;
     double delx, dely, delz;
     std::vector<long int>::iterator neighbourOffsetsIter;
-    InterpolationObject *rho_spline = pot->rho;
-    InterpolationObject *f_spline = pot->f;
-//    InterpolationObject *phi_spline = pot->phi;
+//    InterpolationObject *rho_spline = pot->electron_density;
+//    InterpolationObject *f_spline = pot->embedded;
     _type_atom_index n;
     double dist2;
     double r;
-    double rhoTmp, dRho, dEmbed, dfEmbed, phiTmp, dPhi;
+    double rhoTmp, dfEmbed;
     int nr, m;
     double p;
     double (*spline)[7];
     double fpair;
-    double recip, phi, phip, psip, z2, z2p;
     _type_atom_index kk;
     int xstart = p_domain->getGhostLatticeSize(0);
     int ystart = p_domain->getGhostLatticeSize(1);
@@ -315,9 +313,9 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
 
     // 本地晶格点上的原子计算电子云密度
     if (isAccelerateSupport()) {
-        accelerateEamRhoCalc(&(rho_spline->n), atom_list, &_cutoffRadius,
-                             &(rho_spline->invDx), rho_spline->values); // fixme
-    } else { // calculate rho use cpu only.
+//     fixme  accelerateEamRhoCalc(&(rho_spline->n), atom_list, &_cutoffRadius,
+//                             &(rho_spline->invDx), rho_spline->values); // fixme
+    } else { // calculate electron density use cpu only.
         for (int k = zstart; k < p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
             for (int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
                 for (int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
@@ -337,19 +335,9 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
                             delz = ztemp - atom_n.x[2];
                             dist2 = delx * delx + dely * dely + delz * delz;
                             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                                r = sqrt(dist2);
-                                nr = rho_spline->n;
-                                p = r * rho_spline->invDx + 1.0;
-                                m = static_cast<int> (p);
-                                m = std::max(1, std::min(m, (nr - 1)));
-                                p -= m;
-                                p = std::min(p, 1.0);
-                                spline = rho_spline->spline;
-                                rhoTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p +
-                                         spline[m][6];
-
+                                rhoTmp = pot->rhoContribution(atom_n._tp, dist2);
                                 atom_.rho += rhoTmp;
-                                atom_n.rho += rhoTmp;
+                                atom_n.rho += rhoTmp; // fixme what if the type of two atoms is different?
                             }
                         }
                     }
@@ -380,18 +368,9 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
         delz = ztemp - atom_.x[2];
         dist2 = delx * delx + dely * dely + delz * delz;
         if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-            r = sqrt(dist2);
-            nr = rho_spline->n;
-            p = r * rho_spline->invDx + 1.0;
-            m = static_cast<int> (p);
-            m = std::max(1, std::min(m, (nr - 1)));
-            p -= m;
-            p = std::min(p, 1.0);
-            spline = rho_spline->spline;
-            rhoTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p + spline[m][6];
-
+            rhoTmp = pot->rhoContribution(atom_._tp, dist2);
             inter_atom_list->rhointer[i] += rhoTmp;
-            atom_.rho += rhoTmp;
+            atom_.rho += rhoTmp; // fixme??
         }
         for (neighbourOffsetsIter = NeighbourOffsets.begin();
              neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
@@ -403,18 +382,9 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
             delz = ztemp - atom_n.x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                r = sqrt(dist2);
-                nr = rho_spline->n;
-                p = r * rho_spline->invDx + 1.0;
-                m = static_cast<int> (p);
-                m = std::max(1, std::min(m, (nr - 1)));
-                p -= m;
-                p = std::min(p, 1.0);
-                spline = rho_spline->spline;
-                rhoTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p + spline[m][6];
-
+                rhoTmp = pot->rhoContribution(atom_n._tp, dist2);
                 inter_atom_list->rhointer[i] += rhoTmp;
-                atom_n.rho += rhoTmp;
+                atom_n.rho += rhoTmp; // fixme different type.
             }
             n = (j - *neighbourOffsetsIter);
             AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(n);
@@ -423,18 +393,9 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
             delz = ztemp - atom_n.x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                r = sqrt(dist2);
-                nr = rho_spline->n;
-                p = r * rho_spline->invDx + 1.0;
-                m = static_cast<int> (p);
-                m = std::max(1, std::min(m, (nr - 1)));
-                p -= m;
-                p = std::min(p, 1.0);
-                spline = rho_spline->spline;
-                rhoTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p + spline[m][6];
-
+                rhoTmp = pot->rhoContribution(atom_._tp, dist2);
                 inter_atom_list->rhointer[i] += rhoTmp;
-                atom_n.rho += rhoTmp;
+                atom_n.rho += rhoTmp; // fixme different type.
             }
         }
         //对间隙原子遍历
@@ -444,42 +405,26 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
             delz = ztemp - inter_atom_list->xinter[k][2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                r = sqrt(dist2);
-                nr = rho_spline->n;
-                p = r * rho_spline->invDx + 1.0;
-                m = static_cast<int> (p);
-                m = std::max(1, std::min(m, (nr - 1)));
-                p -= m;
-                p = std::min(p, 1.0);
-                spline = rho_spline->spline;
-                rhoTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p + spline[m][6];
-
+                rhoTmp = pot->rhoContribution(atom_type::Fe, dist2); // fixme, type not right
                 inter_atom_list->rhointer[i] += rhoTmp;
                 inter_atom_list->rhointer[k] += rhoTmp;
             }
         }
         //计算间隙原子嵌入能导数
-        nr = f_spline->n;
-        p = inter_atom_list->rhointer[i] * f_spline->invDx + 1.0;
-        m = static_cast<int> (p);
-        m = std::max(1, std::min(m, (nr - 1)));
-        p -= m;
-        p = std::min(p, 1.0);
-        spline = f_spline->spline;
-        dfEmbed = (spline[m][0] * p + spline[m][1]) * p + spline[m][2];
+        dfEmbed = pot->embedEnergyContribution(atom_type::Fe, inter_atom_list->rhointer[i]); // fixme atom type.
         inter_atom_list->dfinter[i] = dfEmbed;
     }
 
 //    ofstream outfile;
     /* char tmp[20];
-    sprintf(tmp, "rho.atom");
+    sprintf(tmp, "electron_density.atom");
     outfile.open(tmp);
     for(int k =0; k < p_domain->getSubBoxLatticeSize(2) ; k++){
             for(int j = 0; j < p_domain->getSubBoxLatticeSize(1); j++){
                     for(int i =0; i < p_domain->getSubBoxLatticeSize(0) ; i++){
                              AtomElement &atom_ = atom_list->getAtomEleBySubBoxIndex(i,j,k);
                             if(!atom_.isInterElement())
-                                    outfile << atom_.rho << std::endl;
+                                    outfile << atom_.electron_density << std::endl;
                     }
             }
     }
@@ -503,7 +448,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                     for(int i =0; i < p_domain->getSubBoxLatticeSize(0) ; i++){
                              AtomElement &atom_ = atom_list->getAtomEleBySubBoxIndex(i,j,k);
                             if(!atom_.isInterElement())
-                                    outfile << atom_.rho << std::endl;
+                                    outfile << atom_.electron_density << std::endl;
                     }
             }
     }
@@ -511,23 +456,15 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
 
     //本地晶格点计算嵌入能导数
     if (isAccelerateSupport()) {
-//        std::cout << "df\n";
-        accelerateEamDfCalc(&(f_spline->n), atom_list, &_cutoffRadius,
-                            &(f_spline->invDx), f_spline->values);
+//       fixme accelerateEamDfCalc(&(f_spline->n), atom_list, &_cutoffRadius,
+//                            &(f_spline->invDx), f_spline->values);
     } else {
         for (int k = zstart; k < p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
             for (int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
                 for (int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
                     kk = atom_list->IndexOf3DIndex(i, j, k);
                     AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
-                    nr = f_spline->n;
-                    p = atom_.rho * f_spline->invDx + 1.0;
-                    m = static_cast<int> (p);
-                    m = std::max(1, std::min(m, (nr - 1)));
-                    p -= m;
-                    p = std::min(p, 1.0);
-                    spline = f_spline->spline;
-                    dfEmbed = (spline[m][0] * p + spline[m][1]) * p + spline[m][2];
+                    dfEmbed = pot->embedEnergyContribution(atom_type::Fe, atom_.rho); // fixme atom type.
                     atom_.df = dfEmbed;
                 }
             }
@@ -548,9 +485,8 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
     comm += stoptime - starttime;
 
     if (isAccelerateSupport()) {
-//        std::cout << "f\n";
-        accelerateEamForceCalc(nullptr, atom_list, &_cutoffRadius,
-                               nullptr, nullptr, rho_spline->values);
+//    fixme    accelerateEamForceCalc(nullptr, atom_list, &_cutoffRadius,
+//                               nullptr, nullptr, rho_spline->values);
     } else {
         /*sprintf(tmp, "f.atom");
         outfile.open(tmp);
@@ -585,29 +521,8 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                             delz = ztemp - atom_n.x[2];
                             dist2 = delx * delx + dely * dely + delz * delz;
                             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                                InterpolationObject *phi_spline = pot->eam_phi.getPhiByEamPhiByType(
-                                        atom_._tp, atom_n._tp);
-                                r = sqrt(dist2);
-                                nr = phi_spline->n;
-                                p = r * phi_spline->invDx + 1.0;
-                                m = static_cast<int> (p);
-                                m = std::max(1, std::min(m, (nr - 1)));
-                                p -= m;
-                                p = std::min(p, 1.0);
-                                spline = phi_spline->spline;
-                                phiTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p +
-                                         spline[m][6];
-                                dPhi = (spline[m][0] * p + spline[m][1]) * p + spline[m][2];
-                                spline = rho_spline->spline;
-                                dRho = (spline[m][0] * p + spline[m][1]) * p + spline[m][2];
-
-                                z2 = phiTmp;
-                                z2p = dPhi;
-                                recip = 1.0 / r;
-                                phi = z2 * recip;
-                                phip = z2p * recip - phi * recip;
-                                psip = (atom_.df + atom_n.df) * dRho + phip;
-                                fpair = -psip * recip;
+                                // fixme
+                                fpair = pot->toForce(atom_._tp, atom_n._tp, dist2, atom_.df + atom_n.df);
 
                                 atom_.f[0] += delx * fpair;
                                 atom_.f[1] += dely * fpair;
@@ -646,35 +561,15 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
         k -= p_domain->getGlobalGhostLatticeCoordLower(1);
         l -= p_domain->getGlobalGhostLatticeCoordLower(2);
         j = atom_list->IndexOf3DIndex(j, k, l);
-        AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(j);
+        AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(j); // cgs: 间隙原子所在晶格处的原子
 
         delx = xtemp - atom_.x[0];
         dely = ytemp - atom_.x[1];
         delz = ztemp - atom_.x[2];
         dist2 = delx * delx + dely * dely + delz * delz;
         if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-            r = sqrt(dist2);
-            InterpolationObject *phi_spline = pot->eam_phi.getPhiByEamPhiByType(
-                    atom_type::Fe, atom_type::Fe); // fixme
-            nr = phi_spline->n;
-            p = r * phi_spline->invDx + 1.0;
-            m = static_cast<int> (p);
-            m = std::max(1, std::min(m, (nr - 1)));
-            p -= m;
-            p = std::min(p, 1.0);
-            spline = phi_spline->spline;
-            phiTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p + spline[m][6];
-            dPhi = (spline[m][0] * p + spline[m][1]) * p + spline[m][2];
-            spline = rho_spline->spline;
-            dRho = (spline[m][0] * p + spline[m][1]) * p + spline[m][2];
-
-            z2 = phiTmp;
-            z2p = dPhi;
-            recip = 1.0 / r;
-            phi = z2 * recip;
-            phip = z2p * recip - phi * recip;
-            psip = (inter_atom_list->dfinter[i] + atom_.df) * dRho + phip;
-            fpair = -psip * recip;
+            // fixme inter atom type
+            fpair = pot->toForce(atom_type::Fe, atom_._tp, dist2, inter_atom_list->dfinter[i] + atom_.df);
 
             inter_atom_list->finter[i][0] += delx * fpair;
             inter_atom_list->finter[i][1] += dely * fpair;
@@ -694,28 +589,8 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             delz = ztemp - atom_n.x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                r = sqrt(dist2);
-                InterpolationObject *phi_spline = pot->eam_phi.getPhiByEamPhiByType(
-                        atom_._tp, atom_n._tp); // fixme
-                nr = phi_spline->n;
-                p = r * phi_spline->invDx + 1.0;
-                m = static_cast<int> (p);
-                m = std::max(1, std::min(m, (nr - 1)));
-                p -= m;
-                p = std::min(p, 1.0);
-                spline = phi_spline->spline;
-                phiTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p + spline[m][6];
-                dPhi = (spline[m][0] * p + spline[m][1]) * p + spline[m][2];
-                spline = rho_spline->spline;
-                dRho = (spline[m][0] * p + spline[m][1]) * p + spline[m][2];
-
-                z2 = phiTmp;
-                z2p = dPhi;
-                recip = 1.0 / r;
-                phi = z2 * recip;
-                phip = z2p * recip - phi * recip;
-                psip = (inter_atom_list->dfinter[i] + atom_n.df) * dRho + phip;
-                fpair = -psip * recip;
+                // fixme
+                fpair = pot->toForce(atom_type::Fe, atom_n._tp, dist2, inter_atom_list->dfinter[i] + atom_n.df);
 
                 inter_atom_list->finter[i][0] += delx * fpair;
                 inter_atom_list->finter[i][1] += dely * fpair;
@@ -733,28 +608,8 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             delz = ztemp - atom_.x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                r = sqrt(dist2);
-                InterpolationObject *phi_spline = pot->eam_phi.getPhiByEamPhiByType(
-                        atom_type::Fe, atom_type::Fe); // fixme
-                nr = phi_spline->n;
-                p = r * phi_spline->invDx + 1.0;
-                m = static_cast<int> (p);
-                m = std::max(1, std::min(m, (nr - 1)));
-                p -= m;
-                p = std::min(p, 1.0);
-                spline = phi_spline->spline;
-                phiTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p + spline[m][6];
-                dPhi = (spline[m][0] * p + spline[m][1]) * p + spline[m][2];
-                spline = rho_spline->spline;
-                dRho = (spline[m][0] * p + spline[m][1]) * p + spline[m][2];
-
-                z2 = phiTmp;
-                z2p = dPhi;
-                recip = 1.0 / r;
-                phi = z2 * recip;
-                phip = z2p * recip - phi * recip;
-                psip = (inter_atom_list->dfinter[i] + atom_.df) * dRho + phip;
-                fpair = -psip * recip;
+                // fixme
+                fpair = pot->toForce(atom_type::Fe, atom_n._tp, dist2, inter_atom_list->dfinter[i] + atom_.df);
 
                 inter_atom_list->finter[i][0] += delx * fpair;
                 inter_atom_list->finter[i][1] += dely * fpair;
@@ -772,28 +627,9 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             delz = ztemp - inter_atom_list->xinter[k][2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                r = sqrt(dist2);
-                InterpolationObject *phi_spline = pot->eam_phi.getPhiByEamPhiByType(
-                        atom_type::Fe,atom_type::Fe); // fixme
-                nr = phi_spline->n;
-                p = r * phi_spline->invDx + 1.0;
-                m = static_cast<int> (p);
-                m = std::max(1, std::min(m, (nr - 1)));
-                p -= m;
-                p = std::min(p, 1.0);
-                spline = phi_spline->spline;
-                phiTmp = ((spline[m][3] * p + spline[m][4]) * p + spline[m][5]) * p + spline[m][6];
-                dPhi = (spline[m][0] * p + spline[m][1]) * p + spline[m][2];
-                spline = rho_spline->spline;
-                dRho = (spline[m][0] * p + spline[m][1]) * p + spline[m][2];
-
-                z2 = phiTmp;
-                z2p = dPhi;
-                recip = 1.0 / r;
-                phi = z2 * recip;
-                phip = z2p * recip - phi * recip;
-                psip = (inter_atom_list->dfinter[i] + inter_atom_list->dfinter[k]) * dRho + phip;
-                fpair = -psip * recip;
+                // fixme
+                fpair = pot->toForce(atom_type::Fe, atom_type::Fe, dist2,
+                                     inter_atom_list->dfinter[i] + inter_atom_list->dfinter[k]);
 
                 inter_atom_list->finter[i][0] += delx * fpair;
                 inter_atom_list->finter[i][1] += dely * fpair;

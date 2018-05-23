@@ -37,6 +37,7 @@ set(HEADER_FILES
         pack/pack.h
         pack/particledata.h
         potential/eam.h
+        potential/eam_one_way.h
         potential/eam_phi.h
         potential/eam_parser.h
         potential/interpolation_object.h
@@ -61,6 +62,7 @@ set(SOURCE_FILES
         pack/pack.cpp
         pack/particledata.cpp
         potential/eam.cpp
+        potential/eam_one_way.cpp
         potential/eam_phi.cpp
         potential/eam_parser.cpp
         potential/interpolation_object.cpp
