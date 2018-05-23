@@ -27,8 +27,8 @@ public:
     _type_atom_velocity v[DIMENSION]; // atom velocity.
     _type_atom_force f[DIMENSION];  // atom force.
 
-    _type_atom_rho rho;
-    _type_atom_df df;
+    _type_atom_rho rho; // electron charge density
+    _type_atom_df df; // embedded energy
 
     /**
      * check whether this atom is Inter atom.

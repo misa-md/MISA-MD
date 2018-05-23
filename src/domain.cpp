@@ -611,7 +611,6 @@ void Domain::sendForce(atom *_atom) {
             sendbuf[direction] = new double[numPartsToSend[d][direction] * 3];
             pack::pack_force(numPartsToSend[d][direction], _atom->getAtomListRef(),
                              sendbuf[direction], recvlist[iswap--]);
-//            _atom->pack_force(numPartsToSend[d][direction], recvlist[iswap--], sendbuf[direction]);
         }
         for (direction = LOWER; direction <= HIGHER; direction++) {
             int numsend = numPartsToSend[d][direction] * 3;
@@ -636,7 +635,6 @@ void Domain::sendForce(atom *_atom) {
 
             //将收到的粒子位置信息加到对应存储位置上
             pack::unpack_force(d, direction, _atom->getAtomListRef(), recvbuf[direction], sendlist);
-//            _atom->unpack_force(d, direction, recvbuf[direction], sendlist);
 
             delete[] sendbuf[direction];
             delete[] recvbuf[direction];

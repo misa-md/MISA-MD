@@ -296,15 +296,9 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
     double xtemp, ytemp, ztemp;
     double delx, dely, delz;
     std::vector<long int>::iterator neighbourOffsetsIter;
-//    InterpolationObject *rho_spline = pot->electron_density;
-//    InterpolationObject *f_spline = pot->embedded;
     _type_atom_index n;
     double dist2;
-    double r;
     double rhoTmp, dfEmbed;
-    int nr, m;
-    double p;
-    double (*spline)[7];
     double fpair;
     _type_atom_index kk;
     int xstart = p_domain->getGhostLatticeSize(0);
@@ -433,7 +427,8 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
 } // 1. todo remove end.
     outfile.close();*/
 
-    //发送电子云密度
+    // 发送电子云密度
+    // 将ghost区域的粒子的电子云密度发送给其所在的进程，得到完整的电子云密度
     starttime = MPI_Wtime();
     domain->sendrho(this);
     stoptime = MPI_Wtime();
@@ -478,7 +473,8 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
     }
     outfile.close();*/
 
-    //发送嵌入能导数
+    // 发送嵌入能导数
+    // 将本地box属于邻居进程ghost区域的粒子的嵌入能导数发送给邻居进程
     starttime = MPI_Wtime();
     domain->sendDfEmbed(this);
     stoptime = MPI_Wtime();
