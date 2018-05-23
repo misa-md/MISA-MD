@@ -1,32 +1,41 @@
 title = "Crystal-MD Configure File"
-version = "0.2.0"
-#<a href='https://github.com/toml-lang/toml'>toml</a> configure file for Crystal-MD application,
-#designed by <a href='mailto:genshenchu@gmail.com'>genshen</a>"
+version = "0.3.0"
+# <a href='https://github.com/toml-lang/toml'>toml</a> configure file for Crystal-MD application,
+# writen by <a href='mailto:genshenchu@gmail.com'>genshen</a>"
 
-#for BCC struct
+# for BCC struct
 [simulation]
-phasespace = [50, 50, 50] # box size #int array type
-cutoff_radius = 5.60  # double type
-lattice_const = 2.85532   # double type
+phasespace = [50, 50, 50] # box size, the count of lattice at each dimension. #int array type
+cutoff_radius_factor = 1.96125  # the real cutoff radius is cutoff_radius_factor*lattice_cosnt , double type
+lattice_const = 2.85532   # lattice const, double type
 timesteps =  10  # unsigned long type
+timesteps_length = 0.001  # simulation time steps length for each timestep, double type.
 
-[simulation.createphase]  # read atoms information from file or create atoms.
-#createphase = [600, 466953]
-create_phase = true  # boolean type. true: create atoms,false: read atoms.
-create_t_set = 600.0   # temperature double type, for create mode
-create_seed = 466953 # int type, for create mode
-#read_phase_filename = ""  # string type, for read mode.
+    [simulation.createphase]  # read atoms information from file or create atoms.
+    #createphase = [600, 466953]
+    create_phase = true  # boolean type. true: create atoms,false: read atoms.
+    create_t_set = 600.0   # temperature double type, for create mode
+    create_seed = 466953 # int type, for create mode
+    #read_phase_filename = ""  # string type, for read mode.
 
-[simulation.collision]
-#collision_step [2, 2, 2, 2, 0, 5, 5, 5]
-collision_steps = 2  # unsigned long type
-lat = [2, 2, 2, 0]  # int array type
-collision_v = [5.0, 5.0, 5.0]  # double array type
+    # types of alloy
+    [simulation.alloy]
+        create_seed = 1024 # random seek for creating atoms in Fe-Cu-Ni alloy material.
+        [simulation.alloy.ratio] # all interger type. # Fe:Cu:Ni = 95:2:3
+            Fe = 97
+            Cu = 2
+            Ni = 1
 
-# potential file config
-[simulation.potential_file]
-type = "setfl" # string type
-filename = "FeCuNi.eam.alloy" # string type
+    [simulation.collision]
+    #collision_step [2, 2, 2, 2, 0, 5, 5, 5]
+    collision_step = 2  # unsigned long type
+    lat = [2, 2, 2, 0]  # int array type
+    collision_v = [5.0, 5.0, 5.0]  # double array type
+
+    # potential file config
+    [simulation.potential_file]
+    type = "setfl" # string type
+    filename = "FeCuNi.eam.alloy" # string type
 
 
 [output]

@@ -1,19 +1,28 @@
-#ifndef INTEGRATOR_H_
-#define INTEGRATOR_H_
+//
+// Created by baihe back to 2015-05-13.
+//
+
+#ifndef CRYSTAL_MD_INTEGRATOR_H
+#define CRYSTAL_MD_INTEGRATOR_H
+
 #include "atom.h"
 
-class integrator{
+class integrator {
 public:
-	integrator(double timestepLength);
-	~integrator();
+    integrator(double timestepLength);
 
-	void firststep(atom* _atom);
-	void secondstep(atom* _atom);
-	void setTimestepLength(double dt) {
-		_timestepLength = dt;
-	}
+    ~integrator();
+
+    void firststep(atom *_atom);
+
+    void secondstep(atom *_atom);
+
+    void setTimestepLength(double dt) {
+        _timestepLength = dt;
+    }
+
 private:
-	double _timestepLength;
+    double _timestepLength;
 };
 
-#endif /* INTEGRATOR_H_ */
+#endif // CRYSTAL_MD_INTEGRATOR_H

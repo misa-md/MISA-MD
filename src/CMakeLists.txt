@@ -4,7 +4,7 @@ include_directories(${PROJECT_SOURCE_DIR}/vendor/pkg/include)
 # include kiwi framework.
 add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/src/kiwi ${PROJECT_BINARY_DIR}/vendor/kiwi)
 include_directories(${KIWI_EXPORT_INCLUDE_PATH})
-set(EXTRA_LIBS kiwi ${EXTRA_LIBS})
+set(EXTRA_LIBS ${KIWI_EXPORT_LINK_LIBS} ${EXTRA_LIBS})
 
 # configure a header file to pass some of the CMake settings to the source code
 configure_file(
@@ -12,45 +12,60 @@ configure_file(
         "${PROJECT_SOURCE_DIR}/src/pre_config.h"
 )
 
-#set(INCLUDE_FILES
-#        args.hpp
-#        toml.hpp)
-
 set(HEADER_FILES
         arch_env.hpp
         atom.h
-        createatom.h
+        atom_dump.h
         crystal_md.h
         toml_config.h
         config_values.h
+        def_config_values.h
         domain.h
-        domaindecomposition.h
-        eam.h
         hardware_accelerate.hpp
         input.h
         integrator.h
-        InterpolationObject.h
-        latparticledata.h
-        particledata.h
+        newton_motion.h
         pre_config.h
+        pre_define.h
         simulation.h
+        world_builder.h
+        atom/atom_element.h
+        atom/atom_list.h
+        atom/atom_types.h
+        atom/inter_atom_list.h
+        pack/lat_particle_data.h
+        pack/pack.h
+        pack/particledata.h
+        potential/eam.h
+        potential/eam_one_way.h
+        potential/eam_phi.h
+        potential/eam_parser.h
+        potential/interpolation_object.h
         )
 
 set(SOURCE_FILES
         atom.cpp
-        createatom.cpp
+        atom_dump.cpp
         crystal_md.cpp
         toml_config.cpp
         config_values.cpp
         domain.cpp
-        domaindecomposition.cpp
-        eam.cpp
         input.cpp
         integrator.cpp
-        InterpolationObject.cpp
-        latparticledata.cpp
-        particledata.cpp
+        newton_motion.cpp
         simulation.cpp
+        world_builder.cpp
+        atom/atom_element.cpp
+        atom/atom_list.cpp
+        atom/inter_atom_list.cpp
+        pack/lat_particle_data.cpp
+        pack/pack.cpp
+        pack/particledata.cpp
+        potential/eam.cpp
+        potential/eam_one_way.cpp
+        potential/eam_phi.cpp
+        potential/eam_parser.cpp
+        potential/interpolation_object.cpp
         )
 
 # codes runs on sunway.

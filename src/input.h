@@ -1,10 +1,14 @@
-#ifndef INPUT_H_
-#define INPUT_H_
+//
+// Created by baihe back to 2015-08-17.
+//
 
-#include "atom.h"
+#ifndef CRYSTAL_MD_INPUT_H
+#define CRYSTAL_MD_INPUT_H
 
 #include <string>
 #include <fstream>
+
+#include "atom.h"
 
 class input {
 public:
@@ -21,4 +25,4 @@ private:
     std::fstream _phaseSpaceHeaderFileStream;
 };
 
-#endif /*INPUT_H_*/
+#endif //CRYSTAL_MD_INPUT_H
