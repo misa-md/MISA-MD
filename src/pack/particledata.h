@@ -6,6 +6,7 @@
 #define PARTICLEDATA_H_
 
 #include <mpi.h>
+#include "../atom/atom_types.h"
 
 class particledata {
 public:
@@ -15,7 +16,7 @@ public:
     particledata();
 
     unsigned long id;
-    int type;
+    atom_type::atom_type type;
     double r[3];
     double v[3];
 };

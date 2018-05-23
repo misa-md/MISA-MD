@@ -329,7 +329,7 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
                             delz = ztemp - atom_n.x[2];
                             dist2 = delx * delx + dely * dely + delz * delz;
                             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                                rhoTmp = pot->rhoContribution(atom_n._tp, dist2);
+                                rhoTmp = pot->rhoContribution(atom_n.type, dist2);
                                 atom_.rho += rhoTmp;
                                 atom_n.rho += rhoTmp; // fixme what if the type of two atoms is different?
                             }
@@ -362,7 +362,7 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
         delz = ztemp - atom_.x[2];
         dist2 = delx * delx + dely * dely + delz * delz;
         if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-            rhoTmp = pot->rhoContribution(atom_._tp, dist2);
+            rhoTmp = pot->rhoContribution(atom_.type, dist2);
             inter_atom_list->rhointer[i] += rhoTmp;
             atom_.rho += rhoTmp; // fixme??
         }
@@ -376,7 +376,7 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
             delz = ztemp - atom_n.x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                rhoTmp = pot->rhoContribution(atom_n._tp, dist2);
+                rhoTmp = pot->rhoContribution(atom_n.type, dist2);
                 inter_atom_list->rhointer[i] += rhoTmp;
                 atom_n.rho += rhoTmp; // fixme different type.
             }
@@ -387,7 +387,7 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
             delz = ztemp - atom_n.x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                rhoTmp = pot->rhoContribution(atom_._tp, dist2);
+                rhoTmp = pot->rhoContribution(atom_.type, dist2);
                 inter_atom_list->rhointer[i] += rhoTmp;
                 atom_n.rho += rhoTmp; // fixme different type.
             }
@@ -518,7 +518,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                             dist2 = delx * delx + dely * dely + delz * delz;
                             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                                 // fixme
-                                fpair = pot->toForce(atom_._tp, atom_n._tp, dist2, atom_.df + atom_n.df);
+                                fpair = pot->toForce(atom_.type, atom_n.type, dist2, atom_.df + atom_n.df);
 
                                 atom_.f[0] += delx * fpair;
                                 atom_.f[1] += dely * fpair;
@@ -565,7 +565,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
         dist2 = delx * delx + dely * dely + delz * delz;
         if (dist2 < (_cutoffRadius * _cutoffRadius)) {
             // fixme inter atom type
-            fpair = pot->toForce(atom_type::Fe, atom_._tp, dist2, inter_atom_list->dfinter[i] + atom_.df);
+            fpair = pot->toForce(atom_type::Fe, atom_.type, dist2, inter_atom_list->dfinter[i] + atom_.df);
 
             inter_atom_list->finter[i][0] += delx * fpair;
             inter_atom_list->finter[i][1] += dely * fpair;
@@ -586,7 +586,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                 // fixme
-                fpair = pot->toForce(atom_type::Fe, atom_n._tp, dist2, inter_atom_list->dfinter[i] + atom_n.df);
+                fpair = pot->toForce(atom_type::Fe, atom_n.type, dist2, inter_atom_list->dfinter[i] + atom_n.df);
 
                 inter_atom_list->finter[i][0] += delx * fpair;
                 inter_atom_list->finter[i][1] += dely * fpair;
@@ -605,7 +605,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                 // fixme
-                fpair = pot->toForce(atom_type::Fe, atom_n._tp, dist2, inter_atom_list->dfinter[i] + atom_.df);
+                fpair = pot->toForce(atom_type::Fe, atom_n.type, dist2, inter_atom_list->dfinter[i] + atom_.df);
 
                 inter_atom_list->finter[i][0] += delx * fpair;
                 inter_atom_list->finter[i][1] += dely * fpair;

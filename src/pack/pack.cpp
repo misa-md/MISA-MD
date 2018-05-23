@@ -40,7 +40,7 @@ void pack::unpack_interrecv(int d, int n, InterAtomList *inter,
     std::vector<double> xtemp(3);
     std::vector<double> vtemp(3);
     unsigned long id;
-    int type;
+    atom_type::atom_type type;
     for (int i = 0; i < n; i++) {
         id = buf[i].id;
         type = buf[i].type;
@@ -121,7 +121,7 @@ void pack::unpack_borderrecv(int n, InterAtomList *inter,
                              double lower[DIMENSION], // p_domain->getMeasuredGhostLowerBounding(d)
                              double upper[DIMENSION], // p_domain->getMeasuredGhostUpperBounding(d)
                              LatParticleData *buf, std::vector<int> &recvlist) {
-    int type;
+    atom_type::atom_type type;
     std::vector<double> xtemp(3);
     for (int i = 0; i < n; i++) {
         type = buf[i].type;

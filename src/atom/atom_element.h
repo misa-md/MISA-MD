@@ -19,9 +19,9 @@ class AtomElement {
 public:
     _type_atom_id id; // atom id.
     // <del> @deprecated
-    _type_atom_type type; // atom type @depresed
+//    _type_atom_type type; // atom type @depresed
     // </del>
-    _type_atom_type_enum _tp; // atom type
+    _type_atom_type_enum type; // atom type
 
     _type_atom_location x[DIMENSION]; // atom position.
     _type_atom_velocity v[DIMENSION]; // atom velocity.
