@@ -14,7 +14,7 @@ bool crystalMD::beforeCreate(int argc, char *argv[]) {
     // see https://github.com/Taywee/args for using args.
     args::ArgumentParser parser("This is CrystalMD program.", "authors:BaiHe.");
     args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
-    args::ValueFlag<string> conf(parser, "conf", "The configure file", {'c', "conf"});
+    args::ValueFlag<std::string> conf(parser, "conf", "The configure file", {'c', "conf"});
     try {
         parser.ParseCLI(argc, (const char *const *) argv);
     }
@@ -23,12 +23,12 @@ bool crystalMD::beforeCreate(int argc, char *argv[]) {
         return false;
     }
     catch (args::ParseError e) {
-        std::cerr << e.what() << endl;
+        std::cerr << e.what() << std::endl;
         std::cerr << parser;
         return false;
     }
     catch (args::ValidationError e) {
-        std::cerr << e.what() << endl;
+        std::cerr << e.what() << std::endl;
         std::cerr << parser;
         return false;
     }

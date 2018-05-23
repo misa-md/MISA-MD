@@ -8,7 +8,7 @@
 #include <string>
 #include <utils/bundle.h>
 #include "pre_define.h"
-#include "atom_types.h"
+#include "atom/atom_types.h"
 
 #define OUTPUT_COPY_MODE 0
 #define OUTPUT_DIRECT_MODE 1

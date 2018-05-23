@@ -6,6 +6,7 @@
 #define CRYSTAL_MD_LAT_PARTICLE_DATA_H
 
 #include <mpi.h>
+#include "../atom/atom_types.h"
 
 class LatParticleData {
 public:
@@ -14,7 +15,7 @@ public:
 
     LatParticleData();
 
-    int type;
+    atom_type::atom_type type;
     double r[3];
 };
 

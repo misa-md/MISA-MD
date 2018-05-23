@@ -42,6 +42,7 @@ $ cp ./CrystalMD ../example/  # copy executable file to example directory.
 
 ### Run
 NOtice: befor running, you should have [FeCuNi.eam.alloy](https://www.ctcms.nist.gov/potentials/Download/Fe-Cu-Ni-GB/FeCuNi.eam.alloy) file,then specific the file path in config.toml file.  
+see [here](https://www.ctcms.nist.gov/potentials/Fe-Cu-Ni.html) for more details.
 For example, you can get the file by running following command to download the file:
 ```bash
 $ wget https://www.ctcms.nist.gov/potentials/Download/Fe-Cu-Ni-GB/FeCuNi.eam.alloy -O exmaple/FeCuNi.eam.alloy

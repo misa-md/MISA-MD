@@ -9,7 +9,7 @@
 
 // constance
 #define BOLTZ 8.617343e-5 // Boltzmann constant, 8.617343e-5 EV/K; also equals to 1.3806505e-23 J/K.
-#define mvv2e 1.0364269e-4 // todo move to predefine.h
+#define mvv2e 1.0364269e-4
 #define ftm2v ( 1.0 / mvv2e)
 
 
@@ -27,7 +27,7 @@ typedef unsigned long _type_atom_id;
 typedef unsigned long _type_atom_index;
 typedef unsigned long _type_atom_count;
 typedef int _type_atom_type; // @deprecated
-typedef short _type_atom_types; // the count of all types of atoms.
+typedef unsigned short _type_atom_types; // the count of all types of atoms.
 
 typedef double _type_atom_mass;
 typedef double _type_atom_location;

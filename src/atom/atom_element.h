@@ -6,7 +6,7 @@
 #define CRYSTAL_MD_ATOM_ELEMENT_H
 
 
-#include "pre_define.h"
+#include "../pre_define.h"
 #include "atom_types.h"
 
 /**
@@ -19,16 +19,16 @@ class AtomElement {
 public:
     _type_atom_id id; // atom id.
     // <del> @deprecated
-    _type_atom_type type; // atom type
+//    _type_atom_type type; // atom type @depresed
     // </del>
-    _type_atom_type_enum _tp; // atom type
+    _type_atom_type_enum type; // atom type
 
     _type_atom_location x[DIMENSION]; // atom position.
     _type_atom_velocity v[DIMENSION]; // atom velocity.
     _type_atom_force f[DIMENSION];  // atom force.
 
-    _type_atom_rho rho;
-    _type_atom_df df;
+    _type_atom_rho rho; // electron charge density
+    _type_atom_df df; // embedded energy
 
     /**
      * check whether this atom is Inter atom.

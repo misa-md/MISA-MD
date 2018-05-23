@@ -1,5 +1,6 @@
 #include <logs/logs.h>
 #include "domain.h"
+#include "pack/pack.h"
 
 Domain::Domain(const int64_t *phaseSpace, const double latticeConst,
                const double cutoffRadiusFactor) :
@@ -107,7 +108,7 @@ void Domain::setSubBoxDomainGCS() {
     // set lattice coordinate boundary of sub-box.
     for (int d = 0; d < DIMENSION; d++) {
         // floor equals to "/" if all operation number >=0.
-        _lattice_coord_sub_box_lower[d] = _grid_coord_sub_box[d] * _phase_space[d] / _grid_size[d];
+        _lattice_coord_sub_box_lower[d] = _grid_coord_sub_box[d] * _phase_space[d] / _grid_size[d]; // todo set measure coord = lower*lattice_const.
         _lattice_coord_sub_box_upper[d] = (_grid_coord_sub_box[d] + 1) * _phase_space[d] / _grid_size[d];
     }
     _lattice_coord_sub_box_lower[0] *= 2;
@@ -173,7 +174,7 @@ void Domain::exchangeAtomFirst(atom *_atom) {
 
             // 当原子要跨越周期性边界, 原子坐标必须要做出调整
             // only one periodic boundary appears at one dimension, so the length of array can be 3, not 6.
-            double offset[DIMENSION] = { 0.0,0.0,0.0};
+            double offset[DIMENSION] = {0.0, 0.0, 0.0};
             // 进程在左侧边界
             if (_grid_coord_sub_box[d] == 0 && direction == LOWER) {
                 offset[d] = getMeasuredGlobalLength(d);
@@ -187,7 +188,9 @@ void Domain::exchangeAtomFirst(atom *_atom) {
             // 初始化发送缓冲区
             numPartsToSend[d][direction] = sendlist[iswap].size();
             sendbuf[direction] = new LatParticleData[numPartsToSend[d][direction]];
-            _atom->pack_send(d, numPartsToSend[d][direction], sendlist[iswap++], sendbuf[direction], offset);
+            pack::pack_send(d, numPartsToSend[d][direction], offset, _atom->getAtomListRef(),
+                            sendbuf[direction], sendlist[iswap++]);
+//            _atom->pack_send(d, numPartsToSend[d][direction], sendlist[iswap++], sendbuf[direction], offset);
         }
 
         // 与上下邻居通信
@@ -217,7 +220,12 @@ void Domain::exchangeAtomFirst(atom *_atom) {
             MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
 
             //将收到的粒子位置信息加到对应存储位置上
-            _atom->unpack_recvfirst(d, direction, numrecv, recvbuf[direction], recvlist);
+            pack::unpack_recvfirst(d, direction, numrecv, _atom->getAtomListRef(),
+                                   _lattice_size_ghost,
+                                   _lattice_size_sub_box,
+                                   _lattice_size_ghost_extended,
+                                   recvbuf[direction], recvlist);
+//            _atom->unpack_recvfirst(d, direction, numrecv, recvbuf[direction], recvlist);
 
             // 释放buffer
             delete[] sendbuf[direction];
@@ -265,7 +273,9 @@ void Domain::exchangeAtom(atom *_atom) {
             // 初始化发送缓冲区
             numPartsToSend[d][direction] = sendlist[iswap].size();
             sendbuf[direction] = new LatParticleData[numPartsToSend[d][direction]];
-            _atom->pack_send(d, numPartsToSend[d][direction], sendlist[iswap++], sendbuf[direction], offset);
+            pack::pack_send(d, numPartsToSend[d][direction], offset, _atom->getAtomListRef(),
+                            sendbuf[direction], sendlist[iswap++]);
+//            _atom->pack_send(d, numPartsToSend[d][direction], sendlist[iswap++], sendbuf[direction], offset);
         }
 
         // 与上下邻居通信
@@ -295,7 +305,8 @@ void Domain::exchangeAtom(atom *_atom) {
             MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
 
             //将收到的粒子位置信息加到对应存储位置上
-            _atom->unpack_recv(d, direction, numrecv, recvbuf[direction], recvlist);
+            pack::unpack_recv(d, direction, numrecv, _atom->getAtomListRef(), recvbuf[direction], recvlist);
+//            _atom->unpack_recv(d, direction, numrecv, recvbuf[direction], recvlist);
 
             // 释放buffer
             delete[] sendbuf[direction];
@@ -324,8 +335,8 @@ void Domain::exchangeInter(atom *_atom) {
         for (direction = LOWER; direction <= HIGHER; direction++) {
             numPartsToSend[d][direction] = _atom->getintersendnum(d, direction);
             sendbuf[direction] = new particledata[numPartsToSend[d][direction]];
-
-            _atom->pack_intersend(sendbuf[direction]);
+            pack::pack_intersend(_atom->inter_atom_list,
+                                 _atom->interbuf, sendbuf[direction]);
         }
 
         // 与上下邻居通信
@@ -343,9 +354,8 @@ void Domain::exchangeInter(atom *_atom) {
             recvbuf[direction] = new particledata[numrecv];
             numPartsToRecv[d][direction] = numrecv;
             MPI_Irecv(recvbuf[direction], numrecv, _mpi_Particle_data, _rank_id_neighbours[d][(direction + 1) % 2],
-                      99,
-                      kiwi::mpiUtils::global_comm, &recv_requests[d][direction]);
-        }
+                      99, kiwi::mpiUtils::global_comm, &recv_requests[d][direction]);
+        } // todo combine this two loops.
 
         for (direction = LOWER; direction <= HIGHER; direction++) {
             int numrecv = numPartsToRecv[d][direction];
@@ -353,7 +363,11 @@ void Domain::exchangeInter(atom *_atom) {
             MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
 
             //将收到的粒子位置信息加到对应存储位置上
-            _atom->unpack_interrecv(d, numrecv, recvbuf[direction]);
+            pack::unpack_interrecv(d, numrecv, _atom->inter_atom_list,
+                                   _meas_sub_box_lower_bounding,
+                                   _meas_sub_box_upper_bounding,
+                                   recvbuf[direction]);
+//            _atom->unpack_interrecv(d, numrecv, recvbuf[direction]);
 
             // 释放buffer
             delete[] sendbuf[direction];
@@ -390,28 +404,33 @@ void Domain::borderInter(atom *_atom) {
         offsetHigher[d] = 0.0;
 
         // 进程在左侧边界
-        if (_grid_coord_sub_box[d] == 0)
+        if (_grid_coord_sub_box[d] == 0) {
             offsetLower[d] = getMeasuredGlobalLength(d);
+        }
         // 进程在右侧边界
-        if (_grid_coord_sub_box[d] == _grid_size[d] - 1)
+        if (_grid_coord_sub_box[d] == _grid_size[d] - 1) {
             offsetHigher[d] = -(getMeasuredGlobalLength(d));
+        }
 
         for (direction = LOWER; direction <= HIGHER; direction++) {
             // 找到要发送给邻居的原子
             _atom->getIntertosend(d, direction, getMeasuredGhostLength(d), intersendlist[iswap]);
 
             double shift = 0.0;
-            if (direction == LOWER)
+            if (direction == LOWER) {
                 shift = offsetLower[d];
-            if (direction == HIGHER)
+            }
+            if (direction == HIGHER) {
                 shift = offsetHigher[d];
+            }
 
             // 初始化发送缓冲区
             numPartsToSend[d][direction] = intersendlist[iswap].size();
             sendbuf[direction] = new LatParticleData[numPartsToSend[d][direction]];
-            _atom->pack_bordersend(d, numPartsToSend[d][direction], intersendlist[iswap++], sendbuf[direction],
-                                   shift);
-
+            pack::pack_bordersend(d, numPartsToSend[d][direction],
+                                  _atom->inter_atom_list,
+                                  intersendlist[iswap++], sendbuf[direction], shift);
+//            _atom->pack_bordersend(d, numPartsToSend[d][direction], intersendlist[iswap++], sendbuf[direction], shift);
         }
 
         // 与上下邻居通信
@@ -429,8 +448,7 @@ void Domain::borderInter(atom *_atom) {
             recvbuf[direction] = new LatParticleData[numrecv];
             numPartsToRecv[d][direction] = numrecv;
             MPI_Irecv(recvbuf[direction], numrecv, _mpi_latParticle_data,
-                      _rank_id_neighbours[d][(direction + 1) % 2],
-                      99,
+                      _rank_id_neighbours[d][(direction + 1) % 2], 99,
                       kiwi::mpiUtils::global_comm, &recv_requests[d][direction]);
         }
 
@@ -441,8 +459,11 @@ void Domain::borderInter(atom *_atom) {
             MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
 
             //将收到的粒子位置信息加到对应存储位置上
-            _atom->unpack_borderrecv(numrecv, recvbuf[direction], interrecvlist[jswap++]);
-
+            pack::unpack_borderrecv(numrecv, _atom->inter_atom_list,
+                                    _meas_ghost_lower_bounding,
+                                    _meas_ghost_upper_bounding,
+                                    recvbuf[direction], interrecvlist[jswap++]);
+//            _atom->unpack_borderrecv(numrecv, recvbuf[direction], interrecvlist[jswap++]);
             // 释放buffer
             delete[] sendbuf[direction];
             delete[] recvbuf[direction];
@@ -469,7 +490,9 @@ void Domain::sendrho(atom *_atom) {
         for (direction = LOWER; direction <= HIGHER; direction++) {
             numPartsToSend[d][direction] = recvlist[iswap].size();
             sendbuf[direction] = new double[numPartsToSend[d][direction]];
-            _atom->pack_rho(numPartsToSend[d][direction], recvlist[iswap--], sendbuf[direction]);
+            pack::pack_rho(numPartsToSend[d][direction], _atom->getAtomListRef(),
+                           sendbuf[direction], recvlist[iswap--]);
+//            _atom->pack_rho(numPartsToSend[d][direction], recvlist[iswap--], sendbuf[direction]);
         }
         for (direction = LOWER; direction <= HIGHER; direction++) {
             int numsend = numPartsToSend[d][direction];
@@ -493,8 +516,8 @@ void Domain::sendrho(atom *_atom) {
             MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
 
             //将收到的电子云密度信息加到对应存储位置上
-            _atom->unpack_rho(d, direction, recvbuf[direction], sendlist);
-
+            pack::unpack_rho(d, direction, _atom->getAtomListRef(), recvbuf[direction], sendlist);
+//            _atom->unpack_rho(d, direction, recvbuf[direction], sendlist);
             // 释放buffer
             delete[] sendbuf[direction];
             delete[] recvbuf[direction];
@@ -523,7 +546,10 @@ void Domain::sendDfEmbed(atom *_atom) {
             // 初始化发送缓冲区
             numPartsToSend[d][direction] = sendlist[iswap].size() + intersendlist[iswap].size();
             sendbuf[direction] = new double[numPartsToSend[d][direction]];
-            _atom->pack_df(sendlist[iswap], intersendlist[iswap], sendbuf[direction]);
+            pack::pack_df(_atom->getAtomListRef(), sendbuf[direction],
+                          _atom->inter_atom_list,
+                          sendlist[iswap], intersendlist[iswap]);
+//            _atom->pack_df(sendlist[iswap], intersendlist[iswap], sendbuf[direction]);
             iswap++;
         }
 
@@ -551,7 +577,10 @@ void Domain::sendDfEmbed(atom *_atom) {
             MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
 
             //将收到的嵌入能导数信息加到对应存储位置上
-            _atom->unpack_df(numrecv, recvbuf[direction], recvlist[jswap], interrecvlist[jswap]);
+            pack::unpack_df(numrecv, _atom->getAtomListRef(), recvbuf[direction],
+                            _atom->inter_atom_list,
+                            recvlist[jswap], interrecvlist[jswap]);
+//            _atom->unpack_df(numrecv, recvbuf[direction], recvlist[jswap], interrecvlist[jswap]);
             jswap++;
 
             // release memory of buffer
@@ -580,7 +609,8 @@ void Domain::sendForce(atom *_atom) {
         for (direction = LOWER; direction <= HIGHER; direction++) {
             numPartsToSend[d][direction] = recvlist[iswap].size();
             sendbuf[direction] = new double[numPartsToSend[d][direction] * 3];
-            _atom->pack_force(numPartsToSend[d][direction], recvlist[iswap--], sendbuf[direction]);
+            pack::pack_force(numPartsToSend[d][direction], _atom->getAtomListRef(),
+                             sendbuf[direction], recvlist[iswap--]);
         }
         for (direction = LOWER; direction <= HIGHER; direction++) {
             int numsend = numPartsToSend[d][direction] * 3;
@@ -604,7 +634,7 @@ void Domain::sendForce(atom *_atom) {
             MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
 
             //将收到的粒子位置信息加到对应存储位置上
-            _atom->unpack_force(d, direction, recvbuf[direction], sendlist);
+            pack::unpack_force(d, direction, _atom->getAtomListRef(), recvbuf[direction], sendlist);
 
             delete[] sendbuf[direction];
             delete[] recvbuf[direction];

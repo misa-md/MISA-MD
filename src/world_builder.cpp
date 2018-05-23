@@ -42,8 +42,6 @@ WorldBuilder &WorldBuilder::setAlloyRatio(int ratio[atom_type::num_atom_types]) 
     for (int i = 0; i < atom_type::num_atom_types; i++) {
         _atoms_ratio[i] = ratio[i];
     }
-//  fixme  this->_mass = mass;
-//  fixme  this->_mass_factor = 1 / sqrt(mass);
     return *this;
 }
 
@@ -120,8 +118,8 @@ void WorldBuilder::createPhaseSpace() {
                 AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
 //                kk = _p_atom->IndexOf3DIndex(i, j, k); // todo
                 atom_.id = ++id_pre;
-                atom_._tp = randomAtomsType(); // set random atom type.
-                mass = atom_type::getAtomMass(atom_._tp); // get atom mass of this kind of atom.
+                atom_.type = randomAtomsType(); // set random atom type.
+                mass = atom_type::getAtomMass(atom_.type); // get atom mass of this kind of atom.
                 // atoms[kk].x[0] = (_p_domain->getGlobalSubBoxLatticeCoordLower(0) + (i - xstart)) * (_lattice_const / 2);
                 atom_.x[0] = (_p_domain->getGlobalSubBoxLatticeCoordLower(0) + i) * 0.5 * (_lattice_const);
                 atom_.x[1] = (_p_domain->getGlobalSubBoxLatticeCoordLower(1) + j) * _lattice_const +
@@ -157,7 +155,7 @@ void WorldBuilder::zeroMomentum(double *vcm) {
             for (int i = 0; i < _p_domain->getSubBoxLatticeSize(0); i++) {
                 AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
 //                kk = _p_atom->IndexOf3DIndex(i, j, k);
-                mass = atom_type::getAtomMass(atom_._tp);
+                mass = atom_type::getAtomMass(atom_.type);
                 atom_.v[0] -= (vcm[0] / mass);
                 atom_.v[1] -= (vcm[1] / mass);
                 atom_.v[2] -= (vcm[2] / mass);
@@ -179,7 +177,7 @@ double WorldBuilder::computeScalar(_type_atom_count n_atoms) {
 //                kk = _p_atom->IndexOf3DIndex(i, j, k);
                 t += (atom_.v[0] * atom_.v[0] +
                       atom_.v[1] * atom_.v[1] +
-                      atom_.v[2] * atom_.v[2]) * atom_type::getAtomMass(atom_._tp); // fixme
+                      atom_.v[2] * atom_.v[2]) * atom_type::getAtomMass(atom_.type); // fixme
             }
         }
     }
@@ -245,7 +243,7 @@ void WorldBuilder::vcm(double p[DIMENSION + 1]) {
             for (int i = 0; i < _p_domain->getSubBoxLatticeSize(0); i++) {
                 AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
 //                kk = _p_atom->IndexOf3DIndex(i, j, k);
-                mass_one = atom_type::getAtomMass(atom_._tp);
+                mass_one = atom_type::getAtomMass(atom_.type);
                 p[0] += atom_.v[0] * mass_one;
                 p[1] += atom_.v[1] * mass_one;
                 p[2] += atom_.v[2] * mass_one;

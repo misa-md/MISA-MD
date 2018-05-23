@@ -12,52 +12,61 @@ configure_file(
         "${PROJECT_SOURCE_DIR}/src/pre_config.h"
 )
 
-#set(INCLUDE_FILES
-#        args.hpp
-#        toml.hpp)
-
 set(HEADER_FILES
         arch_env.hpp
         atom.h
         atom_dump.h
-        atom_element.h
-        atom_types.h
         crystal_md.h
         toml_config.h
         config_values.h
+        def_config_values.h
         domain.h
-        eam.h
         hardware_accelerate.hpp
         input.h
         integrator.h
-        interpolation_object.h
-        lat_particle_data.h
-        particledata.h
+        newton_motion.h
         pre_config.h
         pre_define.h
         simulation.h
         world_builder.h
-        atom_list.h
-        newton_motion.cpp newton_motion.h def_config_values.h)
+        atom/atom_element.h
+        atom/atom_list.h
+        atom/atom_types.h
+        atom/inter_atom_list.h
+        pack/lat_particle_data.h
+        pack/pack.h
+        pack/particledata.h
+        potential/eam.h
+        potential/eam_one_way.h
+        potential/eam_phi.h
+        potential/eam_parser.h
+        potential/interpolation_object.h
+        )
 
 set(SOURCE_FILES
         atom.cpp
         atom_dump.cpp
-        atom_element.cpp
         crystal_md.cpp
         toml_config.cpp
         config_values.cpp
         domain.cpp
-        eam.cpp
         input.cpp
         integrator.cpp
-        interpolation_object.cpp
-        lat_particle_data.cpp
-        particledata.cpp
+        newton_motion.cpp
         simulation.cpp
         world_builder.cpp
-        atom_list.cpp
-        newton_motion.cpp newton_motion.h)
+        atom/atom_element.cpp
+        atom/atom_list.cpp
+        atom/inter_atom_list.cpp
+        pack/lat_particle_data.cpp
+        pack/pack.cpp
+        pack/particledata.cpp
+        potential/eam.cpp
+        potential/eam_one_way.cpp
+        potential/eam_phi.cpp
+        potential/eam_parser.cpp
+        potential/interpolation_object.cpp
+        )
 
 # codes runs on sunway.
 set(ARCH_SUNWAY_FILES

@@ -17,61 +17,61 @@ ConfigValues::ConfigValues() :
 
 void ConfigValues::packdata(kiwi::Bundle &bundle) {
     // append data into buffer.
-    bundle.put(MPI_COMM_WORLD, DIMENSION, phaseSpace); // todo remove MPI_COMM_WORLD to initial method.
-    bundle.put(MPI_COMM_WORLD, cutoffRadiusFactor);
-    bundle.put(MPI_COMM_WORLD, latticeConst);
-    bundle.put(MPI_COMM_WORLD, timeSteps);
-    bundle.put(MPI_COMM_WORLD, timeStepLength);
+    bundle.put(DIMENSION, phaseSpace); // todo remove MPI_COMM_WORLD to initial method.
+    bundle.put(cutoffRadiusFactor);
+    bundle.put(latticeConst);
+    bundle.put(timeSteps);
+    bundle.put(timeStepLength);
 
-    bundle.put(MPI_COMM_WORLD, createPhaseMode);
-    bundle.put(MPI_COMM_WORLD, createTSet);
-    bundle.put(MPI_COMM_WORLD, createSeed);
-    bundle.put(MPI_COMM_WORLD, readPhaseFilename);
+    bundle.put(createPhaseMode);
+    bundle.put(createTSet);
+    bundle.put(createSeed);
+    bundle.put(readPhaseFilename);
 
     // alloy
-    bundle.put(MPI_COMM_WORLD, alloyCreateSeed);
-    bundle.put(MPI_COMM_WORLD, atom_type::num_atom_types, alloyRatio);
+    bundle.put(alloyCreateSeed);
+    bundle.put(atom_type::num_atom_types, alloyRatio);
 
-    bundle.put(MPI_COMM_WORLD, collisionStep);
-    bundle.put(MPI_COMM_WORLD, 4, collisionLat);
-    bundle.put(MPI_COMM_WORLD, DIMENSION, collisionV);
+    bundle.put(collisionStep);
+    bundle.put(4, collisionLat);
+    bundle.put(DIMENSION, collisionV);
 
-    bundle.put(MPI_COMM_WORLD, potentialFileType);
-    bundle.put(MPI_COMM_WORLD, potentialFilename);
+    bundle.put(potentialFileType);
+    bundle.put(potentialFilename);
 
     // out section
-    bundle.put(MPI_COMM_WORLD, outputMode);
-    bundle.put(MPI_COMM_WORLD, outputDumpFilename);
+    bundle.put(outputMode);
+    bundle.put(outputDumpFilename);
 }
 
 void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
     // fetch data from buffer.
 //    if (getPackedData() != nullptr) { // buffer != null
     int cursor = 0;
-    bundle.get(MPI_COMM_WORLD, cursor, DIMENSION, phaseSpace);
-    bundle.get(MPI_COMM_WORLD, cursor, cutoffRadiusFactor);
-    bundle.get(MPI_COMM_WORLD, cursor, latticeConst);
-    bundle.get(MPI_COMM_WORLD, cursor, timeSteps);
-    bundle.get(MPI_COMM_WORLD, cursor, timeStepLength);
+    bundle.get(cursor, DIMENSION, phaseSpace);
+    bundle.get(cursor, cutoffRadiusFactor);
+    bundle.get(cursor, latticeConst);
+    bundle.get(cursor, timeSteps);
+    bundle.get(cursor, timeStepLength);
 
-    bundle.get(MPI_COMM_WORLD, cursor, createPhaseMode);
-    bundle.get(MPI_COMM_WORLD, cursor, createTSet);
-    bundle.get(MPI_COMM_WORLD, cursor, createSeed);
-    bundle.get(MPI_COMM_WORLD, cursor, readPhaseFilename);
+    bundle.get(cursor, createPhaseMode);
+    bundle.get(cursor, createTSet);
+    bundle.get(cursor, createSeed);
+    bundle.get(cursor, readPhaseFilename);
 
     // alloy
-    bundle.get(MPI_COMM_WORLD, cursor, alloyCreateSeed);
-    bundle.get(MPI_COMM_WORLD, cursor, atom_type::num_atom_types, alloyRatio);
+    bundle.get(cursor, alloyCreateSeed);
+    bundle.get(cursor, atom_type::num_atom_types, alloyRatio);
 
-    bundle.get(MPI_COMM_WORLD, cursor, collisionStep);
-    bundle.get(MPI_COMM_WORLD, cursor, 4, collisionLat);
-    bundle.get(MPI_COMM_WORLD, cursor, DIMENSION, collisionV);
+    bundle.get(cursor, collisionStep);
+    bundle.get(cursor, 4, collisionLat);
+    bundle.get(cursor, DIMENSION, collisionV);
 
-    bundle.get(MPI_COMM_WORLD, cursor, potentialFileType);
-    bundle.get(MPI_COMM_WORLD, cursor, potentialFilename);
+    bundle.get(cursor, potentialFileType);
+    bundle.get(cursor, potentialFilename);
 
-    bundle.get(MPI_COMM_WORLD, cursor, outputMode);
-    bundle.get(MPI_COMM_WORLD, cursor, outputDumpFilename);
+    bundle.get(cursor, outputMode);
+    bundle.get(cursor, outputDumpFilename);
 //    }
 }
 

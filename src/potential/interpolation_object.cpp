@@ -2,6 +2,8 @@
 #include <mpi.h>
 #include <iostream>
 #include <algorithm>
+#include <utils/bundle.h>
+#include <utils/mpi_utils.h>
 
 #include "interpolation_object.h"
 
@@ -14,7 +16,7 @@ InterpolationObject::~InterpolationObject() {
     delete[] spline;
 }
 
-void InterpolationObject::initInterpolationObject(int _n, double _x0, double dx, double *data) {
+void InterpolationObject::initInterpolationObject(int _n, double _x0, double dx, double data[]) {
     n = _n;
     values = new double[n + 1];
     invDx = 1.0 / dx;
@@ -25,30 +27,36 @@ void InterpolationObject::initInterpolationObject(int _n, double _x0, double dx,
 }
 
 void InterpolationObject::bcastInterpolationObject(int rank) {
-    struct {
-        int n;
-        double x0, invDx;
-    } buf;
+    kiwi::Bundle bundle = kiwi::Bundle();
+    bundle.newPackBuffer(sizeof(int) + 2 * sizeof(double));
 
-    if (rank == 0) {
-        buf.n = n;
-        buf.x0 = x0;
-        buf.invDx = invDx;
+    if (rank == MASTER_PROCESSOR) {
+        bundle.put(n);
+        bundle.put(x0);
+        bundle.put(invDx);
     }
-    MPI_Bcast(&buf, sizeof(buf), MPI_BYTE, 0, MPI_COMM_WORLD);
-
-    if (rank != 0) {
-        n = buf.n;
-        x0 = buf.x0;
-        invDx = buf.invDx;
-        values = new double[buf.n + 1];
+    MPI_Bcast(bundle.getPackedData(), bundle.getPackedDataCap(), MPI_BYTE,
+              MASTER_PROCESSOR, kiwi::mpiUtils::global_comm);
+    if (rank != MASTER_PROCESSOR) {
+        int cursor = 0;
+        bundle.get(cursor, n);
+        bundle.get(cursor, x0);
+        bundle.get(cursor, invDx);
+        values = new double[n + 1];
     }
+    bundle.releasePackBuffer();
     MPI_Bcast(values, n + 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 }
 
+/**
+ * @see https://github.com/lammps/lammps/blob/stable_16Mar2018/src/MANYBODY/pair_eam.cpp#L745
+ * @see http://lammps.sandia.gov/threads/msg21496.html
+ */
 void InterpolationObject::interpolatefile() {
     spline = new double[n + 1][7];
-    for (int m = 1; m <= n; m++) spline[m][6] = values[m];
+    for (int m = 1; m <= n; m++) {
+        spline[m][6] = values[m];
+    }
 
     spline[1][5] = spline[2][6] - spline[1][6];
     spline[2][5] = 0.5 * (spline[3][6] - spline[1][6]);

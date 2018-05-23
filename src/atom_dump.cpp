@@ -1,5 +1,5 @@
 //
-// Created by genshen on 5/6/18.
+// Created by genshen on 2018-05-06.
 //
 
 #include <cstdio>
@@ -63,7 +63,7 @@ void AtomDump::dumpModeCopy(atom *atom) {
     for (int k = _begin[2]; k < _end[2]; k++) {
         for (int j = _begin[1]; j < _end[1]; j++) {
             for (int i = _begin[0]; i < _end[0]; i++) {
-                kk = atom->IndexOf3DIndex(i, j, k);
+                kk = atom->atom_list->IndexOf3DIndex(i, j, k);
                 AtomElement &atom_ = atom->getAtomList()->getAtomEleByLinearIndex(kk);
                 x_io[n * 4] = atom_.id;
                 x_io[n * 4 + 1] = atom_.x[0];
@@ -81,33 +81,29 @@ void AtomDump::dumpModeDirect(atom *atom) {
     char outfileName[20];
     sprintf(outfileName, "dump_%d.atom", kiwi::mpiUtils::own_rank);
 
-    ofstream outfile;
+    std::ofstream outfile;
     outfile.open(outfileName);
 
     outfile << "print atoms" << std::endl;
 
-    long kk = 0;
-    for (int k = _begin[2]; k < _end[2]; k++) { // todo int type of k.
-        for (int j = _begin[1]; j < _end[1]; j++) {
-            for (int i = _begin[0]; i < _end[0]; i++) {
-                kk = atom->IndexOf3DIndex(i, j, k);
-                AtomElement &atom_ = atom->getAtomList()->getAtomEleByLinearIndex(kk);
-                if (!atom_.isInterElement())
-                    outfile << atom_.id << " "
-//                            << "ty" << atom_.type << " "
-                            << atom_.x[0] << " "
-                            << atom_.x[1] << " "
-                            << atom_.x[2] << std::endl;
+    atom->atom_list->foreachSubBoxAtom(
+            [&outfile](AtomElement &_atom_ref) {
+                if (!_atom_ref.isInterElement()) {
+                    outfile << _atom_ref.id << " "
+                            // << "ty" << atom_.type << " "
+                            << _atom_ref.x[0] << " "
+                            << _atom_ref.x[1] << " "
+                            << _atom_ref.x[2] << std::endl;
+                }
             }
-        }
-    }
+    );
     outfile << "print inter" << std::endl;
-    for (int i = 0; i < atom->nlocalinter; i++) {
-        outfile << atom->idinter[i] << " "
-//                << "ty" << atom->typeinter[i] << " "
-                << atom->xinter[i][0] << " "
-                << atom->xinter[i][1] << " "
-                << atom->xinter[i][2] << std::endl;
+    for (int i = 0; i < atom->inter_atom_list->nlocalinter; i++) {
+        outfile << atom->inter_atom_list->idinter[i] << " "
+                //                << "ty" << atom->typeinter[i] << " "
+                << atom->inter_atom_list->xinter[i][0] << " "
+                << atom->inter_atom_list->xinter[i][1] << " "
+                << atom->inter_atom_list->xinter[i][2] << std::endl;
     }
     outfile.close();
 }
