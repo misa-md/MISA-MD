@@ -14,6 +14,6 @@ TEST_CASE("phi-test", "[phi-sync]") {
         _eam->eam_phi.append(atom_type::Fe, atom_type::Fe, 6, 0, 1.0, data);
     }
     _eam->eamBCast(kiwi::mpiUtils::own_rank); // sync to other processors.
-    _eam->interpolateFile();
+    _eam->interpolateFile(); // fixme segment fault.
     delete _eam;
 }

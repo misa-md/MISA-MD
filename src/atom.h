@@ -85,7 +85,7 @@ private:
     double _latticeconst;
     int _seed;
 
-    std::vector<long int> NeighbourOffsets; // 邻居粒子偏移量
+    std::vector<long int> NeighbourOffsets; // 邻居粒子偏移量 // todo use offset in x,y,z dimension
 
     AtomList *atom_list;
     InterAtomList *inter_atom_list;
