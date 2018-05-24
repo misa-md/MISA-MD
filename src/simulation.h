@@ -10,7 +10,7 @@
 #include <io/io_writer.h>
 
 #include "toml_config.h"
-#include "integrator.h"
+#include "newton_motion.h"
 #include "input.h"
 #include "potential/eam.h"
 
@@ -55,7 +55,7 @@ private:
     Domain *_p_domain; //仅rank==0的进程有效
     // GlobalDomain *p_domain;  //仅rank==0的进程有效 // todo ??
     atom *_atom;
-    integrator *_integrator;
+    NewtonMotion *_newton_motion;
 
     input *_input;  // 从文件读取原子坐标,速度信息
     eam *_pot; // eam potential

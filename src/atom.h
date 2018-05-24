@@ -22,6 +22,7 @@ class Domain; // todo remove.
 class atom {
 public :
     friend class AtomDump;
+
     friend class Domain;
 
     atom(Domain *domain, double latticeconst,
@@ -47,10 +48,6 @@ public :
 
     unsigned long getinteridsendsize();
 
-    void computefirst(double dtInv2m, double dt);
-
-    void computesecond(double dtInv2m);
-
     void getatomx(int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
 
     void getatomy(int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
@@ -67,12 +64,16 @@ public :
 
     void print_force();
 
-    AtomList *getAtomList() {
+    inline AtomList *getAtomList() {
         return atom_list;
     }
 
-    AtomList &getAtomListRef() {
+    inline AtomList &getAtomListRef() {
         return *atom_list;
+    }
+
+    inline InterAtomList *getInterList() {
+        return inter_atom_list;
     }
 
 private:
