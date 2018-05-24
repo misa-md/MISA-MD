@@ -23,7 +23,6 @@ set(HEADER_FILES
         domain.h
         hardware_accelerate.hpp
         input.h
-        integrator.h
         newton_motion.h
         pre_config.h
         pre_define.h
@@ -51,7 +50,6 @@ set(SOURCE_FILES
         config_values.cpp
         domain.cpp
         input.cpp
-        integrator.cpp
         newton_motion.cpp
         simulation.cpp
         world_builder.cpp

@@ -1,8 +1,7 @@
 # Crystal-MD
 
-A molecular dynamics (MD) simulation program.  
-Author:[Baihe](mailto:baihe_ustb@163.com)
-Update:[Chugenshen](mailto:genshenchu@gmail.com)
+A molecular dynamics (MD) simulation program.
+Developers:[Baihe](mailto:baihe_ustb@163.com) and [Chugenshen](mailto:genshenchu@gmail.com)
 
 ### Build
 #### Build from CMake (recommend)  

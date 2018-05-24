@@ -16,7 +16,7 @@ simulation::simulation() : _p_domain(nullptr), _input(nullptr) {
 simulation::~simulation() {
 //    delete _p_domain; // see finalize method.
     delete _atom;
-    delete _integrator;
+    delete _newton_motion;
     delete _pot;
 
     delete _input; // delete null pointer has no effect.
@@ -57,7 +57,7 @@ void simulation::createAtoms() {
         _input = new input();
         _input->readPhaseSpace(_atom);
     }
-    _integrator = new integrator(pConfigVal->timeStepLength); // time step length.
+    _newton_motion = new NewtonMotion(pConfigVal->timeStepLength); // time step length.
 }
 
 void simulation::prepareForStart() {
@@ -122,7 +122,7 @@ void simulation::simulate() {
             _p_domain->sendForce(_atom);
         }
         //先进行求解牛顿运动方程第一步
-        _integrator->firststep(_atom);
+        _newton_motion->firststep(_atom->getAtomList(), _atom->getInterList());
 
         //判断是否有粒子跑出晶格点
         _atom->decide();
@@ -149,7 +149,7 @@ void simulation::simulate() {
         stoptime = MPI_Wtime();
         commtime += stoptime - starttime;
         //求解牛顿运动方程第二步
-        _integrator->secondstep(_atom);
+        _newton_motion->secondstep(_atom->getAtomList(), _atom->getInterList());
     }
     if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
         kiwi::logs::i("simulation", "loop comm time: {}.\n", commtime);

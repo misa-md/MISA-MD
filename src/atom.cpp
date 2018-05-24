@@ -850,48 +850,6 @@ int atom::getintersendnum(int dimension, int direction) {
     return interbuf.size();
 }
 
-void atom::computefirst(double dtInv2m, double dt) {
-    //本地晶格点上的原子求解运动方程第一步
-    atom_list->foreachSubBoxAtom(
-            [dtInv2m, dt](AtomElement &_atom_ref) {
-                if (!_atom_ref.isInterElement()) {
-                    _atom_ref.v[0] = _atom_ref.v[0] + dtInv2m * _atom_ref.f[0];
-                    _atom_ref.v[1] = _atom_ref.v[1] + dtInv2m * _atom_ref.f[1];
-                    _atom_ref.v[2] = _atom_ref.v[2] + dtInv2m * _atom_ref.f[2];
-                    _atom_ref.x[0] += dt * _atom_ref.v[0];
-                    _atom_ref.x[1] += dt * _atom_ref.v[1];
-                    _atom_ref.x[2] += dt * _atom_ref.v[2];
-                }
-            }
-    );
-
-    //本地间隙原子求解运动方程第一步
-    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
-        for (unsigned short d = 0; d < 3; ++d) {
-            inter_atom_list->vinter[i][d] = inter_atom_list->vinter[i][d] + dtInv2m * inter_atom_list->finter[i][d];
-            inter_atom_list->xinter[i][d] += dt * inter_atom_list->vinter[i][d];
-        }
-    }
-}
-
-void atom::computesecond(double dtInv2m) {
-    //本地晶格点上的原子求解运动方程第二步
-    atom_list->foreachSubBoxAtom(
-            [dtInv2m](AtomElement &_atom_ref) {
-                // fixme, excluding InterElement. (add if: isInterElement)
-                for (unsigned short d = 0; d < DIMENSION; ++d) {
-                    _atom_ref.v[d] += dtInv2m * _atom_ref.f[d];
-                }
-            }
-    );
-    //本地间隙原子求解运动方程第二步
-    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
-        for (unsigned short d = 0; d < 3; ++d) {
-            inter_atom_list->vinter[i][d] = inter_atom_list->vinter[i][d] + dtInv2m * inter_atom_list->finter[i][d];
-        }
-    }
-}
-
 void atom::print_force() {
     char tmp[20];
     sprintf(tmp, "force.txt");
