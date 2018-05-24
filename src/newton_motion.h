@@ -22,16 +22,21 @@ public:
 
     void secondstep(AtomList *atom_list, InterAtomList *inter_atom_list);
 
-    inline void setTimestepLength(double dt) {
-        _timestepLength = dt;
-    }
+    inline void setTimestepLength(double dt);
 
 private:
     double _timestepLength;
 
-    void computeFirst(double dtInv2m, AtomList *atom_list, InterAtomList *inter_atom_list);
+    /**
+     * index is consistent with the order in atom_type::atom_type in file atom_types.h
+     */
+    double dt_inv_m[atom_type::num_atom_types];
 
-    void computeSecond(double dtInv2m, AtomList *atom_list, InterAtomList *inter_atom_list);
+    void computeFirst(AtomList *atom_list, InterAtomList *inter_atom_list);
+
+    void computeSecond(AtomList *atom_list, InterAtomList *inter_atom_list);
+
+    void preComputeDtInv2m();
 };
 
 
