@@ -2,6 +2,7 @@
 #include <fstream>
 #include <utils/mpi_utils.h>
 #include <utils/bundle.h>
+#include <climits>
 
 #include "toml_config.h"
 
@@ -137,21 +138,22 @@ void ConfigParser::resolveConfigSimulation(std::shared_ptr<cpptoml::table> table
 }
 
 void ConfigParser::resolveConfigOutput(std::shared_ptr<cpptoml::table> table) {
-    auto tomlOutputMode = table->get_as<std::string>("mode");
-    if (tomlOutputMode) {
-        if ("copy" == *tomlOutputMode) { // todo equal?
-            configValues.outputMode = OUTPUT_COPY_MODE;
+    auto tomlAtomsDumpMode = table->get_as<std::string>("atoms_dump_mode");
+    if (tomlAtomsDumpMode) {
+        if ("copy" == *tomlAtomsDumpMode) { // todo equal?
+            configValues.atomsDumpMode = OUTPUT_COPY_MODE;
         } else {
-            configValues.outputMode = OUTPUT_DIRECT_MODE;
+            configValues.atomsDumpMode = OUTPUT_DIRECT_MODE;
         }
     }
+    configValues.atomsDumpInterval = table->get_as<uint64_t>("atoms_dump_interval").value_or(ULONG_MAX);
 
     // todo check if it is a path.
-    auto tomlOutputDumpFilename = table->get_as<std::string>("dump_filename");
-    if (tomlOutputDumpFilename) {
-        configValues.outputDumpFilename = *tomlOutputDumpFilename;
+    auto tomlAtomsDumpFilepath = table->get_as<std::string>("atoms_dump_file_path");
+    if (tomlAtomsDumpFilepath) {
+        configValues.atomsDumpFilePath = *tomlAtomsDumpFilepath;
     } else {
-        configValues.outputDumpFilename = DEFAULT_OUTPUT_DUMP_FILENAME;
+        configValues.atomsDumpFilePath = DEFAULT_OUTPUT_DUMP_FILE_PATH;
     }
 }
 

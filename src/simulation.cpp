@@ -150,14 +150,16 @@ void simulation::simulate() {
         commtime += stoptime - starttime;
         //求解牛顿运动方程第二步
         _newton_motion->secondstep(_atom->getAtomList(), _atom->getInterList());
+
+        //输出原子信息
+        if ((_simulation_time_step + 1) % pConfigVal->atomsDumpInterval == 0) {// todo output atoms every 10 steps.
+            output(_simulation_time_step);
+        }
     }
     if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
         kiwi::logs::i("simulation", "loop comm time: {}.\n", commtime);
         kiwi::logs::i("simulation", "loop compute time: {}.\n", computetime);
     }
-    //输出原子信息
-//    if(_simulation_time_step == 10) // todo output atoms every 10 steps.
-    output();
     allstop = MPI_Wtime();
     alltime = allstop - allstart;
     if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
@@ -172,7 +174,7 @@ void simulation::finalize() {
     }
 }
 
-void simulation::output() {
+void simulation::output(unsigned long _time_step) {
     // atom boundary in array.
     _type_lattice_coord begin[DIMENSION] = {
             _p_domain->getGlobalSubBoxLatticeCoordLower(0) - _p_domain->getGlobalGhostLatticeCoordLower(0),
@@ -185,12 +187,13 @@ void simulation::output() {
     _type_lattice_size atoms_size = _p_domain->getSubBoxLatticeSize(0) * _p_domain->getSubBoxLatticeSize(1) *
                                     _p_domain->getSubBoxLatticeSize(2);
 
-    AtomDump dump;
-    // config dump.
-    dump.setDumpFile(pConfigVal->outputDumpFilename)
-            .setMode(pConfigVal->outputMode)
-            .setBoundary(begin, end, atoms_size);
+    static AtomDump dump(pConfigVal->atomsDumpMode, pConfigVal->atomsDumpFilePath,
+                         begin, end, atoms_size); // config dump.
     dump.dump(_atom);
+
+    if (_time_step + pConfigVal->atomsDumpInterval > pConfigVal->timeStepLength) { // the last time of dumping.
+
+    }
 }
 
 void simulation::abort(int exitcode) {

@@ -38,7 +38,7 @@ void NewtonMotion::secondstep(AtomList *atom_list, InterAtomList *inter_atom_lis
 
 void NewtonMotion::computeFirst(AtomList *atom_list, InterAtomList *inter_atom_list) {
     double &dt = _timestepLength;
-//本地晶格点上的原子求解运动方程第一步
+    //本地晶格点上的原子求解运动方程第一步
     atom_list->foreachSubBoxAtom(
             [=](AtomElement &_atom_ref) {
                 if (!_atom_ref.isInterElement()) {

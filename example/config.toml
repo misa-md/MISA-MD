@@ -39,8 +39,9 @@ timesteps_length = 0.001  # simulation time steps length for each timestep, doub
 
 
 [output]
-mode = "copy" # output mode,string, "copy"(copy all atoms to memory and then output) or "direct" (output atoms directly) ;
-dump_filename = "md.out" # string,filename or path of dumpped atoms, default value is "crystal_md.out"
+atoms_dump_mode = "copy" # output mode,string, "copy"(copy all atoms to memory and then output) or "direct" (output atoms directly) ;
+atoms_dump_file_path = "md.out" # string,filename or path of dumpped atoms, default value is "crystal_md.out"
+atoms_dump_interval = 10
 
 
 [author]

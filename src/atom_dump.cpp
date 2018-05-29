@@ -7,8 +7,14 @@
 #include <logs/logs.h>
 #include "atom_dump.h"
 
-AtomDump::AtomDump() : dump_file_name(DEFAULT_OUTPUT_DUMP_FILENAME),
+AtomDump::AtomDump() : dump_file_name(DEFAULT_OUTPUT_DUMP_FILE_PATH),
                        _dump_mode(OUTPUT_DIRECT_MODE), _atoms_size(0) {}
+
+AtomDump::AtomDump(_type_out_mode mode, const std::string &filename, _type_lattice_coord *begin,
+                   _type_lattice_coord *end, _type_lattice_size atoms_size)
+        : _dump_mode(mode), _atoms_size(atoms_size), dump_file_name(filename) {
+    setBoundary(begin, end, atoms_size); // todo set variable atoms_size twice.
+}
 
 AtomDump &AtomDump::setMode(_type_out_mode mode) {
     this->_dump_mode = mode;
@@ -51,30 +57,43 @@ void AtomDump::dumpModeCopy(atom *atom) {
         dump_writer = new kiwi::IOWriter(dump_file_name);
     }
     long kk;
-    double *x_io = new double[_atoms_size * 4];
-//        int fd, ret;
-//        fd = open(outfileName, O_CREAT | O_TRUNC | O_RDWR, 0700);
-//        if (fd == -1) {
-//            printf("ERROR,open file %s failed\n", outfileName);
-//            abort(1);
-//        }
 
-    int n = 0;
+    const list_buffer_size = 4096;
+    int list_buff_index = 0;
+    static int atom_total = 0;
+    struct {
+        _type_atom_id id;
+        _type_atom_type type;
+        _type_atom_location atom_location[DIMENSION]; // atom location
+        _type_atom_velocity atom_velocity[DIMENSION]; // atom velocity
+    } atom_list_buffer[list_buffer_size]; // 4k
+
     for (int k = _begin[2]; k < _end[2]; k++) {
         for (int j = _begin[1]; j < _end[1]; j++) {
             for (int i = _begin[0]; i < _end[0]; i++) {
                 kk = atom->atom_list->IndexOf3DIndex(i, j, k);
                 AtomElement &atom_ = atom->getAtomList()->getAtomEleByLinearIndex(kk);
-                x_io[n * 4] = atom_.id;
-                x_io[n * 4 + 1] = atom_.x[0];
-                x_io[n * 4 + 2] = atom_.x[1];
-                x_io[n * 4 + 3] = atom_.x[2];
-                n++;
+                atom_list_buffer[list_buff_index].id = atom_.id;
+                atom_list_buffer[list_buff_index].type = atom_.type;
+                atom_list_buffer[list_buff_index].atom_location[0] = atom_.x[0];
+                atom_list_buffer[list_buff_index].atom_location[1] = atom_.x[1];
+                atom_list_buffer[list_buff_index].atom_location[2] = atom_.x[2];
+                atom_list_buffer[list_buff_index].atom_velocity[0] = atom_.v[0];
+                atom_list_buffer[list_buff_index].atom_velocity[1] = atom_.v[1];
+                atom_list_buffer[list_buff_index].atom_velocity[2] = atom_.v[2];
+                list_buff_index++;
+                if (list_buff_index == list_buffer_size) { // write data and reset
+                    list_buff_index = 0;
+                    atom_total += list_buffer_size;
+                    dump_writer->write(atom_list_buffer, list_buffer_size);
+                }
             }
         }
     }
-    dump_writer->write(x_io, _atoms_size * 4);
-    delete[] x_io;
+    if (list_buff_index != 0) {
+        atom_total += list_buff_index;
+        dump_writer->write(atom_list_buffer, list_buff_index); // write left data.
+    }
 }
 
 void AtomDump::dumpModeDirect(atom *atom) {

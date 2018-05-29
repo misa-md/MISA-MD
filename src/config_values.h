@@ -12,7 +12,7 @@
 
 #define OUTPUT_COPY_MODE 0
 #define OUTPUT_DIRECT_MODE 1
-#define DEFAULT_OUTPUT_DUMP_FILENAME "crystal_md.out"
+#define DEFAULT_OUTPUT_DUMP_FILE_PATH "crystal_md.out"
 
 typedef short _type_out_mode;
 
@@ -46,8 +46,9 @@ public:
     std::string potentialFilename;
     // simulation section ends
     // output section
-    _type_out_mode outputMode;
-    std::string outputDumpFilename;
+    _type_out_mode atomsDumpMode;
+    unsigned long atomsDumpInterval;
+    std::string atomsDumpFilePath;
     // output section ends
     // config values ends
 

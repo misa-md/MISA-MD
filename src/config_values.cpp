@@ -13,7 +13,7 @@ ConfigValues::ConfigValues() :
         alloyCreateSeed(1024), alloyRatio{1, 0, 0},
         collisionStep(0), collisionLat{0, 0, 0, 0}, collisionV{0.0, 0.0, 0.0},
         // todo potential type and filename initialize.
-        outputMode(OUTPUT_COPY_MODE), outputDumpFilename(DEFAULT_OUTPUT_DUMP_FILENAME) {}
+        atomsDumpMode(OUTPUT_COPY_MODE), atomsDumpFilePath(DEFAULT_OUTPUT_DUMP_FILE_PATH) {}
 
 void ConfigValues::packdata(kiwi::Bundle &bundle) {
     // append data into buffer.
@@ -40,8 +40,9 @@ void ConfigValues::packdata(kiwi::Bundle &bundle) {
     bundle.put(potentialFilename);
 
     // out section
-    bundle.put(outputMode);
-    bundle.put(outputDumpFilename);
+    bundle.put(atomsDumpMode);
+    bundle.put(atomsDumpInterval);
+    bundle.put(atomsDumpFilePath);
 }
 
 void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
@@ -70,8 +71,9 @@ void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
     bundle.get(cursor, potentialFileType);
     bundle.get(cursor, potentialFilename);
 
-    bundle.get(cursor, outputMode);
-    bundle.get(cursor, outputDumpFilename);
+    bundle.get(cursor, atomsDumpMode);
+    bundle.get(cursor, atomsDumpInterval);
+    bundle.get(cursor, atomsDumpFilePath);
 //    }
 }
 
@@ -104,8 +106,9 @@ std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
     os << "simulation.potential_file.filename:" << cv.potentialFilename << std::endl;
 
     // output section
-    os << "output.mode(copy:0,direct:1):" << cv.outputMode << std::endl;
-    os << "output.dump_filename:" << cv.outputDumpFilename << std::endl;
+    os << "output.mode(copy:0,direct:1):" << cv.atomsDumpMode << std::endl;
+    os << "output.dump_interval" << cv.atomsDumpInterval << std::endl;
+    os << "output.dump_filename:" << cv.atomsDumpFilePath << std::endl;
     os << "============================================" << std::endl << std::endl;
     return os;
 }

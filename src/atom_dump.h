@@ -15,6 +15,10 @@ class AtomDump {
 public:
     AtomDump();
 
+    AtomDump(_type_out_mode mode, const std::string &filename,
+             _type_lattice_coord begin[DIMENSION], _type_lattice_coord end[DIMENSION],
+             _type_lattice_size atoms_size);
+
     /**
      *
      * @param begin  // todo document.
