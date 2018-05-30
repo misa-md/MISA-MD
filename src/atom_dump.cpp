@@ -16,6 +16,10 @@ AtomDump::AtomDump(_type_out_mode mode, const std::string &filename, _type_latti
     setBoundary(begin, end, atoms_size); // todo set variable atoms_size twice.
 }
 
+AtomDump::~AtomDump() {
+    delete local_storage;
+}
+
 AtomDump &AtomDump::setMode(_type_out_mode mode) {
     this->_dump_mode = mode;
     return *this;
@@ -35,35 +39,37 @@ AtomDump &AtomDump::setBoundary(_type_lattice_coord *begin, _type_lattice_coord 
     return *this;
 }
 
-void AtomDump::dump(atom *atom) {
+void AtomDump::dump(atom *atom, size_t time_step) {
     double start, stop;
     if (_dump_mode == OUTPUT_COPY_MODE) { // todo copy atoms, then write.
         start = MPI_Wtime();
-        dumpModeCopy(atom);
+        dumpModeCopy(atom, time_step);
         stop = MPI_Wtime();
         kiwi::logs::i("dump", "time of dumping atoms in copy mode:{}.\n", stop - start);
     } else {
         start = MPI_Wtime();
-        dumpModeDirect(atom);
+        dumpModeDirect(atom, time_step);
         stop = MPI_Wtime();
         kiwi::logs::i("dump", "time of dumping atoms in direct mode:{}.\n", stop - start);
     }
 }
 
 // todo asynchronous io.
-void AtomDump::dumpModeCopy(atom *atom) {
+void AtomDump::dumpModeCopy(atom *atom, size_t time_step) {
     // initialize kiwi writer for copy mode dump.
-    if (dump_writer == nullptr) {
-        dump_writer = new kiwi::IOWriter(dump_file_name);
+    if (local_storage == nullptr) {
+        local_storage = new kiwi::LocalStorage(dump_file_name);
+        local_storage->make(); // create file.
     }
     long kk;
 
-    const list_buffer_size = 4096;
-    int list_buff_index = 0;
-    static int atom_total = 0;
+    const size_t list_buffer_size = 4096;
+    size_t list_buff_index = 0;
     struct {
         _type_atom_id id;
+        size_t step;
         _type_atom_type type;
+//        bool is_inter;
         _type_atom_location atom_location[DIMENSION]; // atom location
         _type_atom_velocity atom_velocity[DIMENSION]; // atom velocity
     } atom_list_buffer[list_buffer_size]; // 4k
@@ -74,6 +80,7 @@ void AtomDump::dumpModeCopy(atom *atom) {
                 kk = atom->atom_list->IndexOf3DIndex(i, j, k);
                 AtomElement &atom_ = atom->getAtomList()->getAtomEleByLinearIndex(kk);
                 atom_list_buffer[list_buff_index].id = atom_.id;
+                atom_list_buffer[list_buff_index].step = time_step;
                 atom_list_buffer[list_buff_index].type = atom_.type;
                 atom_list_buffer[list_buff_index].atom_location[0] = atom_.x[0];
                 atom_list_buffer[list_buff_index].atom_location[1] = atom_.x[1];
@@ -85,20 +92,20 @@ void AtomDump::dumpModeCopy(atom *atom) {
                 if (list_buff_index == list_buffer_size) { // write data and reset
                     list_buff_index = 0;
                     atom_total += list_buffer_size;
-                    dump_writer->write(atom_list_buffer, list_buffer_size);
+                    local_storage->write(atom_list_buffer, list_buffer_size);
                 }
             }
         }
     }
     if (list_buff_index != 0) {
         atom_total += list_buff_index;
-        dump_writer->write(atom_list_buffer, list_buff_index); // write left data.
+        local_storage->write(atom_list_buffer, list_buff_index); // write left data.
     }
 }
 
-void AtomDump::dumpModeDirect(atom *atom) {
+void AtomDump::dumpModeDirect(atom *atom, size_t time_step) {
     char outfileName[20];
-    sprintf(outfileName, "dump_%d.atom", kiwi::mpiUtils::own_rank);
+    sprintf(outfileName, "dump_%d_%ld.atom", kiwi::mpiUtils::own_rank, time_step);
 
     std::ofstream outfile;
     outfile.open(outfileName);
@@ -125,4 +132,12 @@ void AtomDump::dumpModeDirect(atom *atom) {
                 << atom->inter_atom_list->xinter[i][2] << std::endl;
     }
     outfile.close();
+}
+
+void AtomDump::writeDumpHeader() {
+    struct {
+        size_t atoms_count;
+    } header{atom_total};
+
+    local_storage->writeHeader(reinterpret_cast<kiwi::byte *>(&header), sizeof(header));
 }

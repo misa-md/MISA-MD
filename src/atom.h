@@ -7,7 +7,6 @@
 
 #include <cstdio>
 #include <vector>
-#include <io/io_writer.h>
 
 #include "domain.h"
 #include "atom/atom_element.h"

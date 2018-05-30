@@ -153,7 +153,7 @@ void simulation::simulate() {
 
         //输出原子信息
         if ((_simulation_time_step + 1) % pConfigVal->atomsDumpInterval == 0) {// todo output atoms every 10 steps.
-            output(_simulation_time_step);
+            output(_simulation_time_step + 1);
         }
     }
     if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
@@ -174,7 +174,7 @@ void simulation::finalize() {
     }
 }
 
-void simulation::output(unsigned long _time_step) {
+void simulation::output(size_t time_step) {
     // atom boundary in array.
     _type_lattice_coord begin[DIMENSION] = {
             _p_domain->getGlobalSubBoxLatticeCoordLower(0) - _p_domain->getGlobalGhostLatticeCoordLower(0),
@@ -188,11 +188,12 @@ void simulation::output(unsigned long _time_step) {
                                     _p_domain->getSubBoxLatticeSize(2);
 
     static AtomDump dump(pConfigVal->atomsDumpMode, pConfigVal->atomsDumpFilePath,
-                         begin, end, atoms_size); // config dump.
-    dump.dump(_atom);
+                         begin, end,
+                         atoms_size); // config dump. // fixme Attempting to use an MPI routine after finalizing MPICH.
+    dump.dump(_atom, time_step);
 
-    if (_time_step + pConfigVal->atomsDumpInterval > pConfigVal->timeStepLength) { // the last time of dumping.
-
+    if (time_step + pConfigVal->atomsDumpInterval > pConfigVal->timeStepLength) { // the last time of dumping.
+        dump.writeDumpHeader();
     }
 }
 

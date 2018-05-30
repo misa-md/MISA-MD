@@ -37,7 +37,7 @@ public:
 
     void finalize();
 
-    void output(unsigned long time_step);
+    void output(size_t time_step);
 
     void abort(int exitcode);
 
