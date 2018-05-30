@@ -101,11 +101,12 @@ void WorldBuilder::build() {
 }
 
 void WorldBuilder::createPhaseSpace() {
-    unsigned long id_pre = (unsigned long) box_x * box_y * _p_domain->getGlobalSubBoxLatticeCoordLower(2)
+    unsigned long id_pre = (unsigned long) box_x * box_y * _p_domain->getGlobalSubBoxLatticeCoordLower(2) * 2
                            + (unsigned long) _p_domain->getGlobalSubBoxLatticeCoordLower(1) *
-                             box_x * _p_domain->getSubBoxLatticeSize(2)
+                             box_x * _p_domain->getSubBoxLatticeSize(2) * 2
                            + (unsigned long) _p_domain->getGlobalSubBoxLatticeCoordLower(0) *
-                             _p_domain->getSubBoxLatticeSize(1) * _p_domain->getSubBoxLatticeSize(2);
+                             _p_domain->getSubBoxLatticeSize(1) *
+                             _p_domain->getSubBoxLatticeSize(2);
     /*for(int i = 0; i < id_pre; i++){
         uniform();
         uniform();
