@@ -192,7 +192,7 @@ void simulation::output(size_t time_step) {
                          atoms_size); // config dump. // fixme Attempting to use an MPI routine after finalizing MPICH.
     dump.dump(_atom, time_step);
 
-    if (time_step + pConfigVal->atomsDumpInterval > pConfigVal->timeStepLength) { // the last time of dumping.
+    if (time_step + pConfigVal->atomsDumpInterval > pConfigVal->timeSteps) { // the last time of dumping.
         dump.writeDumpHeader();
     }
 }
