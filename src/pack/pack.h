@@ -6,7 +6,7 @@
 #define CRYSTAL_MD_PACK_H
 
 #include <vector>
-#include "../pre_define.h"
+#include "../config/pre_define.h"
 #include "../atom/atom_list.h"
 #include "lat_particle_data.h"
 #include "particledata.h"

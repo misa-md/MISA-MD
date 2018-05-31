@@ -37,6 +37,6 @@ typedef double _type_atom_rho;
 typedef double _type_atom_df;
 
 // simulation default default valuse
-#include "def_config_values.h"
+#include "../def_config_values.h"
 
 #endif //CRYSTAL_MD_PRE_DEFINE_H

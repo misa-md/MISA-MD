@@ -6,8 +6,8 @@
 #define CRYSTAL_MD_ATOM_ELEMENT_H
 
 
-#include "../pre_define.h"
-#include "atom_types.h"
+#include "../config/pre_define.h"
+#include "../config/atom_types.h"
 
 /**
  * This class describes the attributes of one atom, such as location, force, velocity.etc.

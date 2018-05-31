@@ -6,8 +6,8 @@
 #define CRYSTAL_MD_INTER_ATOM_LIST_H
 
 #include <vector>
-#include "../pre_define.h"
-#include "atom_types.h"
+#include "../config/pre_define.h"
+#include "../config/atom_types.h"
 
 /**
  * storing inter atoms

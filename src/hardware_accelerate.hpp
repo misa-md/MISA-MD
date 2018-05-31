@@ -5,7 +5,7 @@
 #ifndef CRYSTAL_MD_HARDWARE_ACCELERATE_H
 #define CRYSTAL_MD_HARDWARE_ACCELERATE_H
 
-#include "pre_define.h"
+#include "config/pre_define.h"
 
 #ifdef ARCH_SUNWAY
 

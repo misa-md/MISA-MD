@@ -5,6 +5,7 @@
 #ifndef CRYSTAL_MD_ATOM_DUMP_H
 #define CRYSTAL_MD_ATOM_DUMP_H
 
+#include <io/local_storage.h>
 #include "atom.h"
 #include "config_values.h"
 
@@ -18,6 +19,8 @@ public:
     AtomDump(_type_out_mode mode, const std::string &filename,
              _type_lattice_coord begin[DIMENSION], _type_lattice_coord end[DIMENSION],
              _type_lattice_size atoms_size);
+
+    ~AtomDump();
 
     /**
      *
@@ -46,27 +49,32 @@ public:
     /**
      * dump atoms to file(s).
      */
-    void dump(atom *atom);
+    void dump(atom *atom, size_t time_step);
+
+    void writeDumpHeader();
 
 private:
-    std::string dump_file_name;
+    std::string _dump_file_name;
     _type_out_mode _dump_mode;
+
+    size_t atom_total = 0; // the count of atoms have writen to local storage.
 
     _type_lattice_size _atoms_size;
     _type_lattice_coord _begin[DIMENSION];
     _type_lattice_coord _end[DIMENSION];
 
-    kiwi::IOWriter *dump_writer = nullptr; // io writer for writing a shared file using mpi-IO lib.
+    kiwi::LocalStorage *local_storage = nullptr; // io writer for writing a shared file using mpi-IO lib.
+    MPI_File pFile; // used in copy mode.
 
     /**
      * dump atoms with copy mode.
      */
-    void dumpModeCopy(atom *atom);
+    void dumpModeCopy(atom *atom, size_t time_step);
 
     /*
      * dump atoms with direct mode.
      */
-    void dumpModeDirect(atom *atom);
+    void dumpModeDirect(atom *atom, size_t time_step);
 };
 
 
