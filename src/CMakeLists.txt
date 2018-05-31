@@ -8,8 +8,8 @@ set(EXTRA_LIBS ${KIWI_EXPORT_LINK_LIBS} ${EXTRA_LIBS})
 
 # configure a header file to pass some of the CMake settings to the source code
 configure_file(
-        "${PROJECT_SOURCE_DIR}/src/pre_config.h.in"
-        "${PROJECT_SOURCE_DIR}/src/pre_config.h"
+        "config/pre_config.h.in"
+        "config/pre_config.h"
 )
 
 set(HEADER_FILES
@@ -24,14 +24,15 @@ set(HEADER_FILES
         hardware_accelerate.hpp
         input.h
         newton_motion.h
-        pre_config.h
-        pre_define.h
         simulation.h
         world_builder.h
         atom/atom_element.h
         atom/atom_list.h
-        atom/atom_types.h
         atom/inter_atom_list.h
+        config/atom_types.h
+        config/pre_config.h
+        config/pre_define.h
+        io/atom_info_dump.h
         pack/lat_particle_data.h
         pack/pack.h
         pack/particledata.h
@@ -56,6 +57,7 @@ set(SOURCE_FILES
         atom/atom_element.cpp
         atom/atom_list.cpp
         atom/inter_atom_list.cpp
+        io/atom_info_dump.cpp
         pack/lat_particle_data.cpp
         pack/pack.cpp
         pack/particledata.cpp

@@ -13,6 +13,7 @@
 #include "newton_motion.h"
 #include "input.h"
 #include "potential/eam.h"
+#include "atom_dump.h"
 
 class simulation {
 public:
@@ -51,7 +52,7 @@ private:
      * pointer to config data.
      */
     ConfigValues *pConfigVal;
-
+    AtomDump *dump; // pointer to the atom dump class for output atoms information.
     Domain *_p_domain; //仅rank==0的进程有效
     // GlobalDomain *p_domain;  //仅rank==0的进程有效 // todo ??
     atom *_atom;

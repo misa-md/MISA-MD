@@ -6,7 +6,7 @@
 #define CRYSTAL_MD_LAT_PARTICLE_DATA_H
 
 #include <mpi.h>
-#include "../atom/atom_types.h"
+#include "../config/atom_types.h"
 
 class LatParticleData {
 public:

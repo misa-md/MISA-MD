@@ -54,7 +54,7 @@ public:
     void writeDumpHeader();
 
 private:
-    std::string dump_file_name;
+    std::string _dump_file_name;
     _type_out_mode _dump_mode;
 
     size_t atom_total = 0; // the count of atoms have writen to local storage.
@@ -64,6 +64,7 @@ private:
     _type_lattice_coord _end[DIMENSION];
 
     kiwi::LocalStorage *local_storage = nullptr; // io writer for writing a shared file using mpi-IO lib.
+    MPI_File pFile; // used in copy mode.
 
     /**
      * dump atoms with copy mode.

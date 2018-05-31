@@ -6,13 +6,14 @@
 #include <fstream>
 #include <logs/logs.h>
 #include "atom_dump.h"
+#include "io/atom_info_dump.h"
 
-AtomDump::AtomDump() : dump_file_name(DEFAULT_OUTPUT_DUMP_FILE_PATH),
+AtomDump::AtomDump() : _dump_file_name(DEFAULT_OUTPUT_DUMP_FILE_PATH),
                        _dump_mode(OUTPUT_DIRECT_MODE), _atoms_size(0) {}
 
 AtomDump::AtomDump(_type_out_mode mode, const std::string &filename, _type_lattice_coord *begin,
                    _type_lattice_coord *end, _type_lattice_size atoms_size)
-        : _dump_mode(mode), _atoms_size(atoms_size), dump_file_name(filename) {
+        : _dump_mode(mode), _atoms_size(atoms_size), _dump_file_name(filename) {
     setBoundary(begin, end, atoms_size); // todo set variable atoms_size twice.
 }
 
@@ -26,7 +27,7 @@ AtomDump &AtomDump::setMode(_type_out_mode mode) {
 }
 
 AtomDump &AtomDump::setDumpFile(const std::string &filename) {
-    this->dump_file_name = filename;
+    this->_dump_file_name = filename;
     return *this;
 }
 
@@ -40,17 +41,17 @@ AtomDump &AtomDump::setBoundary(_type_lattice_coord *begin, _type_lattice_coord 
 }
 
 void AtomDump::dump(atom *atom, size_t time_step) {
-    double start, stop;
+//    double start, stop;
     if (_dump_mode == OUTPUT_COPY_MODE) { // todo copy atoms, then write.
-        start = MPI_Wtime();
+//        start = MPI_Wtime();
         dumpModeCopy(atom, time_step);
-        stop = MPI_Wtime();
-        kiwi::logs::i("dump", "time of dumping atoms in copy mode:{}.\n", stop - start);
+//        stop = MPI_Wtime();
+//        kiwi::logs::i("dump", "time of dumping atoms in copy mode:{}.\n", stop - start);
     } else {
-        start = MPI_Wtime();
+//        start = MPI_Wtime();
         dumpModeDirect(atom, time_step);
-        stop = MPI_Wtime();
-        kiwi::logs::i("dump", "time of dumping atoms in direct mode:{}.\n", stop - start);
+//        stop = MPI_Wtime();
+//        kiwi::logs::i("dump", "time of dumping atoms in direct mode:{}.\n", stop - start);
     }
 }
 
@@ -58,21 +59,22 @@ void AtomDump::dump(atom *atom, size_t time_step) {
 void AtomDump::dumpModeCopy(atom *atom, size_t time_step) {
     // initialize kiwi writer for copy mode dump.
     if (local_storage == nullptr) {
-        local_storage = new kiwi::LocalStorage(dump_file_name);
-        local_storage->make(); // create file.
+        int status = MPI_File_open(kiwi::mpiUtils::global_comm, _dump_file_name.c_str(), // todo comm.
+                                   MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &pFile);
+        if (status == -1) {
+            kiwi::logs::e("dump", "can not access file {} in MPI IO.", _dump_file_name);
+            return; // todo exit application.
+        }
+
+        // atom_dump::registerAtomDumpMPIDataType(); // fixme: MPI_Type_contiguous(count=32768, INVALID DATATYPE,
+        local_storage = new kiwi::LocalStorage(pFile, 128, 128, 1024 * sizeof(atom_dump::AtomInfoDump));
+        local_storage->make(MPI_BYTE); // create file.
     }
     long kk;
 
     const size_t list_buffer_size = 4096;
     size_t list_buff_index = 0;
-    struct {
-        _type_atom_id id;
-        size_t step;
-        _type_atom_type type;
-//        bool is_inter;
-        _type_atom_location atom_location[DIMENSION]; // atom location
-        _type_atom_velocity atom_velocity[DIMENSION]; // atom velocity
-    } atom_list_buffer[list_buffer_size]; // 4k
+    atom_dump::AtomInfoDump atom_list_buffer[list_buffer_size]; // 4k
 
     for (int k = _begin[2]; k < _end[2]; k++) {
         for (int j = _begin[1]; j < _end[1]; j++) {
@@ -92,14 +94,15 @@ void AtomDump::dumpModeCopy(atom *atom, size_t time_step) {
                 if (list_buff_index == list_buffer_size) { // write data and reset
                     list_buff_index = 0;
                     atom_total += list_buffer_size;
-                    local_storage->write(atom_list_buffer, list_buffer_size);
+                    local_storage->writer.write(atom_list_buffer, list_buffer_size * sizeof(atom_dump::AtomInfoDump));
                 }
             }
         }
     }
     if (list_buff_index != 0) {
         atom_total += list_buff_index;
-        local_storage->write(atom_list_buffer, list_buff_index); // write left data.
+        // write left data.
+        local_storage->writer.write(atom_list_buffer, list_buff_index * sizeof(atom_dump::AtomInfoDump));
     }
 }
 

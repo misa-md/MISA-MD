@@ -7,7 +7,8 @@
 #include "world_builder.h"
 #include "atom_dump.h"
 
-simulation::simulation() : _p_domain(nullptr), _input(nullptr) {
+simulation::simulation() : _p_domain(nullptr), dump(nullptr), _input(nullptr),
+                           _newton_motion(nullptr), _atom(nullptr), _pot(nullptr) {
     pConfigVal = &(ConfigParser::getInstance()->configValues);
 //    createDomainDecomposition();
 //    collision_step = -1;
@@ -165,6 +166,7 @@ void simulation::simulate() {
     if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
         kiwi::logs::i("simulation", "total time:{}.\n", alltime);
     }
+    delete dump; // free dump pointer, this pointer will not be used later.
 }
 
 void simulation::finalize() {
@@ -175,25 +177,28 @@ void simulation::finalize() {
 }
 
 void simulation::output(size_t time_step) {
-    // atom boundary in array.
-    _type_lattice_coord begin[DIMENSION] = {
-            _p_domain->getGlobalSubBoxLatticeCoordLower(0) - _p_domain->getGlobalGhostLatticeCoordLower(0),
-            _p_domain->getGlobalSubBoxLatticeCoordLower(1) - _p_domain->getGlobalGhostLatticeCoordLower(1),
-            _p_domain->getGlobalSubBoxLatticeCoordLower(2) - _p_domain->getGlobalGhostLatticeCoordLower(2)};
-    _type_lattice_coord end[DIMENSION] = {
-            begin[0] + _p_domain->getSubBoxLatticeSize(0),
-            begin[1] + _p_domain->getSubBoxLatticeSize(1),
-            begin[2] + _p_domain->getSubBoxLatticeSize(2)};
-    _type_lattice_size atoms_size = _p_domain->getSubBoxLatticeSize(0) * _p_domain->getSubBoxLatticeSize(1) *
-                                    _p_domain->getSubBoxLatticeSize(2);
+    if (dump == nullptr) { // initialize atomDump if it is not initialized.
+        // atom boundary in array.
+        _type_lattice_coord begin[DIMENSION] = {
+                _p_domain->getGlobalSubBoxLatticeCoordLower(0) - _p_domain->getGlobalGhostLatticeCoordLower(0),
+                _p_domain->getGlobalSubBoxLatticeCoordLower(1) - _p_domain->getGlobalGhostLatticeCoordLower(1),
+                _p_domain->getGlobalSubBoxLatticeCoordLower(2) - _p_domain->getGlobalGhostLatticeCoordLower(2)};
+        _type_lattice_coord end[DIMENSION] = {
+                begin[0] + _p_domain->getSubBoxLatticeSize(0),
+                begin[1] + _p_domain->getSubBoxLatticeSize(1),
+                begin[2] + _p_domain->getSubBoxLatticeSize(2)};
+        _type_lattice_size atoms_size = _p_domain->getSubBoxLatticeSize(0) * _p_domain->getSubBoxLatticeSize(1) *
+                                        _p_domain->getSubBoxLatticeSize(2);
 
-    static AtomDump dump(pConfigVal->atomsDumpMode, pConfigVal->atomsDumpFilePath,
-                         begin, end,
-                         atoms_size); // config dump. // fixme Attempting to use an MPI routine after finalizing MPICH.
-    dump.dump(_atom, time_step);
+        dump = new AtomDump(pConfigVal->atomsDumpMode, pConfigVal->atomsDumpFilePath,
+                            begin, end, atoms_size); // config dump.
+        // fixme Attempting to use an MPI routine after finalizing MPICH.
+    }
+
+    dump->dump(_atom, time_step);
 
     if (time_step + pConfigVal->atomsDumpInterval > pConfigVal->timeSteps) { // the last time of dumping.
-        dump.writeDumpHeader();
+        dump->writeDumpHeader();
     }
 }
 
