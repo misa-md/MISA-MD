@@ -889,7 +889,7 @@ void atom::setv(int lat[4], double collision_v[3]) {
         lat[2] < (p_domain->getGlobalSubBoxLatticeCoordLower(2) + p_domain->getSubBoxLatticeSize(2))) {
         kk = (atom_list->IndexOf3DIndex(lat[0] * 2 - p_domain->getGlobalGhostLatticeCoordLower(0),
                                         lat[1] - p_domain->getGlobalGhostLatticeCoordLower(1),
-                                        lat[2] - p_domain->getGlobalGhostLatticeCoordLower(2)) + lat[4]);
+                                        lat[2] - p_domain->getGlobalGhostLatticeCoordLower(2)) + lat[3]); // todo verify the position.
         AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
         atom_.v[0] += collision_v[0];
         atom_.v[1] += collision_v[1];
