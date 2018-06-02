@@ -6,6 +6,7 @@
 #define CRYSTALMD_GTEST_ENV_H
 
 #include <gtest/gtest.h>
+#include <utils/mpi_utils.h>
 #include "test_config.h"
 
 #ifdef TEST_MPI_ENABLE_FLAG
@@ -17,13 +18,11 @@ public:
     void SetUp() override {
         char **argv;
         int argc = 0;
-        int mpiError = MPI_Init(&argc, &argv);
-        ASSERT_FALSE(mpiError);
+        kiwi::mpiUtils::initialMPI(argc, argv);
     }
 
     void TearDown() override {
-        int mpiError = MPI_Finalize();
-        ASSERT_FALSE(mpiError);
+        kiwi::mpiUtils::finishMPI();
     }
 
     ~MPIEnvironment() override = default;
