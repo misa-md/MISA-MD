@@ -17,18 +17,13 @@
       "kiwi": {
         "path": "https://git.gensh.me/genshen/kiwi.git",
         "hash": "3c1cf6604bf3da7484b9279c6ecaf492515b07ca"
+      },
+      "googletest": {
+        "path": "https://github.com/google/googletest.git",
+        "tag": "release-1.8.0"
       }
     },
     "files": {
-      "catch2": {
-        "path": "https://raw.githubusercontent.com/CatchOrg/Catch2/v2.2.2/single_include",
-        "files": {
-          "catch.hpp": "catch2.hpp"
-        },
-        "build": [
-          "CP catch2.hpp {INCLUDE}"
-        ]
-      },
       "agrs": {
         "path": "https://raw.githubusercontent.com/Taywee/args/master",
         "files": {

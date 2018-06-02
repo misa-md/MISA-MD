@@ -2,11 +2,11 @@
 // Created by genshen on 2018-05-19.
 //
 
-#include <catch2.hpp>
+#include <gtest/gtest.h>
 #include <potential/eam.h>
 #include <utils/mpi_utils.h>
 
-TEST_CASE("phi-test", "[phi-sync]") {
+TEST(phi_test, phi_sync) {
     eam *_eam = new eam();
     if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
         _eam->initElementN(3);

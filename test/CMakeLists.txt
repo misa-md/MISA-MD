@@ -1,11 +1,14 @@
 enable_testing()
 
-# we use catch2 as test lib.
-include_directories(${PROJECT_SOURCE_DIR}/vendor/pkg/include)
+# we use googletest as test lib.
+include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+MESSAGE(STATUS ${gtest_SOURCE_DIR})
+
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
 ## add kiwi framefork
 include_directories(${KIWI_EXPORT_INCLUDE_PATH})
+
 
 # Extra linking for the project.
 set(EXTRA_LIBS ${MD_LIB_NAME} ${EXTRA_LIBS}) # add crystal-md lib
@@ -25,7 +28,6 @@ configure_file(
 # Unit Tests Settings
 #########################
 set(TEST_SOURCE_FILES
-        catch2_test_env.hpp
         test_config.h
         domain_test_utils.h
         main.cpp
@@ -35,7 +37,7 @@ set(TEST_SOURCE_FILES
         world_builder_test.cpp
         domain_test_utils.cpp
         eam_test.cpp
-        )
+        gtest_env.h)
 
 # set binary path and lib storage path wile compiling process.
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)

@@ -2,13 +2,13 @@
 // Created by genshen on 5/12/18.
 //
 
-#include <catch2.hpp>
+#include <gtest/gtest.h>
 #include <world_builder.h>
 #include <iostream>
 
 #include "domain_test_utils.h"
 
-TEST_CASE("zero momentum test", "[world_builder_test]") {
+TEST(zero_momentum_test, world_builder_test) {
     int64_t space[3] = {50, 60, 72};
     double lattice_const = 0.86;
     double cutoff_radius_factor = 1.1421;
@@ -36,6 +36,6 @@ TEST_CASE("zero momentum test", "[world_builder_test]") {
         double a = p[i];
 //        double b = a + std::numeric_limits<double>::epsilon();
 //        REQUIRE_FALSE(b == a);
-        REQUIRE(0 == Approx(a).epsilon(0.15));  // zero momentumat each dimension.
+        EXPECT_FLOAT_EQ(0, a);  // zero momentumat each dimension.
     }
 }
