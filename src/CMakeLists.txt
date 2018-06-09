@@ -39,6 +39,7 @@ set(HEADER_FILES
         potential/eam_phi.h
         potential/eam_parser.h
         potential/interpolation_object.h
+        utils/rpcc.hpp
         )
 
 set(SOURCE_FILES

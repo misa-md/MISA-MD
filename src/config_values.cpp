@@ -13,7 +13,8 @@ ConfigValues::ConfigValues() :
         alloyCreateSeed(1024), alloyRatio{1, 0, 0},
         collisionStep(0), collisionLat{0, 0, 0, 0}, collisionV{0.0, 0.0, 0.0},
         // todo potential type and filename initialize.
-        atomsDumpMode(OUTPUT_COPY_MODE), atomsDumpFilePath(DEFAULT_OUTPUT_DUMP_FILE_PATH) {}
+        atomsDumpMode(OUTPUT_COPY_MODE), atomsDumpFilePath(DEFAULT_OUTPUT_DUMP_FILE_PATH),
+        logs_mode(LOGS_MODE_CONSOLE), logs_filename("") {}
 
 void ConfigValues::packdata(kiwi::Bundle &bundle) {
     // append data into buffer.
@@ -43,6 +44,9 @@ void ConfigValues::packdata(kiwi::Bundle &bundle) {
     bundle.put(atomsDumpMode);
     bundle.put(atomsDumpInterval);
     bundle.put(atomsDumpFilePath);
+    // logs subsection in output section.
+    bundle.put(logs_mode);
+    bundle.put(logs_filename);
 }
 
 void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
@@ -71,10 +75,14 @@ void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
     bundle.get(cursor, potentialFileType);
     bundle.get(cursor, potentialFilename);
 
+    // output section.
     bundle.get(cursor, atomsDumpMode);
     bundle.get(cursor, atomsDumpInterval);
     bundle.get(cursor, atomsDumpFilePath);
-//    }
+
+    // logs subsection in output section.
+    bundle.get(cursor, logs_mode);
+    bundle.get(cursor, logs_filename);
 }
 
 std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
@@ -109,6 +117,9 @@ std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
     os << "output.mode(copy:0,direct:1):" << cv.atomsDumpMode << std::endl;
     os << "output.dump_interval" << cv.atomsDumpInterval << std::endl;
     os << "output.dump_filename:" << cv.atomsDumpFilePath << std::endl;
+    os << "output.logs.mode: " << (cv.logs_mode == LOGS_MODE_CONSOLE ? LOGS_MODE_CONSOLE_STRING : LOGS_MODE_FILE_STRING)
+       << std::endl;
+    os << "output.dump_filename:" << cv.logs_filename << std::endl;
     os << "============================================" << std::endl << std::endl;
     return os;
 }

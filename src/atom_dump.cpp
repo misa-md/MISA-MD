@@ -14,7 +14,7 @@ AtomDump::AtomDump() : _dump_file_name(DEFAULT_OUTPUT_DUMP_FILE_PATH),
 
 AtomDump::AtomDump(_type_out_mode mode, const std::string &filename, _type_lattice_coord *begin,
                    _type_lattice_coord *end, _type_lattice_size atoms_size)
-        : _dump_mode(mode), _atoms_size(atoms_size), _dump_file_name(filename) {
+        : _dump_file_name(filename), _dump_mode(mode), _atoms_size(atoms_size) {
     setBoundary(begin, end, atoms_size); // todo set variable atoms_size twice.
 }
 
@@ -42,17 +42,10 @@ AtomDump &AtomDump::setBoundary(_type_lattice_coord *begin, _type_lattice_coord 
 }
 
 void AtomDump::dump(atom *atom, size_t time_step) {
-//    double start, stop;
     if (_dump_mode == OUTPUT_COPY_MODE) { // todo copy atoms, then write.
-//        start = MPI_Wtime();
         dumpModeCopy(atom, time_step);
-//        stop = MPI_Wtime();
-//        kiwi::logs::i("dump", "time of dumping atoms in copy mode:{}.\n", stop - start);
     } else {
-//        start = MPI_Wtime();
         dumpModeDirect(atom, time_step);
-//        stop = MPI_Wtime();
-//        kiwi::logs::i("dump", "time of dumping atoms in direct mode:{}.\n", stop - start);
     }
 }
 

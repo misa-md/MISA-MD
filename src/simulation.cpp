@@ -195,10 +195,23 @@ void simulation::output(size_t time_step) {
         // fixme Attempting to use an MPI routine after finalizing MPICH.
     }
 
+    static double start = 0, stop = 0;
+    start += MPI_Wtime();
     dump->dump(_atom, time_step);
+    stop += MPI_Wtime();
 
     if (time_step + pConfigVal->atomsDumpInterval > pConfigVal->timeSteps) { // the last time of dumping.
+        start += MPI_Wtime();
         dump->writeDumpHeader();
+        stop += MPI_Wtime();
+        // log dumping time.
+        if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
+            if (pConfigVal->atomsDumpMode == OUTPUT_COPY_MODE) {
+                kiwi::logs::i("dump", "time of dumping atoms in copy mode:{}.\n", stop - start);
+            } else if (pConfigVal->atomsDumpMode == OUTPUT_DIRECT_MODE) {
+                kiwi::logs::i("dump", "time of dumping atoms in direct mode:{}.\n", stop - start);
+            }
+        }
     }
 }
 

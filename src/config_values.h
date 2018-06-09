@@ -12,9 +12,15 @@
 
 #define OUTPUT_COPY_MODE 0
 #define OUTPUT_DIRECT_MODE 1
+#define LOGS_MODE_CONSOLE 0
+#define LOGS_MODE_FILE 1
+#define LOGS_MODE_CONSOLE_STRING "console"
+#define LOGS_MODE_FILE_STRING "file"
+#define DEFAULT_LOGS_MODE_CONSOLE_STRING LOGS_MODE_CONSOLE_STRING
 #define DEFAULT_OUTPUT_DUMP_FILE_PATH "crystal_md.out"
 
 typedef short _type_out_mode;
+typedef short _type_logs_mode;
 
 class ConfigValues {
     friend std::ostream &operator<<(std::ostream &os, const ConfigValues &cv);
@@ -49,6 +55,9 @@ public:
     _type_out_mode atomsDumpMode;
     unsigned long atomsDumpInterval;
     std::string atomsDumpFilePath;
+    // logs in output section
+    _type_logs_mode logs_mode;
+    std::string logs_filename;
     // output section ends
     // config values ends
 

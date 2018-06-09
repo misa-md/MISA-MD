@@ -16,7 +16,7 @@
     "git": {
       "kiwi": {
         "path": "https://git.gensh.me/genshen/kiwi.git",
-        "hash": "3c1cf6604bf3da7484b9279c6ecaf492515b07ca"
+        "hash": "2e78a997cf5b55873c68ddd1d83969a2e659f71d"
       },
       "googletest": {
         "path": "https://github.com/google/googletest.git",

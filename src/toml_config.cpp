@@ -5,6 +5,7 @@
 #include <climits>
 
 #include "toml_config.h"
+#include "utils/rpcc.hpp"
 
 //
 // Created by gensh(genshenchu@gmail.com) on 2017/4/16.
@@ -104,7 +105,7 @@ void ConfigParser::resolveConfigSimulation(std::shared_ptr<cpptoml::table> table
             return;
         }
         configValues.createSeed = tableCreatephase->get_as<int>("create_seed").value_or(const_default_random_seek);
-    } else {  //read mode.
+    } else {  // read mode.
         auto tomlTSet = tableCreatephase->get_as<std::string>("read_phase_filename");
         if (tomlTSet) {
             configValues.readPhaseFilename = *tomlTSet;
@@ -149,11 +150,25 @@ void ConfigParser::resolveConfigOutput(std::shared_ptr<cpptoml::table> table) {
     configValues.atomsDumpInterval = table->get_as<uint64_t>("atoms_dump_interval").value_or(ULONG_MAX);
 
     // todo check if it is a path.
-    auto tomlAtomsDumpFilepath = table->get_as<std::string>("atoms_dump_file_path");
-    if (tomlAtomsDumpFilepath) {
-        configValues.atomsDumpFilePath = *tomlAtomsDumpFilepath;
+    configValues.atomsDumpFilePath = table->get_as<std::string>("atoms_dump_file_path")
+            .value_or(DEFAULT_OUTPUT_DUMP_FILE_PATH);
+
+    // resolve logs.
+    std::shared_ptr<cpptoml::table> logs_table = table->get_table("logs");
+    auto logsModeString = logs_table->get_as<std::string>("logs_mode").value_or(DEFAULT_LOGS_MODE_CONSOLE_STRING);
+    if (LOGS_MODE_CONSOLE_STRING == logsModeString) {
+        configValues.logs_mode = LOGS_MODE_CONSOLE;
     } else {
-        configValues.atomsDumpFilePath = DEFAULT_OUTPUT_DUMP_FILE_PATH;
+        configValues.logs_mode = LOGS_MODE_FILE;
+        configValues.logs_filename = logs_table->get_as<std::string>("logs_filename").value_or("");
+        // if filename is empty, we will generate a filename.
+        if (configValues.logs_filename.empty()) {
+            std::ostringstream str_stream;
+            str_stream << "md.";
+            str_stream << rpcc();
+            str_stream << ".log";
+            configValues.logs_filename = str_stream.str();
+        }
     }
 }
 

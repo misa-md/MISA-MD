@@ -40,8 +40,11 @@ timesteps_length = 0.001  # simulation time steps length for each timestep, doub
 
 [output]
 atoms_dump_mode = "copy" # output mode,string, "copy"(copy all atoms to memory and then output) or "direct" (output atoms directly) ;
-atoms_dump_file_path = "md.out" # string,filename or path of dumpped atoms, default value is "crystal_md.out"
+atoms_dump_file_path = "crystal_md.out" # string,filename or path of dumpped atoms, default value is "crystal_md.out"
 atoms_dump_interval = 10
+    [output.logs]
+    logs_mode = "file" # logs mode, string; valuse: "console" output will be printed on console/terminal, "file" logs will be saved in files.
+    logs_filename = "" # filename of log file, string; if leaving empty, program will generate an unique log filename. (And by default, output will append th enf of log file.).
 
 
 [author]

@@ -66,6 +66,14 @@ void crystalMD::onCreate() {
         std::cout << pConfig->configValues;
     }
 #endif
+
+    // prepare logs.
+    if (pConfig->configValues.logs_mode == LOGS_MODE_CONSOLE) {
+        kiwi::logs::setCorlorFul(true);
+    } else if (pConfig->configValues.logs_mode == LOGS_MODE_FILE) {
+        kiwi::logs::setLogFile(pConfig->configValues.logs_filename);
+    }
+
     archEnvInit(); // initialize architectures environment.
 }
 
