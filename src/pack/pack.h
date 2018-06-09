@@ -6,10 +6,10 @@
 #define CRYSTAL_MD_PACK_H
 
 #include <vector>
-#include "../config/pre_define.h"
-#include "../atom/atom_list.h"
 #include "lat_particle_data.h"
 #include "particledata.h"
+#include "../types/pre_define.h"
+#include "../atom/atom_list.h"
 #include "../atom/inter_atom_list.h"
 
 namespace pack {

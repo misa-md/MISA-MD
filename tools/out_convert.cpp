@@ -18,9 +18,16 @@ typedef struct {
     unsigned long id;
     size_t step;
     int type;
+    short inter_type;
     double atom_location[3]; // atom location
     double atom_velocity[3]; // atom velocity
 } type_atom;
+
+typedef struct {
+    double t;
+    double e;
+    double lat;
+} box_por;
 
 const long BLOCK_SIZE = (1024 * sizeof(type_atom));
 
@@ -33,6 +40,8 @@ void checkoutHeaders(std::ifstream &infile, int rank);
 void checkoutToAtoms(std::ifstream &infile, int n_ranks, int rank);
 
 std::string getNameByEleName(int type);
+
+box_por getSystemConst();
 
 /**
  * this file convert binary output file of CrystalMD program to readable txt format.
@@ -61,7 +70,11 @@ int main(int argc, char *argv[]) {
     infile.seekg(HEADER_SIZE, std::ios::beg); // head.
     auto buffer = new type_atom[BUF_SIZE];
 
-    outfile << "id \tstep \ttype \tlocate.x \tlocate.y \tlocate.z \tv.x \tv.y \tv.z" << std::endl;
+    //玻尔兹曼常数 =1.38064852 *10^(-23)
+    box_por box = getSystemConst();
+    outfile << "T: " << box.t << "k\t" << " E: " << box.e << "J\t"
+            << "lattice_const:" << box.lat << "\n";
+    outfile << "id \tstep \ttype \tinter_type \tlocate.x \tlocate.y \tlocate.z \tv.x \tv.y \tv.z" << std::endl;
 //    size_t atom_read = 10;
 //    TEST(infile, (byte *) buffer, atom_read * sizeof(type_atom), n_rank, 0);
     for (int rank = 0; rank < n_rank; rank++) {
@@ -80,6 +93,7 @@ int main(int argc, char *argv[]) {
             for (int i = 0; i < atom_read; i++) {
                 outfile << buffer[i].id << "\t" << buffer[i].step << "\t"
                         << getNameByEleName(buffer[i].type) << "\t"
+                        << buffer[i].inter_type << "\t"
                         << buffer[i].atom_location[0] << "\t" << buffer[i].atom_location[1] << "\t"
                         << buffer[i].atom_location[2] << "\t"
                         << buffer[i].atom_velocity[0] << "\t" << buffer[i].atom_velocity[1] << "\t"
@@ -178,4 +192,8 @@ std::string getNameByEleName(int type) {
         default:
             return "Unknown";
     }
+}
+
+box_por getSystemConst() {
+    return box_por{600, 1.242, 2.85532}; // 10^-20
 }

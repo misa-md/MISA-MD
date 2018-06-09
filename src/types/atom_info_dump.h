@@ -8,7 +8,7 @@
 
 #include <cstddef>
 #include <mpi.h>
-#include "../config/pre_define.h"
+#include "pre_define.h"
 
 namespace atom_dump {
     struct AtomInfoDump {
@@ -16,7 +16,7 @@ namespace atom_dump {
         _type_atom_id id;
         std::size_t step;
         _type_atom_type type;
-//        bool is_inter;
+        _type_inter_type inter_type;
         _type_atom_location atom_location[DIMENSION]; // atom location
         _type_atom_velocity atom_velocity[DIMENSION]; // atom velocity
     };

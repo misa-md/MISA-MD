@@ -6,8 +6,8 @@ include_directories(${KIWI_EXPORT_INCLUDE_PATH})
 
 # configure a header file to pass some of the CMake settings to the source code
 configure_file(
-        "config/pre_config.h.in"
-        "config/pre_config.h"
+        "types/pre_config.h.in"
+        "types/pre_config.h"
 )
 
 set(HEADER_FILES
@@ -27,10 +27,10 @@ set(HEADER_FILES
         atom/atom_element.h
         atom/atom_list.h
         atom/inter_atom_list.h
-        config/atom_types.h
-        config/pre_config.h
-        config/pre_define.h
-        io/atom_info_dump.h
+        types/atom_types.h
+        types/pre_config.h
+        types/pre_define.h
+        types/atom_info_dump.h
         pack/lat_particle_data.h
         pack/pack.h
         pack/particledata.h
@@ -55,7 +55,7 @@ set(SOURCE_FILES
         atom/atom_element.cpp
         atom/atom_list.cpp
         atom/inter_atom_list.cpp
-        io/atom_info_dump.cpp
+        types/atom_info_dump.cpp
         pack/lat_particle_data.cpp
         pack/pack.cpp
         pack/particledata.cpp

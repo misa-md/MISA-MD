@@ -6,8 +6,9 @@
 #define CRYSTAL_MD_INTER_ATOM_LIST_H
 
 #include <vector>
-#include "../config/pre_define.h"
-#include "../config/atom_types.h"
+#include "atom_element.h"
+#include "../types/pre_define.h"
+#include "../types/atom_types.h"
 
 /**
  * storing inter atoms
@@ -26,6 +27,14 @@ public:
     InterAtomList();
 
     void appendInter(_type_atom_id atom_id);
+
+    /**
+    * pointer of element in atom_list (pointer of {@class AtomElement}).
+    * // todo use avl tree.
+    * // todo use pointer.
+    */
+//    std::vector<AtomElement> inter_list;
+//    std::vector<AtomElement> inter_host_list;
 };
 
 

@@ -191,7 +191,7 @@ void simulation::output(size_t time_step) {
                                         _p_domain->getSubBoxLatticeSize(2);
 
         dump = new AtomDump(pConfigVal->atomsDumpMode, pConfigVal->atomsDumpFilePath,
-                            begin, end, atoms_size); // config dump.
+                            begin, end, atoms_size); // atoms dump.
         // fixme Attempting to use an MPI routine after finalizing MPICH.
     }
 

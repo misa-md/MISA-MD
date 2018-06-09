@@ -8,7 +8,7 @@
 #define CRYSTALMD_WORLD_BUILDER_H
 
 #include "atom.h"
-#include "config/atom_types.h"
+#include "types/atom_types.h"
 
 #define IA 16807
 #define IM 2147483647

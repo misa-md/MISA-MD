@@ -6,7 +6,8 @@
 #include <fstream>
 #include <logs/logs.h>
 #include "atom_dump.h"
-#include "io/atom_info_dump.h"
+#include "types/atom_info_dump.h"
+#include "types/pre_define.h"
 
 AtomDump::AtomDump() : _dump_file_name(DEFAULT_OUTPUT_DUMP_FILE_PATH),
                        _dump_mode(OUTPUT_DIRECT_MODE), _atoms_size(0) {}
@@ -84,6 +85,7 @@ void AtomDump::dumpModeCopy(atom *atom, size_t time_step) {
                 atom_list_buffer[list_buff_index].id = atom_.id;
                 atom_list_buffer[list_buff_index].step = time_step;
                 atom_list_buffer[list_buff_index].type = atom_.type;
+                atom_list_buffer[list_buff_index].inter_type = 0; // normal
                 atom_list_buffer[list_buff_index].atom_location[0] = atom_.x[0];
                 atom_list_buffer[list_buff_index].atom_location[1] = atom_.x[1];
                 atom_list_buffer[list_buff_index].atom_location[2] = atom_.x[2];

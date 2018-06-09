@@ -27,6 +27,7 @@ typedef unsigned long _type_atom_id;
 typedef unsigned long _type_atom_index;
 typedef unsigned long _type_atom_count;
 typedef int _type_atom_type; // @deprecated
+typedef short _type_inter_type; // inter atom type.
 typedef unsigned short _type_atom_types; // the count of all types of atoms.
 
 typedef double _type_atom_mass;
