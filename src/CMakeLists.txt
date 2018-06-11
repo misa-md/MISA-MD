@@ -6,8 +6,8 @@ include_directories(${KIWI_EXPORT_INCLUDE_PATH})
 
 # configure a header file to pass some of the CMake settings to the source code
 configure_file(
-        "types/pre_config.h.in"
-        "types/pre_config.h"
+        "${PROJECT_SOURCE_DIR}/src/types/pre_config.h.in"
+        "${PROJECT_SOURCE_DIR}/src/types/pre_config.h"
 )
 
 set(HEADER_FILES
