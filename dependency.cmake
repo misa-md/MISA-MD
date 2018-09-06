@@ -30,30 +30,15 @@ if (MPI_ENABLE_FLAG)
 endif ()
 ##### mpi and openmp end
 
-##############################
-# add kiwi framework globally
-##############################
-add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/src/kiwi ${PROJECT_BINARY_DIR}/vendor/kiwi)
-set(EXTRA_LIBS ${KIWI_EXPORT_LINK_LIBS} ${EXTRA_LIBS})
 
-##########################################
-# add googletest framework for test only
-##########################################
-if (TEST_ENABLE_FLAG)
-    # or using ExternalProject_Add, see:https://github.com/kaizouman/gtest-cmake-example
+################################
+##### pthread lib
+################################
+find_package(Threads REQUIRED)
+set(EXTRA_LIBS ${EXTRA_LIBS} ${CMAKE_THREAD_LIBS_INIT})
+MESSAGE(STATUS "pthread is used.")
+## pthread end
 
-    # download googletest from https://github.com/google/googletest/,and copy it to "external" directory.
-    # Include the gtest library. gtest_SOURCE_DIR is available due to 'project(gtest)' above.
-    # an issue for mingw on winodws, see: https://github.com/google/googletest/issues/606#issuecomment-234733757
-    if (NOT TARGET gtest)
-        add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/src/googletest/googletest ${PROJECT_BINARY_DIR}/vendor/googletest)
-    endif ()
 
-    #googlemock
-    #add_subdirectory("${source_dir}/googlemock")
-    #include_directories(${gmock_SOURCE_DIR}/include ${gmock_SOURCE_DIR})
-
-    # Standard linking to gtest stuff.
-    set(EXTRA_LIBS ${EXTRA_LIBS} gtest gtest_main)
-    MESSAGE(STATUS "Set googletest as test library.")
-endif ()
+include(pkg.dep.cmake)
+set(EXTRA_LIBS fmt kiwi ${EXTRA_LIBS})

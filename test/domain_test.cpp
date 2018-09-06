@@ -6,8 +6,9 @@
 #include <utils/mpi_utils.h>
 #include <iostream>
 #include <cmath>
-#include "domain_test_utils.h"
+#include "utils/mpi_domain.h"
 #include "atom.h"
+#include "domain_test_utils.h"
 
 TEST(domain_test_decomposition, domain_test) {
     int64_t space[3] = {50, 60, 72};
@@ -20,9 +21,9 @@ TEST(domain_test_decomposition, domain_test) {
     int grid_sum[3] = {0, 0, 0};
     int local_grid[3] = {_domain->getSubBoxLatticeSize(0), _domain->getSubBoxLatticeSize(1),
                          _domain->getSubBoxLatticeSize(2)};
-    MPI_Reduce(local_grid, grid_sum, 3, MPI_INT, MPI_SUM, MASTER_PROCESSOR, kiwi::mpiUtils::global_comm);
+    MPI_Reduce(local_grid, grid_sum, 3, MPI_INT, MPI_SUM, MASTER_PROCESSOR, MPIDomain::sim_processor.comm);
 
-    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
+    if (MPIDomain::sim_processor.own_rank == MASTER_PROCESSOR) {
         EXPECT_EQ(grid_sum[1], (2 * space[1])); // todo test
     }
 

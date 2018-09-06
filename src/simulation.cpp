@@ -2,6 +2,7 @@
 #include <logs/logs.h>
 
 #include "simulation.h"
+#include "utils/mpi_domain.h"
 #include "potential/eam_parser.h"
 #include "hardware_accelerate.hpp"
 #include "world_builder.h"
@@ -67,13 +68,13 @@ void simulation::prepareForStart() {
     _pot = new eam();
     EamParser parser(pConfigVal->potentialFilename, pConfigVal->potentialFileType);
     // 读取势函数文件
-    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
+    if (MPIDomain::sim_processor.own_rank == MASTER_PROCESSOR) {
         if (!(parser.parse(_pot))) { // parse potential file.
             abort(1); // todo log, reason
         }
     }
 
-    _pot->eamBCast(kiwi::mpiUtils::own_rank); // BCast Potential
+    _pot->eamBCast(MPIDomain::sim_processor.own_rank); // BCast Potential
     _pot->interpolateFile(); // interpolation.
 
     beforeAccelerateRun(_pot); // it runs after atom and boxes creation, but before simulation running.
@@ -157,13 +158,13 @@ void simulation::simulate() {
             output(_simulation_time_step + 1);
         }
     }
-    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
+    if (MPIDomain::sim_processor.own_rank == MASTER_PROCESSOR) {
         kiwi::logs::i("simulation", "loop comm time: {}.\n", commtime);
         kiwi::logs::i("simulation", "loop compute time: {}.\n", computetime);
     }
     allstop = MPI_Wtime();
     alltime = allstop - allstart;
-    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
+    if (MPIDomain::sim_processor.own_rank == MASTER_PROCESSOR) {
         kiwi::logs::i("simulation", "total time:{}.\n", alltime);
     }
     delete dump; // free dump pointer, this pointer will not be used later.
@@ -205,7 +206,7 @@ void simulation::output(size_t time_step) {
         dump->writeDumpHeader();
         stop += MPI_Wtime();
         // log dumping time.
-        if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
+        if (MPIDomain::sim_processor.own_rank == MASTER_PROCESSOR) {
             if (pConfigVal->atomsDumpMode == OUTPUT_COPY_MODE) {
                 kiwi::logs::i("dump", "time of dumping atoms in copy mode:{}.\n", stop - start);
             } else if (pConfigVal->atomsDumpMode == OUTPUT_DIRECT_MODE) {

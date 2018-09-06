@@ -1,5 +1,5 @@
 title = "Crystal-MD Configure File"
-version = "0.3.0"
+version = "0.3.1"
 # <a href='https://github.com/toml-lang/toml'>toml</a> configure file for Crystal-MD application,
 # writen by <a href='mailto:genshenchu@gmail.com'>genshen</a>"
 

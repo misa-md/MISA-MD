@@ -1,8 +1,5 @@
-# include directory
-include_directories(${PROJECT_SOURCE_DIR}/vendor/pkg/include)
-
-# include kiwi framework.
-include_directories(${KIWI_EXPORT_INCLUDE_PATH})
+# vendor include directory
+include_directories(${VENDOR_PATH}/include)
 
 # configure a header file to pass some of the CMake settings to the source code
 configure_file(
@@ -39,6 +36,7 @@ set(HEADER_FILES
         potential/eam_phi.h
         potential/eam_parser.h
         potential/interpolation_object.h
+        utils/mpi_domain.h
         utils/rpcc.hpp
         )
 
@@ -65,6 +63,7 @@ set(SOURCE_FILES
         potential/eam_phi.cpp
         potential/eam_parser.cpp
         potential/interpolation_object.cpp
+        utils/mpi_domain.cpp
         )
 
 # codes runs on sunway.

@@ -1,17 +1,12 @@
 enable_testing()
 
-# we use googletest as test lib.
-include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
-MESSAGE(STATUS ${gtest_SOURCE_DIR})
-
 include_directories(${PROJECT_SOURCE_DIR}/src)
-
-## add kiwi framefork
-include_directories(${KIWI_EXPORT_INCLUDE_PATH})
-
+# vendor include directory
+include_directories(${VENDOR_PATH}/include)
 
 # Extra linking for the project.
-set(EXTRA_LIBS ${MD_LIB_NAME} ${EXTRA_LIBS}) # add crystal-md lib
+set(EXTRA_LIBS gtest gtest_main ${MD_LIB_NAME} ${EXTRA_LIBS})  # add crystal-md lib and gtest lib
+MESSAGE(STATUS "Set googletest as test library.")
 
 if (NOT (MPI_ENABLE_FLAG))
     set(TEST_MPI_ENABLE_FLAG OFF)  # if we disabled MPI_ENABLE_FLAG,we cann't also use TEST_MPI_ENABLE_FLAG.
@@ -37,7 +32,7 @@ set(TEST_SOURCE_FILES
         world_builder_test.cpp
         domain_test_utils.cpp
         eam_test.cpp
-        gtest_env.h)
+        )
 
 # set binary path and lib storage path wile compiling process.
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)

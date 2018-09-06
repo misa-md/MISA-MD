@@ -6,6 +6,7 @@
 #include <fstream>
 #include <logs/logs.h>
 #include "atom_dump.h"
+#include "utils/mpi_domain.h"
 #include "types/atom_info_dump.h"
 #include "types/pre_define.h"
 
@@ -53,7 +54,7 @@ void AtomDump::dump(atom *atom, size_t time_step) {
 void AtomDump::dumpModeCopy(atom *atom, size_t time_step) {
     // initialize kiwi writer for copy mode dump.
     if (local_storage == nullptr) {
-        int status = MPI_File_open(kiwi::mpiUtils::global_comm, _dump_file_name.c_str(), // todo comm.
+        int status = MPI_File_open(MPIDomain::sim_processor.comm, _dump_file_name.c_str(), // todo comm.
                                    MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &pFile);
         if (status == -1) {
             kiwi::logs::e("dump", "can not access file {} in MPI IO.", _dump_file_name);
@@ -62,7 +63,7 @@ void AtomDump::dumpModeCopy(atom *atom, size_t time_step) {
 
         // atom_dump::registerAtomDumpMPIDataType(); // fixme: MPI_Type_contiguous(count=32768, INVALID DATATYPE,
         local_storage = new kiwi::LocalStorage(pFile, 128, 128, 1024 * sizeof(atom_dump::AtomInfoDump));
-        local_storage->make(MPI_BYTE); // create file.
+        local_storage->make(MPI_BYTE, MPIDomain::sim_processor); // create file.
     }
     long kk;
 
@@ -103,7 +104,7 @@ void AtomDump::dumpModeCopy(atom *atom, size_t time_step) {
 
 void AtomDump::dumpModeDirect(atom *atom, size_t time_step) {
     char outfileName[20];
-    sprintf(outfileName, "dump_%d_%ld.atom", kiwi::mpiUtils::own_rank, time_step);
+    sprintf(outfileName, "dump_%d_%ld.atom", MPIDomain::sim_processor.own_rank, time_step);
 
     std::ofstream outfile;
     outfile.open(outfileName);
@@ -137,5 +138,5 @@ void AtomDump::writeDumpHeader() {
         size_t atoms_count;
     } header{atom_total};
 
-    local_storage->writeHeader(reinterpret_cast<kiwi::byte *>(&header), sizeof(header));
+    local_storage->writeHeader(reinterpret_cast<kiwi::byte *>(&header), sizeof(header), MPIDomain::sim_processor);
 }
