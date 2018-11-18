@@ -80,7 +80,6 @@ if (ARCH_SW)
     set(ARCH_FILES ${ARCH_FILES} ${ARCH_SUNWAY_FILES}) # add sunway architecture files to cmake.
 endif ()
 
-set(MAIN_FILE main.cpp)
 
 # set binary path and lib storage path for compiling process.
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
@@ -88,20 +87,32 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 # make crystal-md lib
 add_library(${MD_LIB_NAME} STATIC ${ARCH_FILES} ${HEADER_FILES} ${SOURCE_FILES})
-set(EXTRA_LIBS ${MD_LIB_NAME} ${EXTRA_LIBS})
+target_include_directories(
+        ${MD_LIB_NAME}
+        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
-add_executable(${EXECUTE_BIN_NAME} ${MAIN_FILE})
+add_executable(${EXECUTE_BIN_NAME} main.cpp)
 
-target_link_libraries(${EXECUTE_BIN_NAME} ${EXTRA_LIBS})
+target_link_libraries(${EXECUTE_BIN_NAME}
+        PRIVATE ${MD_LIB_NAME} ${EXTRA_LIBS}
+        )
 
 
 ##########################
 ##### install files
 ##########################
+# install bin and libs
 install(TARGETS ${EXECUTE_BIN_NAME} ${MD_LIB_NAME}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         )
 
-install(FILES ${HEADER_FILES} DESTINATION include) # todo head file
+# install header.
+install(DIRECTORY "./"
+        DESTINATION "include"
+        FILES_MATCHING
+        PATTERN "*.h"
+        PATTERN "*.hpp"
+        )

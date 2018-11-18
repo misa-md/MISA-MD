@@ -1,9 +1,5 @@
 enable_testing()
 
-include_directories(${PROJECT_SOURCE_DIR}/src)
-# vendor include directory
-include_directories(${VENDOR_PATH}/include)
-
 # Extra linking for the project.
 set(EXTRA_LIBS gtest gtest_main ${MD_LIB_NAME} ${EXTRA_LIBS})  # add crystal-md lib and gtest lib
 MESSAGE(STATUS "Set googletest as test library.")
@@ -40,7 +36,10 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 add_executable(${MD_TEST_NAME} ${TEST_SOURCE_FILES})
 
-target_link_libraries(${MD_TEST_NAME} ${EXTRA_LIBS}) # including crystldmd lib and mpi lib.
+# add crystldmd lib and gtest, mpi lib.
+target_link_libraries(${MD_TEST_NAME}
+        PRIVATE ${EXTRA_LIBS}
+        )
 
 # This is so you can do 'make test' to see all your tests run, instead of
 # manually running the executable runUnitTests to see those specific tests.

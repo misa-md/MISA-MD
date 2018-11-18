@@ -23,8 +23,8 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 #############
 ## const ##
 #############
-set(EXECUTE_BIN_NAME ${PROJECT_NAME})
-set(MD_LIB_NAME crystalmd) # use PARENT_SCOPE to modify globle variable.
+set(EXECUTE_BIN_NAME CrystalMD)
+set(MD_LIB_NAME md) # use PARENT_SCOPE to modify globle variable.
 
 # test
 set(MD_TEST_NAME "md-test")
