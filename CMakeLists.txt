@@ -13,7 +13,7 @@ add_subdirectory(src)
 ##############################
 if (TEST_ENABLE_FLAG)
     MESSAGE(STATUS "TEST is enabled")
-    add_subdirectory(test)
+    add_subdirectory(tests)
 endif ()
 
 ##############################
