@@ -230,6 +230,7 @@ int atom::decide() {
 
     //判断，如果跑出晶格点的?佑峙芑鼐Ц竦悖蚍呕鼐Ц竦闶榇娲⑵湫畔?
     for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
+        _type_atom_index near_index;
         int j, k, l;
         xtemp = inter_atom_list->xinter[i][0];
         ytemp = inter_atom_list->xinter[i][1];
@@ -242,12 +243,13 @@ int atom::decide() {
         j -= p_domain->getGlobalGhostLatticeCoordLower(0);
         k -= p_domain->getGlobalGhostLatticeCoordLower(1);
         l -= p_domain->getGlobalGhostLatticeCoordLower(2);
+
         //判断是否在所表示晶格范围内
         if (j <= (p_domain->getSubBoxLatticeSize(0) + 2 * (ceil(_cutoffRadius / _latticeconst) + 1))
             && k <= (p_domain->getSubBoxLatticeSize(1) + (ceil(_cutoffRadius / _latticeconst) + 1))
             && l <= (p_domain->getSubBoxLatticeSize(2) + (ceil(_cutoffRadius / _latticeconst) + 1))) {
-            j = atom_list->IndexOf3DIndex(j, k, l);
-            AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(j);
+            near_index = atom_list->IndexOf3DIndex(j, k, l);
+            AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(near_index);
             if (atom_.isInterElement()) {
                 atom_.id = inter_atom_list->idinter[i];
                 atom_.type = inter_atom_list->typeinter[i];
@@ -343,6 +345,7 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
 
     //间隙原子电子云密度
     int j, k, l;
+    _type_atom_index near_index;
     for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
         xtemp = inter_atom_list->xinter[i][0];
         ytemp = inter_atom_list->xinter[i][1];
@@ -355,9 +358,9 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
         j -= p_domain->getGlobalGhostLatticeCoordLower(0);
         k -= p_domain->getGlobalGhostLatticeCoordLower(1);
         l -= p_domain->getGlobalGhostLatticeCoordLower(2);
-        j = atom_list->IndexOf3DIndex(j, k, l);
+        near_index = atom_list->IndexOf3DIndex(j, k, l);
 
-        AtomElement &atom_near = atom_list->getAtomEleByLinearIndex(j);
+        AtomElement &atom_near = atom_list->getAtomEleByLinearIndex(near_index);
         delx = xtemp - atom_near.x[0];
         dely = ytemp - atom_near.x[1];
         delz = ztemp - atom_near.x[2];
@@ -371,7 +374,7 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
         for (neighbourOffsetsIter = NeighbourOffsets.begin();
              neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
             //计算间隙原子的所有邻居
-            n = (j + *neighbourOffsetsIter);
+            n = (near_index + *neighbourOffsetsIter);
             AtomElement &atom_neighbour_up = atom_list->getAtomEleByLinearIndex(n);
             delx = xtemp - atom_neighbour_up.x[0];
             dely = ytemp - atom_neighbour_up.x[1];
@@ -383,7 +386,7 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
                 // fixme
             }
 
-            n = (j - *neighbourOffsetsIter);
+            n = (near_index - *neighbourOffsetsIter);
             AtomElement &atom_neighbour_down = atom_list->getAtomEleByLinearIndex(n);
             delx = xtemp - atom_neighbour_down.x[0];
             dely = ytemp - atom_neighbour_down.x[1];
