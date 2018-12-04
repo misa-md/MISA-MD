@@ -9,11 +9,11 @@ void particledata::setMPIType(MPI_Datatype &sendPartType) {
 #if MPI_VERSION >= 2 && MPI_SUBVERSION >= 0
     MPI_Get_address(&pdata_dummy, displacements);
     MPI_Get_address(&pdata_dummy.type, displacements + 1);
-    MPI_Get_address(&pdata_dummy.r[0], displacements + 1);
+    MPI_Get_address(&pdata_dummy.r[0], displacements + 2);
 #else
     MPI_Address(&pdata_dummy, displacements);
     MPI_Address(&pdata_dummy.type, displacements + 1);
-    MPI_Address(&pdata_dummy.r[0], displacements + 1);
+    MPI_Address(&pdata_dummy.r[0], displacements + 2);
 #endif
     MPI_Aint base = displacements[0];
     for (int i = 0; i < 3; i++) {
