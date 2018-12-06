@@ -57,11 +57,11 @@ public:
     /**
      * dump atoms to file(s).
      */
-    void dump(atom *atom, size_t time_step);
+    void dump(AtomList *atom_list, InterAtomList *inter_list, size_t time_step);
 
     void writeDumpHeader();
 
-    void dumpInterLists(InterAtomList *pList);
+    void dumpInterLists(InterAtomList *pList, size_t step);
 
 private:
     std::string _dump_file_name;
@@ -79,12 +79,12 @@ private:
     /**
      * dump atoms with copy mode.
      */
-    void dumpModeCopy(atom *atom, size_t time_step);
+    void dumpModeCopy(AtomList *atom_list, InterAtomList *inter_list, size_t time_step);
 
     /*
      * dump atoms with direct mode.
      */
-    void dumpModeDirect(atom *atom, size_t time_step);
+    void dumpModeDirect(AtomList *atom_list, InterAtomList *inter_list, size_t time_step);
 };
 
 

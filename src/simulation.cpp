@@ -199,7 +199,7 @@ void simulation::output(size_t time_step) {
                                         begin, end, atoms_size); // atoms dump.
             // fixme Attempting to use an MPI routine after finalizing MPICH.
         }
-        dumpInstance->dump(_atom, time_step);
+        dumpInstance->dump(_atom->getAtomList(), _atom->getInterList(), time_step);
         if (time_step + pConfigVal->atomsDumpInterval > pConfigVal->timeSteps) { // the last time of dumping.
             dumpInstance->writeDumpHeader();
             delete dumpInstance;
@@ -209,7 +209,7 @@ void simulation::output(size_t time_step) {
         // pointer to the atom dump class for outputting atoms information.
         AtomDump *dumpInstance = new AtomDump(pConfigVal->atomsDumpMode, filename,
                                               begin, end, atoms_size);
-        dumpInstance->dump(_atom, time_step);
+        dumpInstance->dump(_atom->getAtomList(), _atom->getInterList(), time_step);
         dumpInstance->writeDumpHeader();
         delete dumpInstance;
     }

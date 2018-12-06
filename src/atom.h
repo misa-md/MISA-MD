@@ -20,8 +20,6 @@ class Domain; // todo remove.
 
 class atom {
 public :
-    friend class AtomDump;
-
     friend class Domain;
 
     atom(Domain *domain, double latticeconst,
