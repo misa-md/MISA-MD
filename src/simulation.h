@@ -52,7 +52,6 @@ private:
      * pointer to config data.
      */
     ConfigValues *pConfigVal;
-    AtomDump *dump; // pointer to the atom dump class for output atoms information.
     Domain *_p_domain; //仅rank==0的进程有效
     // GlobalDomain *p_domain;  //仅rank==0的进程有效 // todo ??
     atom *_atom;

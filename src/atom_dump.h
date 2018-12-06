@@ -16,6 +16,14 @@ class AtomDump {
 public:
     AtomDump();
 
+    /**
+     * dumping atoms information to binary file, including intel atoms.
+     * @param mode dumping mode, mode or direct.
+     * @param filename the path of dumping file.
+     * @param begin starting atoms index of dumping in 3d
+     * @param end ending atoms index of dumping in 3d
+     * @param atoms_size the count of atoms to be dumped
+     */
     AtomDump(_type_out_mode mode, const std::string &filename,
              _type_lattice_coord begin[DIMENSION], _type_lattice_coord end[DIMENSION],
              _type_lattice_size atoms_size);
@@ -52,6 +60,8 @@ public:
     void dump(atom *atom, size_t time_step);
 
     void writeDumpHeader();
+
+    void dumpInterLists(InterAtomList *pList);
 
 private:
     std::string _dump_file_name;

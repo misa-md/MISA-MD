@@ -54,6 +54,7 @@ public:
     // output section
     _type_out_mode atomsDumpMode;
     unsigned long atomsDumpInterval;
+    bool outByFrame; // output atoms by frame if true.
     std::string atomsDumpFilePath;
     // logs in output section
     _type_logs_mode logs_mode;
