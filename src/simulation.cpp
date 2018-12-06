@@ -115,7 +115,7 @@ void simulation::simulate() {
                       _simulation_time_step + 1, pConfigVal->timeSteps);
 
         if (_simulation_time_step == pConfigVal->collisionStep) {
-            _atom->setv(pConfigVal->collisionLat, pConfigVal->collisionV);
+            _atom->setv(pConfigVal->collisionLat, pConfigVal->direction, pConfigVal->pkaEnergy);
             _p_domain->exchangeInter(_atom);
             _p_domain->borderInter(_atom);
             _p_domain->exchangeAtom(_atom);

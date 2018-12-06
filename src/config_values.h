@@ -46,7 +46,8 @@ public:
     // collision
     unsigned long collisionStep;
     int collisionLat[4];
-    double collisionV[DIMENSION];
+    double pkaEnergy;
+    double direction[DIMENSION];
 
     std::string potentialFileType;
     std::string potentialFilename;

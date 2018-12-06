@@ -11,7 +11,7 @@ ConfigValues::ConfigValues() :
         phaseSpace{0, 0, 0}, cutoffRadiusFactor(0.0), latticeConst(0.0), timeSteps(10),
         createPhaseMode(true), createTSet(0.0), createSeed(1024), readPhaseFilename(""),
         alloyCreateSeed(1024), alloyRatio{1, 0, 0},
-        collisionStep(0), collisionLat{0, 0, 0, 0}, collisionV{0.0, 0.0, 0.0},
+        collisionStep(0), collisionLat{0, 0, 0, 0}, pkaEnergy(0), direction{1.0, 1.0, 1.0},
         // todo potential type and filename initialize.
         atomsDumpMode(OUTPUT_COPY_MODE), atomsDumpFilePath(DEFAULT_OUTPUT_DUMP_FILE_PATH),
         logs_mode(LOGS_MODE_CONSOLE), logs_filename("") {}
@@ -35,7 +35,8 @@ void ConfigValues::packdata(kiwi::Bundle &bundle) {
 
     bundle.put(collisionStep);
     bundle.put(4, collisionLat);
-    bundle.put(DIMENSION, collisionV);
+    bundle.put(pkaEnergy);
+    bundle.put(DIMENSION, direction);
 
     bundle.put(potentialFileType);
     bundle.put(potentialFilename);
@@ -71,7 +72,8 @@ void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
 
     bundle.get(cursor, collisionStep);
     bundle.get(cursor, 4, collisionLat);
-    bundle.get(cursor, DIMENSION, collisionV);
+    bundle.get(cursor, pkaEnergy);
+    bundle.get(cursor, DIMENSION, direction);
 
     bundle.get(cursor, potentialFileType);
     bundle.get(cursor, potentialFilename);
@@ -109,8 +111,9 @@ std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
     os << "simulation.collision.collision_step:" << cv.collisionStep << std::endl;
     os << "simulation.collision.lat:" << cv.collisionLat[0] << "," << cv.collisionLat[1] << ","
        << cv.collisionLat[2] << "," << cv.collisionLat[3] << std::endl;
-    os << "simulation.collision.collision_v:" << cv.collisionV[0] << "," << cv.collisionV[1] << ","
-       << cv.collisionV[2] << std::endl;
+    os << "pka:" << cv.pkaEnergy << "," ;
+    os << "simulation.collision.direction:" << cv.direction[0] << "," << cv.direction[1] << ","
+       << cv.direction[2] << std::endl;
 
     os << "simulation.potential_file.type:" << cv.potentialFileType << std::endl;
     os << "simulation.potential_file.filename:" << cv.potentialFilename << std::endl;
