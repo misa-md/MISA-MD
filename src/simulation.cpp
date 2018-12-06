@@ -8,8 +8,8 @@
 #include "world_builder.h"
 #include "atom_dump.h"
 
-simulation::simulation() : _p_domain(nullptr), dump(nullptr), _input(nullptr),
-                           _newton_motion(nullptr), _atom(nullptr), _pot(nullptr) {
+simulation::simulation() : _p_domain(nullptr), _atom(nullptr),
+                           _newton_motion(nullptr), _input(nullptr), _pot(nullptr) {
     pConfigVal = &(ConfigParser::getInstance()->configValues);
 //    createDomainDecomposition();
 //    collision_step = -1;
@@ -167,7 +167,6 @@ void simulation::simulate() {
     if (MPIDomain::sim_processor.own_rank == MASTER_PROCESSOR) {
         kiwi::logs::i("simulation", "total time:{}.\n", alltime);
     }
-    delete dump; // free dump pointer, this pointer will not be used later.
 }
 
 void simulation::finalize() {
@@ -178,40 +177,52 @@ void simulation::finalize() {
 }
 
 void simulation::output(size_t time_step) {
-    if (dump == nullptr) { // initialize atomDump if it is not initialized.
-        // atom boundary in array.
-        _type_lattice_coord begin[DIMENSION] = {
-                _p_domain->getGlobalSubBoxLatticeCoordLower(0) - _p_domain->getGlobalGhostLatticeCoordLower(0),
-                _p_domain->getGlobalSubBoxLatticeCoordLower(1) - _p_domain->getGlobalGhostLatticeCoordLower(1),
-                _p_domain->getGlobalSubBoxLatticeCoordLower(2) - _p_domain->getGlobalGhostLatticeCoordLower(2)};
-        _type_lattice_coord end[DIMENSION] = {
-                begin[0] + _p_domain->getSubBoxLatticeSize(0),
-                begin[1] + _p_domain->getSubBoxLatticeSize(1),
-                begin[2] + _p_domain->getSubBoxLatticeSize(2)};
-        _type_lattice_size atoms_size = _p_domain->getSubBoxLatticeSize(0) * _p_domain->getSubBoxLatticeSize(1) *
-                                        _p_domain->getSubBoxLatticeSize(2);
+    // atom boundary in array.
+    _type_lattice_coord begin[DIMENSION] = {
+            _p_domain->getGlobalSubBoxLatticeCoordLower(0) - _p_domain->getGlobalGhostLatticeCoordLower(0),
+            _p_domain->getGlobalSubBoxLatticeCoordLower(1) - _p_domain->getGlobalGhostLatticeCoordLower(1),
+            _p_domain->getGlobalSubBoxLatticeCoordLower(2) - _p_domain->getGlobalGhostLatticeCoordLower(2)};
+    _type_lattice_coord end[DIMENSION] = {
+            begin[0] + _p_domain->getSubBoxLatticeSize(0),
+            begin[1] + _p_domain->getSubBoxLatticeSize(1),
+            begin[2] + _p_domain->getSubBoxLatticeSize(2)};
+    _type_lattice_size atoms_size = _p_domain->getSubBoxLatticeSize(0) * _p_domain->getSubBoxLatticeSize(1) *
+                                    _p_domain->getSubBoxLatticeSize(2);
+    double start = 0, stop = 0;
+    static double totalDumpTime = 0;
 
-        dump = new AtomDump(pConfigVal->atomsDumpMode, pConfigVal->atomsDumpFilePath,
-                            begin, end, atoms_size); // atoms dump.
-        // fixme Attempting to use an MPI routine after finalizing MPICH.
+    start = MPI_Wtime();
+    if (!pConfigVal->outByFrame) {
+        static AtomDump *dumpInstance = nullptr; // pointer used for non-by-frame dumping.
+        if (dumpInstance == nullptr) { // initialize atomDump if it is not initialized.
+            dumpInstance = new AtomDump(pConfigVal->atomsDumpMode, pConfigVal->atomsDumpFilePath,
+                                        begin, end, atoms_size); // atoms dump.
+            // fixme Attempting to use an MPI routine after finalizing MPICH.
+        }
+        dumpInstance->dump(_atom->getAtomList(), _atom->getInterList(), time_step);
+        if (time_step + pConfigVal->atomsDumpInterval > pConfigVal->timeSteps) { // the last time of dumping.
+            dumpInstance->writeDumpHeader();
+            delete dumpInstance;
+        }
+    } else {
+        std::string filename = fmt::format(pConfigVal->atomsDumpFilePath, time_step);
+        // pointer to the atom dump class for outputting atoms information.
+        AtomDump *dumpInstance = new AtomDump(pConfigVal->atomsDumpMode, filename,
+                                              begin, end, atoms_size);
+        dumpInstance->dump(_atom->getAtomList(), _atom->getInterList(), time_step);
+        dumpInstance->writeDumpHeader();
+        delete dumpInstance;
     }
+    stop = MPI_Wtime();
+    totalDumpTime += (stop - start);
 
-    static double start = 0, stop = 0;
-    start += MPI_Wtime();
-    dump->dump(_atom, time_step);
-    stop += MPI_Wtime();
-
-    if (time_step + pConfigVal->atomsDumpInterval > pConfigVal->timeSteps) { // the last time of dumping.
-        start += MPI_Wtime();
-        dump->writeDumpHeader();
-        stop += MPI_Wtime();
-        // log dumping time.
-        if (MPIDomain::sim_processor.own_rank == MASTER_PROCESSOR) {
-            if (pConfigVal->atomsDumpMode == OUTPUT_COPY_MODE) {
-                kiwi::logs::i("dump", "time of dumping atoms in copy mode:{}.\n", stop - start);
-            } else if (pConfigVal->atomsDumpMode == OUTPUT_DIRECT_MODE) {
-                kiwi::logs::i("dump", "time of dumping atoms in direct mode:{}.\n", stop - start);
-            }
+    // log dumping time.
+    if (time_step + pConfigVal->atomsDumpInterval > pConfigVal->timeSteps &&
+        MPIDomain::sim_processor.own_rank == MASTER_PROCESSOR) {
+        if (pConfigVal->atomsDumpMode == OUTPUT_COPY_MODE) {
+            kiwi::logs::i("dump", "time of dumping atoms in copy mode:{}.\n", totalDumpTime);
+        } else if (pConfigVal->atomsDumpMode == OUTPUT_DIRECT_MODE) {
+            kiwi::logs::i("dump", "time of dumping atoms in direct mode:{}.\n", totalDumpTime);
         }
     }
 }

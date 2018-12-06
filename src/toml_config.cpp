@@ -148,10 +148,14 @@ void ConfigParser::resolveConfigOutput(std::shared_ptr<cpptoml::table> table) {
         }
     }
     configValues.atomsDumpInterval = table->get_as<uint64_t>("atoms_dump_interval").value_or(ULONG_MAX);
+    configValues.outByFrame = table->get_as<bool>("by_frame").value_or(false);
 
-    // todo check if it is a path.
     configValues.atomsDumpFilePath = table->get_as<std::string>("atoms_dump_file_path")
             .value_or(DEFAULT_OUTPUT_DUMP_FILE_PATH);
+    // todo check if it is a real path.
+    if (configValues.outByFrame && configValues.atomsDumpFilePath.find("{}") == std::string::npos) {
+        setError("error format of dump file path");
+    }
 
     // resolve logs.
     std::shared_ptr<cpptoml::table> logs_table = table->get_table("logs");

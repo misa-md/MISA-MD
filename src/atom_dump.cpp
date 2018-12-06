@@ -42,16 +42,16 @@ AtomDump &AtomDump::setBoundary(_type_lattice_coord *begin, _type_lattice_coord 
     return *this;
 }
 
-void AtomDump::dump(atom *atom, size_t time_step) {
+void AtomDump::dump(AtomList *atom_list, InterAtomList *inter_list, size_t time_step) {
     if (_dump_mode == OUTPUT_COPY_MODE) { // todo copy atoms, then write.
-        dumpModeCopy(atom, time_step);
+        dumpModeCopy(atom_list, inter_list, time_step);
     } else {
-        dumpModeDirect(atom, time_step);
+        dumpModeDirect(atom_list, inter_list, time_step);
     }
 }
 
 // todo asynchronous io.
-void AtomDump::dumpModeCopy(atom *atom, size_t time_step) {
+void AtomDump::dumpModeCopy(AtomList *atom_list, InterAtomList *inter_list, size_t time_step) {
     // initialize kiwi writer for copy mode dump.
     if (local_storage == nullptr) {
         int status = MPI_File_open(MPIDomain::sim_processor.comm, _dump_file_name.c_str(), // todo comm.
@@ -65,7 +65,9 @@ void AtomDump::dumpModeCopy(atom *atom, size_t time_step) {
         local_storage = new kiwi::LocalStorage(pFile, 128, 128, 1024 * sizeof(atom_dump::AtomInfoDump));
         local_storage->make(MPI_BYTE, MPIDomain::sim_processor); // create file.
     }
-    long kk;
+    dumpInterLists(inter_list, time_step);
+    // dumping normal atoms
+    _type_atom_index kk;
 
     const size_t list_buffer_size = 4096;
     size_t list_buff_index = 0;
@@ -74,8 +76,8 @@ void AtomDump::dumpModeCopy(atom *atom, size_t time_step) {
     for (int k = _begin[2]; k < _end[2]; k++) {
         for (int j = _begin[1]; j < _end[1]; j++) {
             for (int i = _begin[0]; i < _end[0]; i++) {
-                kk = atom->atom_list->IndexOf3DIndex(i, j, k);
-                AtomElement &atom_ = atom->getAtomList()->getAtomEleByLinearIndex(kk);
+                kk = atom_list->IndexOf3DIndex(i, j, k);
+                AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
                 atom_list_buffer[list_buff_index].id = atom_.id;
                 atom_list_buffer[list_buff_index].step = time_step;
                 atom_list_buffer[list_buff_index].type = atom_.type;
@@ -102,7 +104,7 @@ void AtomDump::dumpModeCopy(atom *atom, size_t time_step) {
     }
 }
 
-void AtomDump::dumpModeDirect(atom *atom, size_t time_step) {
+void AtomDump::dumpModeDirect(AtomList *atom_list, InterAtomList *inter_list, size_t time_step) {
     char outfileName[20];
     sprintf(outfileName, "dump_%d_%ld.atom", MPIDomain::sim_processor.own_rank, time_step);
 
@@ -111,7 +113,7 @@ void AtomDump::dumpModeDirect(atom *atom, size_t time_step) {
 
     outfile << "print atoms" << std::endl;
 
-    atom->atom_list->foreachSubBoxAtom(
+    atom_list->foreachSubBoxAtom(
             [&outfile](AtomElement &_atom_ref) {
                 if (!_atom_ref.isInterElement()) {
                     outfile << _atom_ref.id << " "
@@ -123,14 +125,51 @@ void AtomDump::dumpModeDirect(atom *atom, size_t time_step) {
             }
     );
     outfile << "print inter" << std::endl;
-    for (int i = 0; i < atom->inter_atom_list->nlocalinter; i++) {
-        outfile << atom->inter_atom_list->idinter[i] << " "
+    for (int i = 0; i < inter_list->nlocalinter; i++) {
+        outfile << inter_list->idinter[i] << " "
                 //                << "ty" << atom->typeinter[i] << " "
-                << atom->inter_atom_list->xinter[i][0] << " "
-                << atom->inter_atom_list->xinter[i][1] << " "
-                << atom->inter_atom_list->xinter[i][2] << std::endl;
+                << inter_list->xinter[i][0] << " "
+                << inter_list->xinter[i][1] << " "
+                << inter_list->xinter[i][2] << std::endl;
     }
     outfile.close();
+}
+
+void AtomDump::dumpInterLists(InterAtomList *inter_list, size_t step) {
+    // dumping inter atoms.
+    if (inter_list->nlocalinter > 0) {
+        char outfileName[20];
+        sprintf(outfileName, "inter_%ld_%d.atom", step, MPIDomain::sim_processor.own_rank);
+
+        std::ofstream outfile;
+        outfile.open(outfileName);
+        outfile << "id  type    x   y   z  # type: 0:Fe,1:Cu,2:Ni" << std::endl;
+        for (int i = 0; i < inter_list->nlocalinter; i++) {
+            outfile << inter_list->idinter[i] << " "
+                    << inter_list->typeinter[i] << " "
+                    << inter_list->xinter[i][0] << " "
+                    << inter_list->xinter[i][1] << " "
+                    << inter_list->xinter[i][2] << std::endl;
+        }
+/*
+        atom_dump::AtomInfoDump *inter_dump = new atom_dump::AtomInfoDump[inter_list->nlocalinter];
+        for (int i = 0; i < inter_list->nlocalinter; i++) {
+            inter_dump[i].id = inter_list->idinter[i];
+            inter_dump[i].step = step;
+            inter_dump[i].type = inter_list->typeinter[i];
+            inter_dump[i].inter_type = 1; // inter atoms.
+            inter_dump[i].atom_location[0] = inter_list->xinter[i][0];
+            inter_dump[i].atom_location[1] = inter_list->xinter[i][1];
+            inter_dump[i].atom_location[2] = inter_list->xinter[i][2];
+            inter_dump[i].atom_velocity[0] = inter_list->vinter[i][0];
+            inter_dump[i].atom_velocity[1] = inter_list->vinter[i][1];
+            inter_dump[i].atom_velocity[2] = inter_list->vinter[i][2];
+        }
+        atom_total += inter_list->nlocalinter;
+        local_storage->writer.write(inter_dump, inter_list->nlocalinter * sizeof(atom_dump::AtomInfoDump));
+        delete[]inter_dump;
+*/
+    }
 }
 
 void AtomDump::writeDumpHeader() {
