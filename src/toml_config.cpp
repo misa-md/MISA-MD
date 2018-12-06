@@ -208,12 +208,14 @@ void ConfigParser::resolveConfigCollision(std::shared_ptr<cpptoml::table> table)
             return;
         }
     }
-    auto tomlCollisionV = table->get_array_of<double>("collision_v");
+    configValues.pkaEnergy = table->get_as<double>("pka").value_or(0.0);
+
+    auto tomlCollisionV = table->get_array_of<double>("direction");
     if (tomlCollisionV) {
         int index = 0;
         for (auto &value : *tomlCollisionV) {
             if (index < DIMENSION) { //the array index must be less than or equal 3
-                configValues.collisionV[index] = value;
+                configValues.direction[index] = value;
             }
             index++;
         }

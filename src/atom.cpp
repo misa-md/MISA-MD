@@ -882,7 +882,7 @@ void atom::print_force() {
     outfile.close();
 }
 
-void atom::setv(int lat[4], double collision_v[3]) {
+void atom::setv(int lat[4], double direction[3], double energy) {
     long kk;
     if ((lat[0] * 2) >= p_domain->getGlobalSubBoxLatticeCoordLower(0) &&
         (lat[0] * 2) < (p_domain->getGlobalSubBoxLatticeCoordLower(0) + p_domain->getSubBoxLatticeSize(0))
@@ -892,11 +892,14 @@ void atom::setv(int lat[4], double collision_v[3]) {
         lat[2] < (p_domain->getGlobalSubBoxLatticeCoordLower(2) + p_domain->getSubBoxLatticeSize(2))) {
         kk = (atom_list->IndexOf3DIndex(lat[0] * 2 - p_domain->getGlobalGhostLatticeCoordLower(0),
                                         lat[1] - p_domain->getGlobalGhostLatticeCoordLower(1),
-                                        lat[2] - p_domain->getGlobalGhostLatticeCoordLower(2)) + lat[3]); // todo verify the position.
+                                        lat[2] - p_domain->getGlobalGhostLatticeCoordLower(2)) + lat[3]);
+        // todo verify the position.
         AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
-        atom_.v[0] += collision_v[0];
-        atom_.v[1] += collision_v[1];
-        atom_.v[2] += collision_v[2];
+        double v_ = sqrt(energy / atom_type::getAtomMass(atom_.type) / mvv2e); // the unit of v is 100m/s
+        double d_ = sqrt(direction[0] * direction[0] + direction[1] * direction[1] + direction[2] * direction[2]);
+        atom_.v[0] += v_ * direction[0] / sqrt(d_);
+        atom_.v[1] += v_ * direction[1] / sqrt(d_);
+        atom_.v[2] += v_ * direction[2] / sqrt(d_);
     }
 }
 

@@ -57,7 +57,17 @@ public :
 
     int getintersendnum(int dimension, int direction);
 
-    void setv(int lat[4], double collision_v[3]);
+    /**
+     * set velocity of a atom whose position is specified by array @param lat
+     * This atom is called PKA (Primary Knock-on Atom).
+     * We first compute the the velocity in each direction from the energy, and the set velocity of the atom.
+     * The unit of energy is ev, the unit of velocity is 100m/s.
+     *
+     * @param lat the position of pka.
+     * @param direction the vector of velocity to be set.
+     * @param energy the energy of PKA.
+     */
+    void setv(int lat[4], double direction[3], double energy);
 
     int getnlocalatom();
 
