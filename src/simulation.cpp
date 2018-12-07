@@ -115,6 +115,9 @@ void simulation::simulate() {
                       _simulation_time_step + 1, pConfigVal->timeSteps);
 
         if (_simulation_time_step == pConfigVal->collisionStep) {
+            if (!pConfigVal->originDumpPath.empty()) {
+                output(_simulation_time_step, true); // dump atoms
+            }
             _atom->setv(pConfigVal->collisionLat, pConfigVal->direction, pConfigVal->pkaEnergy);
             _p_domain->exchangeInter(_atom);
             _p_domain->borderInter(_atom);
@@ -176,7 +179,7 @@ void simulation::finalize() {
     }
 }
 
-void simulation::output(size_t time_step) {
+void simulation::output(size_t time_step, bool before_collision) {
     // atom boundary in array.
     _type_lattice_coord begin[DIMENSION] = {
             _p_domain->getGlobalSubBoxLatticeCoordLower(0) - _p_domain->getGlobalGhostLatticeCoordLower(0),
@@ -205,7 +208,12 @@ void simulation::output(size_t time_step) {
             delete dumpInstance;
         }
     } else {
-        std::string filename = fmt::format(pConfigVal->atomsDumpFilePath, time_step);
+        std::string filename;
+        if (before_collision) {
+            filename = pConfigVal->originDumpPath; // todo pass file name from func output parameters.
+        } else {
+            filename = fmt::format(pConfigVal->atomsDumpFilePath, time_step);
+        }
         // pointer to the atom dump class for outputting atoms information.
         AtomDump *dumpInstance = new AtomDump(pConfigVal->atomsDumpMode, filename,
                                               begin, end, atoms_size);
