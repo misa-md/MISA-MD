@@ -152,6 +152,7 @@ void ConfigParser::resolveConfigOutput(std::shared_ptr<cpptoml::table> table) {
 
     configValues.atomsDumpFilePath = table->get_as<std::string>("atoms_dump_file_path")
             .value_or(DEFAULT_OUTPUT_DUMP_FILE_PATH);
+    configValues.originDumpPath = table->get_as<std::string>("origin_dump_path").value_or("");
     // todo check if it is a real path.
     if (configValues.outByFrame && configValues.atomsDumpFilePath.find("{}") == std::string::npos) {
         setError("error format of dump file path");

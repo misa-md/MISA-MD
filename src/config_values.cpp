@@ -44,6 +44,7 @@ void ConfigValues::packdata(kiwi::Bundle &bundle) {
     // out section
     bundle.put(atomsDumpMode);
     bundle.put(atomsDumpFilePath);
+    bundle.put(originDumpPath);
     bundle.put(atomsDumpInterval);
     bundle.put(outByFrame);
     // logs subsection in output section.
@@ -81,6 +82,7 @@ void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
     // output section.
     bundle.get(cursor, atomsDumpMode);
     bundle.get(cursor, atomsDumpFilePath);
+    bundle.get(cursor, originDumpPath);
     bundle.get(cursor, atomsDumpInterval);
     bundle.get(cursor, outByFrame);
 
@@ -121,7 +123,8 @@ std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
     // output section
     os << "output.mode(copy:0,direct:1):" << cv.atomsDumpMode << std::endl;
     os << "output.dump_interval" << cv.atomsDumpInterval << std::endl;
-    os << "output.dump_filename:" << cv.atomsDumpFilePath << std::endl;
+    os << "output.dump_file_path:" << cv.atomsDumpFilePath << std::endl;
+    os << "output.origin_dump_path:" << cv.originDumpPath << std::endl;
     os << "output.logs.mode: " << (cv.logs_mode == LOGS_MODE_CONSOLE ? LOGS_MODE_CONSOLE_STRING : LOGS_MODE_FILE_STRING)
        << "output.logs.by-frame:" << cv.outByFrame << std::endl;
     os << "output.dump_filename:" << cv.logs_filename << std::endl;
