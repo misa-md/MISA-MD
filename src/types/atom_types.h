@@ -54,6 +54,21 @@ namespace atom_type {
         return static_cast<atom_type>(i);
     }
 
+    // tod return type atom_type::_type_prop_key
+    inline unsigned short getTypeIdByType(atom_type tp) {
+        switch (tp) {
+            case Fe:
+                return 26;
+            case Cu:
+                return 29;
+            case Ni:
+                return 28;
+            default:
+                printf("waring, not expect id zero, it may cause error.\n");
+                return 0;
+        }
+    }
+
 //    inline int getAtomTypeIndex(atom_type type) {
 //        return type;
 //    }

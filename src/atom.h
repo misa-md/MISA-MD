@@ -7,6 +7,7 @@
 
 #include <cstdio>
 #include <vector>
+#include <eam.h>
 
 #include "domain.h"
 #include "atom/atom_element.h"
@@ -14,7 +15,6 @@
 #include "atom/inter_atom_list.h"
 #include "pack/particledata.h"
 #include "pack/lat_particle_data.h"
-#include "potential/eam.h"
 
 class Domain; // todo remove.
 

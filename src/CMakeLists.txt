@@ -67,6 +67,11 @@ target_include_directories(
         ${MD_LIB_NAME}
         PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
 )
+target_link_libraries(
+        ${MD_LIB_NAME}
+        PUBLIC pot::pot
+        # todo kiwi, fmt.
+)
 
 add_executable(${EXECUTE_BIN_NAME} main.cpp)
 

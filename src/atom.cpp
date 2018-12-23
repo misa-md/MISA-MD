@@ -3,10 +3,11 @@
 #include <fstream>
 #include <iomanip>
 #include <logs/logs.h>
+#include <eam.h>
+
 #include "atom.h"
 #include "toml_config.h"
 #include "hardware_accelerate.hpp" // use hardware(eg.GPU, MIC,Sunway slave cores.) to achieve calculate accelerating.
-#include "potential/eam.h"
 
 atom::atom(Domain *domain, double latticeconst,
            double cutoffRadiusFactor, int seed) :
@@ -332,8 +333,10 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
                             delz = ztemp - atom_neighbour.x[2];
                             dist2 = delx * delx + dely * dely + delz * delz;
                             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                                atom_central.rho += pot->rhoContribution(atom_neighbour.type, dist2);
-                                atom_neighbour.rho += pot->rhoContribution(atom_central.type, dist2);
+                                atom_central.rho += pot->rhoContribution(
+                                        atom_type::getTypeIdByType(atom_neighbour.type), dist2);
+                                atom_neighbour.rho += pot->rhoContribution(
+                                        atom_type::getTypeIdByType(atom_central.type), dist2);
                                 // fixme
                             }
                         }
@@ -366,8 +369,8 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
         delz = ztemp - atom_near.x[2];
         dist2 = delx * delx + dely * dely + delz * delz;
         if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-            inter_atom_list->rhointer[i] += pot->rhoContribution(atom_near.type, dist2);
-            atom_near.rho += pot->rhoContribution(inter_atom_list->typeinter[i], dist2);
+            inter_atom_list->rhointer[i] += pot->rhoContribution(atom_type::getTypeIdByType(atom_near.type), dist2);
+            atom_near.rho += pot->rhoContribution(atom_type::getTypeIdByType(inter_atom_list->typeinter[i]), dist2);
             // fixme
         }
 
@@ -381,8 +384,10 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
             delz = ztemp - atom_neighbour_up.x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                inter_atom_list->rhointer[i] += pot->rhoContribution(atom_neighbour_up.type, dist2);
-                atom_neighbour_up.rho += pot->rhoContribution(inter_atom_list->typeinter[i], dist2);
+                inter_atom_list->rhointer[i] += pot->rhoContribution(
+                        atom_type::getTypeIdByType(atom_neighbour_up.type), dist2);
+                atom_neighbour_up.rho += pot->rhoContribution(
+                        atom_type::getTypeIdByType(inter_atom_list->typeinter[i]), dist2);
                 // fixme
             }
 
@@ -393,8 +398,10 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
             delz = ztemp - atom_neighbour_down.x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                inter_atom_list->rhointer[i] += pot->rhoContribution(atom_neighbour_down.type, dist2);
-                atom_neighbour_down.rho += pot->rhoContribution(inter_atom_list->typeinter[i], dist2);
+                inter_atom_list->rhointer[i] += pot->rhoContribution(
+                        atom_type::getTypeIdByType(atom_neighbour_down.type), dist2);
+                atom_neighbour_down.rho += pot->rhoContribution(
+                        atom_type::getTypeIdByType(inter_atom_list->typeinter[i]), dist2);
                 // fixme
             }
         }
@@ -405,15 +412,19 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
             delz = ztemp - inter_atom_list->xinter[k][2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                inter_atom_list->rhointer[i] += pot->rhoContribution(inter_atom_list->typeinter[k], dist2);
-                inter_atom_list->rhointer[k] += pot->rhoContribution(inter_atom_list->typeinter[i], dist2);
+                inter_atom_list->rhointer[i] += pot->rhoContribution(
+                        atom_type::getTypeIdByType(inter_atom_list->typeinter[k]), dist2);
+                inter_atom_list->rhointer[k] += pot->rhoContribution(
+                        atom_type::getTypeIdByType(inter_atom_list->typeinter[i]), dist2);
                 // fixme
             }
         }
         // todo inter ghost atoms -> cell atoms
         //计算间隙原子嵌入能导数
         // fixme
-        dfEmbed = pot->embedEnergyContribution(inter_atom_list->typeinter[i], inter_atom_list->rhointer[i]);
+        dfEmbed = pot->embedEnergyContribution(
+                atom_type::getTypeIdByType(inter_atom_list->typeinter[i]),
+                inter_atom_list->rhointer[i]);
         inter_atom_list->dfinter[i] = dfEmbed;
     }
 
@@ -467,7 +478,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                 for (int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
                     kk = atom_list->IndexOf3DIndex(i, j, k);
                     AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
-                    dfEmbed = pot->embedEnergyContribution(atom_.type, atom_.rho); // fixme
+                    dfEmbed = pot->embedEnergyContribution(atom_type::getTypeIdByType(atom_.type), atom_.rho); // fixme
                     atom_.df = dfEmbed;
                 }
             }
@@ -526,7 +537,9 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                             dist2 = delx * delx + dely * dely + delz * delz;
                             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                                 // fixme
-                                fpair = pot->toForce(atom_.type, atom_n.type, dist2, atom_.df + atom_n.df);
+                                fpair = pot->toForce(atom_type::getTypeIdByType(atom_.type),
+                                                     atom_type::getTypeIdByType(atom_n.type),
+                                                     dist2, atom_.df + atom_n.df);
 
                                 atom_.f[0] += delx * fpair;
                                 atom_.f[1] += dely * fpair;
@@ -573,8 +586,10 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
         dist2 = delx * delx + dely * dely + delz * delz;
         if (dist2 < (_cutoffRadius * _cutoffRadius)) {
             // fixme
-            fpair = pot->toForce(inter_atom_list->typeinter[i], atom_central.type, dist2,
-                                 inter_atom_list->dfinter[i] + atom_central.df);
+            fpair = pot->toForce(
+                    atom_type::getTypeIdByType(inter_atom_list->typeinter[i]),
+                    atom_type::getTypeIdByType(atom_central.type),
+                    dist2, inter_atom_list->dfinter[i] + atom_central.df);
 
             inter_atom_list->finter[i][0] += delx * fpair;
             inter_atom_list->finter[i][1] += dely * fpair;
@@ -595,8 +610,10 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                 // fixme
-                fpair = pot->toForce(inter_atom_list->typeinter[i], atom_neighbour_up.type, dist2,
-                                     inter_atom_list->dfinter[i] + atom_neighbour_up.df);
+                fpair = pot->toForce(
+                        atom_type::getTypeIdByType(inter_atom_list->typeinter[i]),
+                        atom_type::getTypeIdByType(atom_neighbour_up.type),
+                        dist2, inter_atom_list->dfinter[i] + atom_neighbour_up.df);
 
                 inter_atom_list->finter[i][0] += delx * fpair;
                 inter_atom_list->finter[i][1] += dely * fpair;
@@ -615,8 +632,10 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                 // fixme
-                fpair = pot->toForce(inter_atom_list->typeinter[i], atom_neighbour_down.type, dist2,
-                                     inter_atom_list->dfinter[i] + atom_neighbour_down.df);
+                fpair = pot->toForce(
+                        atom_type::getTypeIdByType(inter_atom_list->typeinter[i]),
+                        atom_type::getTypeIdByType(atom_neighbour_down.type),
+                        dist2, inter_atom_list->dfinter[i] + atom_neighbour_down.df);
 
                 inter_atom_list->finter[i][0] += delx * fpair;
                 inter_atom_list->finter[i][1] += dely * fpair;
@@ -635,8 +654,10 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                 // fixme
-                fpair = pot->toForce(inter_atom_list->typeinter[i], inter_atom_list->typeinter[k], dist2,
-                                     inter_atom_list->dfinter[i] + inter_atom_list->dfinter[k]);
+                fpair = pot->toForce(
+                        atom_type::getTypeIdByType(inter_atom_list->typeinter[i]),
+                        atom_type::getTypeIdByType(inter_atom_list->typeinter[k]),
+                        dist2, inter_atom_list->dfinter[i] + inter_atom_list->dfinter[k]);
 
                 inter_atom_list->finter[i][0] += delx * fpair;
                 inter_atom_list->finter[i][1] += dely * fpair;

@@ -1,9 +1,10 @@
 #include <utils/mpi_utils.h>
 #include <logs/logs.h>
+#include <eam.h>
+#include <parser/setfl_parser.h>
 
 #include "simulation.h"
 #include "utils/mpi_domain.h"
-#include "potential/eam_parser.h"
 #include "hardware_accelerate.hpp"
 #include "world_builder.h"
 #include "atom_dump.h"
@@ -65,16 +66,33 @@ void simulation::createAtoms() {
 void simulation::prepareForStart() {
     double starttime, stoptime;
     double commtime, computetime, comm;
-    _pot = new eam();
-    EamParser parser(pConfigVal->potentialFilename, pConfigVal->potentialFileType);
-    // 读取势函数文件
-    if (MPIDomain::sim_processor.own_rank == MASTER_PROCESSOR) {
-        if (!(parser.parse(_pot))) { // parse potential file.
-            abort(1); // todo log, reason
-        }
-    }
 
-    _pot->eamBCast(MPIDomain::sim_processor.own_rank); // BCast Potential
+    // todo file type funl support. pConfigVal->potentialFileType
+    SetflParser *parser = new SetflParser(pConfigVal->potentialFilename); // todo delete (vector)
+    // 读取势函数文件
+    atom_type::_type_atom_types eles = 0; //elements count from parsing.
+    if (MPIDomain::sim_processor.own_rank == MASTER_PROCESSOR) {
+        parser->parseHeader(); // elements count got. // todo parsing error.
+        eles = parser->getEles(); // elements values on non-root processors are 0.
+    }
+    _pot = eam::newInstance(eles,
+                            MASTER_PROCESSOR,
+                            MPIDomain::sim_processor.own_rank,
+                            MPIDomain::sim_processor.comm);
+    if (MPIDomain::sim_processor.own_rank == MASTER_PROCESSOR) {
+        parser->parseBody(_pot); // todo parsing error.
+    }
+    parser->done();
+
+    // BCast type list, the lists size is the same as eam potential elements size.
+    parser->type_lists.sync(MASTER_PROCESSOR,
+                           MPIDomain::sim_processor.own_rank,
+                           MPIDomain::sim_processor.comm,
+                           _pot->geEles());
+    // BCast Potential
+    _pot->eamBCast(MASTER_PROCESSOR,
+                   MPIDomain::sim_processor.own_rank,
+                   MPIDomain::sim_processor.comm);
     _pot->interpolateFile(); // interpolation.
 
     beforeAccelerateRun(_pot); // it runs after atom and boxes creation, but before simulation running.
