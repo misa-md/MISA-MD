@@ -31,11 +31,6 @@ set(HEADER_FILES
         pack/lat_particle_data.h
         pack/pack.h
         pack/particledata.h
-        potential/eam.h
-        potential/eam_one_way.h
-        potential/eam_phi.h
-        potential/eam_parser.h
-        potential/interpolation_object.h
         utils/mpi_domain.h
         utils/rpcc.hpp
         )
@@ -58,27 +53,8 @@ set(SOURCE_FILES
         pack/lat_particle_data.cpp
         pack/pack.cpp
         pack/particledata.cpp
-        potential/eam.cpp
-        potential/eam_one_way.cpp
-        potential/eam_phi.cpp
-        potential/eam_parser.cpp
-        potential/interpolation_object.cpp
         utils/mpi_domain.cpp
         )
-
-# codes runs on sunway.
-set(ARCH_SUNWAY_FILES
-        arch/sunway/athread_accelerate.h
-        arch/sunway/athread_accelerate.cpp
-        arch/sunway/sunway_env.h
-        arch/sunway/sunway_env.cpp
-        arch/sunway/sunway_slave.c
-        arch/sunway/sunway_slave2.c
-        )
-
-if (ARCH_SW)
-    set(ARCH_FILES ${ARCH_FILES} ${ARCH_SUNWAY_FILES}) # add sunway architecture files to cmake.
-endif ()
 
 
 # set binary path and lib storage path for compiling process.
@@ -86,7 +62,7 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 # make crystal-md lib
-add_library(${MD_LIB_NAME} STATIC ${ARCH_FILES} ${HEADER_FILES} ${SOURCE_FILES})
+add_library(${MD_LIB_NAME} STATIC ${HEADER_FILES} ${SOURCE_FILES})
 target_include_directories(
         ${MD_LIB_NAME}
         PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
