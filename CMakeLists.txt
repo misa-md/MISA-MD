@@ -12,6 +12,7 @@ add_subdirectory(src)
 ## test configure
 ##############################
 if (TEST_ENABLE_FLAG)
+    enable_testing()
     MESSAGE(STATUS "TEST is enabled")
     add_subdirectory(tests)
 endif ()

@@ -1,8 +1,8 @@
 
 # configure a header file to pass some of the CMake settings to the source code
 configure_file(
-        "test_config.h.in"
-        "test_config.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/test_config.h.in"
+        "${CMAKE_CURRENT_SOURCE_DIR}/test_config.h"
 )
 
 #########################
@@ -28,7 +28,7 @@ add_executable(${MD_TEST_NAME} ${TEST_SOURCE_FILES})
 
 # add crystldmd lib and gtest, mpi lib.
 target_link_libraries(${MD_TEST_NAME}
-        PRIVATE ${EXTRA_LIBS}
+        PRIVATE GTest::gtest GTest::gtest_main ${MD_LIB_NAME} ${EXTRA_LIBS}
         )
 
 # This is so you can do 'make test' to see all your tests run, instead of
