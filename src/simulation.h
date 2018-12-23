@@ -8,11 +8,11 @@
 #include <mpi.h>
 #include <cstring>
 #include <io/io_writer.h>
+#include <eam.h>
 
 #include "toml_config.h"
 #include "newton_motion.h"
 #include "input.h"
-#include "potential/eam.h"
 #include "atom_dump.h"
 
 class simulation {
