@@ -21,7 +21,7 @@
 namespace atom_type {
 
     enum atom_type {
-        Fe, Cu, Ni /*,Co */
+        INVALID = -1, Fe = 0, Cu = 1, Ni = 2 /*,Co */
     };
 
     /**
@@ -43,6 +43,8 @@ namespace atom_type {
                 return _R_A_M_Cu;
             case Ni:
                 return _R_A_M_Ni;
+            default:
+                return 0; //
         }
     }
 

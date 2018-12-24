@@ -197,9 +197,7 @@ int atom::decide() {
                             inter_atom_list->dfinter.resize(inter_atom_list->nlocalinter);
                         }
 
-                        atom_.x[0] = COORDINATE_ATOM_OUT_BOX;
-                        atom_.x[1] = COORDINATE_ATOM_OUT_BOX;
-                        atom_.x[2] = COORDINATE_ATOM_OUT_BOX;
+                        atom_.type = atom_type::INVALID;
                         atom_.v[0] = 0;
                         atom_.v[1] = 0;
                         atom_.v[2] = 0;
@@ -229,7 +227,7 @@ int atom::decide() {
         }
     }
 
-    //判断，如果跑出晶格点的?佑峙芑鼐Ц竦悖蚍呕鼐Ц竦闶榇娲⑵湫畔?
+    // 如果间隙原子跑入晶格点,且晶格点为空位, 则空位-间隙发生复合.
     for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
         _type_atom_index near_index;
         int j, k, l;
@@ -253,7 +251,7 @@ int atom::decide() {
             AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(near_index);
             if (atom_.isInterElement()) {
                 atom_.id = inter_atom_list->idinter[i];
-                atom_.type = inter_atom_list->typeinter[i];
+                atom_.type = inter_atom_list->typeinter[i]; // set type to valid.
                 atom_.x[0] = inter_atom_list->xinter[i][0];
                 atom_.x[1] = inter_atom_list->xinter[i][1];
                 atom_.x[2] = inter_atom_list->xinter[i][2];
