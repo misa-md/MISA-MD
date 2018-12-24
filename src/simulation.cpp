@@ -68,27 +68,41 @@ void simulation::prepareForStart() {
     double commtime, computetime, comm;
 
     // todo file type funl support. pConfigVal->potentialFileType
-    SetflParser *parser = new SetflParser(pConfigVal->potentialFilename); // todo delete (vector)
     // 读取势函数文件
-    atom_type::_type_atom_types eles = 0; //elements count from parsing.
+    //atom_type::_type_atom_types eles = 0;
     if (MPIDomain::sim_processor.own_rank == MASTER_PROCESSOR) {
-        parser->parseHeader(); // elements count got. // todo parsing error.
-        eles = parser->getEles(); // elements values on non-root processors are 0.
-    }
-    _pot = eam::newInstance(eles,
-                            MASTER_PROCESSOR,
-                            MPIDomain::sim_processor.own_rank,
-                            MPIDomain::sim_processor.comm);
-    if (MPIDomain::sim_processor.own_rank == MASTER_PROCESSOR) {
-        parser->parseBody(_pot); // todo parsing error.
-    }
-    parser->done();
+        char tmp[4096];
+        sprintf(tmp, "%s", pConfigVal->potentialFilename.c_str());
 
-    // BCast type list, the lists size is the same as eam potential elements size.
-    parser->type_lists.sync(MASTER_PROCESSOR,
-                           MPIDomain::sim_processor.own_rank,
-                           MPIDomain::sim_processor.comm,
-                           _pot->geEles());
+        FILE *pot_file = fopen(tmp, "r");
+        if (pot_file == nullptr) { // todo open too many in md.
+            kiwi::logs::e("pot", "open potential file {} failed.\n", pConfigVal->potentialFilename);
+            MPI_Abort(MPI_COMM_WORLD, 1);
+            return;
+        }
+        // new parser
+        SetflParser *parser = new SetflParser(pConfigVal->potentialFilename); // todo delete (vector)
+        parser->parseHeader(); // elements count got. // todo parsing error.
+        // eles = parser->getEles(); // elements values on non-root processors are 0.
+        _pot = eam::newInstance(parser->getEles(),
+                                MASTER_PROCESSOR,
+                                MPIDomain::sim_processor.own_rank,
+                                MPIDomain::sim_processor.comm);
+        // read data
+        parser->parseBody(_pot); // todo parsing error.
+        parser->done();
+/*      BCast type list, the lists size is the same as eam potential elements size.
+        parser->type_lists.sync(MASTER_PROCESSOR,
+                                MPIDomain::sim_processor.own_rank,
+                                MPIDomain::sim_processor.comm,
+                                _pot->geEles());
+*/
+    }else{
+        _pot = eam::newInstance(0,
+                                MASTER_PROCESSOR,
+                                MPIDomain::sim_processor.own_rank,
+                                MPIDomain::sim_processor.comm);
+    }
     // BCast Potential
     _pot->eamBCast(MASTER_PROCESSOR,
                    MPIDomain::sim_processor.own_rank,

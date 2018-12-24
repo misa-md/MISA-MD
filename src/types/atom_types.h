@@ -5,6 +5,7 @@
 #ifndef CRYSTAL_MD_ATOM_TYPES_H
 #define CRYSTAL_MD_ATOM_TYPES_H
 
+#include <cstdio>
 /**
  * @see also config_values.h#AlloyRatio
  */
