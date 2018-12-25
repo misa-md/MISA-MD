@@ -34,7 +34,9 @@ public:
      * check whether this atom is Inter atom.
      * @return
      */
-    bool isInterElement() const;
+    inline bool isInterElement() const {
+        return type == atom_type::INVALID;
+    }
 
 };
 

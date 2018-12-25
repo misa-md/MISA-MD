@@ -78,8 +78,7 @@ void AtomDump::dumpModeCopy(AtomList *atom_list, InterAtomList *inter_list, size
             for (int i = _begin[0]; i < _end[0]; i++) {
                 kk = atom_list->IndexOf3DIndex(i, j, k);
                 AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
-                if (atom_.x[0] == COORDINATE_ATOM_OUT_BOX &&
-                    atom_.x[1] == COORDINATE_ATOM_OUT_BOX && atom_.x[2] == COORDINATE_ATOM_OUT_BOX) {
+                if (atom_.type == atom_type::INVALID) {
                     continue; // skip out of boxed atoms.
                 }
                 atom_list_buffer[list_buff_index].id = atom_.id;

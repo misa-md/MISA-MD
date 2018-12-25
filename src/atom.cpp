@@ -197,9 +197,7 @@ int atom::decide() {
                             inter_atom_list->dfinter.resize(inter_atom_list->nlocalinter);
                         }
 
-                        atom_.x[0] = COORDINATE_ATOM_OUT_BOX;
-                        atom_.x[1] = COORDINATE_ATOM_OUT_BOX;
-                        atom_.x[2] = COORDINATE_ATOM_OUT_BOX;
+                        atom_.type = atom_type::INVALID;
                         atom_.v[0] = 0;
                         atom_.v[1] = 0;
                         atom_.v[2] = 0;
@@ -229,7 +227,7 @@ int atom::decide() {
         }
     }
 
-    //判断，如果跑出晶格点的?佑峙芑鼐Ц竦悖蚍呕鼐Ц竦闶榇娲⑵湫畔?
+    // 如果间隙原子跑入晶格点,且晶格点为空位, 则空位-间隙发生复合.
     for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
         _type_atom_index near_index;
         int j, k, l;
@@ -253,7 +251,7 @@ int atom::decide() {
             AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(near_index);
             if (atom_.isInterElement()) {
                 atom_.id = inter_atom_list->idinter[i];
-                atom_.type = inter_atom_list->typeinter[i];
+                atom_.type = inter_atom_list->typeinter[i]; // set type to valid.
                 atom_.x[0] = inter_atom_list->xinter[i][0];
                 atom_.x[1] = inter_atom_list->xinter[i][1];
                 atom_.x[2] = inter_atom_list->xinter[i][2];
@@ -328,6 +326,9 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
                              neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
                             n = (kk + *neighbourOffsetsIter);
                             AtomElement &atom_neighbour = atom_list->getAtomEleByLinearIndex(n);
+                            if (atom_neighbour.isInterElement()) {
+                                continue;
+                            }
                             delx = xtemp - atom_neighbour.x[0];
                             dely = ytemp - atom_neighbour.x[1];
                             delz = ztemp - atom_neighbour.x[2];
@@ -368,7 +369,7 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
         dely = ytemp - atom_near.x[1];
         delz = ztemp - atom_near.x[2];
         dist2 = delx * delx + dely * dely + delz * delz;
-        if (dist2 < (_cutoffRadius * _cutoffRadius)) {
+        if (!atom_near.isInterElement() && dist2 < (_cutoffRadius * _cutoffRadius)) {
             inter_atom_list->rhointer[i] += pot->rhoContribution(atom_type::getTypeIdByType(atom_near.type), dist2);
             atom_near.rho += pot->rhoContribution(atom_type::getTypeIdByType(inter_atom_list->typeinter[i]), dist2);
             // fixme
@@ -379,30 +380,34 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
             //计算间隙原子的所有邻居
             n = (near_index + *neighbourOffsetsIter);
             AtomElement &atom_neighbour_up = atom_list->getAtomEleByLinearIndex(n);
-            delx = xtemp - atom_neighbour_up.x[0];
-            dely = ytemp - atom_neighbour_up.x[1];
-            delz = ztemp - atom_neighbour_up.x[2];
-            dist2 = delx * delx + dely * dely + delz * delz;
-            if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                inter_atom_list->rhointer[i] += pot->rhoContribution(
-                        atom_type::getTypeIdByType(atom_neighbour_up.type), dist2);
-                atom_neighbour_up.rho += pot->rhoContribution(
-                        atom_type::getTypeIdByType(inter_atom_list->typeinter[i]), dist2);
-                // fixme
+            if (!atom_neighbour_up.isInterElement()) {
+                delx = xtemp - atom_neighbour_up.x[0];
+                dely = ytemp - atom_neighbour_up.x[1];
+                delz = ztemp - atom_neighbour_up.x[2];
+                dist2 = delx * delx + dely * dely + delz * delz;
+                if (dist2 < (_cutoffRadius * _cutoffRadius)) {
+                    inter_atom_list->rhointer[i] += pot->rhoContribution(
+                            atom_type::getTypeIdByType(atom_neighbour_up.type), dist2);
+                    atom_neighbour_up.rho += pot->rhoContribution(
+                            atom_type::getTypeIdByType(inter_atom_list->typeinter[i]), dist2);
+                    // fixme
+                }
             }
 
             n = (near_index - *neighbourOffsetsIter);
             AtomElement &atom_neighbour_down = atom_list->getAtomEleByLinearIndex(n);
-            delx = xtemp - atom_neighbour_down.x[0];
-            dely = ytemp - atom_neighbour_down.x[1];
-            delz = ztemp - atom_neighbour_down.x[2];
-            dist2 = delx * delx + dely * dely + delz * delz;
-            if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                inter_atom_list->rhointer[i] += pot->rhoContribution(
-                        atom_type::getTypeIdByType(atom_neighbour_down.type), dist2);
-                atom_neighbour_down.rho += pot->rhoContribution(
-                        atom_type::getTypeIdByType(inter_atom_list->typeinter[i]), dist2);
-                // fixme
+            if (!atom_neighbour_down.isInterElement()) {
+                delx = xtemp - atom_neighbour_down.x[0];
+                dely = ytemp - atom_neighbour_down.x[1];
+                delz = ztemp - atom_neighbour_down.x[2];
+                dist2 = delx * delx + dely * dely + delz * delz;
+                if (dist2 < (_cutoffRadius * _cutoffRadius)) {
+                    inter_atom_list->rhointer[i] += pot->rhoContribution(
+                            atom_type::getTypeIdByType(atom_neighbour_down.type), dist2);
+                    atom_neighbour_down.rho += pot->rhoContribution(
+                            atom_type::getTypeIdByType(inter_atom_list->typeinter[i]), dist2);
+                    // fixme
+                }
             }
         }
         //对间隙原子遍历
@@ -478,6 +483,9 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                 for (int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
                     kk = atom_list->IndexOf3DIndex(i, j, k);
                     AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
+                    if (atom_.isInterElement()) {
+                        continue;
+                    }
                     dfEmbed = pot->embedEnergyContribution(atom_type::getTypeIdByType(atom_.type), atom_.rho); // fixme
                     atom_.df = dfEmbed;
                 }
@@ -525,30 +533,31 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                     xtemp = atom_.x[0];
                     ytemp = atom_.x[1];
                     ztemp = atom_.x[2];
-                    if (!atom_.isInterElement()) {
-                        //对晶格点邻居原子遍历
-                        for (neighbourOffsetsIter = NeighbourOffsets.begin();
-                             neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
-                            n = (kk + *neighbourOffsetsIter); // todo what it is inter atom?
-                            AtomElement &atom_n = atom_list->getAtomEleByLinearIndex(n);
-                            delx = xtemp - atom_n.x[0];
-                            dely = ytemp - atom_n.x[1];
-                            delz = ztemp - atom_n.x[2];
-                            dist2 = delx * delx + dely * dely + delz * delz;
-                            if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                                // fixme
-                                fpair = pot->toForce(atom_type::getTypeIdByType(atom_.type),
-                                                     atom_type::getTypeIdByType(atom_n.type),
-                                                     dist2, atom_.df + atom_n.df);
+                    if (atom_.isInterElement()) {
+                        continue;
+                    }
+                    //对晶格点邻居原子遍历
+                    for (neighbourOffsetsIter = NeighbourOffsets.begin();
+                         neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
+                        n = (kk + *neighbourOffsetsIter); // todo what it is inter atom?
+                        AtomElement &atom_n = atom_list->getAtomEleByLinearIndex(n);
+                        delx = xtemp - atom_n.x[0];
+                        dely = ytemp - atom_n.x[1];
+                        delz = ztemp - atom_n.x[2];
+                        dist2 = delx * delx + dely * dely + delz * delz;
+                        if (dist2 < (_cutoffRadius * _cutoffRadius) && !atom_n.isInterElement()) {
+                            // fixme
+                            fpair = pot->toForce(atom_type::getTypeIdByType(atom_.type),
+                                                 atom_type::getTypeIdByType(atom_n.type),
+                                                 dist2, atom_.df + atom_n.df);
 
-                                atom_.f[0] += delx * fpair;
-                                atom_.f[1] += dely * fpair;
-                                atom_.f[2] += delz * fpair;
+                            atom_.f[0] += delx * fpair;
+                            atom_.f[1] += dely * fpair;
+                            atom_.f[2] += delz * fpair;
 
-                                atom_n.f[0] -= delx * fpair;
-                                atom_n.f[1] -= dely * fpair;
-                                atom_n.f[2] -= delz * fpair;
-                            }
+                            atom_n.f[0] -= delx * fpair;
+                            atom_n.f[1] -= dely * fpair;
+                            atom_n.f[2] -= delz * fpair;
                         }
                     }
                 }
@@ -584,7 +593,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
         dely = ytemp - atom_central.x[1];
         delz = ztemp - atom_central.x[2];
         dist2 = delx * delx + dely * dely + delz * delz;
-        if (dist2 < (_cutoffRadius * _cutoffRadius)) {
+        if (dist2 < (_cutoffRadius * _cutoffRadius) && !atom_central.isInterElement()) {
             // fixme
             fpair = pot->toForce(
                     atom_type::getTypeIdByType(inter_atom_list->typeinter[i]),
@@ -608,7 +617,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             dely = ytemp - atom_neighbour_up.x[1];
             delz = ztemp - atom_neighbour_up.x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
-            if (dist2 < (_cutoffRadius * _cutoffRadius)) {
+            if (dist2 < (_cutoffRadius * _cutoffRadius) && !atom_neighbour_up.isInterElement()) {
                 // fixme
                 fpair = pot->toForce(
                         atom_type::getTypeIdByType(inter_atom_list->typeinter[i]),
@@ -630,7 +639,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             dely = ytemp - atom_neighbour_down.x[1];
             delz = ztemp - atom_neighbour_down.x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
-            if (dist2 < (_cutoffRadius * _cutoffRadius)) {
+            if (dist2 < (_cutoffRadius * _cutoffRadius && !atom_neighbour_down.isInterElement())) {
                 // fixme
                 fpair = pot->toForce(
                         atom_type::getTypeIdByType(inter_atom_list->typeinter[i]),
