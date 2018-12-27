@@ -1,6 +1,7 @@
 #include <logs/logs.h>
 #include "domain.h"
 #include "utils/mpi_domain.h"
+#include "utils/mpi_data_types.h"
 #include "pack/pack.h"
 
 Domain::Domain(const int64_t *phaseSpace, const double latticeConst,
@@ -14,16 +15,14 @@ Domain::Domain(const int64_t *phaseSpace, const double latticeConst,
     }
 }
 
-Domain::~Domain() {
-    MPI_Type_free(&_mpi_Particle_data);
-    MPI_Type_free(&_mpi_latParticle_data);
-}
+Domain::~Domain() {}
 
 Domain *Domain::decomposition() {
     // Assume N can be decomposed as N = N_x * N_y * N_z,
     // then we have: _grid_size[0] = N_x, _grid_size[1] = N_y, _grid_size[1] = N_z.
     // Fill in the _grid_size array such that the product of _grid_size[i] for i=0 to DIMENSION-1 equals N.
-    MPI_Dims_create(MPIDomain::sim_processor.all_ranks, DIMENSION, _grid_size); // fixme origin code: (int *) &_grid_size
+    MPI_Dims_create(MPIDomain::sim_processor.all_ranks, DIMENSION,
+                    _grid_size); // fixme origin code: (int *) &_grid_size
     kiwi::logs::i(MASTER_PROCESSOR, "decomposition", "MPI grid dimensions: {0},{1},{2}\n",
                   _grid_size[0], _grid_size[1], _grid_size[2]);
 
@@ -49,11 +48,6 @@ Domain *Domain::decomposition() {
     for (int d = 0; d < DIMENSION; d++) {
         MPI_Cart_shift(_comm, d, 1, &_rank_id_neighbours[d][LOWER], &_rank_id_neighbours[d][HIGHER]);
     }
-
-    particledata::setMPIType(_mpi_Particle_data);  // todo move code to other place?
-    LatParticleData::setMPIType(_mpi_latParticle_data);
-    intersendlist.resize(6);
-    interrecvlist.resize(6);
     return this;
 }
 
@@ -203,16 +197,16 @@ void Domain::exchangeAtomFirst(atom *_atom) {
             int numrecv;
 
             // 向下/上发送并从上/下接收
-            MPI_Isend(sendbuf[direction], numsend, _mpi_latParticle_data, _rank_id_neighbours[d][direction], 99,
+            MPI_Isend(sendbuf[direction], numsend, mpi_types::_mpi_latParticle_data, _rank_id_neighbours[d][direction], 99,
                       MPIDomain::sim_processor.comm, &send_requests[d][direction]);
             MPI_Probe(_rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
                       &status);//测试邻居是否有信息发送给本地
-            MPI_Get_count(&status, _mpi_latParticle_data, &numrecv);//得到要接收的粒子数目
+            MPI_Get_count(&status, mpi_types::_mpi_latParticle_data, &numrecv);//得到要接收的粒子数目
             // 初始化接收缓冲区
             //依据得到发送方要发送粒子信息大小，初始化接收缓冲区
             recvbuf[direction] = new LatParticleData[numrecv];
             numPartsToRecv[d][direction] = numrecv;
-            MPI_Irecv(recvbuf[direction], numrecv, _mpi_latParticle_data,
+            MPI_Irecv(recvbuf[direction], numrecv, mpi_types::_mpi_latParticle_data,
                       _rank_id_neighbours[d][(direction + 1) % 2], 99,
                       MPIDomain::sim_processor.comm, &recv_requests[d][direction]);
         }
@@ -287,17 +281,17 @@ void Domain::exchangeAtom(atom *_atom) {
             int numsend = numPartsToSend[d][direction];
             int numrecv;
 
-            MPI_Isend(sendbuf[direction], numsend, _mpi_latParticle_data, _rank_id_neighbours[d][direction], 99,
+            MPI_Isend(sendbuf[direction], numsend, mpi_types::_mpi_latParticle_data, _rank_id_neighbours[d][direction], 99,
                       MPIDomain::sim_processor.comm,
                       &send_requests[d][direction]);
             MPI_Probe(_rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
                       &status);//测试邻居是否有信息发送给本地
-            MPI_Get_count(&status, _mpi_latParticle_data, &numrecv);//得到要接收的粒子数目
+            MPI_Get_count(&status, mpi_types::_mpi_latParticle_data, &numrecv);//得到要接收的粒子数目
             // 初始化接收缓冲区
             //依据得到发送方要发送粒子信息大小，初始化接收缓冲区
             recvbuf[direction] = new LatParticleData[numrecv];
             numPartsToRecv[d][direction] = numrecv;
-            MPI_Irecv(recvbuf[direction], numrecv, _mpi_latParticle_data,
+            MPI_Irecv(recvbuf[direction], numrecv, mpi_types::_mpi_latParticle_data,
                       _rank_id_neighbours[d][(direction + 1) % 2], 99,
                       MPIDomain::sim_processor.comm, &recv_requests[d][direction]);
         }
@@ -311,162 +305,6 @@ void Domain::exchangeAtom(atom *_atom) {
             pack::unpack_recv(d, direction, numrecv, _atom->getAtomListRef(), recvbuf[direction], recvlist);
 //            _atom->unpack_recv(d, direction, numrecv, recvbuf[direction], recvlist);
 
-            // 释放buffer
-            delete[] sendbuf[direction];
-            delete[] recvbuf[direction];
-        }
-    }
-}
-
-void Domain::exchangeInter(atom *_atom) {
-    // 发送、接收数据缓冲区
-    int numPartsToSend[DIMENSION][2];
-    int numPartsToRecv[DIMENSION][2];
-    particledata *sendbuf[2];
-    particledata *recvbuf[2];
-
-    // MPI通信状态和请求
-    MPI_Status status;
-    MPI_Status send_statuses[DIMENSION][2];
-    MPI_Status recv_statuses[DIMENSION][2];
-    MPI_Request send_requests[DIMENSION][2];
-    MPI_Request recv_requests[DIMENSION][2];
-
-    int direction;
-    // 找到要发送给邻居的原子
-    for (unsigned short d = 0; d < DIMENSION; d++) {
-        for (direction = LOWER; direction <= HIGHER; direction++) {
-            numPartsToSend[d][direction] = _atom->getintersendnum(d, direction);
-            sendbuf[direction] = new particledata[numPartsToSend[d][direction]];
-            pack::pack_intersend(_atom->inter_atom_list,
-                                 _atom->interbuf, sendbuf[direction]);
-        }
-
-        // 与上下邻居通信
-        for (direction = LOWER; direction <= HIGHER; direction++) {
-            int numsend = numPartsToSend[d][direction];
-            int numrecv;
-
-            MPI_Isend(sendbuf[direction], numsend, _mpi_Particle_data, _rank_id_neighbours[d][direction], 99,
-                      MPIDomain::sim_processor.comm, &send_requests[d][direction]);
-            MPI_Probe(_rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
-                      &status);//测试邻居是否有信息发送给本地
-            MPI_Get_count(&status, _mpi_Particle_data, &numrecv);//得到要接收的粒子数目
-            // 初始化接收缓冲区
-            //依据得到发送方要发送粒子信息大小，初始化接收缓冲区
-            recvbuf[direction] = new particledata[numrecv];
-            numPartsToRecv[d][direction] = numrecv;
-            MPI_Irecv(recvbuf[direction], numrecv, _mpi_Particle_data, _rank_id_neighbours[d][(direction + 1) % 2],
-                      99, MPIDomain::sim_processor.comm, &recv_requests[d][direction]);
-        } // todo combine this two loops.
-
-        for (direction = LOWER; direction <= HIGHER; direction++) {
-            int numrecv = numPartsToRecv[d][direction];
-            MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
-            MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
-
-            //将收到的粒子位置信息加到对应存储位置上
-            pack::unpack_interrecv(d, numrecv, _atom->inter_atom_list,
-                                   _meas_sub_box_lower_bounding,
-                                   _meas_sub_box_upper_bounding,
-                                   recvbuf[direction]);
-//            _atom->unpack_interrecv(d, numrecv, recvbuf[direction]);
-
-            // 释放buffer
-            delete[] sendbuf[direction];
-            delete[] recvbuf[direction];
-        }
-    }
-}
-
-void Domain::borderInter(atom *_atom) {
-    intersendlist.clear();
-    interrecvlist.clear();
-    intersendlist.resize(6);
-    interrecvlist.resize(6);
-    // 发送、接收数据缓冲区
-    int numPartsToSend[DIMENSION][2];
-    int numPartsToRecv[DIMENSION][2];
-    LatParticleData *sendbuf[2];
-    LatParticleData *recvbuf[2];
-
-    // MPI通信状态和请求
-    MPI_Status status;
-    MPI_Status send_statuses[DIMENSION][2];
-    MPI_Status recv_statuses[DIMENSION][2];
-    MPI_Request send_requests[DIMENSION][2];
-    MPI_Request recv_requests[DIMENSION][2];
-
-    int direction;
-    int iswap = 0;
-    int jswap = 0;
-    for (unsigned short d = 0; d < DIMENSION; d++) {
-        double offsetLower[DIMENSION];
-        double offsetHigher[DIMENSION];
-        offsetLower[d] = 0.0;
-        offsetHigher[d] = 0.0;
-
-        // 进程在左侧边界
-        if (_grid_coord_sub_box[d] == 0) {
-            offsetLower[d] = getMeasuredGlobalLength(d);
-        }
-        // 进程在右侧边界
-        if (_grid_coord_sub_box[d] == _grid_size[d] - 1) {
-            offsetHigher[d] = -(getMeasuredGlobalLength(d));
-        }
-
-        for (direction = LOWER; direction <= HIGHER; direction++) {
-            // 找到要发送给邻居的原子
-            _atom->getIntertosend(d, direction, getMeasuredGhostLength(d), intersendlist[iswap]);
-
-            double shift = 0.0;
-            if (direction == LOWER) {
-                shift = offsetLower[d];
-            }
-            if (direction == HIGHER) {
-                shift = offsetHigher[d];
-            }
-
-            // 初始化发送缓冲区
-            numPartsToSend[d][direction] = intersendlist[iswap].size();
-            sendbuf[direction] = new LatParticleData[numPartsToSend[d][direction]];
-            pack::pack_bordersend(d, numPartsToSend[d][direction],
-                                  _atom->inter_atom_list,
-                                  intersendlist[iswap++], sendbuf[direction], shift);
-//            _atom->pack_bordersend(d, numPartsToSend[d][direction], intersendlist[iswap++], sendbuf[direction], shift);
-        }
-
-        // 与上下邻居通信
-        for (direction = LOWER; direction <= HIGHER; direction++) {
-            int numsend = numPartsToSend[d][direction];
-            int numrecv;
-
-            MPI_Isend(sendbuf[direction], numsend, _mpi_latParticle_data, _rank_id_neighbours[d][direction], 99,
-                      MPIDomain::sim_processor.comm, &send_requests[d][direction]);
-            MPI_Probe(_rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
-                      &status);//测试邻居是否有信息发送给本地
-            MPI_Get_count(&status, _mpi_latParticle_data, &numrecv);//得到要接收的粒子数目
-            // 初始化接收缓冲区
-            //依据得到发送方要发送粒子信息大小，初始化接收缓冲区
-            recvbuf[direction] = new LatParticleData[numrecv];
-            numPartsToRecv[d][direction] = numrecv;
-            MPI_Irecv(recvbuf[direction], numrecv, _mpi_latParticle_data,
-                      _rank_id_neighbours[d][(direction + 1) % 2], 99,
-                      MPIDomain::sim_processor.comm, &recv_requests[d][direction]);
-        }
-
-        for (direction = LOWER; direction <= HIGHER; direction++) {
-            int numrecv = numPartsToRecv[d][direction];
-            interrecvlist[jswap].resize(numrecv);
-            MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
-            MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
-
-            //将收到的粒子位置信息加到对应存储位置上
-            pack::unpack_borderrecv(numrecv, _atom->inter_atom_list,
-                                    _meas_ghost_lower_bounding,
-                                    _meas_ghost_upper_bounding,
-                                    recvbuf[direction], interrecvlist[jswap++]);
-//            _atom->unpack_borderrecv(numrecv, recvbuf[direction], interrecvlist[jswap++]);
             // 释放buffer
             delete[] sendbuf[direction];
             delete[] recvbuf[direction];

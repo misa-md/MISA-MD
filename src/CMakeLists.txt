@@ -31,6 +31,8 @@ set(HEADER_FILES
         pack/lat_particle_data.h
         pack/pack.h
         pack/particledata.h
+        utils/mpi_data_types.cpp 
+        utils/mpi_data_types.h
         utils/mpi_domain.h
         utils/rpcc.hpp
         )
@@ -54,7 +56,7 @@ set(SOURCE_FILES
         pack/pack.cpp
         pack/particledata.cpp
         utils/mpi_domain.cpp
-        )
+        utils/mpi_data_types.cpp utils/mpi_data_types.h)
 
 
 # set binary path and lib storage path for compiling process.

@@ -43,17 +43,11 @@ public :
 
     void computeEam(eam *pot, Domain *domain, double &comm);
 
-    unsigned long getinteridsendsize();
-
     void getatomx(int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
 
     void getatomy(int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
 
     void getatomz(int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
-
-    void getIntertosend(int d, int direction, double ghostlengh, std::vector<int> &sendlist);
-
-    unsigned long getintersendnum(int dimension, int direction);
 
     /**
      * set velocity of a atom whose position is specified by array @param lat
@@ -98,7 +92,6 @@ private:
     AtomList *atom_list;
     InterAtomList *inter_atom_list;
 
-    std::vector<unsigned long> interbuf;
 };
 
 #endif // CRYSTAL_MD_ATOM_H

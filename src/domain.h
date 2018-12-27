@@ -43,6 +43,7 @@ class atom;
  */
 
 class Domain {
+    friend class InterAtomList;
 public:
 
     Domain(const int64_t *phaseSpace, const double latticeConst, const double cutoffRadius);
@@ -82,10 +83,6 @@ public:
      * @param latticeConst lattice const
      */
     Domain *createSubBoxDomain();
-
-    void exchangeInter(atom *_atom);
-
-    void borderInter(atom *_atom);
 
     void exchangeAtomFirst(atom *_atom);
 
@@ -311,15 +308,8 @@ private:
     // lower and upper boundary of lattice coordinate in ghost area of current sub-box area at each dimension in local coordinate system.
     _type_lattice_coord _local_lattice_coord_ghost_lower[DIMENSION], _local_lattice_coord_ghost_upper[DIMENSION];
 
-    /** mpi data struct. **/
-    MPI_Datatype _mpi_Particle_data;
-    MPI_Datatype _mpi_latParticle_data;
-
     std::vector<std::vector<_type_atom_id> > sendlist;
     std::vector<std::vector<_type_atom_id> > recvlist;
-
-    std::vector<std::vector<int> > intersendlist;
-    std::vector<std::vector<int> > interrecvlist;
 
     /**
      * set lattice coordinate boundary of current sub-box in global coordinate system(GCY).

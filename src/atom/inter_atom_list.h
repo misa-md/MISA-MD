@@ -7,9 +7,10 @@
 
 #include <vector>
 #include <list>
-#include <pack/lat_particle_data.h>
-#include <pack/particledata.h>
+#include "domain.h"
 #include "atom_element.h"
+#include "../pack/particledata.h"
+#include "../pack/lat_particle_data.h"
 #include "../types/pre_define.h"
 #include "../types/atom_types.h"
 
@@ -36,6 +37,25 @@ public:
         return nlocalinter;
     }
 
+    void exchangeInter(Domain *p_domain);
+
+    void borderInter(Domain *p_domain);
+
+    _type_inter_list inter_list;
+    _type_inter_list inter_ghost_list;
+    size_t nlocalinter; // 本地间隙原子数
+    size_t nghostinter; // ghost间隙原子数
+
+    /**
+     * pointer of element in atom_list (pointer of {@class AtomElement}).
+     * // todo use avl tree.
+     * // todo use pointer.
+     */
+private:
+    std::vector<std::vector<int> > intersendlist; // todo make it temp variable.
+    std::vector<std::vector<int> > interrecvlist; // todo make it temp variable.
+    std::vector<unsigned long> interbuf; // todo make it temp variable.
+
     void pack_intersend(std::vector<unsigned long> interbuf, particledata *buf);
 
     void unpack_interrecv(int d, int n,
@@ -49,16 +69,33 @@ public:
                            double upper[DIMENSION], // p_domain->getMeasuredGhostUpperBounding(d)
                            LatParticleData *buf, std::vector<int> &recvlist);
 
-    _type_inter_list inter_list;
-    _type_inter_list inter_ghost_list;
-    size_t nlocalinter; // 本地间隙原子数
-    size_t nghostinter; // ghost间隙原子数
+    unsigned long getinteridsendsize();
 
     /**
-     * pointer of element in atom_list (pointer of {@class AtomElement}).
-     * // todo use avl tree.
-     * // todo use pointer.
+     * If some inter atoms get into ghost area of neighbour processors(they are still in local box.),
+     * those atoms should be send to neighbour processors
+     * (neighbour processors will save those atoms as ghost intel atoms).
+     * We call those atoms as "neighbour ghost intel atom".
+     *
+     * @brief This method will record those atoms.
+     * @param p_domain pointer of simulation domain
+     * @param d dimension 0,1,2 of 3d. @param d values = {0,1,2}
+     * @param direction direction of LOW or HIGH. One direction has 2 direction(such as up and down, back and front, left and right).
+     * @param ghostlengh the measured length of ghost area.
+     * @param sendlist the atoms to be send will be saved in this data.
      */
+    void getIntertosend(Domain *p_domain, int d, int direction, double ghostlengh, std::vector<int> &sendlist);
+
+    /**
+     * If some inter atoms get out of box, those atom is no more in current dox of current processor.
+     * they should be send to corresponding neighbour processors.
+     *
+     * @param p_domain pointer of simulation domain
+     * @param dimension dimension of 3d. @param d values = {0,1,2}
+     * @param direction direction of LOW or HIGH.
+     * @return the number of out-of-box inter atoms.
+     */
+    unsigned long getintersendnum(Domain *p_domain, int dimension, int direction);
 };
 
 
