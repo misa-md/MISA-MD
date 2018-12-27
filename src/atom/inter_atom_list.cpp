@@ -51,9 +51,9 @@ void InterAtomList::exchangeInter(Domain *p_domain) {
             int numrecv;
 
             MPI_Isend(sendbuf[direction], numsend, mpi_types::_mpi_Particle_data,
-                      p_domain->_rank_id_neighbours[d][direction], 99,
+                      p_domain->rank_id_neighbours[d][direction], 99,
                       MPIDomain::sim_processor.comm, &send_requests[d][direction]);
-            MPI_Probe(p_domain->_rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
+            MPI_Probe(p_domain->rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
                       &status);//测试邻居是否有信息发送给本地
             MPI_Get_count(&status, mpi_types::_mpi_Particle_data, &numrecv);//得到要接收的粒子数目
             // 初始化接收缓冲区
@@ -61,7 +61,7 @@ void InterAtomList::exchangeInter(Domain *p_domain) {
             recvbuf[direction] = new particledata[numrecv];
             numPartsToRecv[d][direction] = numrecv;
             MPI_Irecv(recvbuf[direction], numrecv, mpi_types::_mpi_Particle_data,
-                      p_domain->_rank_id_neighbours[d][(direction + 1) % 2],
+                      p_domain->rank_id_neighbours[d][(direction + 1) % 2],
                       99, MPIDomain::sim_processor.comm, &recv_requests[d][direction]);
         } // todo combine this two loops.
 
@@ -72,8 +72,8 @@ void InterAtomList::exchangeInter(Domain *p_domain) {
 
             //将收到的粒子位置信息加到对应存储位置上
             unpack_interrecv(d, numrecv,
-                             p_domain->_meas_sub_box_lower_bounding,
-                             p_domain->_meas_sub_box_upper_bounding,
+                             p_domain->meas_sub_box_lower_bounding,
+                             p_domain->meas_sub_box_upper_bounding,
                              recvbuf[direction]);
 //            _atom->unpack_interrecv(d, numrecv, recvbuf[direction]);
 
@@ -112,17 +112,17 @@ void InterAtomList::borderInter(Domain *p_domain) {
         offsetHigher[d] = 0.0;
 
         // 进程在左侧边界
-        if (p_domain->_grid_coord_sub_box[d] == 0) {
-            offsetLower[d] = p_domain->getMeasuredGlobalLength(d);
+        if (p_domain->grid_coord_sub_box[d] == 0) {
+            offsetLower[d] = p_domain->meas_global_length[d];
         }
         // 进程在右侧边界
-        if (p_domain->_grid_coord_sub_box[d] == p_domain->_grid_size[d] - 1) {
-            offsetHigher[d] = -(p_domain->getMeasuredGlobalLength(d));
+        if (p_domain->grid_coord_sub_box[d] == p_domain->grid_size[d] - 1) {
+            offsetHigher[d] = -((p_domain->meas_global_length[d]));
         }
 
         for (direction = LOWER; direction <= HIGHER; direction++) {
             // 找到要发送给邻居的原子
-            getIntertosend(p_domain, d, direction, p_domain->getMeasuredGhostLength(d), intersendlist[iswap]);
+            getIntertosend(p_domain, d, direction, p_domain->meas_ghost_length[d], intersendlist[iswap]);
 
             double shift = 0.0;
             if (direction == LOWER) {
@@ -147,9 +147,9 @@ void InterAtomList::borderInter(Domain *p_domain) {
 
             MPI_Isend(sendbuf[direction], numsend,
                       mpi_types::_mpi_latParticle_data,
-                      p_domain->_rank_id_neighbours[d][direction],
+                      p_domain->rank_id_neighbours[d][direction],
                       99, MPIDomain::sim_processor.comm, &send_requests[d][direction]);
-            MPI_Probe(p_domain->_rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
+            MPI_Probe(p_domain->rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
                       &status);//测试邻居是否有信息发送给本地
             MPI_Get_count(&status, mpi_types::_mpi_latParticle_data, &numrecv);//得到要接收的粒子数目
             // 初始化接收缓冲区
@@ -157,7 +157,7 @@ void InterAtomList::borderInter(Domain *p_domain) {
             recvbuf[direction] = new LatParticleData[numrecv];
             numPartsToRecv[d][direction] = numrecv;
             MPI_Irecv(recvbuf[direction], numrecv, mpi_types::_mpi_latParticle_data,
-                      p_domain->_rank_id_neighbours[d][(direction + 1) % 2], 99,
+                      p_domain->rank_id_neighbours[d][(direction + 1) % 2], 99,
                       MPIDomain::sim_processor.comm, &recv_requests[d][direction]);
         }
 
@@ -169,8 +169,8 @@ void InterAtomList::borderInter(Domain *p_domain) {
 
             //将收到的粒子位置信息加到对应存储位置上
             unpack_borderrecv(numrecv,
-                              p_domain->_meas_ghost_lower_bounding,
-                              p_domain->_meas_ghost_upper_bounding,
+                              p_domain->meas_ghost_lower_bounding,
+                              p_domain->meas_ghost_upper_bounding,
                               recvbuf[direction], interrecvlist[jswap++]);
 //            _atom->unpack_borderrecv(numrecv, recvbuf[direction], interrecvlist[jswap++]);
             // 释放buffer
@@ -207,8 +207,8 @@ void InterAtomList::pack_intersend(std::vector<unsigned long> interbuf, particle
 }
 
 void InterAtomList::unpack_interrecv(int d, int n,
-                                     double lower[DIMENSION], // p_domain->getMeasuredSubBoxLowerBounding(d)
-                                     double upper[DIMENSION], // p_domain->getMeasuredSubBoxUpperBounding(d)
+                                     const double lower[DIMENSION], // p_domain->getMeasuredSubBoxLowerBounding(d)
+                                     const double upper[DIMENSION], // p_domain->getMeasuredSubBoxUpperBounding(d)
                                      particledata *buf) {
     std::vector<double> xtemp(3);
     std::vector<double> vtemp(3);
@@ -291,8 +291,8 @@ void InterAtomList::pack_bordersend(int dimension, int n,
 }
 
 void InterAtomList::unpack_borderrecv(int n,
-                                      double lower[DIMENSION], // p_domain->getMeasuredGhostLowerBounding(d)
-                                      double upper[DIMENSION], // p_domain->getMeasuredGhostUpperBounding(d)
+                                      const double lower[DIMENSION], // p_domain->getMeasuredGhostLowerBounding(d)
+                                      const double upper[DIMENSION], // p_domain->getMeasuredGhostUpperBounding(d)
                                       LatParticleData *buf, std::vector<int> &recvlist) {
     atom_type::atom_type type;
     std::vector<double> xtemp(3);
@@ -342,8 +342,8 @@ void InterAtomList::getIntertosend(Domain *p_domain, int d, int direction, doubl
     unsigned long i = 0;
     if (d == 0) {
         if (direction == 0) {
-            low = p_domain->getMeasuredSubBoxLowerBounding(0);
-            high = p_domain->getMeasuredSubBoxLowerBounding(0) + ghostlengh;
+            low = p_domain->meas_sub_box_lower_bounding[0];
+            high = p_domain->meas_sub_box_lower_bounding[0] + ghostlengh;
             // fixme fixme checkout ghost inters
             i = 0;
             for (AtomElement &inter_ref : inter_list) {
@@ -360,8 +360,8 @@ void InterAtomList::getIntertosend(Domain *p_domain, int d, int direction, doubl
                 i++;
             }
         } else {
-            low = p_domain->getMeasuredSubBoxUpperBounding(0) - ghostlengh;
-            high = p_domain->getMeasuredSubBoxUpperBounding(0);
+            low = p_domain->meas_sub_box_upper_bounding[0] - ghostlengh;
+            high = p_domain->meas_sub_box_upper_bounding[0];
             i = 0;
             for (AtomElement &inter_ref :inter_list) {
                 if (inter_ref.x[0] <= high && inter_ref.x[0] > low) {
@@ -379,8 +379,8 @@ void InterAtomList::getIntertosend(Domain *p_domain, int d, int direction, doubl
         }
     } else if (d == 1) {
         if (direction == 0) {
-            low = p_domain->getMeasuredSubBoxLowerBounding(1);
-            high = p_domain->getMeasuredSubBoxLowerBounding(1) + ghostlengh;
+            low = p_domain->meas_sub_box_lower_bounding[1];
+            high = p_domain->meas_sub_box_lower_bounding[1] + ghostlengh;
             i = 0;
             for (AtomElement &inter_ref :inter_list) {
                 if (inter_ref.x[1] < high && inter_ref.x[1] >= low) {
@@ -396,8 +396,8 @@ void InterAtomList::getIntertosend(Domain *p_domain, int d, int direction, doubl
                 i++;
             }
         } else {
-            low = p_domain->getMeasuredSubBoxUpperBounding(1) - ghostlengh;
-            high = p_domain->getMeasuredSubBoxUpperBounding(1);
+            low = p_domain->meas_sub_box_upper_bounding[1] - ghostlengh;
+            high = p_domain->meas_sub_box_upper_bounding[1];
             i = 0;
             for (AtomElement &inter_ref :inter_list) {
                 if (inter_ref.x[1] <= high && inter_ref.x[1] > low) {
@@ -415,8 +415,8 @@ void InterAtomList::getIntertosend(Domain *p_domain, int d, int direction, doubl
         }
     } else {
         if (direction == 0) {
-            low = p_domain->getMeasuredSubBoxLowerBounding(2);
-            high = p_domain->getMeasuredSubBoxLowerBounding(2) + ghostlengh;
+            low = p_domain->meas_sub_box_lower_bounding[2];
+            high = p_domain->meas_sub_box_lower_bounding[2] + ghostlengh;
             i = 0;
             for (AtomElement &inter_ref :inter_list) {
                 if (inter_ref.x[2] < high && inter_ref.x[2] >= low) {
@@ -432,8 +432,8 @@ void InterAtomList::getIntertosend(Domain *p_domain, int d, int direction, doubl
                 i++;
             }
         } else {
-            low = p_domain->getMeasuredSubBoxUpperBounding(2) - ghostlengh;
-            high = p_domain->getMeasuredSubBoxUpperBounding(2);
+            low = p_domain->meas_sub_box_upper_bounding[2] - ghostlengh;
+            high = p_domain->meas_sub_box_upper_bounding[2];
             i = 0;
             for (AtomElement &inter_ref :inter_list) {
                 if (inter_ref.x[2] <= high && inter_ref.x[2] > low) {
@@ -458,11 +458,11 @@ unsigned long InterAtomList::getintersendnum(Domain *p_domain, int dimension, in
     for (AtomElement &inter_ref :inter_list) {
         if (direction == 0) {
             // we assume that, a atom cannot cross 2 or more than 2 sub-boxes
-            if (inter_ref.x[dimension] < p_domain->getMeasuredSubBoxLowerBounding(dimension)) {
+            if (inter_ref.x[dimension] < p_domain->meas_sub_box_lower_bounding[dimension]) {
                 interbuf.push_back(i);
             }
         } else {
-            if (inter_ref.x[dimension] >= p_domain->getMeasuredSubBoxUpperBounding(dimension)) {
+            if (inter_ref.x[dimension] >= p_domain->meas_sub_box_upper_bounding[dimension]) {
                 interbuf.push_back(i);
             }
         }

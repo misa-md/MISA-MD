@@ -21,6 +21,7 @@ typedef std::list<AtomElement> _type_inter_list;
  */
 class InterAtomList {
     friend class atom;
+
 public:
 
     InterAtomList();
@@ -60,14 +61,14 @@ private:
     void pack_intersend(std::vector<unsigned long> interbuf, particledata *buf);
 
     void unpack_interrecv(int d, int n,
-                          double lower[DIMENSION], // p_domain->getMeasuredSubBoxLowerBounding(d)
-                          double upper[DIMENSION], // p_domain->getMeasuredSubBoxUpperBounding(d)
+                          const double lower[DIMENSION], // p_domain->getMeasuredSubBoxLowerBounding(d)
+                          const double upper[DIMENSION], // p_domain->getMeasuredSubBoxUpperBounding(d)
                           particledata *buf);
 
     void pack_bordersend(int dimension, int n, std::vector<int> &sendlist, LatParticleData *buf, double shift);
 
-    void unpack_borderrecv(int n, double lower[DIMENSION], // p_domain->getMeasuredGhostLowerBounding(d)
-                           double upper[DIMENSION], // p_domain->getMeasuredGhostUpperBounding(d)
+    void unpack_borderrecv(int n, const double lower[DIMENSION], // p_domain->getMeasuredGhostLowerBounding(d)
+                           const double upper[DIMENSION], // p_domain->getMeasuredGhostUpperBounding(d)
                            LatParticleData *buf, std::vector<int> &recvlist);
 
     unsigned long getinteridsendsize();

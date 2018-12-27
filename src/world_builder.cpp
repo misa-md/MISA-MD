@@ -101,31 +101,31 @@ void WorldBuilder::build() {
 }
 
 void WorldBuilder::createPhaseSpace() {
-    unsigned long id_pre = (unsigned long) box_x * box_y * _p_domain->getGlobalSubBoxLatticeCoordLower(2) * 2
-                           + (unsigned long) _p_domain->getGlobalSubBoxLatticeCoordLower(1) *
-                             box_x * _p_domain->getSubBoxLatticeSize(2) * 2
-                           + (unsigned long) _p_domain->getGlobalSubBoxLatticeCoordLower(0) *
-                             _p_domain->getSubBoxLatticeSize(1) *
-                             _p_domain->getSubBoxLatticeSize(2);
+    unsigned long id_pre = (unsigned long) box_x * box_y * _p_domain->lattice_coord_sub_box_lower[2] * 2
+                           + (unsigned long) _p_domain->lattice_coord_sub_box_lower[1] *
+                             box_x * _p_domain->lattice_size_sub_box[2] * 2
+                           + (unsigned long) _p_domain->lattice_coord_sub_box_lower[0] *
+                             _p_domain->lattice_size_sub_box[1] *
+                             _p_domain->lattice_size_sub_box[2];
     /*for(int i = 0; i < id_pre; i++){
         uniform();
         uniform();
         uniform();
     }*/
     _type_atom_mass mass = 0;
-    for (int k = 0; k < _p_domain->getSubBoxLatticeSize(2); k++) {
-        for (int j = 0; j < _p_domain->getSubBoxLatticeSize(1); j++) {
-            for (int i = 0; i < _p_domain->getSubBoxLatticeSize(0); i++) {
+    for (int k = 0; k < _p_domain->lattice_size_sub_box[2]; k++) {
+        for (int j = 0; j < _p_domain->lattice_size_sub_box[1]; j++) {
+            for (int i = 0; i < _p_domain->lattice_size_sub_box[0]; i++) {
                 AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
 //                kk = _p_atom->IndexOf3DIndex(i, j, k); // todo
                 atom_.id = ++id_pre;
                 atom_.type = randomAtomsType(); // set random atom type.
                 mass = atom_type::getAtomMass(atom_.type); // get atom mass of this kind of atom.
                 // atoms[kk].x[0] = (_p_domain->getGlobalSubBoxLatticeCoordLower(0) + (i - xstart)) * (_lattice_const / 2);
-                atom_.x[0] = (_p_domain->getGlobalSubBoxLatticeCoordLower(0) + i) * 0.5 * (_lattice_const);
-                atom_.x[1] = (_p_domain->getGlobalSubBoxLatticeCoordLower(1) + j) * _lattice_const +
+                atom_.x[0] = (_p_domain->lattice_coord_sub_box_lower[0] + i) * 0.5 * (_lattice_const);
+                atom_.x[1] = (_p_domain->lattice_coord_sub_box_lower[1] + j) * _lattice_const +
                              (i % 2) * (_lattice_const / 2);
-                atom_.x[2] = (_p_domain->getGlobalSubBoxLatticeCoordLower(2) + k) * _lattice_const +
+                atom_.x[2] = (_p_domain->lattice_coord_sub_box_lower[2] + k) * _lattice_const +
                              (i % 2) * (_lattice_const / 2);
                 atom_.v[0] = (uniform() - 0.5) / mass;
                 atom_.v[1] = (uniform() - 0.5) / mass;
@@ -151,9 +151,9 @@ void WorldBuilder::zeroMomentum(double *vcm) {
 //    int zstart = _p_domain->getGlobalSubBoxLatticeCoordLower(2) - _p_domain->getGlobalGhostLatticeCoordLower(2);
 //    long kk; // todo unsigned
     _type_atom_mass mass;
-    for (int k = 0; k < _p_domain->getSubBoxLatticeSize(2); k++) {
-        for (int j = 0; j < _p_domain->getSubBoxLatticeSize(1); j++) {
-            for (int i = 0; i < _p_domain->getSubBoxLatticeSize(0); i++) {
+    for (int k = 0; k < _p_domain->lattice_size_sub_box[2]; k++) {
+        for (int j = 0; j < _p_domain->lattice_size_sub_box[1]; j++) {
+            for (int i = 0; i < _p_domain->lattice_size_sub_box[0]; i++) {
                 AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
 //                kk = _p_atom->IndexOf3DIndex(i, j, k);
                 mass = atom_type::getAtomMass(atom_.type);
@@ -171,9 +171,9 @@ double WorldBuilder::computeScalar(_type_atom_count n_atoms) {
 //    int ystart = _p_domain->getGlobalSubBoxLatticeCoordLower(1) - _p_domain->getGlobalGhostLatticeCoordLower(1);
 //    int zstart = _p_domain->getGlobalSubBoxLatticeCoordLower(2) - _p_domain->getGlobalGhostLatticeCoordLower(2);
 //    long kk; // todo unsigned
-    for (int k = 0; k < _p_domain->getSubBoxLatticeSize(2); k++) {
-        for (int j = 0; j < _p_domain->getSubBoxLatticeSize(1); j++) {
-            for (int i = 0; i < _p_domain->getSubBoxLatticeSize(0); i++) {
+    for (int k = 0; k < _p_domain->lattice_size_sub_box[2]; k++) {
+        for (int j = 0; j < _p_domain->lattice_size_sub_box[1]; j++) {
+            for (int i = 0; i < _p_domain->lattice_size_sub_box[0]; i++) {
                 AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
 //                kk = _p_atom->IndexOf3DIndex(i, j, k);
                 t += (atom_.v[0] * atom_.v[0] +
@@ -194,9 +194,9 @@ void WorldBuilder::rescale(double rescale_factor) {
 //    int ystart = _p_domain->getGlobalSubBoxLatticeCoordLower(1) - _p_domain->getGlobalGhostLatticeCoordLower(1);
 //    int zstart = _p_domain->getGlobalSubBoxLatticeCoordLower(2) - _p_domain->getGlobalGhostLatticeCoordLower(2);
 //    long kk;
-    for (int k = 0; k < _p_domain->getSubBoxLatticeSize(2); k++) {
-        for (int j = 0; j < _p_domain->getSubBoxLatticeSize(1); j++) {
-            for (int i = 0; i < _p_domain->getSubBoxLatticeSize(0); i++) {
+    for (int k = 0; k < _p_domain->lattice_size_sub_box[2]; k++) {
+        for (int j = 0; j < _p_domain->lattice_size_sub_box[1]; j++) {
+            for (int i = 0; i < _p_domain->lattice_size_sub_box[0]; i++) {
                 AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
 //                kk = _p_atom->IndexOf3DIndex(i, j, k);
                 atom_.v[0] *= rescale_factor;
@@ -239,9 +239,9 @@ void WorldBuilder::vcm(double p[DIMENSION + 1]) {
     p[DIMENSION] = 0;
 
 //    long kk = 0;
-    for (int k = 0; k < _p_domain->getSubBoxLatticeSize(2); k++) {
-        for (int j = 0; j < _p_domain->getSubBoxLatticeSize(1); j++) {
-            for (int i = 0; i < _p_domain->getSubBoxLatticeSize(0); i++) {
+    for (int k = 0; k < _p_domain->lattice_size_sub_box[2]; k++) {
+        for (int j = 0; j < _p_domain->lattice_size_sub_box[1]; j++) {
+            for (int i = 0; i < _p_domain->lattice_size_sub_box[0]; i++) {
                 AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
 //                kk = _p_atom->IndexOf3DIndex(i, j, k);
                 mass_one = atom_type::getAtomMass(atom_.type);

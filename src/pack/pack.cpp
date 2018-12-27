@@ -25,9 +25,9 @@ void pack::pack_send(const int dimension, const int n, const double shift[DIMENS
 }
 
 void pack::unpack_recvfirst(int d, int direction, int n, AtomList &atom_list,
-                            _type_lattice_size ghost[DIMENSION], //p_domain->getGhostLatticeSize(d)
-                            _type_lattice_size box[DIMENSION], //p_domain->getSubBoxLatticeSize(d)
-                            _type_lattice_size ext[DIMENSION], //p_domain->getGhostExtLatticeSize(d)
+                            const _type_lattice_size ghost[DIMENSION], //p_domain->getGhostLatticeSize(d)
+                            const _type_lattice_size box[DIMENSION], //p_domain->getSubBoxLatticeSize(d)
+                            const _type_lattice_size ext[DIMENSION], //p_domain->getGhostExtLatticeSize(d)
                             LatParticleData *buf, std::vector<std::vector<_type_atom_id> > &recvlist) {
     int xstart, ystart, zstart;
     int xstop, ystop, zstop;

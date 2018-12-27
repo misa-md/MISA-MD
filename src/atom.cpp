@@ -19,36 +19,36 @@ atom::atom(Domain *domain, double latticeconst,
 
     _cutlattice = static_cast<int>(ceil(cutoffRadiusFactor));
 
-    numberoflattice = p_domain->getGhostExtLatticeSize(0) * p_domain->getGhostExtLatticeSize(1) *
-                      p_domain->getGhostExtLatticeSize(2);
+    numberoflattice = p_domain->lattice_size_ghost_extended[0] * p_domain->lattice_size_ghost_extended[1] *
+                      p_domain->lattice_size_ghost_extended[2];
     // printf("number:%d, %d, %d, %d, %d\n", numberoflattice,
     // p_domain->getSubBoxLatticeSize(0), p_domain->getSubBoxLatticeSize(1), p_domain->getSubBoxLatticeSize(2),
     // p_domain->getSubBoxLatticeSize(0)*p_domain->getSubBoxLatticeSize(1)*p_domain->getSubBoxLatticeSize(2));
-    atom_list = new AtomList(p_domain->getGhostExtLatticeSize(0),
-                             p_domain->getGhostExtLatticeSize(1),
-                             p_domain->getGhostExtLatticeSize(2),
-                             p_domain->getSubBoxLatticeSize(0),
-                             p_domain->getSubBoxLatticeSize(1),
-                             p_domain->getSubBoxLatticeSize(2),
-                             p_domain->getGhostLatticeSize(0),
-                             p_domain->getGhostLatticeSize(1),
-                             p_domain->getGhostLatticeSize(2));
+    atom_list = new AtomList(p_domain->lattice_size_ghost_extended[0],
+                             p_domain->lattice_size_ghost_extended[1],
+                             p_domain->lattice_size_ghost_extended[2],
+                             p_domain->lattice_size_sub_box[0],
+                             p_domain->lattice_size_sub_box[1],
+                             p_domain->lattice_size_sub_box[2],
+                             p_domain->lattice_size_ghost[0],
+                             p_domain->lattice_size_ghost[1],
+                             p_domain->lattice_size_ghost[2]);
 
     inter_atom_list = new InterAtomList();
 
     if (isAccelerateSupport()) {
-        accelerateInit(p_domain->getGlobalSubBoxLatticeCoordLower(0),
-                       p_domain->getGlobalSubBoxLatticeCoordLower(1),
-                       p_domain->getGlobalSubBoxLatticeCoordLower(2),
-                       p_domain->getSubBoxLatticeSize(0),
-                       p_domain->getSubBoxLatticeSize(1),
-                       p_domain->getSubBoxLatticeSize(2),
-                       p_domain->getGlobalGhostLatticeCoordLower(0),
-                       p_domain->getGlobalGhostLatticeCoordLower(1),
-                       p_domain->getGlobalGhostLatticeCoordLower(2),
-                       p_domain->getGhostExtLatticeSize(0),
-                       p_domain->getGhostExtLatticeSize(1),
-                       p_domain->getGhostExtLatticeSize(2));
+        accelerateInit(p_domain->lattice_coord_sub_box_lower[0],
+                       p_domain->lattice_coord_sub_box_lower[1],
+                       p_domain->lattice_coord_sub_box_lower[2],
+                       p_domain->lattice_size_sub_box[0],
+                       p_domain->lattice_size_sub_box[1],
+                       p_domain->lattice_size_sub_box[2],
+                       p_domain->lattice_coord_ghost_lower[0],
+                       p_domain->lattice_coord_ghost_lower[1],
+                       p_domain->lattice_coord_ghost_lower[2],
+                       p_domain->lattice_size_ghost_extended[0],
+                       p_domain->lattice_size_ghost_extended[1],
+                       p_domain->lattice_size_ghost_extended[2]);
     }
 }
 
@@ -105,23 +105,23 @@ void atom::calculateNeighbourIndices() {
 
 void atom::addAtom(_type_atom_id id, double rx, double ry, double rz, double vx, double vy, double vz) {
     int i;
-    if ((rx >= p_domain->getMeasuredSubBoxLowerBounding(0)) &&
-        (rx < p_domain->getMeasuredSubBoxUpperBounding(0)) &&
-        (ry >= p_domain->getMeasuredSubBoxLowerBounding(1)) &&
-        (ry < p_domain->getMeasuredSubBoxUpperBounding(1)) &&
-        (rz >= p_domain->getMeasuredSubBoxLowerBounding(2)) &&
-        (rz < p_domain->getMeasuredSubBoxUpperBounding(2))) {
+    if ((rx >= p_domain->meas_sub_box_lower_bounding[0]) &&
+        (rx < p_domain->meas_sub_box_upper_bounding[0]) &&
+        (ry >= p_domain->meas_sub_box_lower_bounding[1]) &&
+        (ry < p_domain->meas_sub_box_upper_bounding[1]) &&
+        (rz >= p_domain->meas_sub_box_lower_bounding[2]) &&
+        (rz < p_domain->meas_sub_box_upper_bounding[2])) {
         int lattice[3];
         lattice[0] = rx * 2 / _latticeconst + 0.5;
         lattice[1] = ry * 2 / _latticeconst + 0.5;
         lattice[2] = rz * 2 / _latticeconst + 0.5;
         lattice[1] = lattice[1] / 2;
         lattice[2] = lattice[2] / 2;
-        lattice[0] -= p_domain->getGlobalGhostLatticeCoordLower(0);
-        lattice[1] -= p_domain->getGlobalGhostLatticeCoordLower(1);
-        lattice[2] -= p_domain->getGlobalGhostLatticeCoordLower(2);
-        i = ((p_domain->getGhostExtLatticeSize(1)) * lattice[2] + lattice[1]) *
-            (p_domain->getGhostExtLatticeSize(0)) + lattice[0];
+        lattice[0] -= p_domain->lattice_coord_ghost_lower[0];
+        lattice[1] -= p_domain->lattice_coord_ghost_lower[1];
+        lattice[2] -= p_domain->lattice_coord_ghost_lower[2];
+        i = (((p_domain->lattice_size_ghost_extended[1])) * lattice[2] + lattice[1]) *
+            ((p_domain->lattice_size_ghost_extended[0])) + lattice[0];
         AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(i);
         atom_.id = id;
         atom_.x[0] = rx;
@@ -144,15 +144,15 @@ int atom::decide() {
 //    int zstart = p_domain->getGhostLatticeSize(2);
 
     //对本地晶格点原子进行判断，看是否运动为间隙原子
-    for (int k = 0; k < p_domain->getSubBoxLatticeSize(2); k++) {
-        for (int j = 0; j < p_domain->getSubBoxLatticeSize(1); j++) {
-            for (int i = 0; i < p_domain->getSubBoxLatticeSize(0); i++) {
+    for (int k = 0; k < p_domain->lattice_size_sub_box[2]; k++) {
+        for (int j = 0; j < p_domain->lattice_size_sub_box[1]; j++) {
+            for (int i = 0; i < p_domain->lattice_size_sub_box[0]; i++) {
 //                kk = atom_list->IndexOf3DIndex(i, j, k);
                 AtomElement &atom_ = atom_list->getAtomEleBySubBoxIndex(i, j, k); // todo long type
                 if (!atom_.isInterElement()) {
-                    xtemp = (i + p_domain->getGlobalSubBoxLatticeCoordLower(0)) * 0.5 * _latticeconst;
-                    ytemp = (j + p_domain->getGlobalSubBoxLatticeCoordLower(1) + (i % 2) * 0.5) * _latticeconst;
-                    ztemp = (k + p_domain->getGlobalSubBoxLatticeCoordLower(2) + (i % 2) * 0.5) * _latticeconst;
+                    xtemp = (i + p_domain->lattice_coord_sub_box_lower[0]) * 0.5 * _latticeconst;
+                    ytemp = (j + p_domain->lattice_coord_sub_box_lower[1] + (i % 2) * 0.5) * _latticeconst;
+                    ztemp = (k + p_domain->lattice_coord_sub_box_lower[2] + (i % 2) * 0.5) * _latticeconst;
                     dist = (atom_.x[0] - xtemp) * (atom_.x[0] - xtemp);
                     dist += (atom_.x[1] - ytemp) * (atom_.x[1] - ytemp);
                     dist += (atom_.x[2] - ztemp) * (atom_.x[2] - ztemp);
@@ -171,20 +171,26 @@ int atom::decide() {
 
     // periodic boundary
     for (AtomElement &inter_ref :inter_atom_list->inter_list) {
-        if (inter_ref.x[0] < p_domain->getMeasuredGlobalBoxCoordLower(0)) {
-            inter_ref.x[0] += p_domain->getMeasuredGlobalLength(0);
-        } else if (inter_ref.x[0] >= p_domain->getMeasuredGlobalBoxCoordUpper(0)) {
-            inter_ref.x[0] -= p_domain->getMeasuredGlobalLength(0);
+        if (inter_ref.x[0] < p_domain->meas_global_box_coord_lower[0]) {
+            inter_ref.x[0] += p_domain->meas_global_length[0];
+        } else {
+            if (inter_ref.x[0] >= p_domain->meas_global_box_coord_upper[0]) {
+                inter_ref.x[0] -= p_domain->meas_global_length[0];
+            }
         }
-        if (inter_ref.x[1] < p_domain->getMeasuredGlobalBoxCoordLower(1)) {
-            inter_ref.x[1] += p_domain->getMeasuredGlobalLength(1);
-        } else if (inter_ref.x[1] >= p_domain->getMeasuredGlobalBoxCoordUpper(1)) {
-            inter_ref.x[1] -= p_domain->getMeasuredGlobalLength(1);
+        if (inter_ref.x[1] < p_domain->meas_global_box_coord_lower[1]) {
+            inter_ref.x[1] += p_domain->meas_global_length[1];
+        } else {
+            if (inter_ref.x[1] >= p_domain->meas_global_box_coord_upper[1]) {
+                inter_ref.x[1] -= p_domain->meas_global_length[1];
+            }
         }
-        if (inter_ref.x[2] < p_domain->getMeasuredGlobalBoxCoordLower(1)) {
-            inter_ref.x[2] += p_domain->getMeasuredGlobalLength(2);
-        } else if (inter_ref.x[2] >= p_domain->getMeasuredGlobalBoxCoordUpper(1)) {
-            inter_ref.x[2] -= p_domain->getMeasuredGlobalLength(2);
+        if (inter_ref.x[2] < p_domain->meas_global_box_coord_lower[1]) {
+            inter_ref.x[2] += p_domain->meas_global_length[2];
+        } else {
+            if (inter_ref.x[2] >= p_domain->meas_global_box_coord_upper[1]) {
+                inter_ref.x[2] -= p_domain->meas_global_length[2];
+            }
         }
     }
 
@@ -203,14 +209,14 @@ int atom::decide() {
         l = ztemp * 2 / _latticeconst + 0.5;
         k = k / 2;
         l = l / 2;
-        j -= p_domain->getGlobalGhostLatticeCoordLower(0);
-        k -= p_domain->getGlobalGhostLatticeCoordLower(1);
-        l -= p_domain->getGlobalGhostLatticeCoordLower(2);
+        j -= p_domain->lattice_coord_ghost_lower[0];
+        k -= p_domain->lattice_coord_ghost_lower[1];
+        l -= p_domain->lattice_coord_ghost_lower[2];
 
         //判断是否在所表示晶格范围内
-        if (j <= (p_domain->getSubBoxLatticeSize(0) + 2 * (ceil(_cutoffRadius / _latticeconst) + 1))
-            && k <= (p_domain->getSubBoxLatticeSize(1) + (ceil(_cutoffRadius / _latticeconst) + 1))
-            && l <= (p_domain->getSubBoxLatticeSize(2) + (ceil(_cutoffRadius / _latticeconst) + 1))) {
+        if (j <= (p_domain->lattice_size_sub_box[0] + 2 * (ceil(_cutoffRadius / _latticeconst) + 1))
+            && k <= (p_domain->lattice_size_sub_box[1] + (ceil(_cutoffRadius / _latticeconst) + 1))
+            && l <= (p_domain->lattice_size_sub_box[2] + (ceil(_cutoffRadius / _latticeconst) + 1))) {
             near_index = atom_list->IndexOf3DIndex(j, k, l);
             AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(near_index);
             if (atom_.isInterElement()) {
@@ -258,18 +264,18 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
     double rhoTmp, dfEmbed;
     double fpair;
     _type_atom_index kk;
-    int xstart = p_domain->getGhostLatticeSize(0);
-    int ystart = p_domain->getGhostLatticeSize(1);
-    int zstart = p_domain->getGhostLatticeSize(2);
+    int xstart = p_domain->lattice_size_ghost[0];
+    int ystart = p_domain->lattice_size_ghost[1];
+    int zstart = p_domain->lattice_size_ghost[2];
 
     // 本地晶格点上的原子计算电子云密度
     if (isAccelerateSupport()) {
 //     fixme  accelerateEamRhoCalc(&(rho_spline->n), atom_list, &_cutoffRadius,
 //                             &(rho_spline->invDx), rho_spline->values); // fixme
     } else { // calculate electron density use cpu only.
-        for (int k = zstart; k < p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
-            for (int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
-                for (int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
+        for (int k = zstart; k < p_domain->lattice_size_sub_box[2] + zstart; k++) {
+            for (int j = ystart; j < p_domain->lattice_size_sub_box[1] + ystart; j++) {
+                for (int i = xstart; i < p_domain->lattice_size_sub_box[0] + xstart; i++) {
                     kk = atom_list->IndexOf3DIndex(i, j, k);
                     AtomElement &atom_central = atom_list->getAtomEleByLinearIndex(kk);
                     xtemp = atom_central.x[0];
@@ -317,9 +323,9 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
         l = ztemp * 2 / _latticeconst + 0.5;
         k = k / 2;
         l = l / 2;
-        j -= p_domain->getGlobalGhostLatticeCoordLower(0);
-        k -= p_domain->getGlobalGhostLatticeCoordLower(1);
-        l -= p_domain->getGlobalGhostLatticeCoordLower(2);
+        j -= p_domain->lattice_coord_ghost_lower[0];
+        k -= p_domain->lattice_coord_ghost_lower[1];
+        l -= p_domain->lattice_coord_ghost_lower[2];
         near_index = atom_list->IndexOf3DIndex(j, k, l);
 
         AtomElement &atom_near = atom_list->getAtomEleByLinearIndex(near_index);
@@ -436,9 +442,9 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
 //       fixme accelerateEamDfCalc(&(f_spline->n), atom_list, &_cutoffRadius,
 //                            &(f_spline->invDx), f_spline->values);
     } else {
-        for (int k = zstart; k < p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
-            for (int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
-                for (int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
+        for (int k = zstart; k < p_domain->lattice_size_sub_box[2] + zstart; k++) {
+            for (int j = ystart; j < p_domain->lattice_size_sub_box[1] + ystart; j++) {
+                for (int i = xstart; i < p_domain->lattice_size_sub_box[0] + xstart; i++) {
                     kk = atom_list->IndexOf3DIndex(i, j, k);
                     AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
                     if (atom_.isInterElement()) {
@@ -483,9 +489,9 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
         }
         outfile.close();*/
 
-        for (int k = zstart; k < p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
-            for (int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
-                for (int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
+        for (int k = zstart; k < p_domain->lattice_size_sub_box[2] + zstart; k++) {
+            for (int j = ystart; j < p_domain->lattice_size_sub_box[1] + ystart; j++) {
+                for (int i = xstart; i < p_domain->lattice_size_sub_box[0] + xstart; i++) {
                     kk = atom_list->IndexOf3DIndex(i, j, k);
                     AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
                     xtemp = atom_.x[0];
@@ -542,9 +548,9 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
         l = ztemp * 2 / _latticeconst + 0.5;
         k = k / 2;
         l = l / 2;
-        j -= p_domain->getGlobalGhostLatticeCoordLower(0);
-        k -= p_domain->getGlobalGhostLatticeCoordLower(1);
-        l -= p_domain->getGlobalGhostLatticeCoordLower(2);
+        j -= p_domain->lattice_coord_ghost_lower[0];
+        k -= p_domain->lattice_coord_ghost_lower[1];
+        l -= p_domain->lattice_coord_ghost_lower[2];
         j = atom_list->IndexOf3DIndex(j, k, l);
         AtomElement &atom_central = atom_list->getAtomEleByLinearIndex(j); // cgs: 间隙原子所在晶格处的原子
 
@@ -657,13 +663,13 @@ void atom::print_force() {
     );
 
     long kk;
-    int xstart = p_domain->getGhostLatticeSize(0);
-    int ystart = p_domain->getGhostLatticeSize(1);
-    int zstart = p_domain->getGhostLatticeSize(2);
+    int xstart = p_domain->lattice_size_ghost[0];
+    int ystart = p_domain->lattice_size_ghost[1];
+    int zstart = p_domain->lattice_size_ghost[2];
     std::cout << "print_force" << std::endl;
-    for (int k = zstart; k < p_domain->getSubBoxLatticeSize(2) + zstart; k++) {
-        for (int j = ystart; j < p_domain->getSubBoxLatticeSize(1) + ystart; j++) {
-            for (int i = xstart; i < p_domain->getSubBoxLatticeSize(0) + xstart; i++) {
+    for (int k = zstart; k < p_domain->lattice_size_sub_box[2] + zstart; k++) {
+        for (int j = ystart; j < p_domain->lattice_size_sub_box[1] + ystart; j++) {
+            for (int i = xstart; i < p_domain->lattice_size_sub_box[0] + xstart; i++) {
                 kk = atom_list->IndexOf3DIndex(i, j, k);
                 AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
                 outfile << atom_.f[0] << " " << atom_.f[1] << " " << atom_.f[2] << std::endl;
@@ -675,15 +681,15 @@ void atom::print_force() {
 
 void atom::setv(int lat[4], double direction[3], double energy) {
     long kk;
-    if ((lat[0] * 2) >= p_domain->getGlobalSubBoxLatticeCoordLower(0) &&
-        (lat[0] * 2) < (p_domain->getGlobalSubBoxLatticeCoordLower(0) + p_domain->getSubBoxLatticeSize(0))
-        && lat[1] >= p_domain->getGlobalSubBoxLatticeCoordLower(1) &&
-        lat[1] < (p_domain->getGlobalSubBoxLatticeCoordLower(1) + p_domain->getSubBoxLatticeSize(1))
-        && lat[2] >= p_domain->getGlobalSubBoxLatticeCoordLower(2) &&
-        lat[2] < (p_domain->getGlobalSubBoxLatticeCoordLower(2) + p_domain->getSubBoxLatticeSize(2))) {
-        kk = (atom_list->IndexOf3DIndex(lat[0] * 2 - p_domain->getGlobalGhostLatticeCoordLower(0),
-                                        lat[1] - p_domain->getGlobalGhostLatticeCoordLower(1),
-                                        lat[2] - p_domain->getGlobalGhostLatticeCoordLower(2)) + lat[3]);
+    if ((lat[0] * 2) >= p_domain->lattice_coord_sub_box_lower[0] &&
+        (lat[0] * 2) < (p_domain->lattice_coord_sub_box_lower[0] + p_domain->lattice_size_sub_box[0])
+        && lat[1] >= p_domain->lattice_coord_sub_box_lower[1] &&
+        lat[1] < (p_domain->lattice_coord_sub_box_lower[1] + p_domain->lattice_size_sub_box[1])
+        && lat[2] >= p_domain->lattice_coord_sub_box_lower[2] &&
+        lat[2] < (p_domain->lattice_coord_sub_box_lower[2] + p_domain->lattice_size_sub_box[2])) {
+        kk = (atom_list->IndexOf3DIndex(lat[0] * 2 - p_domain->lattice_coord_ghost_lower[0],
+                                        lat[1] - p_domain->lattice_coord_ghost_lower[1],
+                                        lat[2] - p_domain->lattice_coord_ghost_lower[2]) + lat[3]);
         // todo verify the position.
         AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
         double v_ = sqrt(energy / atom_type::getAtomMass(atom_.type) / mvv2e); // the unit of v is 100m/s
@@ -695,8 +701,8 @@ void atom::setv(int lat[4], double direction[3], double energy) {
 }
 
 int atom::getnlocalatom() {
-    return (p_domain->getSubBoxLatticeSize(0) * p_domain->getSubBoxLatticeSize(1) *
-            p_domain->getSubBoxLatticeSize(2));
+    return (p_domain->lattice_size_sub_box[0] * p_domain->lattice_size_sub_box[1] *
+            p_domain->lattice_size_sub_box[2]);
 }
 
 void atom::sendForce() {
@@ -725,9 +731,9 @@ void atom::sendForce() {
             int numsend = numPartsToSend[d][direction] * 3;
             int numrecv;
 
-            MPI_Isend(sendbuf[direction], numsend, MPI_DOUBLE, p_domain->_rank_id_neighbours[d][direction], 99,
+            MPI_Isend(sendbuf[direction], numsend, MPI_DOUBLE, p_domain->rank_id_neighbours[d][direction], 99,
                       MPIDomain::sim_processor.comm, &send_requests[d][direction]);
-            MPI_Probe(p_domain->_rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
+            MPI_Probe(p_domain->rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
                       &status);//测试邻居是否有信息发送给本地
             MPI_Get_count(&status, MPI_DOUBLE, &numrecv);//得到要接收的粒子数目
             // 初始化接收缓冲区
@@ -735,7 +741,7 @@ void atom::sendForce() {
             recvbuf[direction] = new double[numrecv];
             numPartsToRecv[d][direction] = numrecv;
             MPI_Irecv(recvbuf[direction], numrecv, MPI_DOUBLE,
-                      p_domain->_rank_id_neighbours[d][(direction + 1) % 2], 99,
+                      p_domain->rank_id_neighbours[d][(direction + 1) % 2], 99,
                       MPIDomain::sim_processor.comm, &recv_requests[d][direction]);
         }
         for (direction = LOWER; direction <= HIGHER; direction++) {
@@ -780,9 +786,9 @@ void atom::sendrho() {
             int numrecv;
 
             MPI_Isend(sendbuf[direction], numsend, MPI_DOUBLE,
-                      p_domain->_rank_id_neighbours[d][direction], 99,
+                      p_domain->rank_id_neighbours[d][direction], 99,
                       MPIDomain::sim_processor.comm, &send_requests[d][direction]);
-            MPI_Probe(p_domain->_rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
+            MPI_Probe(p_domain->rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
                       &status);//测试邻居是否有信息发送给本地
             MPI_Get_count(&status, MPI_DOUBLE, &numrecv);//得到要接收的粒子数目
             // 初始化接收缓冲区
@@ -790,7 +796,7 @@ void atom::sendrho() {
             recvbuf[direction] = new double[numrecv];
             numPartsToRecv[d][direction] = numrecv;
             MPI_Irecv(recvbuf[direction], numrecv, MPI_DOUBLE,
-                      p_domain->_rank_id_neighbours[d][(direction + 1) % 2],
+                      p_domain->rank_id_neighbours[d][(direction + 1) % 2],
                       99,
                       MPIDomain::sim_processor.comm, &recv_requests[d][direction]);
         }
@@ -843,9 +849,9 @@ void atom::sendDfEmbed() {
             int numsend = numPartsToSend[d][direction];
             int numrecv;
 
-            MPI_Isend(sendbuf[direction], numsend, MPI_DOUBLE, p_domain->_rank_id_neighbours[d][direction], 99,
+            MPI_Isend(sendbuf[direction], numsend, MPI_DOUBLE, p_domain->rank_id_neighbours[d][direction], 99,
                       MPIDomain::sim_processor.comm, &send_requests[d][direction]);
-            MPI_Probe(p_domain->_rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
+            MPI_Probe(p_domain->rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
                       &status);//测试邻居是否有信息发送给本地
             MPI_Get_count(&status, MPI_DOUBLE, &numrecv);//得到要接收的粒子数目
             // 初始化接收缓冲区
@@ -853,7 +859,7 @@ void atom::sendDfEmbed() {
             recvbuf[direction] = new double[numrecv];
             numPartsToRecv[d][direction] = numrecv;
             MPI_Irecv(recvbuf[direction], numrecv, MPI_DOUBLE,
-                      p_domain->_rank_id_neighbours[d][(direction + 1) % 2],
+                      p_domain->rank_id_neighbours[d][(direction + 1) % 2],
                       99,
                       MPIDomain::sim_processor.comm, &recv_requests[d][direction]);
         }

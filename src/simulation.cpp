@@ -17,7 +17,6 @@ simulation::simulation() : _p_domain(nullptr), _atom(nullptr),
 }
 
 simulation::~simulation() {
-//    delete _p_domain; // see finalize method.
     delete _atom;
     delete _newton_motion;
     delete _pot;
@@ -30,12 +29,11 @@ void simulation::createDomainDecomposition() {
 
     //进行区域分解
     kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initializing GlobalDomain decomposition.\n");
-    _p_domain = (new Domain(pConfigVal->phaseSpace,
-                            pConfigVal->latticeConst,
-                            pConfigVal->cutoffRadiusFactor))
-            ->decomposition()
-            ->createGlobalDomain() // set global box domain.
-            ->createSubBoxDomain(); // set local sub-box domain.
+    _p_domain = Domain::Builder()
+            .setPhaseSpace(pConfigVal->phaseSpace)
+            .setCutoffRadius(pConfigVal->cutoffRadiusFactor)
+            .setLatticeConst(pConfigVal->latticeConst)
+            .build();
     kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initialization done.\n");
 
 //    _numberOfTimesteps = 1;
@@ -215,15 +213,15 @@ void simulation::finalize() {
 void simulation::output(size_t time_step, bool before_collision) {
     // atom boundary in array.
     _type_lattice_coord begin[DIMENSION] = {
-            _p_domain->getGlobalSubBoxLatticeCoordLower(0) - _p_domain->getGlobalGhostLatticeCoordLower(0),
-            _p_domain->getGlobalSubBoxLatticeCoordLower(1) - _p_domain->getGlobalGhostLatticeCoordLower(1),
-            _p_domain->getGlobalSubBoxLatticeCoordLower(2) - _p_domain->getGlobalGhostLatticeCoordLower(2)};
+            _p_domain->lattice_coord_sub_box_lower[0] - _p_domain->lattice_coord_ghost_lower[0],
+            _p_domain->lattice_coord_sub_box_lower[1] - _p_domain->lattice_coord_ghost_lower[1],
+            _p_domain->lattice_coord_sub_box_lower[2] - _p_domain->lattice_coord_ghost_lower[2]};
     _type_lattice_coord end[DIMENSION] = {
-            begin[0] + _p_domain->getSubBoxLatticeSize(0),
-            begin[1] + _p_domain->getSubBoxLatticeSize(1),
-            begin[2] + _p_domain->getSubBoxLatticeSize(2)};
-    _type_lattice_size atoms_size = _p_domain->getSubBoxLatticeSize(0) * _p_domain->getSubBoxLatticeSize(1) *
-                                    _p_domain->getSubBoxLatticeSize(2);
+            begin[0] + _p_domain->lattice_size_sub_box[0],
+            begin[1] + _p_domain->lattice_size_sub_box[1],
+            begin[2] + _p_domain->lattice_size_sub_box[2]};
+    _type_lattice_size atoms_size = _p_domain->lattice_size_sub_box[0] * _p_domain->lattice_size_sub_box[1] *
+                                    _p_domain->lattice_size_sub_box[2];
     double start = 0, stop = 0;
     static double totalDumpTime = 0;
 
@@ -249,7 +247,7 @@ void simulation::output(size_t time_step, bool before_collision) {
         }
         // pointer to the atom dump class for outputting atoms information.
         auto *dumpInstance = new AtomDump(pConfigVal->atomsDumpMode, filename,
-                                              begin, end, atoms_size);
+                                          begin, end, atoms_size);
         dumpInstance->dump(_atom->getAtomList(), _atom->getInterList(), time_step);
         dumpInstance->writeDumpHeader();
         delete dumpInstance;

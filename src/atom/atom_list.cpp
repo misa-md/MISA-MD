@@ -78,13 +78,13 @@ void AtomList::exchangeAtomFirst(Domain *p_domain, int cutlattice) {
             // only one periodic boundary appears at one dimension, so the length of array can be 3, not 6.
             double offset[DIMENSION] = {0.0, 0.0, 0.0};
             // 进程在左侧边界
-            if (p_domain->_grid_coord_sub_box[d] == 0 && direction == LOWER) {
-                offset[d] = p_domain->getMeasuredGlobalLength(d);
+            if (p_domain->grid_coord_sub_box[d] == 0 && direction == LOWER) {
+                offset[d] = p_domain->meas_global_length[d];
             }
 
             // 进程在右侧边界
-            if (p_domain->_grid_coord_sub_box[d] == p_domain->_grid_size[d] - 1 && direction == HIGHER) {
-                offset[d] = -(p_domain->getMeasuredGlobalLength(d));
+            if (p_domain->grid_coord_sub_box[d] == p_domain->grid_size[d] - 1 && direction == HIGHER) {
+                offset[d] = -((p_domain->meas_global_length[d]));
             }
 
             // 初始化发送缓冲区
@@ -103,10 +103,10 @@ void AtomList::exchangeAtomFirst(Domain *p_domain, int cutlattice) {
 
             // 向下/上发送并从上/下接收
             MPI_Isend(sendbuf[direction], numsend, mpi_types::_mpi_latParticle_data,
-                      p_domain->_rank_id_neighbours[d][direction],
+                      p_domain->rank_id_neighbours[d][direction],
                       99,
                       MPIDomain::sim_processor.comm, &send_requests[d][direction]);
-            MPI_Probe(p_domain->_rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
+            MPI_Probe(p_domain->rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
                       &status);//测试邻居是否有信息发送给本地
             MPI_Get_count(&status, mpi_types::_mpi_latParticle_data, &numrecv);//得到要接收的粒子数目
             // 初始化接收缓冲区
@@ -114,7 +114,7 @@ void AtomList::exchangeAtomFirst(Domain *p_domain, int cutlattice) {
             recvbuf[direction] = new LatParticleData[numrecv];
             numPartsToRecv[d][direction] = numrecv;
             MPI_Irecv(recvbuf[direction], numrecv, mpi_types::_mpi_latParticle_data,
-                      p_domain->_rank_id_neighbours[d][(direction + 1) % 2], 99,
+                      p_domain->rank_id_neighbours[d][(direction + 1) % 2], 99,
                       MPIDomain::sim_processor.comm, &recv_requests[d][direction]);
         }
         // receive ghost atoms
@@ -125,9 +125,9 @@ void AtomList::exchangeAtomFirst(Domain *p_domain, int cutlattice) {
 
             //将收到的粒子位置信息加到对应存储位置上
             pack::unpack_recvfirst(d, direction, numrecv, *this,
-                                   p_domain->_lattice_size_ghost,
-                                   p_domain->_lattice_size_sub_box,
-                                   p_domain->_lattice_size_ghost_extended,
+                                   p_domain->lattice_size_ghost,
+                                   p_domain->lattice_size_sub_box,
+                                   p_domain->lattice_size_ghost_extended,
                                    recvbuf[direction], recvlist);
 //            _atom->unpack_recvfirst(d, direction, numrecv, recvbuf[direction], recvlist);
 
@@ -142,7 +142,7 @@ void AtomList::exchangeAtom(Domain *p_domain) {
     double ghostlengh[DIMENSION]; // ghost区域大小
 
     for (int d = 0; d < DIMENSION; d++) {
-        ghostlengh[d] = p_domain->getMeasuredGhostLength(d);
+        ghostlengh[d] = p_domain->meas_ghost_length[d];
     }
 
     // 发送、接收数据缓冲区
@@ -165,12 +165,12 @@ void AtomList::exchangeAtom(Domain *p_domain) {
             // 当原子要跨越周期性边界, 原子坐标必须要做出调整
             double offset[DIMENSION] = {0.0, 0.0, 0.0};
             // 进程在左侧边界
-            if (p_domain->_grid_coord_sub_box[d] == 0 && direction == LOWER) {
-                offset[d] = p_domain->getMeasuredGlobalLength(d);
+            if (p_domain->grid_coord_sub_box[d] == 0 && direction == LOWER) {
+                offset[d] = p_domain->meas_global_length[d];
             }
             // 进程在右侧边界
-            if (p_domain->_grid_coord_sub_box[d] == p_domain->_grid_size[d] - 1 && direction == HIGHER) {
-                offset[d] = -(p_domain->getMeasuredGlobalLength(d));
+            if (p_domain->grid_coord_sub_box[d] == p_domain->grid_size[d] - 1 && direction == HIGHER) {
+                offset[d] = -((p_domain->meas_global_length[d]));
             }
 
             // 初始化发送缓冲区
@@ -188,10 +188,10 @@ void AtomList::exchangeAtom(Domain *p_domain) {
             int numrecv;
 
             MPI_Isend(sendbuf[direction], numsend, mpi_types::_mpi_latParticle_data,
-                      p_domain->_rank_id_neighbours[d][direction],
+                      p_domain->rank_id_neighbours[d][direction],
                       99, MPIDomain::sim_processor.comm,
                       &send_requests[d][direction]);
-            MPI_Probe(p_domain->_rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
+            MPI_Probe(p_domain->rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
                       &status);//测试邻居是否有信息发送给本地
             MPI_Get_count(&status, mpi_types::_mpi_latParticle_data, &numrecv);//得到要接收的粒子数目
             // 初始化接收缓冲区
@@ -199,7 +199,7 @@ void AtomList::exchangeAtom(Domain *p_domain) {
             recvbuf[direction] = new LatParticleData[numrecv];
             numPartsToRecv[d][direction] = numrecv;
             MPI_Irecv(recvbuf[direction], numrecv, mpi_types::_mpi_latParticle_data,
-                      p_domain->_rank_id_neighbours[d][(direction + 1) % 2], 99,
+                      p_domain->rank_id_neighbours[d][(direction + 1) % 2], 99,
                       MPIDomain::sim_processor.comm, &recv_requests[d][direction]);
         }
 
@@ -225,12 +225,12 @@ void AtomList::getatomx(Domain *p_domain, int _cutlattice, int direction,
     _type_atom_id i;
     if (direction == 0) {
         //找到要发送到邻居进程的区域
-        int xstart = p_domain->getGhostLatticeSize(0);
-        int ystart = p_domain->getGhostLatticeSize(1);
-        int zstart = p_domain->getGhostLatticeSize(2);
-        int xstop = xstart + p_domain->getGhostLatticeSize(0); // note: this is ghost lattice size.
-        int ystop = ystart + p_domain->getSubBoxLatticeSize(1);
-        int zstop = zstart + p_domain->getSubBoxLatticeSize(2);
+        int xstart = p_domain->lattice_size_ghost[0];
+        int ystart = p_domain->lattice_size_ghost[1];
+        int zstart = p_domain->lattice_size_ghost[2];
+        int xstop = xstart + p_domain->lattice_size_ghost[0]; // note: this is ghost lattice size.
+        int ystop = ystart + p_domain->lattice_size_sub_box[1];
+        int zstop = zstart + p_domain->lattice_size_sub_box[2];
 
         //要发送要邻居进程区域内的分子指针
         for (int iz = zstart; iz < zstop; iz++) {
@@ -243,12 +243,12 @@ void AtomList::getatomx(Domain *p_domain, int _cutlattice, int direction,
         }
     } else {
         //找到要发送到邻居进程的区域
-        int xstart = p_domain->getGhostLatticeSize(0) + p_domain->getSubBoxLatticeSize(0) - ((_cutlattice) * 2);
-        int ystart = p_domain->getGhostLatticeSize(1);
-        int zstart = p_domain->getGhostLatticeSize(2);
-        int xstop = p_domain->getGhostLatticeSize(0) + p_domain->getSubBoxLatticeSize(0);
-        int ystop = ystart + p_domain->getSubBoxLatticeSize(1);
-        int zstop = zstart + p_domain->getSubBoxLatticeSize(2);
+        int xstart = p_domain->lattice_size_ghost[0] + p_domain->lattice_size_sub_box[0] - ((_cutlattice) * 2);
+        int ystart = p_domain->lattice_size_ghost[1];
+        int zstart = p_domain->lattice_size_ghost[2];
+        int xstop = p_domain->lattice_size_ghost[0] + p_domain->lattice_size_sub_box[0];
+        int ystop = ystart + p_domain->lattice_size_sub_box[1];
+        int zstop = zstart + p_domain->lattice_size_sub_box[2];
 
         //要发送要邻居进程区域内的分子指针
         for (int iz = zstart; iz < zstop; iz++) {
@@ -268,11 +268,11 @@ void AtomList::getatomy(Domain *p_domain, int _cutlattice, int direction,
     if (direction == 0) {
         //找到要发送到邻居进程的区域
         int xstart = 0;
-        int ystart = p_domain->getGhostLatticeSize(1);
-        int zstart = p_domain->getGhostLatticeSize(2);
-        int xstop = p_domain->getGhostExtLatticeSize(0);
+        int ystart = p_domain->lattice_size_ghost[1];
+        int zstart = p_domain->lattice_size_ghost[2];
+        int xstop = p_domain->lattice_size_ghost_extended[0];
         int ystop = ystart + _cutlattice;
-        int zstop = zstart + p_domain->getSubBoxLatticeSize(2);
+        int zstop = zstart + p_domain->lattice_size_sub_box[2];
 
         //要发送要邻居进程区域内的分子指针
         for (int iz = zstart; iz < zstop; iz++) {
@@ -286,11 +286,11 @@ void AtomList::getatomy(Domain *p_domain, int _cutlattice, int direction,
     } else {
         //找到要发送到邻居进程的区域
         int xstart = 0;
-        int ystart = p_domain->getGhostLatticeSize(1) + p_domain->getSubBoxLatticeSize(1) - (_cutlattice);
-        int zstart = p_domain->getGhostLatticeSize(2);
-        int xstop = p_domain->getGhostExtLatticeSize(0);
-        int ystop = p_domain->getGhostLatticeSize(1) + p_domain->getSubBoxLatticeSize(1);
-        int zstop = zstart + p_domain->getSubBoxLatticeSize(2);
+        int ystart = p_domain->lattice_size_ghost[1] + p_domain->lattice_size_sub_box[1] - (_cutlattice);
+        int zstart = p_domain->lattice_size_ghost[2];
+        int xstop = p_domain->lattice_size_ghost_extended[0];
+        int ystop = p_domain->lattice_size_ghost[1] + p_domain->lattice_size_sub_box[1];
+        int zstop = zstart + p_domain->lattice_size_sub_box[2];
 
         //要发送要邻居进程区域内的分子指针
         for (int iz = zstart; iz < zstop; iz++) {
@@ -311,9 +311,9 @@ void AtomList::getatomz(Domain *p_domain, int _cutlattice, int direction,
         //找到要发送到邻居进程的区域
         int xstart = 0;
         int ystart = 0;
-        int zstart = p_domain->getGhostLatticeSize(2);
-        int xstop = p_domain->getGhostExtLatticeSize(0);
-        int ystop = p_domain->getGhostExtLatticeSize(1);
+        int zstart = p_domain->lattice_size_ghost[2];
+        int xstop = p_domain->lattice_size_ghost_extended[0];
+        int ystop = p_domain->lattice_size_ghost_extended[1];
         int zstop = zstart + _cutlattice;
 
         //要发送要邻居进程区域内的分子指针
@@ -329,10 +329,10 @@ void AtomList::getatomz(Domain *p_domain, int _cutlattice, int direction,
         //找到要发送到邻居进程的区域
         int xstart = 0;
         int ystart = 0;
-        int zstart = p_domain->getGhostLatticeSize(2) + p_domain->getSubBoxLatticeSize(2) - (_cutlattice);
-        int xstop = p_domain->getGhostExtLatticeSize(0);
-        int ystop = p_domain->getGhostExtLatticeSize(1);
-        int zstop = p_domain->getGhostLatticeSize(2) + p_domain->getSubBoxLatticeSize(2);
+        int zstart = p_domain->lattice_size_ghost[2] + p_domain->lattice_size_sub_box[2] - (_cutlattice);
+        int xstop = p_domain->lattice_size_ghost_extended[0];
+        int ystop = p_domain->lattice_size_ghost_extended[1];
+        int zstop = p_domain->lattice_size_ghost[2] + p_domain->lattice_size_sub_box[2];
 
         //要发送要邻居进程区域内的分子指针
         for (int iz = zstart; iz < zstop; iz++) {
