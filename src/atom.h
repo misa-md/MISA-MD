@@ -43,12 +43,6 @@ public :
 
     void computeEam(eam *pot, Domain *domain, double &comm);
 
-    void getatomx(int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
-
-    void getatomy(int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
-
-    void getatomz(int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
-
     /**
      * set velocity of a atom whose position is specified by array @param lat
      * This atom is called PKA (Primary Knock-on Atom).
@@ -75,6 +69,10 @@ public :
 
     inline InterAtomList *getInterList() {
         return inter_atom_list;
+    }
+
+    inline int getCutLattice() {
+        return _cutlattice;
     }
 
 private:

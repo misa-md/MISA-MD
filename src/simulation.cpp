@@ -97,7 +97,7 @@ void simulation::prepareForStart() {
                                 MPIDomain::sim_processor.comm,
                                 _pot->geEles());
 */
-    }else{
+    } else {
         _pot = eam::newInstance(0,
                                 MASTER_PROCESSOR,
                                 MPIDomain::sim_processor.own_rank,
@@ -112,7 +112,8 @@ void simulation::prepareForStart() {
     beforeAccelerateRun(_pot); // it runs after atom and boxes creation, but before simulation running.
 
     starttime = MPI_Wtime();
-    _p_domain->exchangeAtomFirst(_atom);
+    // todo make _cut_lattice a member of class AtomList
+    _atom->getAtomList()->exchangeAtomFirst(_p_domain, _atom->getCutLattice());
     // fixme those code does not fit [read atom mode], because in [create atom mode], inter is empty at first step;
     // so borderInter is not get called.
     stoptime = MPI_Wtime();
@@ -151,9 +152,9 @@ void simulation::simulate() {
                 output(_simulation_time_step, true); // dump atoms
             }
             _atom->setv(pConfigVal->collisionLat, pConfigVal->direction, pConfigVal->pkaEnergy);
-            _p_domain->exchangeInter(_atom);
-            _p_domain->borderInter(_atom);
-            _p_domain->exchangeAtom(_atom);
+            _atom->getInterList()->exchangeInter(_atom);
+            _atom->getInterList()->borderInter(_atom);
+            _atom->getAtomList()->exchangeAtom(_atom);
             _atom->clearForce();
             _atom->computeEam(_pot, _p_domain, comm);
             _p_domain->sendForce(_atom);
@@ -166,9 +167,9 @@ void simulation::simulate() {
 
         //通信ghost区域，交换粒子
         starttime = MPI_Wtime();
-        _p_domain->exchangeInter(_atom);
-        _p_domain->borderInter(_atom);
-        _p_domain->exchangeAtom(_atom);
+        _atom->getInterList()->exchangeInter(_atom);
+        _atom->getInterList()->borderInter(_atom);
+        _atom->getAtomList()->exchangeAtom(_atom);
         stoptime = MPI_Wtime();
         commtime += stoptime - starttime;
 
