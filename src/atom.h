@@ -53,7 +53,7 @@ public :
 
     void getIntertosend(int d, int direction, double ghostlengh, std::vector<int> &sendlist);
 
-    int getintersendnum(int dimension, int direction);
+    unsigned long getintersendnum(int dimension, int direction);
 
     /**
      * set velocity of a atom whose position is specified by array @param lat

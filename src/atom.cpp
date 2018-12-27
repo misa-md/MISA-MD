@@ -154,49 +154,7 @@ int atom::decide() {
                     dist += (atom_.x[1] - ytemp) * (atom_.x[1] - ytemp);
                     dist += (atom_.x[2] - ztemp) * (atom_.x[2] - ztemp);
                     if (dist > (pow(0.2 * _latticeconst, 2.0))) { /**超过距离则判断为间隙原子*/
-                        if (inter_atom_list->xinter.size() > inter_atom_list->nlocalinter) {
-                            if (inter_atom_list->idinter.size() > inter_atom_list->nlocalinter) {
-                                inter_atom_list->idinter[inter_atom_list->nlocalinter] = atom_.id;
-                            } else {
-                                inter_atom_list->idinter.push_back(atom_.id);
-                            }
-                            inter_atom_list->typeinter[inter_atom_list->nlocalinter] = atom_.type; // todo type.
-                            inter_atom_list->xinter[inter_atom_list->nlocalinter][0] = atom_.x[0];
-                            inter_atom_list->xinter[inter_atom_list->nlocalinter][1] = atom_.x[1];
-                            inter_atom_list->xinter[inter_atom_list->nlocalinter][2] = atom_.x[2];
-
-                            if (inter_atom_list->vinter.size() > inter_atom_list->nlocalinter) {
-                                inter_atom_list->vinter[inter_atom_list->nlocalinter][0] = atom_.v[0];
-                                inter_atom_list->vinter[inter_atom_list->nlocalinter][1] = atom_.v[1];
-                                inter_atom_list->vinter[inter_atom_list->nlocalinter][2] = atom_.v[2];
-                            } else {
-                                inter_atom_list->vinter.resize(inter_atom_list->nlocalinter + 1,
-                                                               std::vector<double>(3));
-                                inter_atom_list->vinter[inter_atom_list->nlocalinter][0] = atom_.v[0];
-                                inter_atom_list->vinter[inter_atom_list->nlocalinter][1] = atom_.v[1];
-                                inter_atom_list->vinter[inter_atom_list->nlocalinter][2] = atom_.v[2];
-                            }
-                            inter_atom_list->nlocalinter++;
-                            inter_atom_list->finter.resize(inter_atom_list->nlocalinter, std::vector<double>(3));
-                            inter_atom_list->rhointer.resize(inter_atom_list->nlocalinter);
-                            inter_atom_list->dfinter.resize(inter_atom_list->nlocalinter);
-                        } else {
-                            inter_atom_list->idinter.push_back(atom_.id);
-                            inter_atom_list->typeinter.push_back(atom_.type);
-                            inter_atom_list->xinter.resize(inter_atom_list->nlocalinter + 1, std::vector<double>(3));
-                            inter_atom_list->xinter[inter_atom_list->nlocalinter][0] = atom_.x[0];
-                            inter_atom_list->xinter[inter_atom_list->nlocalinter][1] = atom_.x[1];
-                            inter_atom_list->xinter[inter_atom_list->nlocalinter][2] = atom_.x[2];
-                            inter_atom_list->vinter.resize(inter_atom_list->nlocalinter + 1, std::vector<double>(3));
-                            inter_atom_list->vinter[inter_atom_list->nlocalinter][0] = atom_.v[0];
-                            inter_atom_list->vinter[inter_atom_list->nlocalinter][1] = atom_.v[1];
-                            inter_atom_list->vinter[inter_atom_list->nlocalinter][2] = atom_.v[2];
-                            inter_atom_list->nlocalinter++;
-                            inter_atom_list->finter.resize(inter_atom_list->nlocalinter, std::vector<double>(3));
-                            inter_atom_list->rhointer.resize(inter_atom_list->nlocalinter);
-                            inter_atom_list->dfinter.resize(inter_atom_list->nlocalinter);
-                        }
-
+                        inter_atom_list->addInterAtom(atom_);
                         atom_.type = atom_type::INVALID;
                         atom_.v[0] = 0;
                         atom_.v[1] = 0;
@@ -209,31 +167,34 @@ int atom::decide() {
     }
 
     // periodic boundary
-    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
-        if (inter_atom_list->xinter[i][0] < p_domain->getMeasuredGlobalBoxCoordLower(0)) {
-            inter_atom_list->xinter[i][0] += p_domain->getMeasuredGlobalLength(0);
-        } else if (inter_atom_list->xinter[i][0] >= p_domain->getMeasuredGlobalBoxCoordUpper(0)) {
-            inter_atom_list->xinter[i][0] -= p_domain->getMeasuredGlobalLength(0);
+    for (AtomElement &inter_ref :inter_atom_list->inter_list) {
+        if (inter_ref.x[0] < p_domain->getMeasuredGlobalBoxCoordLower(0)) {
+            inter_ref.x[0] += p_domain->getMeasuredGlobalLength(0);
+        } else if (inter_ref.x[0] >= p_domain->getMeasuredGlobalBoxCoordUpper(0)) {
+            inter_ref.x[0] -= p_domain->getMeasuredGlobalLength(0);
         }
-        if (inter_atom_list->xinter[i][1] < p_domain->getMeasuredGlobalBoxCoordLower(1)) {
-            inter_atom_list->xinter[i][1] += p_domain->getMeasuredGlobalLength(1);
-        } else if (inter_atom_list->xinter[i][1] >= p_domain->getMeasuredGlobalBoxCoordUpper(1)) {
-            inter_atom_list->xinter[i][1] -= p_domain->getMeasuredGlobalLength(1);
+        if (inter_ref.x[1] < p_domain->getMeasuredGlobalBoxCoordLower(1)) {
+            inter_ref.x[1] += p_domain->getMeasuredGlobalLength(1);
+        } else if (inter_ref.x[1] >= p_domain->getMeasuredGlobalBoxCoordUpper(1)) {
+            inter_ref.x[1] -= p_domain->getMeasuredGlobalLength(1);
         }
-        if (inter_atom_list->xinter[i][2] < p_domain->getMeasuredGlobalBoxCoordLower(1)) {
-            inter_atom_list->xinter[i][2] += p_domain->getMeasuredGlobalLength(2);
-        } else if (inter_atom_list->xinter[i][2] >= p_domain->getMeasuredGlobalBoxCoordUpper(1)) {
-            inter_atom_list->xinter[i][2] -= p_domain->getMeasuredGlobalLength(2);
+        if (inter_ref.x[2] < p_domain->getMeasuredGlobalBoxCoordLower(1)) {
+            inter_ref.x[2] += p_domain->getMeasuredGlobalLength(2);
+        } else if (inter_ref.x[2] >= p_domain->getMeasuredGlobalBoxCoordUpper(1)) {
+            inter_ref.x[2] -= p_domain->getMeasuredGlobalLength(2);
         }
     }
 
     // 如果间隙原子跑入晶格点,且晶格点为空位, 则空位-间隙发生复合.
-    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
+    _type_inter_list::iterator inter_it;
+    for (inter_it = inter_atom_list->inter_list.begin(); inter_it != inter_atom_list->inter_list.end(); inter_it++) {
+        AtomElement &inter_ref = *inter_it;
+//    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
         _type_atom_index near_index;
         int j, k, l;
-        xtemp = inter_atom_list->xinter[i][0];
-        ytemp = inter_atom_list->xinter[i][1];
-        ztemp = inter_atom_list->xinter[i][2];
+        xtemp = inter_ref.x[0];
+        ytemp = inter_ref.x[1];
+        ztemp = inter_ref.x[2];
         j = xtemp * 2 / _latticeconst + 0.5;
         k = ytemp * 2 / _latticeconst + 0.5;
         l = ztemp * 2 / _latticeconst + 0.5;
@@ -250,25 +211,17 @@ int atom::decide() {
             near_index = atom_list->IndexOf3DIndex(j, k, l);
             AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(near_index);
             if (atom_.isInterElement()) {
-                atom_.id = inter_atom_list->idinter[i];
-                atom_.type = inter_atom_list->typeinter[i]; // set type to valid.
-                atom_.x[0] = inter_atom_list->xinter[i][0];
-                atom_.x[1] = inter_atom_list->xinter[i][1];
-                atom_.x[2] = inter_atom_list->xinter[i][2];
-                atom_.v[0] = inter_atom_list->vinter[i][0];
-                atom_.v[1] = inter_atom_list->vinter[i][1];
-                atom_.v[2] = inter_atom_list->vinter[i][2];
+                atom_.id = inter_ref.id;
+                atom_.type = inter_ref.type; // set type to valid.
+                atom_.x[0] = inter_ref.x[0];
+                atom_.x[1] = inter_ref.x[1];
+                atom_.x[2] = inter_ref.x[2];
+                atom_.v[0] = inter_ref.v[0];
+                atom_.v[1] = inter_ref.v[1];
+                atom_.v[2] = inter_ref.v[2];
 
-                inter_atom_list->idinter[i] = inter_atom_list->idinter[inter_atom_list->nlocalinter - 1];
-                inter_atom_list->typeinter[i] = inter_atom_list->typeinter[inter_atom_list->nlocalinter - 1];
-                inter_atom_list->xinter[i][0] = inter_atom_list->xinter[inter_atom_list->nlocalinter - 1][0];
-                inter_atom_list->xinter[i][1] = inter_atom_list->xinter[inter_atom_list->nlocalinter - 1][1];
-                inter_atom_list->xinter[i][2] = inter_atom_list->xinter[inter_atom_list->nlocalinter - 1][2];
-                inter_atom_list->vinter[i][0] = inter_atom_list->vinter[inter_atom_list->nlocalinter - 1][0];
-                inter_atom_list->vinter[i][1] = inter_atom_list->vinter[inter_atom_list->nlocalinter - 1][1];
-                inter_atom_list->vinter[i][2] = inter_atom_list->vinter[inter_atom_list->nlocalinter - 1][2];
-
-                i--;
+                // remove this atom from inter list.
+                inter_it = inter_atom_list->inter_list.erase(inter_it);
                 inter_atom_list->nlocalinter--;
             }
         }
@@ -277,18 +230,18 @@ int atom::decide() {
 }
 
 void atom::clearForce() {
-    for (int i = 0; i < numberoflattice; i++) {
+    for (_type_atom_index i = 0; i < numberoflattice; i++) {
         AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(i);
         atom_.f[0] = 0;
         atom_.f[1] = 0;
         atom_.f[2] = 0;
         atom_.rho = 0;
     }
-    for (int i = 0; i < inter_atom_list->finter.size(); i++) {
-        inter_atom_list->finter[i][0] = 0;
-        inter_atom_list->finter[i][1] = 0;
-        inter_atom_list->finter[i][2] = 0;
-        inter_atom_list->rhointer[i] = 0;
+    for (AtomElement &inter_ref :inter_atom_list->inter_list) {
+        inter_ref.f[0] = 0;
+        inter_ref.f[1] = 0;
+        inter_ref.f[2] = 0;
+        inter_ref.rho = 0;
     }
 }
 
@@ -350,10 +303,12 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
     //间隙原子电子云密度
     int j, k, l;
     _type_atom_index near_index;
-    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
-        xtemp = inter_atom_list->xinter[i][0];
-        ytemp = inter_atom_list->xinter[i][1];
-        ztemp = inter_atom_list->xinter[i][2];
+    for (_type_inter_list::iterator inter_it = inter_atom_list->inter_list.begin();
+         inter_it != inter_atom_list->inter_list.end(); inter_it++) {
+//    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
+        xtemp = (*inter_it).x[0];
+        ytemp = (*inter_it).x[1];
+        ztemp = (*inter_it).x[2];
         j = xtemp * 2 / _latticeconst + 0.5;
         k = ytemp * 2 / _latticeconst + 0.5;
         l = ztemp * 2 / _latticeconst + 0.5;
@@ -370,8 +325,8 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
         delz = ztemp - atom_near.x[2];
         dist2 = delx * delx + dely * dely + delz * delz;
         if (!atom_near.isInterElement() && dist2 < (_cutoffRadius * _cutoffRadius)) {
-            inter_atom_list->rhointer[i] += pot->rhoContribution(atom_type::getTypeIdByType(atom_near.type), dist2);
-            atom_near.rho += pot->rhoContribution(atom_type::getTypeIdByType(inter_atom_list->typeinter[i]), dist2);
+            (*inter_it).rho += pot->rhoContribution(atom_type::getTypeIdByType(atom_near.type), dist2);
+            atom_near.rho += pot->rhoContribution(atom_type::getTypeIdByType((*inter_it).type), dist2);
             // fixme
         }
 
@@ -386,10 +341,10 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
                 delz = ztemp - atom_neighbour_up.x[2];
                 dist2 = delx * delx + dely * dely + delz * delz;
                 if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                    inter_atom_list->rhointer[i] += pot->rhoContribution(
+                    (*inter_it).rho += pot->rhoContribution(
                             atom_type::getTypeIdByType(atom_neighbour_up.type), dist2);
                     atom_neighbour_up.rho += pot->rhoContribution(
-                            atom_type::getTypeIdByType(inter_atom_list->typeinter[i]), dist2);
+                            atom_type::getTypeIdByType((*inter_it).type), dist2);
                     // fixme
                 }
             }
@@ -402,35 +357,35 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
                 delz = ztemp - atom_neighbour_down.x[2];
                 dist2 = delx * delx + dely * dely + delz * delz;
                 if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                    inter_atom_list->rhointer[i] += pot->rhoContribution(
+                    (*inter_it).rho += pot->rhoContribution(
                             atom_type::getTypeIdByType(atom_neighbour_down.type), dist2);
                     atom_neighbour_down.rho += pot->rhoContribution(
-                            atom_type::getTypeIdByType(inter_atom_list->typeinter[i]), dist2);
+                            atom_type::getTypeIdByType((*inter_it).type), dist2);
                     // fixme
                 }
             }
         }
         //对间隙原子遍历
-        for (int k = i + 1; k < (inter_atom_list->nghostinter + inter_atom_list->nlocalinter); k++) {
-            delx = xtemp - inter_atom_list->xinter[k][0];
-            dely = ytemp - inter_atom_list->xinter[k][1];
-            delz = ztemp - inter_atom_list->xinter[k][2];
+        for (_type_inter_list::iterator next_inter_it;
+             next_inter_it != inter_atom_list->inter_ghost_list.end(); next_inter_it++) {
+            if (next_inter_it == inter_atom_list->inter_list.end()) {
+                next_inter_it = inter_atom_list->inter_ghost_list.begin();
+            }
+            delx = xtemp - (*next_inter_it).x[0];
+            dely = ytemp - (*next_inter_it).x[1];
+            delz = ztemp - (*next_inter_it).x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                inter_atom_list->rhointer[i] += pot->rhoContribution(
-                        atom_type::getTypeIdByType(inter_atom_list->typeinter[k]), dist2);
-                inter_atom_list->rhointer[k] += pot->rhoContribution(
-                        atom_type::getTypeIdByType(inter_atom_list->typeinter[i]), dist2);
+                (*inter_it).rho += pot->rhoContribution(atom_type::getTypeIdByType((*next_inter_it).type), dist2);
+                (*next_inter_it).rho += pot->rhoContribution(atom_type::getTypeIdByType((*inter_it).type), dist2);
                 // fixme
             }
         }
         // todo inter ghost atoms -> cell atoms
         //计算间隙原子嵌入能导数
         // fixme
-        dfEmbed = pot->embedEnergyContribution(
-                atom_type::getTypeIdByType(inter_atom_list->typeinter[i]),
-                inter_atom_list->rhointer[i]);
-        inter_atom_list->dfinter[i] = dfEmbed;
+        dfEmbed = pot->embedEnergyContribution(atom_type::getTypeIdByType((*inter_it).type), (*inter_it).rho);
+        (*inter_it).df = dfEmbed;
     }
 
 //    ofstream outfile;
@@ -573,11 +528,12 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
       outfile.close();*/ // 2.todo remove end.
 
     //间隙原子计算嵌入能和对势带来的力
-    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
+    for (_type_inter_list::iterator inter_it = inter_atom_list->inter_list.begin();
+         inter_it != inter_atom_list->inter_list.end(); inter_it++) {
         int j, k, l;
-        xtemp = inter_atom_list->xinter[i][0];
-        ytemp = inter_atom_list->xinter[i][1];
-        ztemp = inter_atom_list->xinter[i][2];
+        xtemp = (*inter_it).x[0];
+        ytemp = (*inter_it).x[1];
+        ztemp = (*inter_it).x[2];
         j = xtemp * 2 / _latticeconst + 0.5;
         k = ytemp * 2 / _latticeconst + 0.5;
         l = ztemp * 2 / _latticeconst + 0.5;
@@ -596,13 +552,13 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
         if (dist2 < (_cutoffRadius * _cutoffRadius) && !atom_central.isInterElement()) {
             // fixme
             fpair = pot->toForce(
-                    atom_type::getTypeIdByType(inter_atom_list->typeinter[i]),
+                    atom_type::getTypeIdByType((*inter_it).type),
                     atom_type::getTypeIdByType(atom_central.type),
-                    dist2, inter_atom_list->dfinter[i] + atom_central.df);
+                    dist2, (*inter_it).df + atom_central.df);
 
-            inter_atom_list->finter[i][0] += delx * fpair;
-            inter_atom_list->finter[i][1] += dely * fpair;
-            inter_atom_list->finter[i][2] += delz * fpair;
+            (*inter_it).f[0] += delx * fpair;
+            (*inter_it).f[1] += dely * fpair;
+            (*inter_it).f[2] += delz * fpair;
 
             atom_central.f[0] -= delx * fpair;
             atom_central.f[1] -= dely * fpair;
@@ -620,13 +576,13 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             if (dist2 < (_cutoffRadius * _cutoffRadius) && !atom_neighbour_up.isInterElement()) {
                 // fixme
                 fpair = pot->toForce(
-                        atom_type::getTypeIdByType(inter_atom_list->typeinter[i]),
+                        atom_type::getTypeIdByType((*inter_it).type),
                         atom_type::getTypeIdByType(atom_neighbour_up.type),
-                        dist2, inter_atom_list->dfinter[i] + atom_neighbour_up.df);
+                        dist2, (*inter_it).df + atom_neighbour_up.df);
 
-                inter_atom_list->finter[i][0] += delx * fpair;
-                inter_atom_list->finter[i][1] += dely * fpair;
-                inter_atom_list->finter[i][2] += delz * fpair;
+                (*inter_it).f[0] += delx * fpair;
+                (*inter_it).f[1] += dely * fpair;
+                (*inter_it).f[2] += delz * fpair;
 
                 atom_neighbour_up.f[0] -= delx * fpair;
                 atom_neighbour_up.f[1] -= dely * fpair;
@@ -642,13 +598,13 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             if (dist2 < (_cutoffRadius * _cutoffRadius && !atom_neighbour_down.isInterElement())) {
                 // fixme
                 fpair = pot->toForce(
-                        atom_type::getTypeIdByType(inter_atom_list->typeinter[i]),
+                        atom_type::getTypeIdByType((*inter_it).type),
                         atom_type::getTypeIdByType(atom_neighbour_down.type),
-                        dist2, inter_atom_list->dfinter[i] + atom_neighbour_down.df);
+                        dist2, (*inter_it).df + atom_neighbour_down.df);
 
-                inter_atom_list->finter[i][0] += delx * fpair;
-                inter_atom_list->finter[i][1] += dely * fpair;
-                inter_atom_list->finter[i][2] += delz * fpair;
+                (*inter_it).f[0] += delx * fpair;
+                (*inter_it).f[1] += dely * fpair;
+                (*inter_it).f[2] += delz * fpair;
 
                 atom_neighbour_down.f[0] -= delx * fpair;
                 atom_neighbour_down.f[1] -= dely * fpair;
@@ -656,25 +612,30 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             }
         }
         //对间隙原子遍历
-        for (int k = i + 1; k < (inter_atom_list->nghostinter + inter_atom_list->nlocalinter); k++) {
-            delx = xtemp - inter_atom_list->xinter[k][0];
-            dely = ytemp - inter_atom_list->xinter[k][1];
-            delz = ztemp - inter_atom_list->xinter[k][2];
+        for (_type_inter_list::iterator next_inter_it;
+             next_inter_it != inter_atom_list->inter_ghost_list.end(); next_inter_it++) {
+            if (next_inter_it == inter_atom_list->inter_list.end()) {
+                next_inter_it = inter_atom_list->inter_ghost_list.begin();
+            }
+            // for (int k = i + 1; k < (inter_atom_list->nghostinter + inter_atom_list->nlocalinter); k++) {
+            delx = xtemp - (*next_inter_it).x[0];
+            dely = ytemp - (*next_inter_it).x[1];
+            delz = ztemp - (*next_inter_it).x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                 // fixme
                 fpair = pot->toForce(
-                        atom_type::getTypeIdByType(inter_atom_list->typeinter[i]),
-                        atom_type::getTypeIdByType(inter_atom_list->typeinter[k]),
-                        dist2, inter_atom_list->dfinter[i] + inter_atom_list->dfinter[k]);
+                        atom_type::getTypeIdByType((*inter_it).type),
+                        atom_type::getTypeIdByType((*next_inter_it).type),
+                        dist2, (*inter_it).df + (*next_inter_it).df);
 
-                inter_atom_list->finter[i][0] += delx * fpair;
-                inter_atom_list->finter[i][1] += dely * fpair;
-                inter_atom_list->finter[i][2] += delz * fpair;
+                (*inter_it).f[0] += delx * fpair;
+                (*inter_it).f[1] += dely * fpair;
+                (*inter_it).f[2] += delz * fpair;
 
-                inter_atom_list->finter[k][0] -= delx * fpair;
-                inter_atom_list->finter[k][1] -= dely * fpair;
-                inter_atom_list->finter[k][2] -= delz * fpair;
+                (*next_inter_it).f[0] -= delx * fpair;
+                (*next_inter_it).f[1] -= dely * fpair;
+                (*next_inter_it).f[2] -= delz * fpair;
             }
         }
     }
@@ -809,76 +770,134 @@ void atom::getatomz(int direction, std::vector<std::vector<_type_atom_id> > &sen
 
 void atom::getIntertosend(int d, int direction, double ghostlengh, std::vector<int> &sendlist) {
     double low, high;
+    unsigned long i = 0;
     if (d == 0) {
         if (direction == 0) {
             low = p_domain->getMeasuredSubBoxLowerBounding(0);
             high = p_domain->getMeasuredSubBoxLowerBounding(0) + ghostlengh;
-            for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
-                if (inter_atom_list->xinter[i][0] < high && inter_atom_list->xinter[i][0] >= low) {
+            // fixme fixme checkout ghost inters
+            i = 0;
+            for (AtomElement &inter_ref :inter_atom_list->inter_list) {
+                if (inter_ref.x[0] < high && inter_ref.x[0] >= low) {
                     sendlist.push_back(i);
                 }
+                i++;
+            }
+            i = inter_atom_list->nLocalInter();
+            for (AtomElement &ghost_ref :inter_atom_list->inter_ghost_list) {
+                if (ghost_ref.x[0] < high && ghost_ref.x[0] >= low) {
+                    sendlist.push_back(i);
+                }
+                i++;
             }
         } else {
             low = p_domain->getMeasuredSubBoxUpperBounding(0) - ghostlengh;
             high = p_domain->getMeasuredSubBoxUpperBounding(0);
-            for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
-                if (inter_atom_list->xinter[i][0] <= high && inter_atom_list->xinter[i][0] > low) {
+            i = 0;
+            for (AtomElement &inter_ref :inter_atom_list->inter_list) {
+                if (inter_ref.x[0] <= high && inter_ref.x[0] > low) {
                     sendlist.push_back(i);
                 }
+                i++;
+            }
+            i = inter_atom_list->nLocalInter();
+            for (AtomElement &ghost_ref :inter_atom_list->inter_ghost_list) {
+                if (ghost_ref.x[0] <= high && ghost_ref.x[0] > low) {
+                    sendlist.push_back(i);
+                }
+                i++;
             }
         }
     } else if (d == 1) {
         if (direction == 0) {
             low = p_domain->getMeasuredSubBoxLowerBounding(1);
             high = p_domain->getMeasuredSubBoxLowerBounding(1) + ghostlengh;
-            for (int i = 0; i < inter_atom_list->nlocalinter + inter_atom_list->nghostinter; i++) {
-                if (inter_atom_list->xinter[i][1] < high && inter_atom_list->xinter[i][1] >= low) {
+            i = 0;
+            for (AtomElement &inter_ref :inter_atom_list->inter_list) {
+                if (inter_ref.x[1] < high && inter_ref.x[1] >= low) {
                     sendlist.push_back(i);
                 }
+                i++;
+            }
+            i = inter_atom_list->nLocalInter();
+            for (AtomElement &ghost_ref :inter_atom_list->inter_ghost_list) {
+                if (ghost_ref.x[1] < high && ghost_ref.x[1] >= low) {
+                    sendlist.push_back(i);
+                }
+                i++;
             }
         } else {
             low = p_domain->getMeasuredSubBoxUpperBounding(1) - ghostlengh;
             high = p_domain->getMeasuredSubBoxUpperBounding(1);
-            for (int i = 0; i < inter_atom_list->nlocalinter + inter_atom_list->nghostinter; i++) {
-                if (inter_atom_list->xinter[i][1] <= high && inter_atom_list->xinter[i][1] > low) {
+            i = 0;
+            for (AtomElement &inter_ref :inter_atom_list->inter_list) {
+                if (inter_ref.x[1] <= high && inter_ref.x[1] > low) {
                     sendlist.push_back(i);
                 }
+                i++;
+            }
+            i = inter_atom_list->nLocalInter();
+            for (AtomElement &ghost_ref :inter_atom_list->inter_ghost_list) {
+                if (ghost_ref.x[1] <= high && ghost_ref.x[1] > low) {
+                    sendlist.push_back(i);
+                }
+                i++;
             }
         }
     } else {
         if (direction == 0) {
             low = p_domain->getMeasuredSubBoxLowerBounding(2);
             high = p_domain->getMeasuredSubBoxLowerBounding(2) + ghostlengh;
-            for (int i = 0; i < inter_atom_list->nlocalinter + inter_atom_list->nghostinter; i++) {
-                if (inter_atom_list->xinter[i][2] < high && inter_atom_list->xinter[i][2] >= low) {
+            i = 0;
+            for (AtomElement &inter_ref :inter_atom_list->inter_list) {
+                if (inter_ref.x[2] < high && inter_ref.x[2] >= low) {
                     sendlist.push_back(i);
                 }
+                i++;
+            }
+            i = inter_atom_list->nLocalInter();
+            for (AtomElement &ghost_ref :inter_atom_list->inter_ghost_list) {
+                if (ghost_ref.x[2] < high && ghost_ref.x[2] >= low) {
+                    sendlist.push_back(i);
+                }
+                i++;
             }
         } else {
             low = p_domain->getMeasuredSubBoxUpperBounding(2) - ghostlengh;
             high = p_domain->getMeasuredSubBoxUpperBounding(2);
-            for (int i = 0; i < inter_atom_list->nlocalinter + inter_atom_list->nghostinter; i++) {
-                if (inter_atom_list->xinter[i][2] <= high && inter_atom_list->xinter[i][2] > low) {
+            i = 0;
+            for (AtomElement &inter_ref :inter_atom_list->inter_list) {
+                if (inter_ref.x[2] <= high && inter_ref.x[2] > low) {
                     sendlist.push_back(i);
                 }
+                i++;
+            }
+            i = inter_atom_list->nLocalInter();
+            for (AtomElement &ghost_ref :inter_atom_list->inter_ghost_list) {
+                if (ghost_ref.x[2] <= high && ghost_ref.x[2] > low) {
+                    sendlist.push_back(i);
+                }
+                i++;
             }
         }
     }
 }
 
-int atom::getintersendnum(int dimension, int direction) {
+unsigned long atom::getintersendnum(int dimension, int direction) {
     interbuf.clear();
-    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
+    unsigned long i = 0;
+    for (AtomElement &inter_ref :inter_atom_list->inter_list) {
         if (direction == 0) {
             // we assume that, a atom cannot cross 2 or more than 2 sub-boxes
-            if (inter_atom_list->xinter[i][dimension] < p_domain->getMeasuredSubBoxLowerBounding(dimension)) {
+            if (inter_ref.x[dimension] < p_domain->getMeasuredSubBoxLowerBounding(dimension)) {
                 interbuf.push_back(i);
             }
         } else {
-            if (inter_atom_list->xinter[i][dimension] >= p_domain->getMeasuredSubBoxUpperBounding(dimension)) {
+            if (inter_ref.x[dimension] >= p_domain->getMeasuredSubBoxUpperBounding(dimension)) {
                 interbuf.push_back(i);
             }
         }
+        i++;
     }
     return interbuf.size();
 }

@@ -54,11 +54,12 @@ void NewtonMotion::computeFirst(AtomList *atom_list, InterAtomList *inter_atom_l
 
     //本地间隙原子求解运动方程第一步
     atom_type::atom_type _type;
-    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
+    for (AtomElement &inter_ref :inter_atom_list->inter_list) {
+//    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
         for (unsigned short d = 0; d < 3; ++d) {
-            _type = inter_atom_list->typeinter[i];
-            inter_atom_list->vinter[i][d] = inter_atom_list->vinter[i][d] + dt_inv_m[_type] * inter_atom_list->finter[i][d];
-            inter_atom_list->xinter[i][d] += dt * inter_atom_list->vinter[i][d];
+            _type = inter_ref.type;
+            inter_ref.v[d] = inter_ref.v[d] + dt_inv_m[_type] * inter_ref.f[d];
+            inter_ref.x[d] += dt * inter_ref.v[d];
         }
     }
 }
@@ -76,11 +77,12 @@ void NewtonMotion::computeSecond(AtomList *atom_list, InterAtomList *inter_atom_
     );
     //本地间隙原子求解运动方程第二步
     atom_type::atom_type _type;
-    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
+    for (AtomElement &inter_ref :inter_atom_list->inter_list) {
+//    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
         for (unsigned short d = 0; d < 3; ++d) {
-            _type = inter_atom_list->typeinter[i];
-            inter_atom_list->vinter[i][d] =
-                    inter_atom_list->vinter[i][d] + dt_inv_m[_type] * inter_atom_list->finter[i][d];
+            _type = inter_ref.type;
+            inter_ref.v[d] =
+                    inter_ref.v[d] + dt_inv_m[_type] * inter_ref.f[d];
         }
     }
 }

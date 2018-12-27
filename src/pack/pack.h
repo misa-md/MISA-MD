@@ -13,23 +13,6 @@
 #include "../atom/inter_atom_list.h"
 
 namespace pack {
-
-    void pack_intersend(InterAtomList *inter,
-                        std::vector<unsigned long> interbuf, particledata *buf);
-
-    void unpack_interrecv(int d, int n, InterAtomList *inter,
-                          double lower[DIMENSION], // p_domain->getMeasuredSubBoxLowerBounding(d)
-                          double upper[DIMENSION], // p_domain->getMeasuredSubBoxUpperBounding(d)
-                          particledata *buf);
-
-    void pack_bordersend(int dimension, int n, InterAtomList *inter,
-                         std::vector<int> &sendlist, LatParticleData *buf, double shift);
-
-    void unpack_borderrecv(int n, InterAtomList *inter,
-                           double lower[DIMENSION], // p_domain->getMeasuredGhostLowerBounding(d)
-                           double upper[DIMENSION], // p_domain->getMeasuredGhostUpperBounding(d)
-                           LatParticleData *buf, std::vector<int> &recvlist);
-
     /**
      * package ghost atom to its neighbors processors
      * @param dimension 0,1,2. which refers to x,y,z dimension.
