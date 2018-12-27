@@ -2,10 +2,13 @@
 #include <cmath>
 #include <fstream>
 #include <iomanip>
+
+#include <utils/mpi_domain.h>
 #include <logs/logs.h>
 #include <eam.h>
 
 #include "atom.h"
+#include "pack/pack.h"
 #include "toml_config.h"
 #include "hardware_accelerate.hpp" // use hardware(eg.GPU, MIC,Sunway slave cores.) to achieve calculate accelerating.
 
@@ -409,7 +412,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
     // 发送电子云密度
     // 将ghost区域的粒子的电子云密度发送给其所在的进程，得到完整的电子云密度
     starttime = MPI_Wtime();
-    domain->sendrho(this);
+    sendrho();
     stoptime = MPI_Wtime();
     comm = stoptime - starttime;
 
@@ -458,7 +461,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
     // 发送嵌入能导数
     // 将本地box属于邻居进程ghost区域的粒子的嵌入能导数发送给邻居进程
     starttime = MPI_Wtime();
-    domain->sendDfEmbed(this);
+    sendDfEmbed();
     stoptime = MPI_Wtime();
     comm += stoptime - starttime;
 
@@ -694,4 +697,181 @@ void atom::setv(int lat[4], double direction[3], double energy) {
 int atom::getnlocalatom() {
     return (p_domain->getSubBoxLatticeSize(0) * p_domain->getSubBoxLatticeSize(1) *
             p_domain->getSubBoxLatticeSize(2));
+}
+
+void atom::sendForce() {
+    // 发送、接收数据缓冲区
+    int numPartsToSend[DIMENSION][2];
+    int numPartsToRecv[DIMENSION][2];
+    double *sendbuf[2];
+    double *recvbuf[2];
+
+    MPI_Status status;
+    MPI_Status send_statuses[DIMENSION][2];
+    MPI_Status recv_statuses[DIMENSION][2];
+    MPI_Request send_requests[DIMENSION][2];
+    MPI_Request recv_requests[DIMENSION][2];
+
+    int direction;
+    int iswap = 5;
+    for (int d = (DIMENSION - 1); d >= 0; d--) {
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            numPartsToSend[d][direction] = atom_list->recvlist[iswap].size();
+            sendbuf[direction] = new double[numPartsToSend[d][direction] * 3];
+            pack::pack_force(numPartsToSend[d][direction], getAtomListRef(),
+                             sendbuf[direction], atom_list->recvlist[iswap--]);
+        }
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            int numsend = numPartsToSend[d][direction] * 3;
+            int numrecv;
+
+            MPI_Isend(sendbuf[direction], numsend, MPI_DOUBLE, p_domain->_rank_id_neighbours[d][direction], 99,
+                      MPIDomain::sim_processor.comm, &send_requests[d][direction]);
+            MPI_Probe(p_domain->_rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
+                      &status);//测试邻居是否有信息发送给本地
+            MPI_Get_count(&status, MPI_DOUBLE, &numrecv);//得到要接收的粒子数目
+            // 初始化接收缓冲区
+            //依据得到发送方要发送粒子信息大小，初始化接收缓冲区
+            recvbuf[direction] = new double[numrecv];
+            numPartsToRecv[d][direction] = numrecv;
+            MPI_Irecv(recvbuf[direction], numrecv, MPI_DOUBLE,
+                      p_domain->_rank_id_neighbours[d][(direction + 1) % 2], 99,
+                      MPIDomain::sim_processor.comm, &recv_requests[d][direction]);
+        }
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            int numrecv = numPartsToRecv[d][direction]; // todo remove not used variable.
+            MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
+            MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
+
+            //将收到的粒子位置信息加到对应存储位置上
+            pack::unpack_force(d, direction, getAtomListRef(), recvbuf[direction], atom_list->sendlist);
+
+            delete[] sendbuf[direction];
+            delete[] recvbuf[direction];
+        }
+    }
+}
+
+void atom::sendrho() {
+    // 发送、接收数据缓冲区
+    int numPartsToSend[DIMENSION][2];
+    int numPartsToRecv[DIMENSION][2];
+    double *sendbuf[2];
+    double *recvbuf[2];
+
+    MPI_Status status;
+    MPI_Status send_statuses[DIMENSION][2];
+    MPI_Status recv_statuses[DIMENSION][2];
+    MPI_Request send_requests[DIMENSION][2];
+    MPI_Request recv_requests[DIMENSION][2];
+
+    int direction;
+    int iswap = 5;
+    for (int d = (DIMENSION - 1); d >= 0; d--) {
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            numPartsToSend[d][direction] = atom_list->recvlist[iswap].size();
+            sendbuf[direction] = new double[numPartsToSend[d][direction]];
+            pack::pack_rho(numPartsToSend[d][direction], getAtomListRef(),
+                           sendbuf[direction], atom_list->recvlist[iswap--]);
+//            _atom->pack_rho(numPartsToSend[d][direction], recvlist[iswap--], sendbuf[direction]);
+        }
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            int numsend = numPartsToSend[d][direction];
+            int numrecv;
+
+            MPI_Isend(sendbuf[direction], numsend, MPI_DOUBLE,
+                      p_domain->_rank_id_neighbours[d][direction], 99,
+                      MPIDomain::sim_processor.comm, &send_requests[d][direction]);
+            MPI_Probe(p_domain->_rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
+                      &status);//测试邻居是否有信息发送给本地
+            MPI_Get_count(&status, MPI_DOUBLE, &numrecv);//得到要接收的粒子数目
+            // 初始化接收缓冲区
+            //依据得到发送方要发送粒子信息大小，初始化接收缓冲区
+            recvbuf[direction] = new double[numrecv];
+            numPartsToRecv[d][direction] = numrecv;
+            MPI_Irecv(recvbuf[direction], numrecv, MPI_DOUBLE,
+                      p_domain->_rank_id_neighbours[d][(direction + 1) % 2],
+                      99,
+                      MPIDomain::sim_processor.comm, &recv_requests[d][direction]);
+        }
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            int numrecv = numPartsToRecv[d][direction];
+            MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
+            MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
+
+            //将收到的电子云密度信息加到对应存储位置上
+            pack::unpack_rho(d, direction, getAtomListRef(), recvbuf[direction], atom_list->sendlist);
+//            _atom->unpack_rho(d, direction, recvbuf[direction], sendlist);
+            // 释放buffer
+            delete[] sendbuf[direction];
+            delete[] recvbuf[direction];
+        }
+    }
+}
+
+void atom::sendDfEmbed() {
+    // 发送、接收数据缓冲区
+    int numPartsToSend[DIMENSION][2];
+    int numPartsToRecv[DIMENSION][2];
+    double *sendbuf[2];
+    double *recvbuf[2];
+
+    MPI_Status status;
+    MPI_Status send_statuses[DIMENSION][2];
+    MPI_Status recv_statuses[DIMENSION][2];
+    MPI_Request send_requests[DIMENSION][2];
+    MPI_Request recv_requests[DIMENSION][2];
+
+    int direction;
+    int iswap = 0;
+    int jswap = 0;
+    for (unsigned short d = 0; d < DIMENSION; d++) {
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            // 初始化发送缓冲区
+            numPartsToSend[d][direction] =
+                    atom_list->sendlist[iswap].size() + inter_atom_list->intersendlist[iswap].size();
+            sendbuf[direction] = new double[numPartsToSend[d][direction]];
+            pack::pack_df(getAtomListRef(), sendbuf[direction],
+                          inter_atom_list,
+                          atom_list->sendlist[iswap], inter_atom_list->intersendlist[iswap]);
+//            _atom->pack_df(sendlist[iswap], intersendlist[iswap], sendbuf[direction]);
+            iswap++;
+        }
+
+        // 与上下邻居通信
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            int numsend = numPartsToSend[d][direction];
+            int numrecv;
+
+            MPI_Isend(sendbuf[direction], numsend, MPI_DOUBLE, p_domain->_rank_id_neighbours[d][direction], 99,
+                      MPIDomain::sim_processor.comm, &send_requests[d][direction]);
+            MPI_Probe(p_domain->_rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
+                      &status);//测试邻居是否有信息发送给本地
+            MPI_Get_count(&status, MPI_DOUBLE, &numrecv);//得到要接收的粒子数目
+            // 初始化接收缓冲区
+            //依据得到发送方要发送粒子信息大小，初始化接收缓冲区
+            recvbuf[direction] = new double[numrecv];
+            numPartsToRecv[d][direction] = numrecv;
+            MPI_Irecv(recvbuf[direction], numrecv, MPI_DOUBLE,
+                      p_domain->_rank_id_neighbours[d][(direction + 1) % 2],
+                      99,
+                      MPIDomain::sim_processor.comm, &recv_requests[d][direction]);
+        }
+
+        for (direction = LOWER; direction <= HIGHER; direction++) {
+            int numrecv = numPartsToRecv[d][direction];
+            MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
+            MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
+
+            //将收到的嵌入能导数信息加到对应存储位置上
+            pack::unpack_df(numrecv, getAtomListRef(), recvbuf[direction],
+                            inter_atom_list, atom_list->recvlist[jswap], inter_atom_list->interrecvlist[jswap]);
+//            _atom->unpack_df(numrecv, recvbuf[direction], recvlist[jswap], interrecvlist[jswap]);
+            jswap++;
+
+            // release memory of buffer
+            delete[] sendbuf[direction];
+            delete[] recvbuf[direction];
+        }
+    }
 }

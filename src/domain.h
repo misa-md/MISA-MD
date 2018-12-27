@@ -8,7 +8,6 @@
 #include <mpi.h>
 #include <vector>
 
-#include "atom.h"
 #include "types/pre_define.h"
 
 #undef SEEK_SET
@@ -18,7 +17,6 @@
 #define LOWER  0
 #define HIGHER 1
 
-class atom;
 
 /**
  * If N can be decomposed as N = N_x * N_y * N_z, where N, N_x, N_y, N_z are all integer bigger than or equal to 1,
@@ -46,6 +44,8 @@ class Domain {
     friend class InterAtomList;
 
     friend class AtomList;
+
+    friend class atom;
 
 public:
 
@@ -86,12 +86,6 @@ public:
      * @param latticeConst lattice const
      */
     Domain *createSubBoxDomain();
-
-    void sendrho(atom *_atom);
-
-    void sendDfEmbed(atom *_atom);
-
-    void sendForce(atom *_atom);
 
     /**
      * get global measured length of the simulation box at dimension {@var d}.

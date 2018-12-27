@@ -128,7 +128,7 @@ void simulation::prepareForStart() {
 
     //_atom->print_force();
     starttime = MPI_Wtime();
-    _p_domain->sendForce(_atom);
+    _atom->sendForce();
     stoptime = MPI_Wtime();
     commtime += stoptime - starttime;
 
@@ -152,12 +152,12 @@ void simulation::simulate() {
                 output(_simulation_time_step, true); // dump atoms
             }
             _atom->setv(pConfigVal->collisionLat, pConfigVal->direction, pConfigVal->pkaEnergy);
-            _atom->getInterList()->exchangeInter(_atom);
-            _atom->getInterList()->borderInter(_atom);
-            _atom->getAtomList()->exchangeAtom(_atom);
+            _atom->getInterList()->exchangeInter(_p_domain);
+            _atom->getInterList()->borderInter(_p_domain);
+            _atom->getAtomList()->exchangeAtom(_p_domain);
             _atom->clearForce();
             _atom->computeEam(_pot, _p_domain, comm);
-            _p_domain->sendForce(_atom);
+            _atom->sendForce();
         }
         //先进行求解牛顿运动方程第一步
         _newton_motion->firststep(_atom->getAtomList(), _atom->getInterList());
@@ -167,9 +167,9 @@ void simulation::simulate() {
 
         //通信ghost区域，交换粒子
         starttime = MPI_Wtime();
-        _atom->getInterList()->exchangeInter(_atom);
-        _atom->getInterList()->borderInter(_atom);
-        _atom->getAtomList()->exchangeAtom(_atom);
+        _atom->getInterList()->exchangeInter(_p_domain);
+        _atom->getInterList()->borderInter(_p_domain);
+        _atom->getAtomList()->exchangeAtom(_p_domain);
         stoptime = MPI_Wtime();
         commtime += stoptime - starttime;
 
@@ -183,7 +183,7 @@ void simulation::simulate() {
 
         //发送力
         starttime = MPI_Wtime();
-        _p_domain->sendForce(_atom);
+        _atom->sendForce();
         stoptime = MPI_Wtime();
         commtime += stoptime - starttime;
         //求解牛顿运动方程第二步
@@ -248,7 +248,7 @@ void simulation::output(size_t time_step, bool before_collision) {
             filename = fmt::format(pConfigVal->atomsDumpFilePath, time_step);
         }
         // pointer to the atom dump class for outputting atoms information.
-        AtomDump *dumpInstance = new AtomDump(pConfigVal->atomsDumpMode, filename,
+        auto *dumpInstance = new AtomDump(pConfigVal->atomsDumpMode, filename,
                                               begin, end, atoms_size);
         dumpInstance->dump(_atom->getAtomList(), _atom->getInterList(), time_step);
         dumpInstance->writeDumpHeader();

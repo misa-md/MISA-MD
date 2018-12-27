@@ -17,6 +17,8 @@ class AtomList {
 public:
     friend class WorldBuilder;
 
+    friend class atom;
+
     friend class AtomDump;
 
     // @see https://gist.github.com/jeetsukumaran/307264

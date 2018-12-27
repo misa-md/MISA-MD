@@ -20,6 +20,7 @@ typedef std::list<AtomElement> _type_inter_list;
  * storing inter atoms
  */
 class InterAtomList {
+    friend class atom;
 public:
 
     InterAtomList();

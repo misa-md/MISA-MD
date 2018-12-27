@@ -75,6 +75,8 @@ public :
         return _cutlattice;
     }
 
+    void sendForce();
+
 private:
 
     Domain *p_domain;
@@ -89,6 +91,10 @@ private:
 
     AtomList *atom_list;
     InterAtomList *inter_atom_list;
+
+    void sendrho();
+
+    void sendDfEmbed();
 
 };
 
