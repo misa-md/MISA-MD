@@ -50,6 +50,7 @@ set(SOURCE_FILES
         atom/atom_element.cpp
         atom/atom_list.cpp
         atom/inter_atom_list.cpp
+        atom/inter_atom_list_minor.cpp
         types/atom_info_dump.cpp
         pack/lat_particle_data.cpp
         pack/pack.cpp

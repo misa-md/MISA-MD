@@ -23,6 +23,10 @@ class InterAtomList {
     friend class atom;
 
 public:
+    _type_inter_list inter_list;
+    _type_inter_list inter_ghost_list;
+    size_t nlocalinter; // 本地间隙原子数
+    size_t nghostinter; // ghost间隙原子数
 
     InterAtomList();
 
@@ -42,11 +46,6 @@ public:
     void exchangeInter(Domain *p_domain);
 
     void borderInter(Domain *p_domain);
-
-    _type_inter_list inter_list;
-    _type_inter_list inter_ghost_list;
-    size_t nlocalinter; // 本地间隙原子数
-    size_t nghostinter; // ghost间隙原子数
 
     /**
      * pointer of element in atom_list (pointer of {@class AtomElement}).
@@ -89,15 +88,31 @@ private:
     void getIntertosend(Domain *p_domain, int d, int direction, double ghostlengh, std::vector<int> &sendlist);
 
     /**
-     * If some inter atoms get out of box, those atom is no more in current dox of current processor.
-     * they should be send to corresponding neighbour processors.
-     *
-     * @param p_domain pointer of simulation domain
-     * @param dimension dimension of 3d. @param d values = {0,1,2}
+     * count the size of out-of-box inter atoms.
+     * @param p_domain  pointer of simulation domain
+     * @param dimension  dimension of 3d. @param d values = {0,1,2}
      * @param direction direction of LOW or HIGH.
      * @return the number of out-of-box inter atoms.
      */
-    unsigned long getintersendnum(Domain *p_domain, int dimension, int direction);
+    unsigned long countExSendNum(Domain *p_domain, int dimension, int direction);
+
+    /**
+     * If some inter atoms get out of box, those atom is no more in current dox of current processor.
+     * they should be send to corresponding neighbour processors.
+     * The out-of-box atoms will be removed from @memberof inter_list in this function.
+     *
+     * @param p_domain pointer of simulation domain.
+     * @param buf the buffer to save the out-of-box atoms.
+     * @param dimension dimension of 3d. @param d values = {0,1,2}
+     * @param direction direction of LOW or HIGH.
+     */
+    void packExInterToSend(Domain *p_domain, particledata *buf, int dimension, int direction);
+
+    void unpackExInterRecv(int d, int n,
+                           const double *lower, // p_domain->getMeasuredSubBoxLowerBounding(d)
+                           const double *upper, // p_domain->getMeasuredSubBoxUpperBounding(d)
+                           particledata *buf);
+
 };
 
 
