@@ -39,9 +39,9 @@ namespace pack {
      * @param recvlist
      */
     void unpack_recvfirst(int d, int direction, int n, AtomList &atom_list,
-                         const _type_lattice_size ghost[DIMENSION], //p_domain->getGhostLatticeSize(d)
-                         const _type_lattice_size box[DIMENSION], //p_domain->getSubBoxLatticeSize(d)
-                         const _type_lattice_size ext[DIMENSION], //p_domain->getGhostExtLatticeSize(d)
+                          const _type_lattice_size ghost[DIMENSION], //p_domain->getGhostLatticeSize(d)
+                          const _type_lattice_size box[DIMENSION], //p_domain->getSubBoxLatticeSize(d)
+                          const _type_lattice_size ext[DIMENSION], //p_domain->getGhostExtLatticeSize(d)
                           LatParticleData *buf, std::vector<std::vector<_type_atom_id> > &recvlist);
 
     void unpack_recv(int d, int direction, int n, AtomList &atom_list,
@@ -53,10 +53,10 @@ namespace pack {
                     double *buf, std::vector<std::vector<_type_atom_id>> &sendlist);
 
     void pack_df(AtomList &atom_list, double *buf, InterAtomList *inter,
-                 std::vector<_type_atom_id> &sendlist, std::vector<int> &intersendlist);
+                 std::vector<_type_atom_id> &sendlist, std::vector<AtomElement *> &intersendlist);
 
     void unpack_df(int n, AtomList &atom_list, double *buf, InterAtomList *inter,
-                   std::vector<_type_atom_id> &recvlist, std::vector<int> &interrecvlist);
+                   std::vector<_type_atom_id> &recvlist, std::vector<AtomElement *> &interrecvlist);
 
     void pack_force(int n, AtomList &atom_list, double *buf, std::vector<_type_atom_id> &recvlist);
 

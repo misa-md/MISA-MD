@@ -117,195 +117,147 @@ void InterAtomList::borderInter(Domain *p_domain) {
     }
 }
 
-void InterAtomList::pack_bordersend(int dimension, int n,
-                                    std::vector<int> &sendlist, LatParticleData *buf, double shift) {
-    int j;
-    if (dimension == 0) {
-        for (int i = 0; i < n; i++) {
-            j = sendlist[i];
-            buf[i].type = inter->typeinter[j];
-            buf[i].r[0] = inter->xinter[j][0] + shift;
-            buf[i].r[1] = inter->xinter[j][1];
-            buf[i].r[2] = inter->xinter[j][2];
-        }
-    } else if (dimension == 1) {
-        for (int i = 0; i < n; i++) {
-            j = sendlist[i];
-            buf[i].type = inter->typeinter[j];
-            buf[i].r[0] = inter->xinter[j][0];
-            buf[i].r[1] = inter->xinter[j][1] + shift;
-            buf[i].r[2] = inter->xinter[j][2];
-        }
-    } else {
-        for (int i = 0; i < n; i++) {
-            j = sendlist[i];
-            buf[i].type = inter->typeinter[j];
-            buf[i].r[0] = inter->xinter[j][0];
-            buf[i].r[1] = inter->xinter[j][1];
-            buf[i].r[2] = inter->xinter[j][2] + shift;
-        }
-    }
-}
-
-void InterAtomList::unpack_borderrecv(int n,
-                                      const double lower[DIMENSION], // p_domain->getMeasuredGhostLowerBounding(d)
-                                      const double upper[DIMENSION], // p_domain->getMeasuredGhostUpperBounding(d)
-                                      LatParticleData *buf, std::vector<int> &recvlist) {
-    atom_type::atom_type type;
-    std::vector<double> xtemp(3);
-    for (int i = 0; i < n; i++) {
-        type = buf[i].type;
-        xtemp[0] = buf[i].r[0];
-        xtemp[1] = buf[i].r[1];
-        xtemp[2] = buf[i].r[2];
-        if (xtemp[0] >= lower[0] &&
-            xtemp[0] < upper[0] &&
-            xtemp[1] >= lower[1] &&
-            xtemp[1] < upper[1] &&
-            xtemp[2] >= lower[2] &&
-            xtemp[2] < upper[2]) {
-            if (inter->xinter.size() == nlocalinter + nghostinter) {
-                inter->typeinter.push_back(type);
-                inter->xinter.push_back(xtemp);
-                nghostinter++;
-                recvlist[i] = nlocalinter + nghostinter - 1;
-                inter->finter.resize(nlocalinter + nghostinter, std::vector<double>(3));
-                inter->rhointer.resize(nlocalinter + nghostinter);
-                inter->dfinter.resize(nlocalinter + nghostinter);
-            } else {
-                inter->typeinter[nlocalinter + nghostinter] = type;
-                inter->xinter[nlocalinter + nghostinter][0] = xtemp[0];
-                inter->xinter[nlocalinter + nghostinter][1] = xtemp[1];
-                inter->xinter[nlocalinter + nghostinter][2] = xtemp[2];
-                nghostinter++;
-                recvlist[i] = nlocalinter + nghostinter - 1;
-                inter->finter.resize(nlocalinter + nghostinter, std::vector<double>(3));
-                inter->rhointer.resize(nlocalinter + nghostinter);
-                inter->dfinter.resize(nlocalinter + nghostinter);
+void InterAtomList::pack_bordersend(int dimension, int n, std::vector<AtomElement *> &sendlist,
+                                    LatParticleData *buf, double shift) {
+    // fixme pack atom id?
+    switch (dimension) {
+        case 0:
+            for (int i = 0; i < n; i++) {
+                buf[i].type = sendlist[i]->type;
+                buf[i].r[0] = sendlist[i]->x[0] + shift;
+                buf[i].r[1] = sendlist[i]->x[1];
+                buf[i].r[2] = sendlist[i]->x[2];
             }
-        } else {
-            recvlist[i] = -1;
-        }
+            break;
+        case 1:
+            for (int i = 0; i < n; i++) {
+                buf[i].type = sendlist[i]->type;
+                buf[i].r[0] = sendlist[i]->x[0];
+                buf[i].r[1] = sendlist[i]->x[1] + shift;
+                buf[i].r[2] = sendlist[i]->x[2];
+            }
+            break;
+        case 2:
+            for (int i = 0; i < n; i++) {
+                buf[i].type = sendlist[i]->type;
+                buf[i].r[0] = sendlist[i]->x[0];
+                buf[i].r[1] = sendlist[i]->x[1];
+                buf[i].r[2] = sendlist[i]->x[2] + shift;
+            }
+            break;
+        default:
+            break;
     }
 }
 
-unsigned long InterAtomList::getinteridsendsize() {
-    return interbuf.size();
+void InterAtomList::unpack_borderrecv(int n, const double lower[DIMENSION], const double upper[DIMENSION],
+                                      LatParticleData *buf, std::vector<AtomElement *> &recvlist) {
+    atom_type::atom_type type;
+    // std::vector<double> xtemp(3);
+    AtomElement ele;
+    for (int i = 0; i < n; i++) {
+        ele.type = buf[i].type;
+        ele.x[0] = buf[i].r[0];
+        ele.x[1] = buf[i].r[1];
+        ele.x[2] = buf[i].r[2];
+        if (ele.x[0] >= lower[0] && ele.x[0] < upper[0] &&
+            ele.x[1] >= lower[1] && ele.x[1] < upper[1] &&
+            ele.x[2] >= lower[2] && ele.x[2] < upper[2]) {
+            inter_ghost_list.push_back(ele);
+            nghostinter++;
+        } else {
+            // todo warning
+            recvlist[i] = nullptr;
+        }
+    }
 }
 
 void InterAtomList::getIntertosend(Domain *p_domain, int d, int direction, double ghostlengh,
-                                   std::vector<int> &sendlist) {
+                                   std::vector<AtomElement *> &sendlist) {
     double low, high;
-    unsigned long i = 0;
     if (d == 0) {
         if (direction == 0) {
             low = p_domain->meas_sub_box_lower_bounding[0];
             high = p_domain->meas_sub_box_lower_bounding[0] + ghostlengh;
-            // fixme fixme checkout ghost inters
-            i = 0;
             for (AtomElement &inter_ref : inter_list) {
                 if (inter_ref.x[0] < high && inter_ref.x[0] >= low) {
-                    sendlist.push_back(i);
+                    sendlist.push_back(&inter_ref);
                 }
-                i++;
             }
-            i = nLocalInter();
             for (AtomElement &ghost_ref :inter_ghost_list) {
                 if (ghost_ref.x[0] < high && ghost_ref.x[0] >= low) {
-                    sendlist.push_back(i);
+                    sendlist.push_back(&ghost_ref);
                 }
-                i++;
             }
         } else {
             low = p_domain->meas_sub_box_upper_bounding[0] - ghostlengh;
             high = p_domain->meas_sub_box_upper_bounding[0];
-            i = 0;
             for (AtomElement &inter_ref :inter_list) {
                 if (inter_ref.x[0] <= high && inter_ref.x[0] > low) {
-                    sendlist.push_back(i);
+                    sendlist.push_back(&inter_ref);
                 }
-                i++;
             }
-            i = nLocalInter();
             for (AtomElement &ghost_ref :inter_ghost_list) {
                 if (ghost_ref.x[0] <= high && ghost_ref.x[0] > low) {
-                    sendlist.push_back(i);
+                    sendlist.push_back(&ghost_ref);
                 }
-                i++;
             }
         }
     } else if (d == 1) {
         if (direction == 0) {
             low = p_domain->meas_sub_box_lower_bounding[1];
             high = p_domain->meas_sub_box_lower_bounding[1] + ghostlengh;
-            i = 0;
             for (AtomElement &inter_ref :inter_list) {
                 if (inter_ref.x[1] < high && inter_ref.x[1] >= low) {
-                    sendlist.push_back(i);
+                    sendlist.push_back(&inter_ref);
                 }
-                i++;
             }
-            i = nLocalInter();
             for (AtomElement &ghost_ref :inter_ghost_list) {
                 if (ghost_ref.x[1] < high && ghost_ref.x[1] >= low) {
-                    sendlist.push_back(i);
+                    sendlist.push_back(&ghost_ref);
                 }
-                i++;
             }
         } else {
             low = p_domain->meas_sub_box_upper_bounding[1] - ghostlengh;
             high = p_domain->meas_sub_box_upper_bounding[1];
-            i = 0;
             for (AtomElement &inter_ref :inter_list) {
                 if (inter_ref.x[1] <= high && inter_ref.x[1] > low) {
-                    sendlist.push_back(i);
+                    sendlist.push_back(&inter_ref);
                 }
-                i++;
             }
-            i = nLocalInter();
             for (AtomElement &ghost_ref :inter_ghost_list) {
                 if (ghost_ref.x[1] <= high && ghost_ref.x[1] > low) {
-                    sendlist.push_back(i);
+                    sendlist.push_back(&ghost_ref);
                 }
-                i++;
             }
         }
     } else {
         if (direction == 0) {
             low = p_domain->meas_sub_box_lower_bounding[2];
             high = p_domain->meas_sub_box_lower_bounding[2] + ghostlengh;
-            i = 0;
             for (AtomElement &inter_ref :inter_list) {
                 if (inter_ref.x[2] < high && inter_ref.x[2] >= low) {
-                    sendlist.push_back(i);
+                    sendlist.push_back(&inter_ref);
                 }
-                i++;
             }
-            i = nLocalInter();
             for (AtomElement &ghost_ref :inter_ghost_list) {
                 if (ghost_ref.x[2] < high && ghost_ref.x[2] >= low) {
-                    sendlist.push_back(i);
+                    sendlist.push_back(&ghost_ref);
                 }
-                i++;
             }
         } else {
             low = p_domain->meas_sub_box_upper_bounding[2] - ghostlengh;
             high = p_domain->meas_sub_box_upper_bounding[2];
-            i = 0;
             for (AtomElement &inter_ref :inter_list) {
                 if (inter_ref.x[2] <= high && inter_ref.x[2] > low) {
-                    sendlist.push_back(i);
+                    sendlist.push_back(&inter_ref);
                 }
-                i++;
             }
-            i = nLocalInter();
             for (AtomElement &ghost_ref :inter_ghost_list) {
                 if (ghost_ref.x[2] <= high && ghost_ref.x[2] > low) {
-                    sendlist.push_back(i);
+                    sendlist.push_back(&ghost_ref);
                 }
-                i++;
             }
         }
     }
 }
-

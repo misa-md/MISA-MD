@@ -15,18 +15,20 @@
 #include "../types/atom_types.h"
 
 typedef std::list<AtomElement> _type_inter_list;
+typedef std::vector<std::vector<AtomElement *> > _type_inter_buf;
 
 /**
  * storing inter atoms
  */
 class InterAtomList {
-    friend class atom;
-
 public:
     _type_inter_list inter_list;
     _type_inter_list inter_ghost_list;
     size_t nlocalinter; // 本地间隙原子数
     size_t nghostinter; // ghost间隙原子数
+
+    _type_inter_buf intersendlist;
+    _type_inter_buf interrecvlist;
 
     InterAtomList();
 
@@ -53,22 +55,12 @@ public:
      * // todo use pointer.
      */
 private:
-    std::vector<std::vector<int> > intersendlist; // todo make it temp variable.
-    std::vector<std::vector<int> > interrecvlist; // todo make it temp variable.
-    std::vector<unsigned long> interbuf; // todo make it temp variable.
-
-    void pack_intersend(std::vector<unsigned long> interbuf, particledata *buf);
-
-    void unpack_interrecv(int d, int n,
-                          const double lower[DIMENSION], // p_domain->getMeasuredSubBoxLowerBounding(d)
-                          const double upper[DIMENSION], // p_domain->getMeasuredSubBoxUpperBounding(d)
-                          particledata *buf);
-
-    void pack_bordersend(int dimension, int n, std::vector<int> &sendlist, LatParticleData *buf, double shift);
+    void pack_bordersend(int dimension, int n, std::vector<AtomElement *> &sendlist,
+                         LatParticleData *buf, double shift);
 
     void unpack_borderrecv(int n, const double lower[DIMENSION], // p_domain->getMeasuredGhostLowerBounding(d)
                            const double upper[DIMENSION], // p_domain->getMeasuredGhostUpperBounding(d)
-                           LatParticleData *buf, std::vector<int> &recvlist);
+                           LatParticleData *buf, std::vector<AtomElement *> &recvlist);
 
     unsigned long getinteridsendsize();
 
@@ -85,7 +77,8 @@ private:
      * @param ghostlengh the measured length of ghost area.
      * @param sendlist the atoms to be send will be saved in this data.
      */
-    void getIntertosend(Domain *p_domain, int d, int direction, double ghostlengh, std::vector<int> &sendlist);
+    void getIntertosend(Domain *p_domain, int d, int direction,
+                        double ghostlengh, std::vector<AtomElement *> &sendlist);
 
     /**
      * count the size of out-of-box inter atoms.

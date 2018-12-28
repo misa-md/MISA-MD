@@ -245,7 +245,8 @@ void pack::unpack_rho(int d, int direction, AtomList &atom_list,
 }
 
 void pack::pack_df(AtomList &atom_list, double *buf, InterAtomList *inter,
-                   std::vector<_type_atom_id> &sendlist, std::vector<int> &intersendlist) {
+                   std::vector<_type_atom_id> &sendlist,
+                   std::vector<AtomElement *> &intersendlist) {
     int j, m = 0;
     int n = sendlist.size();
     for (int i = 0; i < n; i++) {
@@ -255,14 +256,14 @@ void pack::pack_df(AtomList &atom_list, double *buf, InterAtomList *inter,
     }
     n = intersendlist.size();
     for (int i = 0; i < n; i++) {
-        j = intersendlist[i];
-        buf[m++] = inter->dfinter[j];
+        //   j = intersendlist[i];
+        buf[m++] = intersendlist[i]->df;
     }
 }
 
-void pack::unpack_df(int n, AtomList &atom_list,
-                     double *buf, InterAtomList *inter,
-                     std::vector<_type_atom_id> &recvlist, std::vector<int> &interrecvlist) {
+void pack::unpack_df(int n, AtomList &atom_list, double *buf, InterAtomList *inter,
+                     std::vector<_type_atom_id> &recvlist,
+                     std::vector<AtomElement *> &interrecvlist) {
     long kk;
     int m = 0;
     if (n != (recvlist.size() + interrecvlist.size())) {
@@ -277,12 +278,11 @@ void pack::unpack_df(int n, AtomList &atom_list,
     }
     n = interrecvlist.size();
     for (int i = 0; i < n; i++) {
-        kk = interrecvlist[i];
-        if (kk == -1) {
-            m++;
+        if (interrecvlist[i] == nullptr) {
+            m++; // todo warning
             continue;
         }
-        inter->dfinter[kk] = buf[m++];
+        interrecvlist[i]->df = buf[m++];
     }
 }
 

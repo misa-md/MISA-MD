@@ -837,8 +837,7 @@ void atom::sendDfEmbed() {
             numPartsToSend[d][direction] =
                     atom_list->sendlist[iswap].size() + inter_atom_list->intersendlist[iswap].size();
             sendbuf[direction] = new double[numPartsToSend[d][direction]];
-            pack::pack_df(getAtomListRef(), sendbuf[direction],
-                          inter_atom_list,
+            pack::pack_df(getAtomListRef(), sendbuf[direction], inter_atom_list,
                           atom_list->sendlist[iswap], inter_atom_list->intersendlist[iswap]);
 //            _atom->pack_df(sendlist[iswap], intersendlist[iswap], sendbuf[direction]);
             iswap++;
