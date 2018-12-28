@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iterator>
 #include <cmath>
 #include <fstream>
 #include <iomanip>
@@ -196,7 +197,7 @@ int atom::decide() {
 
     // 如果间隙原子跑入晶格点,且晶格点为空位, 则空位-间隙发生复合.
     _type_inter_list::iterator inter_it;
-    for (inter_it = inter_atom_list->inter_list.begin(); inter_it != inter_atom_list->inter_list.end(); inter_it++) {
+    for (inter_it = inter_atom_list->inter_list.begin(); inter_it != inter_atom_list->inter_list.end();) {
         AtomElement &inter_ref = *inter_it;
 //    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
         _type_atom_index near_index;
@@ -230,9 +231,13 @@ int atom::decide() {
                 atom_.v[2] = inter_ref.v[2];
 
                 // remove this atom from inter list.
-                inter_it = inter_atom_list->inter_list.erase(inter_it);
+                inter_it = inter_atom_list->inter_list.erase(inter_it); // fixme: bug: inter_it reached to end();
                 inter_atom_list->nlocalinter--;
+            } else {
+                inter_it++;
             }
+        } else {
+            inter_it++;
         }
     }
     return nflag;
@@ -375,7 +380,7 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
             }
         }
         //对间隙原子遍历
-        for (_type_inter_list::iterator next_inter_it;
+        for (_type_inter_list::iterator next_inter_it = std::next(inter_it, 1);
              next_inter_it != inter_atom_list->inter_ghost_list.end(); next_inter_it++) {
             if (next_inter_it == inter_atom_list->inter_list.end()) {
                 next_inter_it = inter_atom_list->inter_ghost_list.begin();
@@ -621,7 +626,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             }
         }
         //对间隙原子遍历
-        for (_type_inter_list::iterator next_inter_it;
+        for (_type_inter_list::iterator next_inter_it = std::next(inter_it, 1);
              next_inter_it != inter_atom_list->inter_ghost_list.end(); next_inter_it++) {
             if (next_inter_it == inter_atom_list->inter_list.end()) {
                 next_inter_it = inter_atom_list->inter_ghost_list.begin();
