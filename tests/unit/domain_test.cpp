@@ -45,24 +45,9 @@ TEST(domain_local_lattice_size, domain_test) {
     int nlocalz = floor(_domain->meas_sub_box_upper_bounding[2] / lattice_const) -
                   floor(_domain->meas_sub_box_lower_bounding[2] / lattice_const);
 
-    EXPECT_EQ(nlocalx, {
-        unsigned short dimension = 0;
-        Domain *receiver = _domain;
-        _type_lattice_size result;
-        result= receiver->lattice_size_sub_box[dimension];
-    });
-    EXPECT_EQ(nlocaly, {
-        unsigned short dimension = 1;
-        Domain *receiver = _domain;
-        _type_lattice_size result;
-        result= receiver->lattice_size_sub_box[dimension];
-    });
-    EXPECT_EQ(nlocalz, {
-        unsigned short dimension = 2;
-        Domain *receiver = _domain;
-        _type_lattice_size result;
-        result= receiver->lattice_size_sub_box[dimension];
-    });
+    EXPECT_EQ(nlocalx, _domain->lattice_size_sub_box[0]);
+    EXPECT_EQ(nlocaly, _domain->lattice_size_sub_box[1]);
+    EXPECT_EQ(nlocalz, _domain->lattice_size_sub_box[2]);
 
     delete _domain;
 }
@@ -77,24 +62,9 @@ TEST(domain_ghost_lattice_size, domain_test) {
     int nghosty = _domain->lattice_size_sub_box[1] + 2 * ceil(_domain->meas_ghost_length[1] / lattice_const);
     int nghostz = _domain->lattice_size_sub_box[2] + 2 * ceil(_domain->meas_ghost_length[2] / lattice_const);
 
-    EXPECT_EQ(nghostx, {
-        unsigned short dimension = 0;
-        Domain *receiver = _domain;
-        _type_lattice_size result;
-        result= receiver->lattice_size_ghost_extended[dimension];
-    });
-    EXPECT_EQ(nghosty, {
-        unsigned short dimension = 1;
-        Domain *receiver = _domain;
-        _type_lattice_size result;
-        result= receiver->lattice_size_ghost_extended[dimension];
-    });
-    EXPECT_EQ(nghostz, {
-        unsigned short dimension = 2;
-        Domain *receiver = _domain;
-        _type_lattice_size result;
-        result= receiver->lattice_size_ghost_extended[dimension];
-    });
+    EXPECT_EQ(nghostx, _domain->lattice_size_ghost_extended[0]);
+    EXPECT_EQ(nghosty, _domain->lattice_size_ghost_extended[1]);
+    EXPECT_EQ(nghostz, _domain->lattice_size_ghost_extended[2]);
 
     delete _domain;
 }
@@ -110,48 +80,18 @@ TEST(domain_local_lattice_coord, domain_test) {
     int lolocaly = floor(_domain->meas_sub_box_lower_bounding[1] / lattice_const);
     int lolocalz = floor(_domain->meas_sub_box_lower_bounding[2] / lattice_const);
 
-    EXPECT_EQ(lolocalx, {
-        unsigned short dimension = 0;
-        Domain *receiver = _domain;
-        _type_lattice_size result;
-        result= receiver->lattice_coord_sub_box_lower[dimension];
-    });
-    EXPECT_EQ(lolocaly, {
-        unsigned short dimension = 1;
-        Domain *receiver = _domain;
-        _type_lattice_size result;
-        result= receiver->lattice_coord_sub_box_lower[dimension];
-    });
-    EXPECT_EQ(lolocalz, {
-        unsigned short dimension = 2;
-        Domain *receiver = _domain;
-        _type_lattice_size result;
-        result= receiver->lattice_coord_sub_box_lower[dimension];
-    });
+    EXPECT_EQ(lolocalx, _domain->lattice_coord_sub_box_lower[0]);
+    EXPECT_EQ(lolocaly, _domain->lattice_coord_sub_box_lower[1]);
+    EXPECT_EQ(lolocalz, _domain->lattice_coord_sub_box_lower[2]);
 
-    // upper boundary of lattice coordinate of local sub-box
+// upper boundary of lattice coordinate of local sub-box
     int uplocalx = floor(_domain->meas_sub_box_upper_bounding[0] / lattice_const) * 2;
     int uplocaly = floor(_domain->meas_sub_box_upper_bounding[1] / lattice_const);
     int uplocalz = floor(_domain->meas_sub_box_upper_bounding[2] / lattice_const);
 
-    EXPECT_EQ(uplocalx, {
-        unsigned short dimension = 0;
-        Domain *receiver = _domain;
-        _type_lattice_size result;
-        result= receiver->lattice_coord_sub_box_upper[dimension];
-    });
-    EXPECT_EQ(uplocaly, {
-        unsigned short dimension = 1;
-        Domain *receiver = _domain;
-        _type_lattice_size result;
-        result= receiver->lattice_coord_sub_box_upper[dimension];
-    });
-    EXPECT_EQ(uplocalz, {
-        unsigned short dimension = 2;
-        Domain *receiver = _domain;
-        _type_lattice_size result;
-        result= receiver->lattice_coord_sub_box_upper[dimension];
-    });
+    EXPECT_EQ(uplocalx, _domain->lattice_coord_sub_box_upper[0]);
+    EXPECT_EQ(uplocaly, _domain->lattice_coord_sub_box_upper[1]);
+    EXPECT_EQ(uplocalz, _domain->lattice_coord_sub_box_upper[1]);
 
     delete _domain;
 }
@@ -167,48 +107,18 @@ TEST(domain_ghost_lattice_coord, domain_test) {
     int loghosty = _domain->lattice_coord_sub_box_lower[1] - ceil(cutoff_radius_factor / lattice_const);
     int loghostz = _domain->lattice_coord_sub_box_lower[2] - ceil(cutoff_radius_factor / lattice_const);
 
-    EXPECT_EQ(loghostx, {
-        unsigned short dimension = 0;
-        Domain *receiver = _domain;
-        _type_lattice_size result;
-        result= receiver->lattice_coord_ghost_lower[dimension];
-    });
-    EXPECT_EQ(loghosty, {
-        unsigned short dimension = 1;
-        Domain *receiver = _domain;
-        _type_lattice_size result;
-        result= receiver->lattice_coord_ghost_lower[dimension];
-    });
-    EXPECT_EQ(loghostz, {
-        unsigned short dimension = 2;
-        Domain *receiver = _domain;
-        _type_lattice_size result;
-        result= receiver->lattice_coord_ghost_lower[dimension];
-    });
+    EXPECT_EQ(loghostx, _domain->lattice_coord_ghost_lower[0]);
+    EXPECT_EQ(loghosty, _domain->lattice_coord_ghost_lower[1]);
+    EXPECT_EQ(loghostz, _domain->lattice_coord_ghost_lower[1]);
 
     // upper boundary of lattice coordinate of ghost
     int upghostx = _domain->lattice_coord_sub_box_upper[0] + 2 * ceil(cutoff_radius_factor / lattice_const);
     int upghosty = _domain->lattice_coord_sub_box_upper[1] + ceil(cutoff_radius_factor / lattice_const);
     int upghostz = _domain->lattice_coord_sub_box_upper[2] + ceil(cutoff_radius_factor / lattice_const);
 
-    EXPECT_EQ(upghostx, {
-        unsigned short dimension = 0;
-        Domain *receiver = _domain;
-        _type_lattice_size result;
-        result= receiver->lattice_coord_ghost_upper[dimension];
-    });
-    EXPECT_EQ(upghosty, {
-        unsigned short dimension = 1;
-        Domain *receiver = _domain;
-        _type_lattice_size result;
-        result= receiver->lattice_coord_ghost_upper[dimension];
-    });
-    EXPECT_EQ(upghostz, {
-        unsigned short dimension = 2;
-        Domain *receiver = _domain;
-        _type_lattice_size result;
-        result= receiver->lattice_coord_ghost_upper[dimension];
-    });
+    EXPECT_EQ(upghostx, _domain->lattice_coord_ghost_upper[0]);
+    EXPECT_EQ(upghosty, _domain->lattice_coord_ghost_upper[1]);
+    EXPECT_EQ(upghostz, _domain->lattice_coord_ghost_upper[2]);
 
     delete _domain;
 }
