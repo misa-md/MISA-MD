@@ -10,6 +10,7 @@
 #include <array>
 
 #include "types/pre_define.h"
+#include "region.hpp"
 
 #undef SEEK_SET
 #undef SEEK_END
@@ -58,13 +59,9 @@ public:
     const int (&grid_size)[DIMENSION] = {0};
 
     /**
-     * the measured coordinate of lower boundary of global simulation box.
+     * the measured coordinate of lower and upper boundary of global simulation box.
      */
-    const double (&meas_global_box_coord_lower)[DIMENSION];
-    /**
-     * the measured coordinate of upper boundary of global simulation box.
-     */
-    const double (&meas_global_box_coord_upper)[DIMENSION];
+    const Region<double> &meas_global_box_coord_region;
 
     /** local information for current simulation sub-box. **/
     /**
@@ -81,8 +78,7 @@ public:
     /**
      * the measured lower and upper boundary of current sub-box at each dimension in global box Coordinate System.
      */
-    const double (&meas_sub_box_lower_bounding)[DIMENSION];
-    const double (&meas_sub_box_upper_bounding)[DIMENSION];
+    const Region<double> &meas_sub_box_region;
 
     /**boundary of ghost of local sub-box**/
     /**
@@ -92,12 +88,9 @@ public:
     /**
      * the measured ghost lower and upper bound of current sub-box.
      */
-    const double (&meas_ghost_lower_bounding)[DIMENSION];
-    const double (&meas_ghost_upper_bounding)[DIMENSION];
+    const Region<double> &meas_ghost_region;
 
     /*lattice count in local sub-box*/
-    //  int _lattice_coord_lower[DIMENSION]; // the lower boundary of lattice coordinate for current sub-box.
-    //  int _lattice_coord_upper[DIMENSION]; // the upper boundary of lattice coordinate for current sub-box.
     /**
      * lattice count in local sub-box area at each dimension (upper boundary - lower boundary).
      */
@@ -118,15 +111,13 @@ public:
      * lower and upper boundary of lattice coordinate of current local sub-box at each dimension
      * in global coordinate system(GCY).
      */
-    const _type_lattice_coord (&lattice_coord_sub_box_lower)[DIMENSION];
-    const _type_lattice_coord (&lattice_coord_sub_box_upper)[DIMENSION];
+    const Region<_type_lattice_coord> &lattice_coord_sub_box_region;
 
     /**
      * lower and upper boundary of lattice coordinate in ghost area of current sub-box area
      * at each dimension in global coordinate system(GCY)
      */
-    const _type_lattice_coord (&lattice_coord_ghost_lower)[DIMENSION];
-    const _type_lattice_coord (&lattice_coord_ghost_upper)[DIMENSION];
+    const Region<_type_lattice_coord> &lattice_coord_ghost_region;
 
     /*
      * lattice boundary of local sub-box and ghost, this is in local box Coordinate System(not global box.).
@@ -138,13 +129,11 @@ public:
      * lower and upper boundary of lattice coordinate of local sub-box
      * at each dimension in local coordinate system(LCY).
      */
-    const _type_lattice_coord (&local_lattice_coord_sub_box_lower)[DIMENSION];
-    const _type_lattice_coord (&local_lattice_coord_sub_box_upper)[DIMENSION];
+    const Region<_type_lattice_coord> &local_sub_box_lattice_coord_region;
 
     // lower and upper boundary of lattice coordinate in ghost area of current sub-box area
     // at each dimension in local coordinate system(LCY).
-    const _type_lattice_coord (&local_lattice_coord_ghost_lower)[DIMENSION];
-    const _type_lattice_coord (&local_lattice_coord_ghost_upper)[DIMENSION];
+    const Region<_type_lattice_coord> &local_ghost_lattice_coord_region;
 
 private:
 
@@ -152,7 +141,7 @@ private:
     double _meas_global_length[DIMENSION];
     int _grid_size[DIMENSION] = {0};
 
-    double _meas_global_box_coord_lower[DIMENSION], _meas_global_box_coord_upper[DIMENSION];
+    Region<double> _meas_global_box_coord_region;
 
     int _grid_coord_sub_box[DIMENSION];
     int _rank_id_neighbours[DIMENSION][2];
@@ -160,18 +149,18 @@ private:
     /**
      * the measured lower bound of current sub-box at a dimension
      */
-    double _meas_sub_box_lower_bounding[DIMENSION], _meas_sub_box_upper_bounding[DIMENSION];
+    Region<double> _meas_sub_box_region;
     double _meas_ghost_length[DIMENSION];  // measured ghost length, which equals to the cutoff radius.
-    double _meas_ghost_lower_bounding[DIMENSION], _meas_ghost_upper_bounding[DIMENSION];
+    Region<double> _meas_ghost_region;
 
-    _type_lattice_size _lattice_size_sub_box[DIMENSION];
+    _type_lattice_size _lattice_sub_box_size[DIMENSION];
     _type_lattice_size _lattice_size_ghost_extended[DIMENSION];
     _type_lattice_size _lattice_size_ghost[DIMENSION];
-    _type_lattice_coord _lattice_coord_sub_box_lower[DIMENSION], _lattice_coord_sub_box_upper[DIMENSION];
-    _type_lattice_coord _lattice_coord_ghost_lower[DIMENSION], _lattice_coord_ghost_upper[DIMENSION];
+    Region<_type_lattice_coord> _lattice_coord_sub_box_region;
+    Region<_type_lattice_coord> _lattice_coord_ghost_region;
 
-    _type_lattice_coord _local_lattice_coord_sub_box_lower[DIMENSION], _local_lattice_coord_sub_box_upper[DIMENSION];
-    _type_lattice_coord _local_lattice_coord_ghost_lower[DIMENSION], _local_lattice_coord_ghost_upper[DIMENSION];
+    Region<_type_lattice_coord> _local_sub_box_lattice_coord_region;
+    Region<_type_lattice_coord> _local_ghost_lattice_coord_region;
 
     Domain(const std::array<u_int64_t, DIMENSION> _phase_space,
            const double _lattice_const, const double _cutoff_radius_factor);

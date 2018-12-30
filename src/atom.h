@@ -9,7 +9,7 @@
 #include <vector>
 #include <eam.h>
 
-#include "domain.h"
+#include "domain/domain.h"
 #include "atom/atom_element.h"
 #include "atom/atom_list.h"
 #include "atom/inter_atom_list.h"

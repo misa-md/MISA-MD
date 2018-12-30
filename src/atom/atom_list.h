@@ -8,7 +8,7 @@
 #include <iterator>
 #include <vector>
 #include <functional>
-#include "../domain.h"
+#include "../domain/domain.h"
 #include "../types/pre_define.h"
 #include "atom_element.h"
 

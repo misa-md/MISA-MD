@@ -4,7 +4,7 @@
 
 #include "inter_atom_list.h"
 #include "pack/particledata.h"
-#include "../domain.h"
+#include "../domain/domain.h"
 #include "../utils/mpi_domain.h"
 #include "../utils/mpi_data_types.h"
 
@@ -57,8 +57,8 @@ void InterAtomList::exchangeInter(Domain *p_domain) {
             MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
             //将收到的粒子位置信息加到对应存储位置上
             unpackExInterRecv(d, numrecv,
-                              p_domain->meas_sub_box_lower_bounding,
-                              p_domain->meas_sub_box_upper_bounding,
+                              p_domain->meas_sub_box_region.low,
+                              p_domain->meas_sub_box_region.high,
                               recvbuf[direction]);
 //            _atom->unpackExInterRecv(d, numrecv, recvbuf[direction]);
 
@@ -74,13 +74,13 @@ unsigned long InterAtomList::countExSendNum(Domain *p_domain, int dimension, int
     if (direction == 0) {
         for (AtomElement &inter_ref :inter_list) {
             // we assume that, a atom cannot cross 2 or more than 2 sub-boxes
-            if (inter_ref.x[dimension] < p_domain->meas_sub_box_lower_bounding[dimension]) {
+            if (inter_ref.x[dimension] < p_domain->meas_sub_box_region.low[dimension]) {
                 i++;
             }
         }
     } else {
         for (AtomElement &inter_ref :inter_list) {
-            if (inter_ref.x[dimension] >= p_domain->meas_sub_box_upper_bounding[dimension]) {
+            if (inter_ref.x[dimension] >= p_domain->meas_sub_box_region.high[dimension]) {
                 i++;
             }
         }
@@ -94,7 +94,7 @@ void InterAtomList::packExInterToSend(Domain *p_domain, particledata *buf, int d
         for (_type_inter_list::iterator inter_it = inter_list.begin();
              inter_it != inter_list.end();) {
             // we assume that, a atom cannot cross 2 or more than 2 sub-boxes
-            if ((*inter_it).x[dimension] < p_domain->meas_sub_box_lower_bounding[dimension]) {
+            if ((*inter_it).x[dimension] < p_domain->meas_sub_box_region.low[dimension]) {
                 buf[i].id = inter_it->id;
                 buf[i].type = inter_it->type;
                 buf[i].r[0] = inter_it->x[0];
@@ -117,7 +117,7 @@ void InterAtomList::packExInterToSend(Domain *p_domain, particledata *buf, int d
         for (_type_inter_list::iterator inter_it = inter_list.begin();
              inter_it != inter_list.end();) {
             // we assume that, a atom cannot cross 2 or more than 2 sub-boxes
-            if (inter_it->x[dimension] >= p_domain->meas_sub_box_upper_bounding[dimension]) {
+            if (inter_it->x[dimension] >= p_domain->meas_sub_box_region.high[dimension]) {
                 buf[i].id = inter_it->id;
                 buf[i].type = inter_it->type;
                 buf[i].r[0] = inter_it->x[0];

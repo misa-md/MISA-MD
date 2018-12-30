@@ -14,26 +14,19 @@ Domain::Domain(const std::array<u_int64_t, DIMENSION> _phase_space,
         /**initialize following references */
           meas_global_length(_meas_global_length),
           grid_size(_grid_size),
-          meas_global_box_coord_lower(_meas_global_box_coord_lower),
-          meas_global_box_coord_upper(_meas_global_box_coord_upper),
+          meas_global_box_coord_region(_meas_global_box_coord_region),
           grid_coord_sub_box(_grid_coord_sub_box),
           rank_id_neighbours(_rank_id_neighbours),
-          meas_sub_box_lower_bounding(_meas_sub_box_lower_bounding),
-          meas_sub_box_upper_bounding(_meas_sub_box_upper_bounding),
+          meas_sub_box_region(_meas_sub_box_region),
           meas_ghost_length(_meas_ghost_length),
-          meas_ghost_lower_bounding(_meas_ghost_lower_bounding),
-          meas_ghost_upper_bounding(_meas_ghost_upper_bounding),
-          lattice_size_sub_box(_lattice_size_sub_box),
+          meas_ghost_region(_meas_ghost_region),
+          lattice_size_sub_box(_lattice_sub_box_size),
           lattice_size_ghost_extended(_lattice_size_ghost_extended),
           lattice_size_ghost(_lattice_size_ghost),
-          lattice_coord_sub_box_lower(_lattice_coord_sub_box_lower),
-          lattice_coord_sub_box_upper(_lattice_coord_sub_box_upper),
-          lattice_coord_ghost_lower(_lattice_coord_ghost_lower),
-          lattice_coord_ghost_upper(_lattice_coord_ghost_upper),
-          local_lattice_coord_sub_box_lower(_local_lattice_coord_sub_box_lower),
-          local_lattice_coord_sub_box_upper(_local_lattice_coord_sub_box_upper),
-          local_lattice_coord_ghost_lower(_local_lattice_coord_ghost_lower),
-          local_lattice_coord_ghost_upper(_local_lattice_coord_ghost_upper) {}
+          lattice_coord_sub_box_region(_lattice_coord_sub_box_region),
+          lattice_coord_ghost_region(_lattice_coord_ghost_region),
+          local_sub_box_lattice_coord_region(_local_sub_box_lattice_coord_region),
+          local_ghost_lattice_coord_region(_local_ghost_lattice_coord_region) {}
 
 Domain::Builder &Domain::Builder::setPhaseSpace(const int64_t phaseSpace[DIMENSION]) {
     for (int i = 0; i < DIMENSION; i++) {
@@ -91,33 +84,34 @@ void Domain::Builder::createGlobalDomain(Domain &domain) {
     for (int d = 0; d < DIMENSION; d++) {
         //phaseSpace个单位长度(单位长度即latticeconst)
         domain._meas_global_length[d] = _phase_space[d] * _lattice_const;
-        domain._meas_global_box_coord_lower[d] = 0; // lower bounding is set to 0 by default.
-        domain._meas_global_box_coord_upper[d] = domain._meas_global_length[d];
+        domain._meas_global_box_coord_region.low[d] = 0; // lower bounding is set to 0 by default.
+        domain._meas_global_box_coord_region.high[d] = domain._meas_global_length[d];
     }
 }
 
 void Domain::Builder::createSubBoxDomain(Domain &domain) {
+    // calculate measured length in each dimension.
     for (int d = 0; d < DIMENSION; d++) {
         // the lower and upper bounding of current sub-box.
-        domain._meas_sub_box_lower_bounding[d] = domain._meas_global_box_coord_lower[d] +
-                                                 domain._grid_coord_sub_box[d] *
-                                                 (domain._meas_global_length[d] / domain._grid_size[d]);
-        domain._meas_sub_box_upper_bounding[d] = domain._meas_global_box_coord_lower[d] +
-                                                 (domain._grid_coord_sub_box[d] + 1) *
-                                                 (domain._meas_global_length[d] / domain._grid_size[d]);
+        domain._meas_sub_box_region.low[d] = domain._meas_global_box_coord_region.low[d] +
+                                             domain._grid_coord_sub_box[d] *
+                                             (domain._meas_global_length[d] / domain._grid_size[d]);
+        domain._meas_sub_box_region.high[d] = domain._meas_global_box_coord_region.low[d] +
+                                              (domain._grid_coord_sub_box[d] + 1) *
+                                              (domain._meas_global_length[d] / domain._grid_size[d]);
 
         domain._meas_ghost_length[d] = _cutoff_radius_factor * _lattice_const; // ghost length todo
 
-        domain._meas_ghost_lower_bounding[d] = domain._meas_sub_box_lower_bounding[d] - domain._meas_ghost_length[d];
-        domain._meas_ghost_upper_bounding[d] = domain._meas_sub_box_upper_bounding[d] + domain._meas_ghost_length[d];
+        domain._meas_ghost_region.low[d] = domain._meas_sub_box_region.low[d] - domain._meas_ghost_length[d];
+        domain._meas_ghost_region.high[d] = domain._meas_sub_box_region.high[d] + domain._meas_ghost_length[d];
     }
 
     // set lattice size of local sub-box.
     for (int d = 0; d < DIMENSION; d++) {
-        domain._lattice_size_sub_box[d] = (domain._grid_coord_sub_box[d] + 1) * _phase_space[d] / domain._grid_size[d] -
+        domain._lattice_sub_box_size[d] = (domain._grid_coord_sub_box[d] + 1) * _phase_space[d] / domain._grid_size[d] -
                                           (domain._grid_coord_sub_box[d]) * _phase_space[d] / domain._grid_size[d];
     }
-    domain._lattice_size_sub_box[0] *= 2; // todo ?? why
+    domain._lattice_sub_box_size[0] *= 2;
 
     /*
     nghostx = p_domain->getSubBoxLatticeSize(0) + 2 * 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
@@ -128,7 +122,7 @@ void Domain::Builder::createSubBoxDomain(Domain &domain) {
     for (int d = 0; d < DIMENSION; d++) {
         // i * ceil(x) >= ceil(i*x) for all x ∈ R and i ∈ Z
         domain._lattice_size_ghost[d] = (d == 0) ? 2 * ceil(_cutoff_radius_factor) : ceil(_cutoff_radius_factor);
-        domain._lattice_size_ghost_extended[d] = domain._lattice_size_sub_box[d] + 2 * domain._lattice_size_ghost[d];
+        domain._lattice_size_ghost_extended[d] = domain._lattice_sub_box_size[d] + 2 * domain._lattice_size_ghost[d];
     }
 
     // set lattice coordinate boundary in global and local coordinate system(GCS and LCS).
@@ -140,13 +134,13 @@ void Domain::Builder::buildSubBoxDomainGCS(Domain &domain) {
     // set lattice coordinate boundary of sub-box.
     for (int d = 0; d < DIMENSION; d++) {
         // floor equals to "/" if all operation number >=0.
-        domain._lattice_coord_sub_box_lower[d] = domain._grid_coord_sub_box[d] * _phase_space[d] /
-                                                 domain._grid_size[d]; // todo set measure coord = lower*lattice_const.
-        domain._lattice_coord_sub_box_upper[d] =
+        domain._lattice_coord_sub_box_region.low[d] = domain._grid_coord_sub_box[d] * _phase_space[d] /
+                                                      domain._grid_size[d]; // todo set measure coord = lower*lattice_const.
+        domain._lattice_coord_sub_box_region.high[d] =
                 (domain._grid_coord_sub_box[d] + 1) * _phase_space[d] / domain._grid_size[d];
     }
-    domain._lattice_coord_sub_box_lower[0] *= 2;
-    domain._lattice_coord_sub_box_upper[0] *= 2;
+    domain._lattice_coord_sub_box_region.x_low *= 2;
+    domain._lattice_coord_sub_box_region.x_high *= 2;
 
     /*
    loghostx = p_domain->getSubBoxLatticeCoordLower(0) - 2 * ( ceil( cutoffRadius / _latticeconst ) + 1 );
@@ -156,17 +150,20 @@ void Domain::Builder::buildSubBoxDomainGCS(Domain &domain) {
     // set lattice coordinate boundary for ghost.
     for (int d = 0; d < DIMENSION; d++) {
         // todo too integer minus, cut too many??
-        domain._lattice_coord_ghost_lower[d] = domain._lattice_coord_sub_box_lower[d] - domain._lattice_size_ghost[d];
-        domain._lattice_coord_ghost_upper[d] = domain._lattice_coord_sub_box_upper[d] + domain._lattice_size_ghost[d];
+        domain._lattice_coord_ghost_region.low[d] = domain._lattice_coord_sub_box_region.low[d] -
+                                                    domain._lattice_size_ghost[d];
+        domain._lattice_coord_ghost_region.high[d] = domain._lattice_coord_sub_box_region.high[d] +
+                                                     domain._lattice_size_ghost[d];
     }
 }
 
 void Domain::Builder::buildSubBoxDomainLCS(Domain &domain) {
     for (int d = 0; d < DIMENSION; d++) {
-        domain._local_lattice_coord_ghost_lower[d] = 0;
-        domain._local_lattice_coord_ghost_upper[d] = domain._lattice_size_ghost_extended[d];
-        domain._local_lattice_coord_sub_box_lower[d] = domain._lattice_size_ghost[d];
-        domain._local_lattice_coord_sub_box_upper[d] = domain._lattice_size_ghost[d] + domain._lattice_size_sub_box[d];
+        domain._local_ghost_lattice_coord_region.low[d] = 0;
+        domain._local_ghost_lattice_coord_region.high[d] = domain._lattice_size_ghost_extended[d];
+        domain._local_sub_box_lattice_coord_region.low[d] = domain._lattice_size_ghost[d];
+        domain._local_sub_box_lattice_coord_region.high[d] =
+                domain._lattice_size_ghost[d] + domain._lattice_sub_box_size[d];
     }
 }
 

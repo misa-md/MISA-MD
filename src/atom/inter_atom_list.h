@@ -7,7 +7,7 @@
 
 #include <vector>
 #include <list>
-#include "domain.h"
+#include "domain/domain.h"
 #include "atom_element.h"
 #include "../pack/particledata.h"
 #include "../pack/lat_particle_data.h"

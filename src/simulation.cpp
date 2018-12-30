@@ -213,9 +213,9 @@ void simulation::finalize() {
 void simulation::output(size_t time_step, bool before_collision) {
     // atom boundary in array.
     _type_lattice_coord begin[DIMENSION] = {
-            _p_domain->lattice_coord_sub_box_lower[0] - _p_domain->lattice_coord_ghost_lower[0],
-            _p_domain->lattice_coord_sub_box_lower[1] - _p_domain->lattice_coord_ghost_lower[1],
-            _p_domain->lattice_coord_sub_box_lower[2] - _p_domain->lattice_coord_ghost_lower[2]};
+            _p_domain->lattice_coord_sub_box_region.x_low - _p_domain->lattice_coord_ghost_region.x_low,
+            _p_domain->lattice_coord_sub_box_region.y_low - _p_domain->lattice_coord_ghost_region.y_low,
+            _p_domain->lattice_coord_sub_box_region.z_low - _p_domain->lattice_coord_ghost_region.z_low};
     _type_lattice_coord end[DIMENSION] = {
             begin[0] + _p_domain->lattice_size_sub_box[0],
             begin[1] + _p_domain->lattice_size_sub_box[1],

@@ -15,7 +15,6 @@ set(HEADER_FILES
         toml_config.h
         config_values.h
         def_config_values.h
-        domain.h
         hardware_accelerate.hpp
         input.h
         newton_motion.h
@@ -24,6 +23,8 @@ set(HEADER_FILES
         atom/atom_element.h
         atom/atom_list.h
         atom/inter_atom_list.h
+        domain/domain.h
+        domain/region.hpp
         types/atom_types.h
         types/pre_config.h
         types/pre_define.h
@@ -42,7 +43,6 @@ set(SOURCE_FILES
         crystal_md.cpp
         toml_config.cpp
         config_values.cpp
-        domain.cpp
         input.cpp
         newton_motion.cpp
         simulation.cpp
@@ -51,6 +51,7 @@ set(SOURCE_FILES
         atom/atom_list.cpp
         atom/inter_atom_list.cpp
         atom/inter_atom_list_minor.cpp
+        domain/domain.cpp
         types/atom_info_dump.cpp
         pack/lat_particle_data.cpp
         pack/pack.cpp

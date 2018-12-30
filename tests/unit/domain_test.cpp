@@ -37,13 +37,13 @@ TEST(domain_local_lattice_size, domain_test) {
     double cutoff_radius_factor = 1.1421;
     Domain *_domain = getDomainInstance(space, lattice_const, cutoff_radius_factor);
 
-    int nlocalx = floor(_domain->meas_sub_box_upper_bounding[0] / (lattice_const)) -
-                  floor(_domain->meas_sub_box_lower_bounding[0] / (lattice_const));
+    int nlocalx = floor(_domain->meas_sub_box_region.x_high / (lattice_const)) -
+                  floor(_domain->meas_sub_box_region.x_low / (lattice_const));
     nlocalx *= 2;
-    int nlocaly = floor(_domain->meas_sub_box_upper_bounding[1] / lattice_const) -
-                  floor(_domain->meas_sub_box_lower_bounding[1] / lattice_const);
-    int nlocalz = floor(_domain->meas_sub_box_upper_bounding[2] / lattice_const) -
-                  floor(_domain->meas_sub_box_lower_bounding[2] / lattice_const);
+    int nlocaly = floor(_domain->meas_sub_box_region.y_high / lattice_const) -
+                  floor(_domain->meas_sub_box_region.y_low / lattice_const);
+    int nlocalz = floor(_domain->meas_sub_box_region.z_high / lattice_const) -
+                  floor(_domain->meas_sub_box_region.z_low / lattice_const);
 
     EXPECT_EQ(nlocalx, _domain->lattice_size_sub_box[0]);
     EXPECT_EQ(nlocaly, _domain->lattice_size_sub_box[1]);
@@ -76,22 +76,22 @@ TEST(domain_local_lattice_coord, domain_test) {
     Domain *_domain = getDomainInstance(space, lattice_const, cutoff_radius_factor);
 
     // lower boundary of lattice coordinate of local sub-box
-    int lolocalx = floor(_domain->meas_sub_box_lower_bounding[0] / lattice_const) * 2;
-    int lolocaly = floor(_domain->meas_sub_box_lower_bounding[1] / lattice_const);
-    int lolocalz = floor(_domain->meas_sub_box_lower_bounding[2] / lattice_const);
+    int lolocalx = floor(_domain->meas_sub_box_region.x_low / lattice_const) * 2;
+    int lolocaly = floor(_domain->meas_sub_box_region.y_low / lattice_const);
+    int lolocalz = floor(_domain->meas_sub_box_region.z_low / lattice_const);
 
-    EXPECT_EQ(lolocalx, _domain->lattice_coord_sub_box_lower[0]);
-    EXPECT_EQ(lolocaly, _domain->lattice_coord_sub_box_lower[1]);
-    EXPECT_EQ(lolocalz, _domain->lattice_coord_sub_box_lower[2]);
+    EXPECT_EQ(lolocalx, _domain->lattice_coord_sub_box_region.x_low);
+    EXPECT_EQ(lolocaly, _domain->lattice_coord_sub_box_region.y_low);
+    EXPECT_EQ(lolocalz, _domain->lattice_coord_sub_box_region.z_low);
 
 // upper boundary of lattice coordinate of local sub-box
-    int uplocalx = floor(_domain->meas_sub_box_upper_bounding[0] / lattice_const) * 2;
-    int uplocaly = floor(_domain->meas_sub_box_upper_bounding[1] / lattice_const);
-    int uplocalz = floor(_domain->meas_sub_box_upper_bounding[2] / lattice_const);
+    int uplocalx = floor(_domain->meas_sub_box_region.x_high / lattice_const) * 2;
+    int uplocaly = floor(_domain->meas_sub_box_region.y_high / lattice_const);
+    int uplocalz = floor(_domain->meas_sub_box_region.z_high / lattice_const);
 
-    EXPECT_EQ(uplocalx, _domain->lattice_coord_sub_box_upper[0]);
-    EXPECT_EQ(uplocaly, _domain->lattice_coord_sub_box_upper[1]);
-    EXPECT_EQ(uplocalz, _domain->lattice_coord_sub_box_upper[1]);
+    EXPECT_EQ(uplocalx, _domain->lattice_coord_sub_box_region.x_high);
+    EXPECT_EQ(uplocaly, _domain->lattice_coord_sub_box_region.y_high);
+    EXPECT_EQ(uplocalz, _domain->lattice_coord_sub_box_region.z_high);
 
     delete _domain;
 }
@@ -103,22 +103,22 @@ TEST(domain_ghost_lattice_coord, domain_test) {
     Domain *_domain = getDomainInstance(space, lattice_const, cutoff_radius_factor);
 
     // lower boundary of lattice coordinate of ghost
-    int loghostx = _domain->lattice_coord_sub_box_lower[0] - 2 * ceil(cutoff_radius_factor / lattice_const);
-    int loghosty = _domain->lattice_coord_sub_box_lower[1] - ceil(cutoff_radius_factor / lattice_const);
-    int loghostz = _domain->lattice_coord_sub_box_lower[2] - ceil(cutoff_radius_factor / lattice_const);
+    int loghostx = _domain->lattice_coord_sub_box_region.x_low - 2 * ceil(cutoff_radius_factor / lattice_const);
+    int loghosty = _domain->lattice_coord_sub_box_region.y_low - ceil(cutoff_radius_factor / lattice_const);
+    int loghostz = _domain->lattice_coord_sub_box_region.z_low - ceil(cutoff_radius_factor / lattice_const);
 
-    EXPECT_EQ(loghostx, _domain->lattice_coord_ghost_lower[0]);
-    EXPECT_EQ(loghosty, _domain->lattice_coord_ghost_lower[1]);
-    EXPECT_EQ(loghostz, _domain->lattice_coord_ghost_lower[1]);
+    EXPECT_EQ(loghostx, _domain->lattice_coord_ghost_region.x_low);
+    EXPECT_EQ(loghosty, _domain->lattice_coord_ghost_region.y_low);
+    EXPECT_EQ(loghostz, _domain->lattice_coord_ghost_region.z_low);
 
     // upper boundary of lattice coordinate of ghost
-    int upghostx = _domain->lattice_coord_sub_box_upper[0] + 2 * ceil(cutoff_radius_factor / lattice_const);
-    int upghosty = _domain->lattice_coord_sub_box_upper[1] + ceil(cutoff_radius_factor / lattice_const);
-    int upghostz = _domain->lattice_coord_sub_box_upper[2] + ceil(cutoff_radius_factor / lattice_const);
+    int upghostx = _domain->lattice_coord_sub_box_region.x_high + 2 * ceil(cutoff_radius_factor / lattice_const);
+    int upghosty = _domain->lattice_coord_sub_box_region.y_high + ceil(cutoff_radius_factor / lattice_const);
+    int upghostz = _domain->lattice_coord_sub_box_region.z_high + ceil(cutoff_radius_factor / lattice_const);
 
-    EXPECT_EQ(upghostx, _domain->lattice_coord_ghost_upper[0]);
-    EXPECT_EQ(upghosty, _domain->lattice_coord_ghost_upper[1]);
-    EXPECT_EQ(upghostz, _domain->lattice_coord_ghost_upper[2]);
+    EXPECT_EQ(upghostx, _domain->lattice_coord_ghost_region.x_high);
+    EXPECT_EQ(upghosty, _domain->lattice_coord_ghost_region.y_high);
+    EXPECT_EQ(upghostz, _domain->lattice_coord_ghost_region.z_high);
 
     delete _domain;
 }
