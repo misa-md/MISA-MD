@@ -29,14 +29,17 @@ void simulation::createDomainDecomposition() {
 
     //进行区域分解
     kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initializing GlobalDomain decomposition.\n");
+    MPI_Comm new_comm;
     _p_domain = Domain::Builder()
+            .setComm(MPIDomain::sim_processor, &new_comm)
             .setPhaseSpace(pConfigVal->phaseSpace)
             .setCutoffRadius(pConfigVal->cutoffRadiusFactor)
             .setLatticeConst(pConfigVal->latticeConst)
             .build();
-    kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initialization done.\n");
+    kiwi::mpiUtils::onGlobalCommChanged(new_comm); // set new domain.
+    MPIDomain::sim_processor = kiwi::mpiUtils::global_process;
 
-//    _numberOfTimesteps = 1;
+    kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initialization done.\n");
 }
 
 void simulation::createAtoms() {
