@@ -150,7 +150,8 @@ public:
      * @param zIndex
      * @return
      */
-    inline long IndexOf3DIndex(_type_atom_index xIndex, _type_atom_index yIndex, _type_atom_index zIndex) const {
+    inline _type_atom_index
+    IndexOf3DIndex(_type_atom_index xIndex, _type_atom_index yIndex, _type_atom_index zIndex) const {
         return (zIndex * _size_y + yIndex) * _size_x + xIndex;
     }
 

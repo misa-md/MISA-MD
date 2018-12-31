@@ -40,8 +40,7 @@ void simulation::createDomainDecomposition() {
 }
 
 void simulation::createAtoms() {
-    _atom = new atom(_p_domain, pConfigVal->latticeConst,
-                     pConfigVal->cutoffRadiusFactor, pConfigVal->createSeed);
+    _atom = new atom(_p_domain, pConfigVal->latticeConst, pConfigVal->cutoffRadiusFactor);
     _atom->calculateNeighbourIndices(); // establish index offset for neighbour.
 
     if (pConfigVal->createPhaseMode) {  //创建原子坐标、速度信息

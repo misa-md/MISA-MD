@@ -22,6 +22,7 @@ set(HEADER_FILES
         world_builder.h
         atom/atom_element.h
         atom/atom_list.h
+        atom/atom_set.h
         atom/inter_atom_list.h
         domain/domain.h
         domain/region.hpp
@@ -49,6 +50,7 @@ set(SOURCE_FILES
         world_builder.cpp
         atom/atom_element.cpp
         atom/atom_list.cpp
+        atom/atom_set.cpp
         atom/inter_atom_list.cpp
         atom/inter_atom_list_minor.cpp
         domain/domain.cpp
