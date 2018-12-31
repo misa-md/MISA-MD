@@ -5,6 +5,7 @@
 #include <args.hpp>
 #include <utils/mpi_utils.h>
 #include <logs/logs.h>
+#include <utils/mpi_data_types.h>
 
 #include "crystal_md.h"
 #include "utils/mpi_domain.h"
@@ -83,6 +84,7 @@ void crystalMD::onCreate() {
 bool crystalMD::prepare() {
     kiwi::logs::d("domain2", "ranks {}\n", MPIDomain::sim_processor.all_ranks);
 
+    mpi_types::setInterMPIType();
     pSimulation = new simulation();
     pSimulation->createDomainDecomposition(); // 区域分解
     pSimulation->createAtoms();
@@ -99,6 +101,7 @@ void crystalMD::onFinish() {
     kiwi::logs::s(MASTER_PROCESSOR, "simulation", "finalizing simulation\n");
     //模拟结束
     pSimulation->finalize();
+    mpi_types::unsetInterMPIType();
 }
 
 void crystalMD::beforeDestroy() {

@@ -128,37 +128,43 @@ void AtomDump::dumpModeDirect(AtomList *atom_list, InterAtomList *inter_list, si
             }
     );
     outfile << "print inter" << std::endl;
-    for (int i = 0; i < inter_list->nlocalinter; i++) {
-        outfile << inter_list->idinter[i] << " "
-                //                << "ty" << atom->typeinter[i] << " "
-                << inter_list->xinter[i][0] << " "
-                << inter_list->xinter[i][1] << " "
-                << inter_list->xinter[i][2] << std::endl;
+    for (AtomElement &inter_ref :inter_list->inter_list) {
+        outfile << inter_ref.id << " "
+                // << "ty" << atom->typeinter[i] << " "
+                << inter_ref.x[0] << " "
+                << inter_ref.x[1] << " "
+                << inter_ref.x[2] << std::endl;
+    }
+    for (int i = 0; i < inter_list->nLocalInter(); i++) {
+
     }
     outfile.close();
 }
 
 void AtomDump::dumpInterLists(InterAtomList *inter_list, size_t step) {
     // dumping inter atoms.
-    kiwi::logs::v("dump", "inter atoms count: {}\n", inter_list->nlocalinter);
+    kiwi::logs::v("dump", "inter atoms count: {}\n", inter_list->nLocalInter());
     atom_dump::AtomInfoDump *inter_dump = nullptr;
-    if (inter_list->nlocalinter > 0) {
-        inter_dump = new atom_dump::AtomInfoDump[inter_list->nlocalinter];
+    if (inter_list->nLocalInter() > 0) {
+        inter_dump = new atom_dump::AtomInfoDump[inter_list->nLocalInter()];
     }
-    for (int i = 0; i < inter_list->nlocalinter; i++) {
-        inter_dump[i].id = inter_list->idinter[i];
+    unsigned long i = 0;
+    for (AtomElement &inter_ref :inter_list->inter_list) {
+        // for (int i = 0; i < inter_list->nLocalInter(); i++) {
+        inter_dump[i].id = inter_ref.id;
         inter_dump[i].step = step;
-        inter_dump[i].type = inter_list->typeinter[i];
+        inter_dump[i].type = inter_ref.type;
         inter_dump[i].inter_type = 1; // inter atoms.
-        inter_dump[i].atom_location[0] = inter_list->xinter[i][0];
-        inter_dump[i].atom_location[1] = inter_list->xinter[i][1];
-        inter_dump[i].atom_location[2] = inter_list->xinter[i][2];
-        inter_dump[i].atom_velocity[0] = inter_list->vinter[i][0];
-        inter_dump[i].atom_velocity[1] = inter_list->vinter[i][1];
-        inter_dump[i].atom_velocity[2] = inter_list->vinter[i][2];
+        inter_dump[i].atom_location[0] = inter_ref.x[0];
+        inter_dump[i].atom_location[1] = inter_ref.x[1];
+        inter_dump[i].atom_location[2] = inter_ref.x[2];
+        inter_dump[i].atom_velocity[0] = inter_ref.v[0];
+        inter_dump[i].atom_velocity[1] = inter_ref.v[1];
+        inter_dump[i].atom_velocity[2] = inter_ref.v[2];
+        i++;
     }
-    atom_total += inter_list->nlocalinter;
-    local_storage->writer.write(inter_dump, inter_list->nlocalinter * sizeof(atom_dump::AtomInfoDump));
+    atom_total += inter_list->nLocalInter();
+    local_storage->writer.write(inter_dump, inter_list->nLocalInter() * sizeof(atom_dump::AtomInfoDump));
     delete[]inter_dump;
 }
 

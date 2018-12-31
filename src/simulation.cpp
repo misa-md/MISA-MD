@@ -17,7 +17,6 @@ simulation::simulation() : _p_domain(nullptr), _atom(nullptr),
 }
 
 simulation::~simulation() {
-//    delete _p_domain; // see finalize method.
     delete _atom;
     delete _newton_motion;
     delete _pot;
@@ -30,12 +29,11 @@ void simulation::createDomainDecomposition() {
 
     //进行区域分解
     kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initializing GlobalDomain decomposition.\n");
-    _p_domain = (new Domain(pConfigVal->phaseSpace,
-                            pConfigVal->latticeConst,
-                            pConfigVal->cutoffRadiusFactor))
-            ->decomposition()
-            ->createGlobalDomain() // set global box domain.
-            ->createSubBoxDomain(); // set local sub-box domain.
+    _p_domain = Domain::Builder()
+            .setPhaseSpace(pConfigVal->phaseSpace)
+            .setCutoffRadius(pConfigVal->cutoffRadiusFactor)
+            .setLatticeConst(pConfigVal->latticeConst)
+            .build();
     kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initialization done.\n");
 
 //    _numberOfTimesteps = 1;
@@ -97,7 +95,7 @@ void simulation::prepareForStart() {
                                 MPIDomain::sim_processor.comm,
                                 _pot->geEles());
 */
-    }else{
+    } else {
         _pot = eam::newInstance(0,
                                 MASTER_PROCESSOR,
                                 MPIDomain::sim_processor.own_rank,
@@ -112,7 +110,8 @@ void simulation::prepareForStart() {
     beforeAccelerateRun(_pot); // it runs after atom and boxes creation, but before simulation running.
 
     starttime = MPI_Wtime();
-    _p_domain->exchangeAtomFirst(_atom);
+    // todo make _cut_lattice a member of class AtomList
+    _atom->getAtomList()->exchangeAtomFirst(_p_domain, _atom->getCutLattice());
     // fixme those code does not fit [read atom mode], because in [create atom mode], inter is empty at first step;
     // so borderInter is not get called.
     stoptime = MPI_Wtime();
@@ -127,7 +126,7 @@ void simulation::prepareForStart() {
 
     //_atom->print_force();
     starttime = MPI_Wtime();
-    _p_domain->sendForce(_atom);
+    _atom->sendForce();
     stoptime = MPI_Wtime();
     commtime += stoptime - starttime;
 
@@ -151,12 +150,12 @@ void simulation::simulate() {
                 output(_simulation_time_step, true); // dump atoms
             }
             _atom->setv(pConfigVal->collisionLat, pConfigVal->direction, pConfigVal->pkaEnergy);
-            _p_domain->exchangeInter(_atom);
-            _p_domain->borderInter(_atom);
-            _p_domain->exchangeAtom(_atom);
+            _atom->getInterList()->exchangeInter(_p_domain);
+            _atom->getInterList()->borderInter(_p_domain);
+            _atom->getAtomList()->exchangeAtom(_p_domain);
             _atom->clearForce();
             _atom->computeEam(_pot, _p_domain, comm);
-            _p_domain->sendForce(_atom);
+            _atom->sendForce();
         }
         //先进行求解牛顿运动方程第一步
         _newton_motion->firststep(_atom->getAtomList(), _atom->getInterList());
@@ -166,9 +165,9 @@ void simulation::simulate() {
 
         //通信ghost区域，交换粒子
         starttime = MPI_Wtime();
-        _p_domain->exchangeInter(_atom);
-        _p_domain->borderInter(_atom);
-        _p_domain->exchangeAtom(_atom);
+        _atom->getInterList()->exchangeInter(_p_domain);
+        _atom->getInterList()->borderInter(_p_domain);
+        _atom->getAtomList()->exchangeAtom(_p_domain);
         stoptime = MPI_Wtime();
         commtime += stoptime - starttime;
 
@@ -182,7 +181,7 @@ void simulation::simulate() {
 
         //发送力
         starttime = MPI_Wtime();
-        _p_domain->sendForce(_atom);
+        _atom->sendForce();
         stoptime = MPI_Wtime();
         commtime += stoptime - starttime;
         //求解牛顿运动方程第二步
@@ -214,15 +213,15 @@ void simulation::finalize() {
 void simulation::output(size_t time_step, bool before_collision) {
     // atom boundary in array.
     _type_lattice_coord begin[DIMENSION] = {
-            _p_domain->getGlobalSubBoxLatticeCoordLower(0) - _p_domain->getGlobalGhostLatticeCoordLower(0),
-            _p_domain->getGlobalSubBoxLatticeCoordLower(1) - _p_domain->getGlobalGhostLatticeCoordLower(1),
-            _p_domain->getGlobalSubBoxLatticeCoordLower(2) - _p_domain->getGlobalGhostLatticeCoordLower(2)};
+            _p_domain->lattice_coord_sub_box_lower[0] - _p_domain->lattice_coord_ghost_lower[0],
+            _p_domain->lattice_coord_sub_box_lower[1] - _p_domain->lattice_coord_ghost_lower[1],
+            _p_domain->lattice_coord_sub_box_lower[2] - _p_domain->lattice_coord_ghost_lower[2]};
     _type_lattice_coord end[DIMENSION] = {
-            begin[0] + _p_domain->getSubBoxLatticeSize(0),
-            begin[1] + _p_domain->getSubBoxLatticeSize(1),
-            begin[2] + _p_domain->getSubBoxLatticeSize(2)};
-    _type_lattice_size atoms_size = _p_domain->getSubBoxLatticeSize(0) * _p_domain->getSubBoxLatticeSize(1) *
-                                    _p_domain->getSubBoxLatticeSize(2);
+            begin[0] + _p_domain->lattice_size_sub_box[0],
+            begin[1] + _p_domain->lattice_size_sub_box[1],
+            begin[2] + _p_domain->lattice_size_sub_box[2]};
+    _type_lattice_size atoms_size = _p_domain->lattice_size_sub_box[0] * _p_domain->lattice_size_sub_box[1] *
+                                    _p_domain->lattice_size_sub_box[2];
     double start = 0, stop = 0;
     static double totalDumpTime = 0;
 
@@ -247,8 +246,8 @@ void simulation::output(size_t time_step, bool before_collision) {
             filename = fmt::format(pConfigVal->atomsDumpFilePath, time_step);
         }
         // pointer to the atom dump class for outputting atoms information.
-        AtomDump *dumpInstance = new AtomDump(pConfigVal->atomsDumpMode, filename,
-                                              begin, end, atoms_size);
+        auto *dumpInstance = new AtomDump(pConfigVal->atomsDumpMode, filename,
+                                          begin, end, atoms_size);
         dumpInstance->dump(_atom->getAtomList(), _atom->getInterList(), time_step);
         dumpInstance->writeDumpHeader();
         delete dumpInstance;

@@ -43,18 +43,6 @@ public :
 
     void computeEam(eam *pot, Domain *domain, double &comm);
 
-    unsigned long getinteridsendsize();
-
-    void getatomx(int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
-
-    void getatomy(int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
-
-    void getatomz(int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
-
-    void getIntertosend(int d, int direction, double ghostlengh, std::vector<int> &sendlist);
-
-    int getintersendnum(int dimension, int direction);
-
     /**
      * set velocity of a atom whose position is specified by array @param lat
      * This atom is called PKA (Primary Knock-on Atom).
@@ -83,6 +71,12 @@ public :
         return inter_atom_list;
     }
 
+    inline int getCutLattice() {
+        return _cutlattice;
+    }
+
+    void sendForce();
+
 private:
 
     Domain *p_domain;
@@ -98,7 +92,10 @@ private:
     AtomList *atom_list;
     InterAtomList *inter_atom_list;
 
-    std::vector<unsigned long> interbuf;
+    void sendrho();
+
+    void sendDfEmbed();
+
 };
 
 #endif // CRYSTAL_MD_ATOM_H

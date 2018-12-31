@@ -31,6 +31,7 @@ set(HEADER_FILES
         pack/lat_particle_data.h
         pack/pack.h
         pack/particledata.h
+        utils/mpi_data_types.h
         utils/mpi_domain.h
         utils/rpcc.hpp
         )
@@ -49,11 +50,13 @@ set(SOURCE_FILES
         atom/atom_element.cpp
         atom/atom_list.cpp
         atom/inter_atom_list.cpp
+        atom/inter_atom_list_minor.cpp
         types/atom_info_dump.cpp
         pack/lat_particle_data.cpp
         pack/pack.cpp
         pack/particledata.cpp
         utils/mpi_domain.cpp
+        utils/mpi_data_types.cpp
         )
 
 
