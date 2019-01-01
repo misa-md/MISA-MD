@@ -17,7 +17,7 @@ TEST(domain_test_decomposition, domain_test) {
     double cutoff_radius_factor = 1.1421;
 
     Domain *_domain = getDomainInstance(space, lattice_const, cutoff_radius_factor);
-    auto *_atom = new atom(_domain, lattice_const, cutoff_radius_factor);
+    auto *_atom = new atom(_domain);
 
     int grid_sum[3] = {0, 0, 0};
     int local_grid[3] = {(_domain->lattice_size_sub_box[0]), (_domain->lattice_size_sub_box[1]),

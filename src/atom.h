@@ -19,7 +19,7 @@
 
 class atom: public AtomSet {
 public :
-    atom(Domain *domain, double latticeconst, double cutoffRadiusFactor);
+    atom(Domain *domain);
 
     int decide();
 
@@ -41,13 +41,10 @@ public :
 
     void print_force();
 
-    inline int getCutLattice() {
-        return _cutlattice;
-    }
-
     void sendForce();
 
 private:
+    Domain *p_domain;
 
     void sendrho();
 

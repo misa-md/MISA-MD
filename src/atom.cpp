@@ -13,10 +13,27 @@
 #include "toml_config.h"
 #include "hardware_accelerate.hpp" // use hardware(eg.GPU, MIC,Sunway slave cores.) to achieve calculate accelerating.
 
-atom::atom(Domain *domain, double latticeconst,
-           double cutoffRadiusFactor) :
-        AtomSet(domain, latticeconst, cutoffRadiusFactor) {
+atom::atom(Domain *domain)
+        : AtomSet(domain->lattice_const * domain->cutoff_radius_factor,
+                  domain->lattice_size_ghost_extended,
+                  domain->lattice_size_sub_box,
+                  domain->lattice_size_ghost),
+          p_domain(domain) {
+    if (isAccelerateSupport()) {
+        accelerateInit(p_domain->dbx_lattice_coord_sub_box_region.x_low,
+                       p_domain->dbx_lattice_coord_sub_box_region.y_low,
+                       p_domain->dbx_lattice_coord_sub_box_region.z_low,
+                       p_domain->dbx_lattice_size_sub_box[0],
+                       p_domain->dbx_lattice_size_sub_box[1],
+                       p_domain->dbx_lattice_size_sub_box[2],
+                       p_domain->dbx_lattice_coord_ghost_region.x_low,
+                       p_domain->dbx_lattice_coord_ghost_region.y_low,
+                       p_domain->dbx_lattice_coord_ghost_region.z_low,
+                       p_domain->dbx_lattice_size_ghost_extended[0],
+                       p_domain->dbx_lattice_size_ghost_extended[1],
+                       p_domain->dbx_lattice_size_ghost_extended[2]);
     }
+}
 
 int atom::decide() {
     inter_atom_list->nghostinter = 0;

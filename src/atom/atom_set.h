@@ -18,7 +18,10 @@
  */
 class AtomSet {
 public:
-    AtomSet(Domain *domain, double latticeconst, double cutoffRadiusFactor);
+    AtomSet(const double cutoff_radius,
+            const _type_lattice_size extended_lattice_size[DIMENSION],
+            const _type_lattice_size sub_box_lattice_size[DIMENSION],
+            const _type_lattice_size ghost_lattice_size[DIMENSION]);
 
     ~AtomSet();
 
@@ -34,26 +37,24 @@ public:
         return inter_atom_list;
     }
 
-    _type_atom_count getnlocalatom();
+    _type_atom_count getnlocalatom(Domain *p_domain);
 
     /**
       * compute the index offset of neighbour atoms.
       */
-    void calculateNeighbourIndices();
+    void calculateNeighbourIndices(const double cutoff_radius_factor, const _type_lattice_size cut_lattice);
 
     /**
     * used in read creating mode.
     */
-    void addAtom(unsigned long id, double rx, double ry, double rz, double vx, double vy, double vz);
+    void addAtom(Domain *p_domain, unsigned long id, double rx, double ry, double rz, double vx, double vy, double vz);
 
 protected:
-    Domain *p_domain;
-
     int numberoflattice;
 
     double _cutoffRadius;
-    int _cutlattice;
-    double _latticeconst;
+//    int _cutlattice;
+    //   double _latticeconst;
 
     std::vector<_type_atom_index> NeighbourOffsets; // 邻居粒子偏移量 // todo use offset in x,y,z dimension
 
