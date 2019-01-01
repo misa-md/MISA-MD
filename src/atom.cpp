@@ -14,124 +14,8 @@
 #include "hardware_accelerate.hpp" // use hardware(eg.GPU, MIC,Sunway slave cores.) to achieve calculate accelerating.
 
 atom::atom(Domain *domain, double latticeconst,
-           double cutoffRadiusFactor, int seed) :
-        p_domain(domain), _latticeconst(latticeconst),
-        _cutoffRadius(cutoffRadiusFactor * latticeconst), _seed(seed) {
-
-    _cutlattice = static_cast<int>(ceil(cutoffRadiusFactor));
-
-    numberoflattice = p_domain->lattice_size_ghost_extended[0] * p_domain->lattice_size_ghost_extended[1] *
-                      p_domain->lattice_size_ghost_extended[2];
-    // printf("number:%d, %d, %d, %d, %d\n", numberoflattice,
-    // p_domain->getSubBoxLatticeSize(0), p_domain->getSubBoxLatticeSize(1), p_domain->getSubBoxLatticeSize(2),
-    // p_domain->getSubBoxLatticeSize(0)*p_domain->getSubBoxLatticeSize(1)*p_domain->getSubBoxLatticeSize(2));
-    atom_list = new AtomList(p_domain->lattice_size_ghost_extended[0],
-                             p_domain->lattice_size_ghost_extended[1],
-                             p_domain->lattice_size_ghost_extended[2],
-                             p_domain->lattice_size_sub_box[0],
-                             p_domain->lattice_size_sub_box[1],
-                             p_domain->lattice_size_sub_box[2],
-                             p_domain->lattice_size_ghost[0],
-                             p_domain->lattice_size_ghost[1],
-                             p_domain->lattice_size_ghost[2]);
-
-    inter_atom_list = new InterAtomList();
-
-    if (isAccelerateSupport()) {
-        accelerateInit(p_domain->lattice_coord_sub_box_lower[0],
-                       p_domain->lattice_coord_sub_box_lower[1],
-                       p_domain->lattice_coord_sub_box_lower[2],
-                       p_domain->lattice_size_sub_box[0],
-                       p_domain->lattice_size_sub_box[1],
-                       p_domain->lattice_size_sub_box[2],
-                       p_domain->lattice_coord_ghost_lower[0],
-                       p_domain->lattice_coord_ghost_lower[1],
-                       p_domain->lattice_coord_ghost_lower[2],
-                       p_domain->lattice_size_ghost_extended[0],
-                       p_domain->lattice_size_ghost_extended[1],
-                       p_domain->lattice_size_ghost_extended[2]);
-    }
-}
-
-atom::~atom() {
-    delete atom_list;
-    delete inter_atom_list;
-}
-
-void atom::calculateNeighbourIndices() {
-    double x, y, z;
-    int mark = 0;
-    double cut_times_lattice = _cutoffRadius / _latticeconst; // todo use cutoffRadiusFactor.
-    std::vector<long int>::iterator neighbourOffsetsIter;
-    for (int zIndex = -_cutlattice; zIndex <= _cutlattice; zIndex++) { // loop for (2*_cutlattice + 1) times.
-        for (int yIndex = -_cutlattice; yIndex <= _cutlattice; yIndex++) {
-            for (int xIndex = -_cutlattice * 2; xIndex <= _cutlattice * 2; xIndex++) {
-                // 体心
-                z = (double) zIndex + (((double) (xIndex % 2)) / 2); // zIndex plus 1/2 (odd) or 0(even).
-                y = (double) yIndex + (((double) (xIndex % 2)) / 2);
-                x = (double) xIndex / 2;
-                long int offset;
-                double r = sqrt(x * x + y * y + z * z);
-                if (r < (cut_times_lattice + 0.4)) { // todo 0.4?
-                    offset = atom_list->IndexOf3DIndex(xIndex, yIndex, zIndex);
-                    if (offset > 0) {
-                        NeighbourOffsets.push_back(offset);
-                    }
-                }
-
-                // 晶格点
-                z = (double) zIndex - (((double) (xIndex % 2)) / 2);
-                y = (double) yIndex - (((double) (xIndex % 2)) / 2);
-                x = (double) xIndex / 2;
-                r = sqrt(x * x + y * y + z * z);
-                if (r < (cut_times_lattice + 0.4)) {
-                    offset = atom_list->IndexOf3DIndex(xIndex, yIndex, zIndex);
-                    if (offset > 0) {
-                        for (neighbourOffsetsIter = NeighbourOffsets.begin();
-                             neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
-                            if (*neighbourOffsetsIter == offset) {
-                                mark = 1;
-                            }
-                        }
-                        if (mark != 1) {
-                            NeighbourOffsets.push_back(offset);
-                        }
-                        mark = 0;
-                    }
-                }
-            }
-        }
-    }
-}
-
-void atom::addAtom(_type_atom_id id, double rx, double ry, double rz, double vx, double vy, double vz) {
-    int i;
-    if ((rx >= p_domain->meas_sub_box_lower_bounding[0]) &&
-        (rx < p_domain->meas_sub_box_upper_bounding[0]) &&
-        (ry >= p_domain->meas_sub_box_lower_bounding[1]) &&
-        (ry < p_domain->meas_sub_box_upper_bounding[1]) &&
-        (rz >= p_domain->meas_sub_box_lower_bounding[2]) &&
-        (rz < p_domain->meas_sub_box_upper_bounding[2])) {
-        int lattice[3];
-        lattice[0] = rx * 2 / _latticeconst + 0.5;
-        lattice[1] = ry * 2 / _latticeconst + 0.5;
-        lattice[2] = rz * 2 / _latticeconst + 0.5;
-        lattice[1] = lattice[1] / 2;
-        lattice[2] = lattice[2] / 2;
-        lattice[0] -= p_domain->lattice_coord_ghost_lower[0];
-        lattice[1] -= p_domain->lattice_coord_ghost_lower[1];
-        lattice[2] -= p_domain->lattice_coord_ghost_lower[2];
-        i = (((p_domain->lattice_size_ghost_extended[1])) * lattice[2] + lattice[1]) *
-            ((p_domain->lattice_size_ghost_extended[0])) + lattice[0];
-        AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(i);
-        atom_.id = id;
-        atom_.x[0] = rx;
-        atom_.x[1] = ry;
-        atom_.x[2] = rz;
-        atom_.v[0] = vx;
-        atom_.v[1] = vy;
-        atom_.v[2] = vz;
-    }
+           double cutoffRadiusFactor) :
+        AtomSet(domain, latticeconst, cutoffRadiusFactor) {
 }
 
 int atom::decide() {
@@ -151,9 +35,9 @@ int atom::decide() {
 //                kk = atom_list->IndexOf3DIndex(i, j, k);
                 AtomElement &atom_ = atom_list->getAtomEleBySubBoxIndex(i, j, k); // todo long type
                 if (!atom_.isInterElement()) {
-                    xtemp = (i + p_domain->lattice_coord_sub_box_lower[0]) * 0.5 * _latticeconst;
-                    ytemp = (j + p_domain->lattice_coord_sub_box_lower[1] + (i % 2) * 0.5) * _latticeconst;
-                    ztemp = (k + p_domain->lattice_coord_sub_box_lower[2] + (i % 2) * 0.5) * _latticeconst;
+                    xtemp = (i + p_domain->lattice_coord_sub_box_region.x_low) * 0.5 * _latticeconst;
+                    ytemp = (j + p_domain->lattice_coord_sub_box_region.y_low + (i % 2) * 0.5) * _latticeconst;
+                    ztemp = (k + p_domain->lattice_coord_sub_box_region.z_low + (i % 2) * 0.5) * _latticeconst;
                     dist = (atom_.x[0] - xtemp) * (atom_.x[0] - xtemp);
                     dist += (atom_.x[1] - ytemp) * (atom_.x[1] - ytemp);
                     dist += (atom_.x[2] - ztemp) * (atom_.x[2] - ztemp);
@@ -172,24 +56,24 @@ int atom::decide() {
 
     // periodic boundary
     for (AtomElement &inter_ref :inter_atom_list->inter_list) {
-        if (inter_ref.x[0] < p_domain->meas_global_box_coord_lower[0]) {
+        if (inter_ref.x[0] < p_domain->meas_global_box_coord_region.x_low) {
             inter_ref.x[0] += p_domain->meas_global_length[0];
         } else {
-            if (inter_ref.x[0] >= p_domain->meas_global_box_coord_upper[0]) {
+            if (inter_ref.x[0] >= p_domain->meas_global_box_coord_region.x_high) {
                 inter_ref.x[0] -= p_domain->meas_global_length[0];
             }
         }
-        if (inter_ref.x[1] < p_domain->meas_global_box_coord_lower[1]) {
+        if (inter_ref.x[1] < p_domain->meas_global_box_coord_region.y_low) {
             inter_ref.x[1] += p_domain->meas_global_length[1];
         } else {
-            if (inter_ref.x[1] >= p_domain->meas_global_box_coord_upper[1]) {
+            if (inter_ref.x[1] >= p_domain->meas_global_box_coord_region.y_high) {
                 inter_ref.x[1] -= p_domain->meas_global_length[1];
             }
         }
-        if (inter_ref.x[2] < p_domain->meas_global_box_coord_lower[1]) {
+        if (inter_ref.x[2] < p_domain->meas_global_box_coord_region.z_low) {
             inter_ref.x[2] += p_domain->meas_global_length[2];
         } else {
-            if (inter_ref.x[2] >= p_domain->meas_global_box_coord_upper[1]) {
+            if (inter_ref.x[2] >= p_domain->meas_global_box_coord_region.z_high) {
                 inter_ref.x[2] -= p_domain->meas_global_length[2];
             }
         }
@@ -210,9 +94,9 @@ int atom::decide() {
         l = ztemp * 2 / _latticeconst + 0.5;
         k = k / 2;
         l = l / 2;
-        j -= p_domain->lattice_coord_ghost_lower[0];
-        k -= p_domain->lattice_coord_ghost_lower[1];
-        l -= p_domain->lattice_coord_ghost_lower[2];
+        j -= p_domain->lattice_coord_ghost_region.x_low;
+        k -= p_domain->lattice_coord_ghost_region.y_low;
+        l -= p_domain->lattice_coord_ghost_region.z_low;
 
         //判断是否在所表示晶格范围内
         if (j <= (p_domain->lattice_size_sub_box[0] + 2 * (ceil(_cutoffRadius / _latticeconst) + 1))
@@ -263,7 +147,7 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
     double starttime, stoptime;
     double xtemp, ytemp, ztemp;
     double delx, dely, delz;
-    std::vector<long int>::iterator neighbourOffsetsIter;
+    std::vector<_type_atom_index>::iterator neighbourOffsetsIter;
     _type_atom_index n;
     double dist2;
     double rhoTmp, dfEmbed;
@@ -553,9 +437,9 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
         l = ztemp * 2 / _latticeconst + 0.5;
         k = k / 2;
         l = l / 2;
-        j -= p_domain->lattice_coord_ghost_lower[0];
-        k -= p_domain->lattice_coord_ghost_lower[1];
-        l -= p_domain->lattice_coord_ghost_lower[2];
+        j -= p_domain->lattice_coord_ghost_region.x_low;
+        k -= p_domain->lattice_coord_ghost_region.y_low;
+        l -= p_domain->lattice_coord_ghost_region.z_low;
         j = atom_list->IndexOf3DIndex(j, k, l);
         AtomElement &atom_central = atom_list->getAtomEleByLinearIndex(j); // cgs: 间隙原子所在晶格处的原子
 
@@ -686,15 +570,15 @@ void atom::print_force() {
 
 void atom::setv(int lat[4], double direction[3], double energy) {
     long kk;
-    if ((lat[0] * 2) >= p_domain->lattice_coord_sub_box_lower[0] &&
-        (lat[0] * 2) < (p_domain->lattice_coord_sub_box_lower[0] + p_domain->lattice_size_sub_box[0])
-        && lat[1] >= p_domain->lattice_coord_sub_box_lower[1] &&
-        lat[1] < (p_domain->lattice_coord_sub_box_lower[1] + p_domain->lattice_size_sub_box[1])
-        && lat[2] >= p_domain->lattice_coord_sub_box_lower[2] &&
-        lat[2] < (p_domain->lattice_coord_sub_box_lower[2] + p_domain->lattice_size_sub_box[2])) {
-        kk = (atom_list->IndexOf3DIndex(lat[0] * 2 - p_domain->lattice_coord_ghost_lower[0],
-                                        lat[1] - p_domain->lattice_coord_ghost_lower[1],
-                                        lat[2] - p_domain->lattice_coord_ghost_lower[2]) + lat[3]);
+    if ((lat[0] * 2) >= p_domain->lattice_coord_sub_box_region.x_low &&
+        (lat[0] * 2) < (p_domain->lattice_coord_sub_box_region.x_low + p_domain->lattice_size_sub_box[0])
+        && lat[1] >= p_domain->lattice_coord_sub_box_region.y_low &&
+        lat[1] < (p_domain->lattice_coord_sub_box_region.y_low + p_domain->lattice_size_sub_box[1])
+        && lat[2] >= p_domain->lattice_coord_sub_box_region.z_low &&
+        lat[2] < (p_domain->lattice_coord_sub_box_region.z_low + p_domain->lattice_size_sub_box[2])) {
+        kk = (atom_list->IndexOf3DIndex(lat[0] * 2 - p_domain->lattice_coord_ghost_region.x_low,
+                                        lat[1] - p_domain->lattice_coord_ghost_region.y_low,
+                                        lat[2] - p_domain->lattice_coord_ghost_region.z_low) + lat[3]);
         // todo verify the position.
         AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
         double v_ = sqrt(energy / atom_type::getAtomMass(atom_.type) / mvv2e); // the unit of v is 100m/s
@@ -703,11 +587,6 @@ void atom::setv(int lat[4], double direction[3], double energy) {
         atom_.v[1] += v_ * direction[1] / sqrt(d_);
         atom_.v[2] += v_ * direction[2] / sqrt(d_);
     }
-}
-
-int atom::getnlocalatom() {
-    return (p_domain->lattice_size_sub_box[0] * p_domain->lattice_size_sub_box[1] *
-            p_domain->lattice_size_sub_box[2]);
 }
 
 void atom::sendForce() {

@@ -29,19 +29,21 @@ void simulation::createDomainDecomposition() {
 
     //进行区域分解
     kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initializing GlobalDomain decomposition.\n");
+    MPI_Comm new_comm;
     _p_domain = Domain::Builder()
+            .setComm(MPIDomain::sim_processor, &new_comm)
             .setPhaseSpace(pConfigVal->phaseSpace)
             .setCutoffRadius(pConfigVal->cutoffRadiusFactor)
             .setLatticeConst(pConfigVal->latticeConst)
             .build();
-    kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initialization done.\n");
+    kiwi::mpiUtils::onGlobalCommChanged(new_comm); // set new domain.
+    MPIDomain::sim_processor = kiwi::mpiUtils::global_process;
 
-//    _numberOfTimesteps = 1;
+    kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initialization done.\n");
 }
 
 void simulation::createAtoms() {
-    _atom = new atom(_p_domain, pConfigVal->latticeConst,
-                     pConfigVal->cutoffRadiusFactor, pConfigVal->createSeed);
+    _atom = new atom(_p_domain, pConfigVal->latticeConst, pConfigVal->cutoffRadiusFactor);
     _atom->calculateNeighbourIndices(); // establish index offset for neighbour.
 
     if (pConfigVal->createPhaseMode) {  //创建原子坐标、速度信息
@@ -213,9 +215,9 @@ void simulation::finalize() {
 void simulation::output(size_t time_step, bool before_collision) {
     // atom boundary in array.
     _type_lattice_coord begin[DIMENSION] = {
-            _p_domain->lattice_coord_sub_box_lower[0] - _p_domain->lattice_coord_ghost_lower[0],
-            _p_domain->lattice_coord_sub_box_lower[1] - _p_domain->lattice_coord_ghost_lower[1],
-            _p_domain->lattice_coord_sub_box_lower[2] - _p_domain->lattice_coord_ghost_lower[2]};
+            _p_domain->lattice_coord_sub_box_region.x_low - _p_domain->lattice_coord_ghost_region.x_low,
+            _p_domain->lattice_coord_sub_box_region.y_low - _p_domain->lattice_coord_ghost_region.y_low,
+            _p_domain->lattice_coord_sub_box_region.z_low - _p_domain->lattice_coord_ghost_region.z_low};
     _type_lattice_coord end[DIMENSION] = {
             begin[0] + _p_domain->lattice_size_sub_box[0],
             begin[1] + _p_domain->lattice_size_sub_box[1],

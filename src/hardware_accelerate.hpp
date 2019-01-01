@@ -5,6 +5,8 @@
 #ifndef CRYSTAL_MD_HARDWARE_ACCELERATE_H
 #define CRYSTAL_MD_HARDWARE_ACCELERATE_H
 
+#include <eam.h>
+#include "atom/atom_list.h"
 #include "types/pre_define.h"
 
 #ifdef ARCH_SUNWAY

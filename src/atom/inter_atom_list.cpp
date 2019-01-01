@@ -3,7 +3,7 @@
 //
 
 #include "inter_atom_list.h"
-#include "../domain.h"
+#include "../domain/domain.h"
 #include "../utils/mpi_domain.h"
 #include "../utils/mpi_data_types.h"
 
@@ -105,8 +105,8 @@ void InterAtomList::borderInter(Domain *p_domain) {
 
             //将收到的粒子位置信息加到对应存储位置上
             unpack_borderrecv(numrecv,
-                              p_domain->meas_ghost_lower_bounding,
-                              p_domain->meas_ghost_upper_bounding,
+                              p_domain->meas_ghost_region.low,
+                              p_domain->meas_ghost_region.high,
                               recvbuf[direction], interrecvlist[jswap++]);
 //            _atom->unpack_borderrecv(numrecv, recvbuf[direction], interrecvlist[jswap++]);
             // 释放buffer
@@ -176,8 +176,8 @@ void InterAtomList::getIntertosend(Domain *p_domain, int d, int direction, doubl
     double low, high;
     if (d == 0) {
         if (direction == 0) {
-            low = p_domain->meas_sub_box_lower_bounding[0];
-            high = p_domain->meas_sub_box_lower_bounding[0] + ghostlengh;
+            low = p_domain->meas_sub_box_region.x_low;
+            high = p_domain->meas_sub_box_region.x_low + ghostlengh;
             for (AtomElement &inter_ref : inter_list) {
                 if (inter_ref.x[0] < high && inter_ref.x[0] >= low) {
                     sendlist.push_back(&inter_ref);
@@ -189,8 +189,8 @@ void InterAtomList::getIntertosend(Domain *p_domain, int d, int direction, doubl
                 }
             }
         } else {
-            low = p_domain->meas_sub_box_upper_bounding[0] - ghostlengh;
-            high = p_domain->meas_sub_box_upper_bounding[0];
+            low = p_domain->meas_sub_box_region.x_high - ghostlengh;
+            high = p_domain->meas_sub_box_region.x_high;
             for (AtomElement &inter_ref :inter_list) {
                 if (inter_ref.x[0] <= high && inter_ref.x[0] > low) {
                     sendlist.push_back(&inter_ref);
@@ -204,8 +204,8 @@ void InterAtomList::getIntertosend(Domain *p_domain, int d, int direction, doubl
         }
     } else if (d == 1) {
         if (direction == 0) {
-            low = p_domain->meas_sub_box_lower_bounding[1];
-            high = p_domain->meas_sub_box_lower_bounding[1] + ghostlengh;
+            low = p_domain->meas_sub_box_region.y_low;
+            high = p_domain->meas_sub_box_region.y_low + ghostlengh;
             for (AtomElement &inter_ref :inter_list) {
                 if (inter_ref.x[1] < high && inter_ref.x[1] >= low) {
                     sendlist.push_back(&inter_ref);
@@ -217,8 +217,8 @@ void InterAtomList::getIntertosend(Domain *p_domain, int d, int direction, doubl
                 }
             }
         } else {
-            low = p_domain->meas_sub_box_upper_bounding[1] - ghostlengh;
-            high = p_domain->meas_sub_box_upper_bounding[1];
+            low = p_domain->meas_sub_box_region.y_high - ghostlengh;
+            high = p_domain->meas_sub_box_region.y_high;
             for (AtomElement &inter_ref :inter_list) {
                 if (inter_ref.x[1] <= high && inter_ref.x[1] > low) {
                     sendlist.push_back(&inter_ref);
@@ -232,8 +232,8 @@ void InterAtomList::getIntertosend(Domain *p_domain, int d, int direction, doubl
         }
     } else {
         if (direction == 0) {
-            low = p_domain->meas_sub_box_lower_bounding[2];
-            high = p_domain->meas_sub_box_lower_bounding[2] + ghostlengh;
+            low = p_domain->meas_sub_box_region.z_low;
+            high = p_domain->meas_sub_box_region.z_low + ghostlengh;
             for (AtomElement &inter_ref :inter_list) {
                 if (inter_ref.x[2] < high && inter_ref.x[2] >= low) {
                     sendlist.push_back(&inter_ref);
@@ -245,8 +245,8 @@ void InterAtomList::getIntertosend(Domain *p_domain, int d, int direction, doubl
                 }
             }
         } else {
-            low = p_domain->meas_sub_box_upper_bounding[2] - ghostlengh;
-            high = p_domain->meas_sub_box_upper_bounding[2];
+            low = p_domain->meas_sub_box_region.z_high - ghostlengh;
+            high = p_domain->meas_sub_box_region.z_high;
             for (AtomElement &inter_ref :inter_list) {
                 if (inter_ref.x[2] <= high && inter_ref.x[2] > low) {
                     sendlist.push_back(&inter_ref);

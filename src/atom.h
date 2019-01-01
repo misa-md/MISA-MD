@@ -9,33 +9,17 @@
 #include <vector>
 #include <eam.h>
 
-#include "domain.h"
+#include "domain/domain.h"
+#include "atom/atom_set.h"
 #include "atom/atom_element.h"
 #include "atom/atom_list.h"
 #include "atom/inter_atom_list.h"
 #include "pack/particledata.h"
 #include "pack/lat_particle_data.h"
 
-class Domain; // todo remove.
-
-class atom {
+class atom: public AtomSet {
 public :
-    friend class Domain;
-
-    atom(Domain *domain, double latticeconst,
-         double cutoffRadiusFactor, int seed);
-
-    ~atom();
-
-    /**
-     * used in read creating mode.
-     */
-    void addAtom(unsigned long id, double rx, double ry, double rz, double vx, double vy, double vz);
-
-    /**
-     * compute the index offset of neighbour atoms.
-     */
-    void calculateNeighbourIndices();
+    atom(Domain *domain, double latticeconst, double cutoffRadiusFactor);
 
     int decide();
 
@@ -55,21 +39,7 @@ public :
      */
     void setv(int lat[4], double direction[3], double energy);
 
-    int getnlocalatom();
-
     void print_force();
-
-    inline AtomList *getAtomList() {
-        return atom_list;
-    }
-
-    inline AtomList &getAtomListRef() {
-        return *atom_list;
-    }
-
-    inline InterAtomList *getInterList() {
-        return inter_atom_list;
-    }
 
     inline int getCutLattice() {
         return _cutlattice;
@@ -78,19 +48,6 @@ public :
     void sendForce();
 
 private:
-
-    Domain *p_domain;
-    int numberoflattice;
-
-    double _cutoffRadius;
-    int _cutlattice;
-    double _latticeconst;
-    int _seed;
-
-    std::vector<long int> NeighbourOffsets; // 邻居粒子偏移量 // todo use offset in x,y,z dimension
-
-    AtomList *atom_list;
-    InterAtomList *inter_atom_list;
 
     void sendrho();
 
