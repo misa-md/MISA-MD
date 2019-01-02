@@ -73,31 +73,6 @@ int atom::decide() {
         }
     }
 
-    // periodic boundary
-    for (AtomElement &inter_ref :inter_atom_list->inter_list) {
-        if (inter_ref.x[0] < p_domain->meas_global_box_coord_region.x_low) {
-            inter_ref.x[0] += p_domain->meas_global_length[0];
-        } else {
-            if (inter_ref.x[0] >= p_domain->meas_global_box_coord_region.x_high) {
-                inter_ref.x[0] -= p_domain->meas_global_length[0];
-            }
-        }
-        if (inter_ref.x[1] < p_domain->meas_global_box_coord_region.y_low) {
-            inter_ref.x[1] += p_domain->meas_global_length[1];
-        } else {
-            if (inter_ref.x[1] >= p_domain->meas_global_box_coord_region.y_high) {
-                inter_ref.x[1] -= p_domain->meas_global_length[1];
-            }
-        }
-        if (inter_ref.x[2] < p_domain->meas_global_box_coord_region.z_low) {
-            inter_ref.x[2] += p_domain->meas_global_length[2];
-        } else {
-            if (inter_ref.x[2] >= p_domain->meas_global_box_coord_region.z_high) {
-                inter_ref.x[2] -= p_domain->meas_global_length[2];
-            }
-        }
-    }
-
     // 如果间隙原子跑入晶格点,且晶格点为空位, 则空位-间隙发生复合.
     _type_inter_list::iterator inter_it;
     for (inter_it = inter_atom_list->inter_list.begin(); inter_it != inter_atom_list->inter_list.end();) {

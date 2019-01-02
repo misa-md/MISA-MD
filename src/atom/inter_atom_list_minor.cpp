@@ -2,6 +2,7 @@
 // Created by genshen on 2018-12-28.
 //
 
+#include <logs/logs.h>
 #include "inter_atom_list.h"
 #include "pack/particledata.h"
 #include "../domain/domain.h"
@@ -31,11 +32,23 @@ void InterAtomList::exchangeInter(Domain *p_domain) {
             {box::OUT_BOX_Z_LITTER, box::OUT_BOX_Z_BIG},
     };
     int direction;
+    double offset[DIMENSION] = {0.0};
     // 找到要发送给邻居的原子
     for (unsigned short d = 0; d < DIMENSION; d++) {
         for (direction = LOWER; direction <= HIGHER; direction++) {
+            for (double &_d : offset) {
+                _d = 0.0;
+            }
+            // periodic boundary
+            if (p_domain->grid_coord_sub_box[d] == 0 && direction == LOWER) {
+                offset[d] = p_domain->meas_global_length[d];
+            }
+            if (p_domain->grid_coord_sub_box[d] == p_domain->grid_size[d] - 1 && direction == HIGHER) {
+                offset[d] = -((p_domain->meas_global_length[d]));
+            }
+
             sendbuf[direction] = new particledata[num_parts_to_send[d][direction]];
-            packExInterToSend(p_domain, sendbuf[direction], d, direction, out_box_flags);
+            packExInterToSend(p_domain, sendbuf[direction], d, direction, out_box_flags, offset);
         }
 
         // 与上下邻居通信
@@ -105,16 +118,16 @@ void InterAtomList::countExSendNum(Domain *p_domain, int n_to_send[DIMENSION][2]
 }
 
 void InterAtomList::packExInterToSend(Domain *p_domain, particledata *buf, int dimension, int direction,
-                                      box::_type_flag_32 excepted_flag[DIMENSION][2]) {
+                                      box::_type_flag_32 excepted_flag[DIMENSION][2], double offset[DIMENSION]) {
     unsigned long i = 0; // todo type
     for (_type_inter_list::iterator inter_it = inter_list.begin(); inter_it != inter_list.end();) {
         // we assume that, a atom cannot cross 2 or more than 2 sub-boxes
         if (isOutBox(*inter_it, p_domain) & excepted_flag[dimension][direction]) {
             buf[i].id = inter_it->id;
             buf[i].type = inter_it->type;
-            buf[i].r[0] = inter_it->x[0];
-            buf[i].r[1] = inter_it->x[1];
-            buf[i].r[2] = inter_it->x[2];
+            buf[i].r[0] = inter_it->x[0] + offset[0];
+            buf[i].r[1] = inter_it->x[1] + offset[1];
+            buf[i].r[2] = inter_it->x[2] + offset[2];
             buf[i].v[0] = inter_it->v[0];
             buf[i].v[1] = inter_it->v[1];
             buf[i].v[2] = inter_it->v[2];
