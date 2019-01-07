@@ -8,6 +8,7 @@
 #include "../domain/domain.h"
 #include "../utils/mpi_domain.h"
 #include "../utils/mpi_data_types.h"
+#include "ws_utils.h"
 
 void InterAtomList::exchangeInter(Domain *p_domain) {
     // 发送、接收数据缓冲区
@@ -100,7 +101,7 @@ void InterAtomList::countExSendNum(Domain *p_domain, int n_to_send[DIMENSION][2]
 
     for (AtomElement &inter_ref :inter_list) {
         // we assume that, a atom cannot cross 2 or more than 2 sub-boxes
-        flag = isOutBox(inter_ref, p_domain);
+        flag = ws::isOutBox(inter_ref, p_domain);
         if (flag & box::OUT_BOX_X_LITTER) {
             n_to_send[0][LOWER]++;
         } else if (flag & box::OUT_BOX_X_BIG) {
@@ -122,7 +123,7 @@ void InterAtomList::packExInterToSend(Domain *p_domain, particledata *buf, int d
     unsigned long i = 0; // todo type
     for (_type_inter_list::iterator inter_it = inter_list.begin(); inter_it != inter_list.end();) {
         // we assume that, a atom cannot cross 2 or more than 2 sub-boxes
-        if (isOutBox(*inter_it, p_domain) & excepted_flag[dimension][direction]) {
+        if (ws::isOutBox(*inter_it, p_domain) & excepted_flag[dimension][direction]) {
             buf[i].id = inter_it->id;
             buf[i].type = inter_it->type;
             buf[i].r[0] = inter_it->x[0] + offset[0];

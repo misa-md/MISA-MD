@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include <domain/domain.h>
 #include <atom/inter_atom_list.h>
+#include <atom/ws_utils.h>
 
 Domain *buildLocalDomain(const int64_t local_space[DIMENSION],
                          const int grid_size[DIMENSION],
@@ -35,26 +36,26 @@ TEST(inter_atom_test_isInBox_litter, inter_atom_Test) {
     atom.x[0] = 10 * lattice_const;
     atom.x[1] = 10 * lattice_const;
     atom.x[2] = 10 * lattice_const;
-    auto flag1 = InterAtomList::isOutBox(atom, p_domain);
+    auto flag1 = ws::isOutBox(atom, p_domain);
     EXPECT_EQ(flag1, box::IN_BOX);
 
     // test out box: x direction with litter end.
     atom.x[0] = -10 * lattice_const;
     atom.x[1] = 10 * lattice_const;
     atom.x[2] = 10 * lattice_const;
-    auto flag2 = InterAtomList::isOutBox(atom, p_domain);
+    auto flag2 = ws::isOutBox(atom, p_domain);
     EXPECT_EQ(flag2, box::OUT_BOX_X_LITTER);
 
     atom.x[0] = -0.01; // not out of box (the near atom is still on box).
     atom.x[1] = 10 * lattice_const;
     atom.x[2] = 10 * lattice_const;
-    auto flag3 = InterAtomList::isOutBox(atom, p_domain);
+    auto flag3 = ws::isOutBox(atom, p_domain);
     EXPECT_EQ(flag3, box::IN_BOX);
 
     atom.x[0] = -lattice_const / 2 - 0.01; // not out of box (the near atom is still on box).
     atom.x[1] = -lattice_const / 2 - 0.01;
     atom.x[2] = -lattice_const / 2 - 0.01;
-    auto flag4 = InterAtomList::isOutBox(atom, p_domain);
+    auto flag4 = ws::isOutBox(atom, p_domain);
     EXPECT_EQ(flag4, box::OUT_BOX_X_LITTER | box::OUT_BOX_Y_LITTER | box::OUT_BOX_Z_LITTER);
 
     delete p_domain;
