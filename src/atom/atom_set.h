@@ -42,7 +42,7 @@ public:
     /**
       * compute the index offset of neighbour atoms.
       */
-    void calculateNeighbourIndices(const double cutoff_radius_factor, const _type_lattice_size cut_lattice);
+    void calcNeighbourIndices(const double cutoff_radius_factor, const _type_lattice_size cut_lattice);
 
     /**
     * used in read creating mode.

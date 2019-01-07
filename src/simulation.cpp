@@ -45,7 +45,7 @@ void simulation::createDomainDecomposition() {
 void simulation::createAtoms() {
     _atom = new atom(_p_domain);
     // establish index offset for neighbour.
-    _atom->calculateNeighbourIndices(_p_domain->cutoff_radius_factor, _p_domain->cut_lattice);
+    _atom->calcNeighbourIndices(_p_domain->cutoff_radius_factor, _p_domain->cut_lattice);
 
     if (pConfigVal->createPhaseMode) {  //创建原子坐标、速度信息
         WorldBuilder mWorldBuilder;
@@ -191,7 +191,7 @@ void simulation::simulate() {
         _newton_motion->secondstep(_atom->getAtomList(), _atom->getInterList());
 
         //输出原子信息
-        if ((_simulation_time_step + 1) % pConfigVal->atomsDumpInterval == 0) {// todo output atoms every 10 steps.
+        if ((_simulation_time_step + 1) % pConfigVal->atomsDumpInterval == 0) {
             output(_simulation_time_step + 1);
         }
     }

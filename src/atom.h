@@ -17,10 +17,14 @@
 #include "pack/particledata.h"
 #include "pack/lat_particle_data.h"
 
-class atom: public AtomSet {
+class atom : public AtomSet {
 public :
     atom(Domain *domain);
 
+    /**
+     * move atoms to inter-atom list if the atoms is not in its lattice.
+     * @return n_flag
+     */
     int decide();
 
     void clearForce();

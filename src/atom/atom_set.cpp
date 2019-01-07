@@ -2,8 +2,8 @@
 // Created by genshen on 2018-12-31.
 //
 
-#include <types/pre_define.h>
 #include <cmath>
+#include <types/pre_define.h>
 #include <hardware_accelerate.hpp>
 #include "atom_set.h"
 
@@ -32,7 +32,7 @@ AtomSet::~AtomSet() {
     delete inter_atom_list;
 }
 
-void AtomSet::calculateNeighbourIndices(const double cutoff_radius_factor, const _type_lattice_size cut_lattice) {
+void AtomSet::calcNeighbourIndices(const double cutoff_radius_factor, const _type_lattice_size cut_lattice) {
     double x, y, z;
     int mark = 0;
     std::vector<_type_atom_index>::iterator neighbourOffsetsIter;
