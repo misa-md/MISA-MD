@@ -9,6 +9,7 @@
 #include <eam.h>
 
 #include "atom.h"
+#include "atom/ws_utils.h"
 #include "pack/pack.h"
 #include "toml_config.h"
 #include "hardware_accelerate.hpp" // use hardware(eg.GPU, MIC,Sunway slave cores.) to achieve calculate accelerating.
@@ -41,14 +42,11 @@ int atom::decide() {
     long kk = 0;
     double dist;
     double xtemp, ytemp, ztemp;
-//    int xstart = p_domain->getGhostLatticeSize(0);
-//    int ystart = p_domain->getGhostLatticeSize(1);
-//    int zstart = p_domain->getGhostLatticeSize(2);
 
     //对本地晶格点原子进行判断，看是否运动为间隙原子
-    for (int k = 0; k < p_domain->dbx_lattice_size_sub_box[2]; k++) {
-        for (int j = 0; j < p_domain->dbx_lattice_size_sub_box[1]; j++) {
-            for (int i = 0; i < p_domain->dbx_lattice_size_sub_box[0]; i++) {
+    for (_type_atom_index k = 0; k < p_domain->dbx_lattice_size_sub_box[2]; k++) {
+        for (_type_atom_index j = 0; j < p_domain->dbx_lattice_size_sub_box[1]; j++) {
+            for (_type_atom_index i = 0; i < p_domain->dbx_lattice_size_sub_box[0]; i++) {
 //                kk = atom_list->IndexOf3DIndex(i, j, k);
                 AtomElement &atom_ = atom_list->getAtomEleBySubBoxIndex(i, j, k); // todo long type
                 if (!atom_.isInterElement()) {
@@ -74,46 +72,25 @@ int atom::decide() {
     }
 
     // 如果间隙原子跑入晶格点,且晶格点为空位, 则空位-间隙发生复合.
+    // note: the out-of-lattice atoms can be out of sub-box.
     _type_inter_list::iterator inter_it;
     for (inter_it = inter_atom_list->inter_list.begin(); inter_it != inter_atom_list->inter_list.end();) {
         AtomElement &inter_ref = *inter_it;
-//    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
-        _type_atom_index near_index;
-        int j, k, l;
-        xtemp = inter_ref.x[0];
-        ytemp = inter_ref.x[1];
-        ztemp = inter_ref.x[2];
-        j = xtemp * 2 / p_domain->lattice_const + 0.5;
-        k = ytemp * 2 / p_domain->lattice_const + 0.5;
-        l = ztemp * 2 / p_domain->lattice_const + 0.5;
-        k = k / 2;
-        l = l / 2;
-        j -= p_domain->dbx_lattice_coord_ghost_region.x_low;
-        k -= p_domain->dbx_lattice_coord_ghost_region.y_low;
-        l -= p_domain->dbx_lattice_coord_ghost_region.z_low;
+        // get the near atom of the inter atom
+        AtomElement &near_atom = ws::findNearLatAtom(atom_list, inter_ref, p_domain);
+        if (near_atom.isInterElement() && ws::isOutBox(near_atom, p_domain) == box::IN_BOX) {
+            near_atom.id = inter_ref.id;
+            near_atom.type = inter_ref.type; // set type to valid.
+            near_atom.x[0] = inter_ref.x[0];
+            near_atom.x[1] = inter_ref.x[1];
+            near_atom.x[2] = inter_ref.x[2];
+            near_atom.v[0] = inter_ref.v[0];
+            near_atom.v[1] = inter_ref.v[1];
+            near_atom.v[2] = inter_ref.v[2];
 
-        //判断是否在所表示晶格范围内
-        if (j <= (p_domain->dbx_lattice_size_sub_box[0] + 2 * (ceil(_cutoffRadius / p_domain->lattice_const) + 1))
-            && k <= (p_domain->dbx_lattice_size_sub_box[1] + (ceil(_cutoffRadius / p_domain->lattice_const) + 1))
-            && l <= (p_domain->dbx_lattice_size_sub_box[2] + (ceil(_cutoffRadius / p_domain->lattice_const) + 1))) {
-            near_index = atom_list->IndexOf3DIndex(j, k, l);
-            AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(near_index);
-            if (atom_.isInterElement()) {
-                atom_.id = inter_ref.id;
-                atom_.type = inter_ref.type; // set type to valid.
-                atom_.x[0] = inter_ref.x[0];
-                atom_.x[1] = inter_ref.x[1];
-                atom_.x[2] = inter_ref.x[2];
-                atom_.v[0] = inter_ref.v[0];
-                atom_.v[1] = inter_ref.v[1];
-                atom_.v[2] = inter_ref.v[2];
-
-                // remove this atom from inter list.
-                inter_it = inter_atom_list->inter_list.erase(inter_it); // fixme: bug: inter_it reached to end();
-                inter_atom_list->nlocalinter--;
-            } else {
-                inter_it++;
-            }
+            // remove this atom from inter list.
+            inter_it = inter_atom_list->inter_list.erase(inter_it);
+            inter_atom_list->nlocalinter--;
         } else {
             inter_it++;
         }
