@@ -77,16 +77,21 @@ int atom::decide() {
     for (inter_it = inter_atom_list->inter_list.begin(); inter_it != inter_atom_list->inter_list.end();) {
         AtomElement &inter_ref = *inter_it;
         // get the near atom of the inter atom
-        AtomElement &near_atom = ws::findNearLatAtom(atom_list, inter_ref, p_domain);
-        if (near_atom.isInterElement() && ws::isOutBox(near_atom, p_domain) == box::IN_BOX) {
-            near_atom.id = inter_ref.id;
-            near_atom.type = inter_ref.type; // set type to valid.
-            near_atom.x[0] = inter_ref.x[0];
-            near_atom.x[1] = inter_ref.x[1];
-            near_atom.x[2] = inter_ref.x[2];
-            near_atom.v[0] = inter_ref.v[0];
-            near_atom.v[1] = inter_ref.v[1];
-            near_atom.v[2] = inter_ref.v[2];
+        // If we use func findNearLatAtom to find a near atom of an inter atom in atoms list
+        // the near atom can be an ghost atom (but the position of that ghost atom may still be in sub-box).
+        // we should find near atom only in lattice atoms(exclude ghost atoms), so we use func finNearLatAtomInSubBox.
+        AtomElement *near_atom = ws::finNearLatAtomInSubBox(atom_list, inter_ref, p_domain);
+        // the near atom must be in sub-box, and it is in the lattice atom lists.
+        if (near_atom != nullptr && near_atom->isInterElement() &&
+            ws::isOutBox(*near_atom, p_domain) == box::IN_BOX) {
+            near_atom->id = inter_ref.id;
+            near_atom->type = inter_ref.type; // set type to valid.
+            near_atom->x[0] = inter_ref.x[0];
+            near_atom->x[1] = inter_ref.x[1];
+            near_atom->x[2] = inter_ref.x[2];
+            near_atom->v[0] = inter_ref.v[0];
+            near_atom->v[1] = inter_ref.v[1];
+            near_atom->v[2] = inter_ref.v[2];
 
             // remove this atom from inter list.
             inter_it = inter_atom_list->inter_list.erase(inter_it);
