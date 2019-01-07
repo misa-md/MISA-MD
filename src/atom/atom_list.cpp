@@ -125,9 +125,9 @@ void AtomList::exchangeAtomFirst(Domain *p_domain, int cutlattice) {
 
             //将收到的粒子位置信息加到对应存储位置上
             pack::unpack_recvfirst(d, direction, numrecv, *this,
-                                   p_domain->lattice_size_ghost,
-                                   p_domain->lattice_size_sub_box,
-                                   p_domain->lattice_size_ghost_extended,
+                                   p_domain->dbx_lattice_size_ghost,
+                                   p_domain->dbx_lattice_size_sub_box,
+                                   p_domain->dbx_lattice_size_ghost_extended,
                                    recvbuf[direction], recvlist);
 //            _atom->unpack_recvfirst(d, direction, numrecv, recvbuf[direction], recvlist);
 
@@ -225,12 +225,12 @@ void AtomList::getatomx(Domain *p_domain, int _cutlattice, int direction,
     _type_atom_id i;
     if (direction == 0) {
         //找到要发送到邻居进程的区域
-        int xstart = p_domain->lattice_size_ghost[0];
-        int ystart = p_domain->lattice_size_ghost[1];
-        int zstart = p_domain->lattice_size_ghost[2];
-        int xstop = xstart + p_domain->lattice_size_ghost[0]; // note: this is ghost lattice size.
-        int ystop = ystart + p_domain->lattice_size_sub_box[1];
-        int zstop = zstart + p_domain->lattice_size_sub_box[2];
+        int xstart = p_domain->dbx_lattice_size_ghost[0];
+        int ystart = p_domain->dbx_lattice_size_ghost[1];
+        int zstart = p_domain->dbx_lattice_size_ghost[2];
+        int xstop = xstart + p_domain->dbx_lattice_size_ghost[0]; // note: this is ghost lattice size.
+        int ystop = ystart + p_domain->dbx_lattice_size_sub_box[1];
+        int zstop = zstart + p_domain->dbx_lattice_size_sub_box[2];
 
         //要发送要邻居进程区域内的分子指针
         for (int iz = zstart; iz < zstop; iz++) {
@@ -243,12 +243,12 @@ void AtomList::getatomx(Domain *p_domain, int _cutlattice, int direction,
         }
     } else {
         //找到要发送到邻居进程的区域
-        int xstart = p_domain->lattice_size_ghost[0] + p_domain->lattice_size_sub_box[0] - ((_cutlattice) * 2);
-        int ystart = p_domain->lattice_size_ghost[1];
-        int zstart = p_domain->lattice_size_ghost[2];
-        int xstop = p_domain->lattice_size_ghost[0] + p_domain->lattice_size_sub_box[0];
-        int ystop = ystart + p_domain->lattice_size_sub_box[1];
-        int zstop = zstart + p_domain->lattice_size_sub_box[2];
+        int xstart = p_domain->dbx_lattice_size_ghost[0] + p_domain->dbx_lattice_size_sub_box[0] - ((_cutlattice) * 2);
+        int ystart = p_domain->dbx_lattice_size_ghost[1];
+        int zstart = p_domain->dbx_lattice_size_ghost[2];
+        int xstop = p_domain->dbx_lattice_size_ghost[0] + p_domain->dbx_lattice_size_sub_box[0];
+        int ystop = ystart + p_domain->dbx_lattice_size_sub_box[1];
+        int zstop = zstart + p_domain->dbx_lattice_size_sub_box[2];
 
         //要发送要邻居进程区域内的分子指针
         for (int iz = zstart; iz < zstop; iz++) {
@@ -268,11 +268,11 @@ void AtomList::getatomy(Domain *p_domain, int _cutlattice, int direction,
     if (direction == 0) {
         //找到要发送到邻居进程的区域
         int xstart = 0;
-        int ystart = p_domain->lattice_size_ghost[1];
-        int zstart = p_domain->lattice_size_ghost[2];
-        int xstop = p_domain->lattice_size_ghost_extended[0];
+        int ystart = p_domain->dbx_lattice_size_ghost[1];
+        int zstart = p_domain->dbx_lattice_size_ghost[2];
+        int xstop = p_domain->dbx_lattice_size_ghost_extended[0];
         int ystop = ystart + _cutlattice;
-        int zstop = zstart + p_domain->lattice_size_sub_box[2];
+        int zstop = zstart + p_domain->dbx_lattice_size_sub_box[2];
 
         //要发送要邻居进程区域内的分子指针
         for (int iz = zstart; iz < zstop; iz++) {
@@ -286,11 +286,11 @@ void AtomList::getatomy(Domain *p_domain, int _cutlattice, int direction,
     } else {
         //找到要发送到邻居进程的区域
         int xstart = 0;
-        int ystart = p_domain->lattice_size_ghost[1] + p_domain->lattice_size_sub_box[1] - (_cutlattice);
-        int zstart = p_domain->lattice_size_ghost[2];
-        int xstop = p_domain->lattice_size_ghost_extended[0];
-        int ystop = p_domain->lattice_size_ghost[1] + p_domain->lattice_size_sub_box[1];
-        int zstop = zstart + p_domain->lattice_size_sub_box[2];
+        int ystart = p_domain->dbx_lattice_size_ghost[1] + p_domain->dbx_lattice_size_sub_box[1] - (_cutlattice);
+        int zstart = p_domain->dbx_lattice_size_ghost[2];
+        int xstop = p_domain->dbx_lattice_size_ghost_extended[0];
+        int ystop = p_domain->dbx_lattice_size_ghost[1] + p_domain->dbx_lattice_size_sub_box[1];
+        int zstop = zstart + p_domain->dbx_lattice_size_sub_box[2];
 
         //要发送要邻居进程区域内的分子指针
         for (int iz = zstart; iz < zstop; iz++) {
@@ -311,9 +311,9 @@ void AtomList::getatomz(Domain *p_domain, int _cutlattice, int direction,
         //找到要发送到邻居进程的区域
         int xstart = 0;
         int ystart = 0;
-        int zstart = p_domain->lattice_size_ghost[2];
-        int xstop = p_domain->lattice_size_ghost_extended[0];
-        int ystop = p_domain->lattice_size_ghost_extended[1];
+        int zstart = p_domain->dbx_lattice_size_ghost[2];
+        int xstop = p_domain->dbx_lattice_size_ghost_extended[0];
+        int ystop = p_domain->dbx_lattice_size_ghost_extended[1];
         int zstop = zstart + _cutlattice;
 
         //要发送要邻居进程区域内的分子指针
@@ -329,10 +329,10 @@ void AtomList::getatomz(Domain *p_domain, int _cutlattice, int direction,
         //找到要发送到邻居进程的区域
         int xstart = 0;
         int ystart = 0;
-        int zstart = p_domain->lattice_size_ghost[2] + p_domain->lattice_size_sub_box[2] - (_cutlattice);
-        int xstop = p_domain->lattice_size_ghost_extended[0];
-        int ystop = p_domain->lattice_size_ghost_extended[1];
-        int zstop = p_domain->lattice_size_ghost[2] + p_domain->lattice_size_sub_box[2];
+        int zstart = p_domain->dbx_lattice_size_ghost[2] + p_domain->dbx_lattice_size_sub_box[2] - (_cutlattice);
+        int xstop = p_domain->dbx_lattice_size_ghost_extended[0];
+        int ystop = p_domain->dbx_lattice_size_ghost_extended[1];
+        int zstop = p_domain->dbx_lattice_size_ghost[2] + p_domain->dbx_lattice_size_sub_box[2];
 
         //要发送要邻居进程区域内的分子指针
         for (int iz = zstart; iz < zstop; iz++) {

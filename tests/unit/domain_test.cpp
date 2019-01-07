@@ -10,6 +10,7 @@
 #include "atom.h"
 #include "domain_test_utils.h"
 
+// @MPI
 TEST(domain_test_decomposition, domain_test) {
     int64_t space[3] = {50, 60, 72};
     double lattice_const = 0.86;
@@ -36,6 +37,7 @@ TEST(domain_test_decomposition, domain_test) {
     delete _atom;
 }
 
+// @MPI
 TEST(domain_local_lattice_size, domain_test) {
     int64_t space[3] = {50, 60, 72};
     double lattice_const = 0.86;
@@ -56,6 +58,7 @@ TEST(domain_local_lattice_size, domain_test) {
     delete _domain;
 }
 
+// @MPI
 TEST(domain_ghost_lattice_size, domain_test) {
     int64_t space[3] = {50, 60, 72};
     double lattice_const = 0.86;
@@ -77,12 +80,14 @@ TEST(domain_ghost_lattice_size, domain_test) {
     delete _domain;
 }
 
+// @MPI
 TEST(domain_local_lattice_coord, domain_test) {
     int64_t space[3] = {50, 60, 72};
     double lattice_const = 0.86;
     double cutoff_radius_factor = 1.1421;
     Domain *_domain = getDomainInstance(space, lattice_const, cutoff_radius_factor);
     // test delta values
+
     EXPECT_EQ(_domain->lattice_size_sub_box[0],
               _domain->local_sub_box_lattice_coord_region.x_high - _domain->local_sub_box_lattice_coord_region.x_low);
     EXPECT_EQ(_domain->lattice_size_sub_box[1],
@@ -96,9 +101,24 @@ TEST(domain_local_lattice_coord, domain_test) {
               _domain->local_ghost_lattice_coord_region.y_high - _domain->local_ghost_lattice_coord_region.y_low);
     EXPECT_EQ(_domain->lattice_size_ghost_extended[2],
               _domain->local_ghost_lattice_coord_region.z_high - _domain->local_ghost_lattice_coord_region.z_low);
+    // test double x dalta values
+    EXPECT_EQ(_domain->dbx_lattice_size_sub_box[0],
+              _domain->dbx_local_sub_box_lattice_coord_region.x_high - _domain->dbx_local_sub_box_lattice_coord_region.x_low);
+    EXPECT_EQ(_domain->dbx_lattice_size_sub_box[1],
+              _domain->dbx_local_sub_box_lattice_coord_region.y_high - _domain->dbx_local_sub_box_lattice_coord_region.y_low);
+    EXPECT_EQ(_domain->dbx_lattice_size_sub_box[2],
+              _domain->dbx_local_sub_box_lattice_coord_region.z_high - _domain->dbx_local_sub_box_lattice_coord_region.z_low);
+
+    EXPECT_EQ(_domain->dbx_lattice_size_ghost_extended[0],
+              _domain->dbx_local_ghost_lattice_coord_region.x_high - _domain->dbx_local_ghost_lattice_coord_region.x_low);
+    EXPECT_EQ(_domain->dbx_lattice_size_ghost_extended[1],
+              _domain->dbx_local_ghost_lattice_coord_region.y_high - _domain->dbx_local_ghost_lattice_coord_region.y_low);
+    EXPECT_EQ(_domain->dbx_lattice_size_ghost_extended[2],
+              _domain->dbx_local_ghost_lattice_coord_region.z_high - _domain->dbx_local_ghost_lattice_coord_region.z_low);
 
 }
 
+// @MPI
 TEST(domain_global_lattice_coord, domain_test) {
     int64_t space[3] = {50, 60, 72};
     double lattice_const = 0.86;
@@ -133,6 +153,7 @@ TEST(domain_global_lattice_coord, domain_test) {
     delete _domain;
 }
 
+// @MPI
 TEST(domain_ghost_lattice_coord, domain_test) {
     int64_t space[3] = {50, 60, 72};
     double lattice_const = 0.86;
