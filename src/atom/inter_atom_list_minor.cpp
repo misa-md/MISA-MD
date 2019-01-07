@@ -77,11 +77,7 @@ void InterAtomList::exchangeInter(Domain *p_domain) {
             MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
             MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
             //将收到的粒子位置信息加到对应存储位置上
-            unpackExInterRecv(d, numrecv,
-                              p_domain->meas_sub_box_region.low,
-                              p_domain->meas_sub_box_region.high,
-                              recvbuf[direction]);
-//            _atom->unpackExInterRecv(d, numrecv, recvbuf[direction]);
+            unpackExInterRecv(p_domain, recvbuf[direction], numrecv);
 
             // 释放buffer
             delete[] sendbuf[direction];
@@ -143,7 +139,7 @@ void InterAtomList::packExInterToSend(Domain *p_domain, particledata *buf, int d
     }
 }
 
-void InterAtomList::unpackExInterRecv(int d, int n, const double *lower, const double *upper, particledata *buf) {
+void InterAtomList::unpackExInterRecv(Domain *p_domain, particledata *buf, int n) {
     AtomElement atom;
     for (int i = 0; i < n; i++) {
         atom.id = buf[i].id;
@@ -154,11 +150,11 @@ void InterAtomList::unpackExInterRecv(int d, int n, const double *lower, const d
         atom.v[0] = buf[i].v[0];
         atom.v[1] = buf[i].v[1];
         atom.v[2] = buf[i].v[2];
-        if (atom.x[d] >= lower[d] && atom.x[d] < upper[d]) {
-            inter_list.push_back(atom);
-            nlocalinter++;
+        // todo condition: we can judge only one direction the inter atom comes from.
+        if (ws::isOutBox(atom, p_domain) == box::IN_BOX) {
+            addInterAtom(atom);
         } else {
-            // todo waring
+            kiwi::logs::w("unpack", "unexpected atom id: {}\n", atom.id);
         }
     }
 }

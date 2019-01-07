@@ -99,12 +99,14 @@ private:
      * @param direction direction of LOW or HIGH.
      */
     void packExInterToSend(Domain *p_domain, particledata *buf, int dimension, int direction,
-                           box::_type_flag_32 excepted_flag[DIMENSION][2],  double offset[DIMENSION]);
+                           box::_type_flag_32 excepted_flag[DIMENSION][2], double offset[DIMENSION]);
 
-    void unpackExInterRecv(int d, int n,
-                           const double *lower, // p_domain->getMeasuredSubBoxLowerBounding(d)
-                           const double *upper, // p_domain->getMeasuredSubBoxUpperBounding(d)
-                           particledata *buf);
+    /**
+     * unpack exchanged inter atoms data, and save the inter atoms to local inter atom list.
+     * @param buf data buffer
+     * @param n the count of inter atoms in @param buf
+     */
+    void unpackExInterRecv(Domain *p_domain, particledata *buf, int n);
 
 };
 
