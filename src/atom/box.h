@@ -9,6 +9,7 @@
  * box status of atoms
  */
 namespace box {
+    const _type_atom_index IndexNotExists = -1;
     typedef unsigned int _type_flag_32;
     const _type_flag_32 IN_BOX = 0; // in box
     const _type_flag_32 OUT_BOX_X_LITTER = 1; // out of box at x direction(in litter end)

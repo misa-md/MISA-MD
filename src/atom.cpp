@@ -80,7 +80,7 @@ int atom::decide() {
         // If we use func findNearLatAtom to find a near atom of an inter atom in atoms list
         // the near atom can be an ghost atom (but the position of that ghost atom may still be in sub-box).
         // we should find near atom only in lattice atoms(exclude ghost atoms), so we use func finNearLatAtomInSubBox.
-        AtomElement *near_atom = ws::finNearLatAtomInSubBox(atom_list, inter_ref, p_domain);
+        AtomElement *near_atom = ws::findNearLatAtomInSubBox(atom_list, inter_ref, p_domain);
         // the near atom must be in sub-box, and it is in the lattice atom lists.
         if (near_atom != nullptr && near_atom->isInterElement() &&
             ws::isOutBox(*near_atom, p_domain) == box::IN_BOX) {
