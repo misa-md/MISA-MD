@@ -99,12 +99,26 @@ private:
      * @param direction direction of LOW or HIGH.
      */
     void packExInterToSend(Domain *p_domain, particledata *buf, int dimension, int direction,
-                           box::_type_flag_32 excepted_flag[DIMENSION][2],  double offset[DIMENSION]);
+                           box::_type_flag_32 excepted_flag[DIMENSION][2], double offset[DIMENSION]);
 
-    void unpackExInterRecv(int d, int n,
-                           const double *lower, // p_domain->getMeasuredSubBoxLowerBounding(d)
-                           const double *upper, // p_domain->getMeasuredSubBoxUpperBounding(d)
-                           particledata *buf);
+    /**
+     * unpack exchanged inter atoms data, and save the inter atoms to local inter atom list.
+     *
+     * @note that we use a delay buffer to recoder the inter atom that is not in this box.
+     * those atoms will be written into inter atoms list after exchange finished (delay write).
+     * Assume that we write those atoms directly, it will cause some faults:
+     * If we save those atoms into inter atom list directly,
+     * later communication of other direction or dimension may count those atoms and send them to other processors,
+     * but the communication data size (count of atoms to be send to other processors) is precomputed,
+     * which can make the data exchange messy.
+     *
+     * @param buf data buffer
+     * @param delay_buffer reference of delay buffer
+     * @param n the count of inter atoms in @param buf
+     */
+    void unpackExInterRecv(Domain *p_domain, particledata *buf,
+                           std::list<AtomElement> &delay_buffer,
+                           int n);
 
 };
 
