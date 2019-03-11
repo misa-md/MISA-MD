@@ -94,3 +94,18 @@ void ws::getNearLatSubBoxCoord(const AtomElement &src_atom, const Domain *p_doma
     coords[1] = k - p_domain->lattice_coord_sub_box_region.y_low;
     coords[2] = l - p_domain->lattice_coord_sub_box_region.z_low;
 }
+
+bool ws::isInBox(const AtomElement &src_atom, const Domain *p_domain) {
+    auto j = static_cast<_type_atom_index>(lround(src_atom.x[0] * 2 / p_domain->lattice_const));
+    auto k = static_cast<_type_atom_index>(lround(src_atom.x[1] * 2 / p_domain->lattice_const));
+    auto l = static_cast<_type_atom_index>(lround(src_atom.x[2] * 2 / p_domain->lattice_const));
+    k = k / 2;
+    l = l / 2;
+    j -= 2 * p_domain->lattice_coord_sub_box_region.x_low;
+    k -= p_domain->lattice_coord_sub_box_region.y_low;
+    l -= p_domain->lattice_coord_sub_box_region.z_low;
+    return (j >= 0 && k >= 0 && l >= 0 &&
+            j < p_domain->lattice_size_sub_box[0] &&
+            k < p_domain->lattice_size_sub_box[1] &&
+            l < p_domain->lattice_size_sub_box[2]);
+}

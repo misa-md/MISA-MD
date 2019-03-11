@@ -81,6 +81,16 @@ namespace ws {
      * @param coords the coordinate of nearest lattice to be returned.
      */
     void getNearLatSubBoxCoord(const AtomElement &src_atom, const Domain *p_domain, _type_atom_index coords[DIMENSION]);
+
+    /**
+     * check weather an atom's coordinate is in current sub-box (the sub box on current processor).
+     *
+     * In the implementations, we first calculate the nearest lattice coordinate of @param src_atom
+     * and check whether the lattice coordinate is in the sub-box.
+     * We does not check the real coordinate of source atom (it is not very elegant).
+     * @return true for in the sub-box, false for otherwise.
+     */
+    bool isInBox(const AtomElement &src_atom, const Domain *p_domain);
 };
 
 
