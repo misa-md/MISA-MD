@@ -17,7 +17,7 @@ packages:
         find_package(GTest PATHS {{.CMAKE_VENDOR_PATH_PKG}})
     pot:
       path: https://git.gensh.me/HPCer/CrystalMD/potential.git
-      tag: 0.1.0-alpha
+      tag: v0.1.0-alpha
     kiwi:
       path: https://git.gensh.me/genshen/kiwi.git
       tag: v0.2.0-alpha
