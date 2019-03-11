@@ -60,3 +60,21 @@ TEST(inter_atom_test_isInBox_litter, inter_atom_Test) {
 
     delete p_domain;
 }
+
+// atom out-of-box test for periodic boundary.
+TEST(inter_atom_test_isInBox_big, inter_atom_Test) {
+    const double lattice_const = 2.85532;
+    const double cutoff_factor = 1.96125;
+    const int grid_size[3] = {2, 2, 1};
+    const int grid_coord[3] = {1, 1, 0};
+    const int64_t local_space[3] = {25, 25, 50};
+    Domain *p_domain = buildLocalDomain(local_space, grid_size, grid_coord, lattice_const, cutoff_factor);
+
+    AtomElement atom;
+    // test in box
+    atom.x[0] = 71.3905;
+    atom.x[1] = 71.3921;
+    atom.x[2] = 74.234;
+    auto flag1 = ws::isOutBox(atom, p_domain);
+    EXPECT_EQ(flag1, box::IN_BOX);
+}
