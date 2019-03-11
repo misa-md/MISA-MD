@@ -2,8 +2,10 @@
 #include <fstream>
 #include <utils/mpi_utils.h>
 #include <utils/bundle.h>
+#include <climits>
 
 #include "toml_config.h"
+#include "utils/rpcc.hpp"
 
 //
 // Created by gensh(genshenchu@gmail.com) on 2017/4/16.
@@ -103,7 +105,7 @@ void ConfigParser::resolveConfigSimulation(std::shared_ptr<cpptoml::table> table
             return;
         }
         configValues.createSeed = tableCreatephase->get_as<int>("create_seed").value_or(const_default_random_seek);
-    } else {  //read mode.
+    } else {  // read mode.
         auto tomlTSet = tableCreatephase->get_as<std::string>("read_phase_filename");
         if (tomlTSet) {
             configValues.readPhaseFilename = *tomlTSet;
@@ -137,21 +139,41 @@ void ConfigParser::resolveConfigSimulation(std::shared_ptr<cpptoml::table> table
 }
 
 void ConfigParser::resolveConfigOutput(std::shared_ptr<cpptoml::table> table) {
-    auto tomlOutputMode = table->get_as<std::string>("mode");
-    if (tomlOutputMode) {
-        if ("copy" == *tomlOutputMode) { // todo equal?
-            configValues.outputMode = OUTPUT_COPY_MODE;
+    auto tomlAtomsDumpMode = table->get_as<std::string>("atoms_dump_mode");
+    if (tomlAtomsDumpMode) {
+        if ("copy" == *tomlAtomsDumpMode) { // todo equal?
+            configValues.atomsDumpMode = OUTPUT_COPY_MODE;
         } else {
-            configValues.outputMode = OUTPUT_DIRECT_MODE;
+            configValues.atomsDumpMode = OUTPUT_DIRECT_MODE;
         }
     }
+    configValues.atomsDumpInterval = table->get_as<uint64_t>("atoms_dump_interval").value_or(ULONG_MAX);
+    configValues.outByFrame = table->get_as<bool>("by_frame").value_or(false);
 
-    // todo check if it is a path.
-    auto tomlOutputDumpFilename = table->get_as<std::string>("dump_filename");
-    if (tomlOutputDumpFilename) {
-        configValues.outputDumpFilename = *tomlOutputDumpFilename;
+    configValues.atomsDumpFilePath = table->get_as<std::string>("atoms_dump_file_path")
+            .value_or(DEFAULT_OUTPUT_DUMP_FILE_PATH);
+    configValues.originDumpPath = table->get_as<std::string>("origin_dump_path").value_or("");
+    // todo check if it is a real path.
+    if (configValues.outByFrame && configValues.atomsDumpFilePath.find("{}") == std::string::npos) {
+        setError("error format of dump file path");
+    }
+
+    // resolve logs.
+    std::shared_ptr<cpptoml::table> logs_table = table->get_table("logs");
+    auto logsModeString = logs_table->get_as<std::string>("logs_mode").value_or(DEFAULT_LOGS_MODE_CONSOLE_STRING);
+    if (LOGS_MODE_CONSOLE_STRING == logsModeString) {
+        configValues.logs_mode = LOGS_MODE_CONSOLE;
     } else {
-        configValues.outputDumpFilename = DEFAULT_OUTPUT_DUMP_FILENAME;
+        configValues.logs_mode = LOGS_MODE_FILE;
+        configValues.logs_filename = logs_table->get_as<std::string>("logs_filename").value_or("");
+        // if filename is empty, we will generate a filename.
+        if (configValues.logs_filename.empty()) {
+            std::ostringstream str_stream;
+            str_stream << "md.";
+            str_stream << rpcc();
+            str_stream << ".log";
+            configValues.logs_filename = str_stream.str();
+        }
     }
 }
 
@@ -191,12 +213,14 @@ void ConfigParser::resolveConfigCollision(std::shared_ptr<cpptoml::table> table)
             return;
         }
     }
-    auto tomlCollisionV = table->get_array_of<double>("collision_v");
+    configValues.pkaEnergy = table->get_as<double>("pka").value_or(0.0);
+
+    auto tomlCollisionV = table->get_array_of<double>("direction");
     if (tomlCollisionV) {
         int index = 0;
         for (auto &value : *tomlCollisionV) {
             if (index < DIMENSION) { //the array index must be less than or equal 3
-                configValues.collisionV[index] = value;
+                configValues.direction[index] = value;
             }
             index++;
         }

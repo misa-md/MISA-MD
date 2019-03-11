@@ -16,7 +16,7 @@ public:
 
     ~input();
 
-    void readPhaseSpace(atom *_atom);
+    void readPhaseSpace(atom *_atom, Domain *p_domain);
 
 private:
     std::string _phaseSpaceFile;

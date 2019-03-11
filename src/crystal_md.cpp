@@ -5,8 +5,10 @@
 #include <args.hpp>
 #include <utils/mpi_utils.h>
 #include <logs/logs.h>
+#include <utils/mpi_data_types.h>
 
 #include "crystal_md.h"
+#include "utils/mpi_domain.h"
 #include "arch_env.hpp"
 
 bool crystalMD::beforeCreate(int argc, char *argv[]) {
@@ -47,7 +49,7 @@ bool crystalMD::beforeCreate(int argc, char *argv[]) {
 
 void crystalMD::onCreate() {
     ConfigParser *pConfig;
-    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
+    if (kiwi::mpiUtils::global_process.own_rank == MASTER_PROCESSOR) {
         kiwi::logs::s("env", "mpi env is initialized.\n");
         // initial config Obj, then read and resolve config file.
         pConfig = ConfigParser::newInstance(configFilePath); // todo config file from argv.
@@ -62,14 +64,27 @@ void crystalMD::onCreate() {
     pConfig->sync(); // sync config data to other processors from master processor.
 #ifdef DEV_MODE
 // print configure.
-    if (kiwi::mpiUtils::own_rank == MASTER_PROCESSOR) {
+    if (kiwi::mpiUtils::global_process.own_rank == MASTER_PROCESSOR) {
         std::cout << pConfig->configValues;
     }
 #endif
+
+    // prepare logs.
+    if (pConfig->configValues.logs_mode == LOGS_MODE_CONSOLE) {
+        kiwi::logs::setCorlorFul(true);
+    } else if (pConfig->configValues.logs_mode == LOGS_MODE_FILE) {
+        kiwi::logs::setLogFile(pConfig->configValues.logs_filename);
+    }
+
+    // set simulation domain
+    MPIDomain::sim_processor = kiwi::mpiUtils::global_process;
     archEnvInit(); // initialize architectures environment.
 }
 
 bool crystalMD::prepare() {
+    kiwi::logs::d("domain2", "ranks {}\n", MPIDomain::sim_processor.all_ranks);
+
+    mpi_types::setInterMPIType();
     pSimulation = new simulation();
     pSimulation->createDomainDecomposition(); // 区域分解
     pSimulation->createAtoms();
@@ -86,6 +101,7 @@ void crystalMD::onFinish() {
     kiwi::logs::s(MASTER_PROCESSOR, "simulation", "finalizing simulation\n");
     //模拟结束
     pSimulation->finalize();
+    mpi_types::unsetInterMPIType();
 }
 
 void crystalMD::beforeDestroy() {

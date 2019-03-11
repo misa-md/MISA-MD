@@ -1,8 +1,7 @@
 # Crystal-MD
 
-A molecular dynamics (MD) simulation program.  
-Author:[Baihe](mailto:baihe_ustb@163.com)
-Update:[Chugenshen](mailto:genshenchu@gmail.com)
+A molecular dynamics (MD) simulation program.
+Developers:[Baihe](mailto:baihe_ustb@163.com) and [Chugenshen](mailto:genshenchu@gmail.com)
 
 ### Build
 #### Build from CMake (recommend)  
@@ -11,14 +10,22 @@ dependency:
 2. c++ 11 feature required(check your gcc version);
 3. mpi.
 
+we use [pkg](https://github.com/genshen/pkg) tool to manage c/c++ lib dependencies,
+you must install pkg on your system.
+To install dependencies in project root directory, run:
+```
+$ pkg fetch
+$ pkg install
+```
+
+To build or install CrystalMD, run:
 ```bash
 $ mkdir build
 $ cd build
 $ cmake ../
 $ make
 
-# insatll to path {install_prefix}, the default install path is /usr/local. 
-# Use -DCMAKE_INSTALL_PREFIX={install_prefix} to change to another location.
+# to install to path {install_prefix}, use -DCMAKE_INSTALL_PREFIX={install_prefix} to change to another location.
 $ make install # optional
 $ cp ./bin/CrystalMD ../example/  # copy executable file to example directory.
 ```

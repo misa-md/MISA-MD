@@ -13,18 +13,23 @@ option(MPI_ENABLE_FLAG "Use MPI library" ON) #change this flag to false to disab
 option(TEST_ENABLE_FLAG "Enable test" ON) # enable test
 option(TEST_MPI_ENABLE_FLAG "Enable MPI in test" ON) # enable mpi in test, its value depends on option MPI_ENABLE_FLAG.
 option(TOOLS_BUILD_ENABLE_FLAG "Enable tools building" ON) # enable tools building (in tools directory) binary.(tools example: convert simulation result binary file to text file)
+option(DEBUG_BUILD_ENABLE_FLAG "Enable debug mode" OFF) # enable debug mode building.
 
 ## architecture ralated values.
 option(ARCH_SW "Enable sunway athread" OFF) # enable sunway athread if its running on sunway system.
 
-## debug
+if (DEBUG_BUILD_ENABLE_FLAG)
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
+    set(CMAKE_BUILD_TYPE Debug)
+endif ()
+
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 
 #############
 ## const ##
 #############
-set(EXECUTE_BIN_NAME ${PROJECT_NAME})
-set(MD_LIB_NAME crystalmd) # use PARENT_SCOPE to modify globle variable.
+set(EXECUTE_BIN_NAME CrystalMD)
+set(MD_LIB_NAME md) # use PARENT_SCOPE to modify globle variable.
 
 # test
 set(MD_TEST_NAME "md-test")

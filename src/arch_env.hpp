@@ -6,7 +6,7 @@
 #define CRYSTAL_MD_ARCH_H
 
 #include <iostream>
-#include "pre_define.h"
+#include "types/pre_define.h"
 
 #ifdef ARCH_SUNWAY
 

@@ -1,6 +1,10 @@
+.DS_Store
+
 .idea/
 cmake-build-debug/
 build/
+vendor/
+pkg.dep.cmake
 example/*.atom
 example/FeCuNi.eam.alloy
 test/external

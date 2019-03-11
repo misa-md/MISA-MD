@@ -7,90 +7,53 @@
 
 #include <cstdio>
 #include <vector>
-#include <io/io_writer.h>
+#include <eam.h>
 
-#include "domain.h"
+#include "domain/domain.h"
+#include "atom/atom_set.h"
 #include "atom/atom_element.h"
 #include "atom/atom_list.h"
 #include "atom/inter_atom_list.h"
 #include "pack/particledata.h"
 #include "pack/lat_particle_data.h"
-#include "potential/eam.h"
 
-class Domain; // todo remove.
-
-class atom {
+class atom : public AtomSet {
 public :
-    friend class AtomDump;
-    friend class Domain;
-
-    atom(Domain *domain, double latticeconst,
-         double cutoffRadiusFactor, int seed);
-
-    ~atom();
+    atom(Domain *domain);
 
     /**
-     * used in read creating mode.
+     * move atoms to inter-atom list if the atoms is not in its lattice.
+     * @return n_flag
      */
-    void addAtom(unsigned long id, double rx, double ry, double rz, double vx, double vy, double vz);
-
-    /**
-     * compute the index offset of neighbour atoms.
-     */
-    void calculateNeighbourIndices();
-
     int decide();
 
     void clearForce();
 
     void computeEam(eam *pot, Domain *domain, double &comm);
 
-    unsigned long getinteridsendsize();
-
-    void computefirst(double dtInv2m, double dt);
-
-    void computesecond(double dtInv2m);
-
-    void getatomx(int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
-
-    void getatomy(int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
-
-    void getatomz(int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
-
-    void getIntertosend(int d, int direction, double ghostlengh, std::vector<int> &sendlist);
-
-    int getintersendnum(int dimension, int direction);
-
-    void setv(int lat[4], double collision_v[3]);
-
-    int getnlocalatom();
+    /**
+     * set velocity of a atom whose position is specified by array @param lat
+     * This atom is called PKA (Primary Knock-on Atom).
+     * We first compute the the velocity in each direction from the energy, and the set velocity of the atom.
+     * The unit of energy is ev, the unit of velocity is 100m/s.
+     *
+     * @param lat the position of pka.
+     * @param direction the vector of velocity to be set.
+     * @param energy the energy of PKA.
+     */
+    void setv(int lat[4], double direction[3], double energy);
 
     void print_force();
 
-    AtomList *getAtomList() {
-        return atom_list;
-    }
-
-    AtomList &getAtomListRef() {
-        return *atom_list;
-    }
+    void sendForce();
 
 private:
-
     Domain *p_domain;
-    int numberoflattice;
 
-    double _cutoffRadius;
-    int _cutlattice;
-    double _latticeconst;
-    int _seed;
+    void sendrho();
 
-    std::vector<long int> NeighbourOffsets; // 邻居粒子偏移量 // todo use offset in x,y,z dimension
+    void sendDfEmbed();
 
-    AtomList *atom_list;
-    InterAtomList *inter_atom_list;
-
-    std::vector<unsigned long> interbuf;
 };
 
 #endif // CRYSTAL_MD_ATOM_H

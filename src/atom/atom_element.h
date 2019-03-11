@@ -6,8 +6,8 @@
 #define CRYSTAL_MD_ATOM_ELEMENT_H
 
 
-#include "../pre_define.h"
-#include "atom_types.h"
+#include "../types/pre_define.h"
+#include "../types/atom_types.h"
 
 /**
  * This class describes the attributes of one atom, such as location, force, velocity.etc.
@@ -34,7 +34,9 @@ public:
      * check whether this atom is Inter atom.
      * @return
      */
-    bool isInterElement() const;
+    inline bool isInterElement() const {
+        return type == atom_type::INVALID;
+    }
 
 };
 

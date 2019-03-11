@@ -11,9 +11,10 @@ ConfigValues::ConfigValues() :
         phaseSpace{0, 0, 0}, cutoffRadiusFactor(0.0), latticeConst(0.0), timeSteps(10),
         createPhaseMode(true), createTSet(0.0), createSeed(1024), readPhaseFilename(""),
         alloyCreateSeed(1024), alloyRatio{1, 0, 0},
-        collisionStep(0), collisionLat{0, 0, 0, 0}, collisionV{0.0, 0.0, 0.0},
+        collisionStep(0), collisionLat{0, 0, 0, 0}, pkaEnergy(0), direction{1.0, 1.0, 1.0},
         // todo potential type and filename initialize.
-        outputMode(OUTPUT_COPY_MODE), outputDumpFilename(DEFAULT_OUTPUT_DUMP_FILENAME) {}
+        atomsDumpMode(OUTPUT_COPY_MODE), atomsDumpFilePath(DEFAULT_OUTPUT_DUMP_FILE_PATH),
+        logs_mode(LOGS_MODE_CONSOLE), logs_filename("") {}
 
 void ConfigValues::packdata(kiwi::Bundle &bundle) {
     // append data into buffer.
@@ -34,14 +35,21 @@ void ConfigValues::packdata(kiwi::Bundle &bundle) {
 
     bundle.put(collisionStep);
     bundle.put(4, collisionLat);
-    bundle.put(DIMENSION, collisionV);
+    bundle.put(pkaEnergy);
+    bundle.put(DIMENSION, direction);
 
     bundle.put(potentialFileType);
     bundle.put(potentialFilename);
 
     // out section
-    bundle.put(outputMode);
-    bundle.put(outputDumpFilename);
+    bundle.put(atomsDumpMode);
+    bundle.put(atomsDumpFilePath);
+    bundle.put(originDumpPath);
+    bundle.put(atomsDumpInterval);
+    bundle.put(outByFrame);
+    // logs subsection in output section.
+    bundle.put(logs_mode);
+    bundle.put(logs_filename);
 }
 
 void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
@@ -65,14 +73,22 @@ void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
 
     bundle.get(cursor, collisionStep);
     bundle.get(cursor, 4, collisionLat);
-    bundle.get(cursor, DIMENSION, collisionV);
+    bundle.get(cursor, pkaEnergy);
+    bundle.get(cursor, DIMENSION, direction);
 
     bundle.get(cursor, potentialFileType);
     bundle.get(cursor, potentialFilename);
 
-    bundle.get(cursor, outputMode);
-    bundle.get(cursor, outputDumpFilename);
-//    }
+    // output section.
+    bundle.get(cursor, atomsDumpMode);
+    bundle.get(cursor, atomsDumpFilePath);
+    bundle.get(cursor, originDumpPath);
+    bundle.get(cursor, atomsDumpInterval);
+    bundle.get(cursor, outByFrame);
+
+    // logs subsection in output section.
+    bundle.get(cursor, logs_mode);
+    bundle.get(cursor, logs_filename);
 }
 
 std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
@@ -97,15 +113,21 @@ std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
     os << "simulation.collision.collision_step:" << cv.collisionStep << std::endl;
     os << "simulation.collision.lat:" << cv.collisionLat[0] << "," << cv.collisionLat[1] << ","
        << cv.collisionLat[2] << "," << cv.collisionLat[3] << std::endl;
-    os << "simulation.collision.collision_v:" << cv.collisionV[0] << "," << cv.collisionV[1] << ","
-       << cv.collisionV[2] << std::endl;
+    os << "pka:" << cv.pkaEnergy << "," ;
+    os << "simulation.collision.direction:" << cv.direction[0] << "," << cv.direction[1] << ","
+       << cv.direction[2] << std::endl;
 
     os << "simulation.potential_file.type:" << cv.potentialFileType << std::endl;
     os << "simulation.potential_file.filename:" << cv.potentialFilename << std::endl;
 
     // output section
-    os << "output.mode(copy:0,direct:1):" << cv.outputMode << std::endl;
-    os << "output.dump_filename:" << cv.outputDumpFilename << std::endl;
+    os << "output.mode(copy:0,direct:1):" << cv.atomsDumpMode << std::endl;
+    os << "output.dump_interval" << cv.atomsDumpInterval << std::endl;
+    os << "output.dump_file_path:" << cv.atomsDumpFilePath << std::endl;
+    os << "output.origin_dump_path:" << cv.originDumpPath << std::endl;
+    os << "output.logs.mode: " << (cv.logs_mode == LOGS_MODE_CONSOLE ? LOGS_MODE_CONSOLE_STRING : LOGS_MODE_FILE_STRING)
+       << "output.logs.by-frame:" << cv.outByFrame << std::endl;
+    os << "output.dump_filename:" << cv.logs_filename << std::endl;
     os << "============================================" << std::endl << std::endl;
     return os;
 }

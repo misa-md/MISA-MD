@@ -6,7 +6,7 @@
 #define PARTICLEDATA_H_
 
 #include <mpi.h>
-#include "../atom/atom_types.h"
+#include "../types/atom_types.h"
 
 class particledata {
 public:

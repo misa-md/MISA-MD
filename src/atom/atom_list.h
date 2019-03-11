@@ -8,13 +8,16 @@
 #include <iterator>
 #include <vector>
 #include <functional>
-#include "../pre_define.h"
+#include "../domain/domain.h"
+#include "../types/pre_define.h"
 #include "atom_element.h"
 
 
 class AtomList {
 public:
     friend class WorldBuilder;
+
+    friend class atom;
 
     friend class AtomDump;
 
@@ -147,7 +150,8 @@ public:
      * @param zIndex
      * @return
      */
-    inline long IndexOf3DIndex(_type_atom_index xIndex, _type_atom_index yIndex, _type_atom_index zIndex) const {
+    inline _type_atom_index
+    IndexOf3DIndex(_type_atom_index xIndex, _type_atom_index yIndex, _type_atom_index zIndex) const {
         return (zIndex * _size_y + yIndex) * _size_x + xIndex;
     }
 
@@ -163,21 +167,28 @@ public:
      */
     void appendInter(_type_atom_id atom_id);
 
+    void exchangeAtomFirst(Domain *p_domain, int cutlattice);
+
+    void exchangeAtom(Domain *p_domain);
+
 private:
     // 晶格点原子用数组存储其信息,including ghost atoms.
     AtomElement ***_atoms; // atoms in 3d.
 
-    /**
-    * pointer of element in atom_list (pointer of {@class AtomElement}).
-    * // todo use avl tree.
-    * // todo use pointer.
-    */
-    std::vector<AtomElement> inter_list;
+    // the array to record atoms that are out of box.
+    std::vector<std::vector<_type_atom_id> > sendlist; // todo make it temp data
+    std::vector<std::vector<_type_atom_id> > recvlist;
 
     const _type_atom_count _size;
     const _type_atom_count _size_x, _size_y, _size_z;
     const _type_atom_count _size_sub_box_x, _size_sub_box_y, _size_sub_box_z;
     const _type_atom_count purge_ghost_count_x, purge_ghost_count_y, purge_ghost_count_z;
+
+    void getatomx(Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
+
+    void getatomy(Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
+
+    void getatomz(Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
 };
 
 
