@@ -1,36 +1,155 @@
-<a name=""></a>
-# [](https://git.gensh.me/HPCer/CrystalMD/compare/v0.2.0...v) (2018-05-08)
+<a name="unreleased"></a>
+## [Unreleased]
 
 
-### Bug Fixes
+<a name="v0.3.0"></a>
+## [v0.3.0] - 2019-03-11
+### Docs
+- **README:** update authors scope in README.md
+- **config:** add commnets for config parser.
 
-* **$compile:** fix compile error. ([c3f3d64](https://git.gensh.me/HPCer/CrystalMD/commits/c3f3d64))
-* **atom-dump:** fixed atom dump segment-fault by updating to newest kiwi. ([fe0e591](https://git.gensh.me/HPCer/CrystalMD/commits/fe0e591))
-* **config:** fixed bug of hasError==true in clang compiler. ([66707dc](https://git.gensh.me/HPCer/CrystalMD/commits/66707dc))
-* **eam:** make (pointer to pointer) type to (pointer) type in eamBcast in eam.cpp. ([b30a86b](https://git.gensh.me/HPCer/CrystalMD/commits/b30a86b))
-* **tools:** add filter for empty data in binary atom dump file. ([129ba9e](https://git.gensh.me/HPCer/CrystalMD/commits/129ba9e))
+### Feat
+- **alloy:** create different atom types in atom_types.h
+- **atom:** change basic type of sendlist and recvlist in domain from int to _type_atom_id.
+- **atom:** add lambda feature to traverse all atoms in sub-box.
+- **atom:** Merge branch 'feature-atom-element' into 'dev'
+- **atom:** create a new struct AtomElement to store atom information like force,location,velocity, etc.
+- **atom:** move atoms 1-d array to 3-d array.
+- **atom-dump:** add atoms_dump_interval in config.
+- **atom-dump:** add feature of dumping inter atoms in copy mode.
+- **atom-dump:** add feature of dumping by frame.
+- **atom-dump:** addd feature of dumping atoms before collision and dumping inter atoms to the same binary file.
+- **atom-type:** add INVALID atom type to tag the atom that is out of lattice.
+- **atom_creator:** add zreo momentum for multiple types of atoms.
+- **changelog:** add changelog support
+- **collision:** change the unit of PKA to eV.
+- **config:** add config parsing for Fe-Cu-Ni alloy.
+- **config:** add time_step_length configuration in config file.
+- **datatype:** add pre_define.h file
+- **denpendency:** use newest kiwi framework (bundle put/get without MPI_Pack & MPI_Unpack).
+- **dependency:** update to kiwi framework.
+- **domain:** add localBuild for domain.
+- **domain:** add local boundary in domain.
+- **eam:** add full eam adaptation for multi-atom-types.
+- **eam:** use class EamPhiList to replace InterpolationObject array, and add better api.
+- **eam:** using OneWayEamList to replace (InterpolationObject *rho) and (InterpolationObject *f).
+- **inter:** add out-of-box check for inter atoms.
+- **logs:** add kiwi logs support.
+- **logs:** add logs to file support.
+- **merge:** Merge branch 'feature-config-resolver' to branch 'master'
+- **multi_atom_type:** using atom_type::atom_type as atom type.
+- **potential:** add libpot and change code to use libpot api.
+- **simulation-output test tools:** merge output files into one file using mpi-IO
+- **test:** add test framework catch2 for testing.
+- **tools:** conv tool can convert allmost binary atom file to text file.
+- **ws:** add feature of obtaining lattice coordinate and index of nearest atom.
+- **ws:** add isInBox member function for ws utils.
+
+### Fix
+- fix merge conflict of mergeing branch feature-multi-types-atom into dev.
+- **$compile:** fix compile error.
+- **atom:** fixed runtime segmentfault and incorrect results.
+- **atom-dump:** fixed atom dump segment-fault by updating to newest kiwi.
+- **atom-dump:** fixed bug: header of local storage is set many times.
+- **atom_creator:** fixed bug [#3](https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/issues/3): duplicate atom id.
+- **atoms:** fixed incrrect atoms count of system in atom::decide implementation.
+- **collision:** fixed possible outofRange error in setv.
+- **collision:** fixed segment error while packing particledata in exchangeInter.
+- **compile:** fix compile error: pre_config.h not found.
+- **config:** fixed simulation error, timesteplength not sync to other processors.
+- **config:** fixed bug of hasError==true in clang compiler.
+- **domain:** double the lattice size and lattice coord in x direction.
+- **eam:** make (pointer to pointer) type to (pointer) type in eamBcast in eam.cpp.
+- **eam:** fix index out-of-range bug in atom::computeEam when iterating the inter atoms.
+- **inter:** we still add the unexcepted atom to inter atoms list InterAtomList::unpackExInterRecv to fix incorrct atom count issue.
+- **inter:** fix incorrect iterator of InterAtomList::inter_list in atom.cpp
+- **inter:** fix index-out-of-range bug of inter atoms in function computeEam due to incorrect periodic boundary.
+- **inter:** fixed incrrect atoms count of system in InterAtomList::exchangeInter.
+- **newton_motion:** remove fixed mass(only Fe mass is used) in newton_motion.cpp/.h
+- **simulation:** filter the INVALID atoms when performing simulation.
+- **test-domain:** fix compilation errors in tests of domain.
+- **tools:** add filter for empty data in binary atom dump file.
+- **tools:** fixed bugs of conv tool for processing binary file (result not right).
+
+### Refactor
+- rename src/config to src/types.
+- remove some unnecessary code.
+- **$config-resolver:** add mpi data pack util to resolve and synchronize configure informatio
+- **atom:** move atom related files to "atom" directory.
+- **atom:** move atom set(including atomlist and interatomlist) to class AtomSet.
+- **atom-dump:** move atom dumping in atom.cpp to atom_dump.cpp
+- **atom-list:** move atom-list relative mothods to class AtomList.
+- **atom-set:** remode pointer of Domain in class AtomSet constructor.
+- **atoms:** move member sendForce, sendrho, sendDfEmbed in class Domain to class atom.
+- **atoms:** rename the index variable of neighbour atoms.
+- **atoms_creater:** add a world builder (atoms builder) based on the old create_atom.
+- **atoms_creator:** refactor computeScalar method in world_builder.cpp
+- **decomposition:** rename variale in DomainDecomposition unified prefix.
+- **domain:** add double-x lattice size and coord member for class Domain.
+- **domain:** rename class DomainDecomposition to Domain.
+- **domain:** move variable (nlocal nghost lolocal loghost) * (x,y,z) to DomainDecomposition.
+- **domain:** move variable nlocalx, nlocaly, nlocalz in atom to domain.
+- **domain:** extract domain boundary to class Region.
+- **domain:** move code of sub-box bound in class atom to class DomainDecomposition.
+- **domain:** refator doamin implementation to use lattice priority strategy (rather than measured length priority).
+- **domain:** add Domain::Builder and move domain values to a class with all const values.
+- **domaindecomposition:** add comments for domaindecomposition
+- **eam:** extract eam parser to eam_parser.cpp/.h file.
+- **eam:** move potential code to libpot.
+- **inter:** use new added out-of-box checking method to exchange inter atoms with neighbour pro
+- **inter:** move inter atoms to file inter_atom_list.h
+- **inter:** move implementation of out-of-box inter atoms communication in InterAtomList to another
+- **inter:** refactor class InterAtomList (atom/inter_atom.h/.cpp)
+- **inter:** move more inter-atom-list relative methods into class InterAtomList.
+- **inter:** change type of variable intersendlist and interrecvlist in class InterAtomList to type std::vector<std::vector<AtomElement *> >.
+- **newton_motion:** move newton motion in atom.cpp/.h to newton_motion.cpp/.h
+- **pack:** move pack and unzpck into "pack" directory.
+- **pack:** refactor function unpack_recvfirst in pack.cpp
+- **potential:** move potential file parsing in simulation.cpp to eam.cpp
+- **potential:** separate potential file parsing for master processor and non-master processors.
+- **simulation:** better code(comments, MACRO, etc.).
+- **simulation:** refactor code of offset used for periodic boundary in exchangeAtom in domain.cpp
+- **test:** switch from catch test framework to googletest.
+- **ws:** move ws related functions to namespace ws.
+
+### Test
+- replace MPI_Init() with kiwi::mpUtils.
+- **atom_creator:** add test for rescalar in WorldBuilder.
+- **collision:** add MPI tests for particledata.
+- **domain:** add test for domain decomposition
+- **domain:** modified test code in domain_test.cpp
+- **eam:** add test for phi(pair potentials).
+- **ws:** add test of ws::isOutBox for periodic boundary.
+
+### Pull Requests
+- Merge branch 'dev' into 'master'
+
+### BREAKING CHANGE
+
+config Term collision_v have been removed.
 
 
-### Features
-
-* **alloy:** create different atom types in atom_types.h ([c30a267](https://git.gensh.me/HPCer/CrystalMD/commits/c30a267))
-* **atom:** create a new struct AtomElement to store atom information like force,location,velocity, etc. ([39ee707](https://git.gensh.me/HPCer/CrystalMD/commits/39ee707))
-* **config:** add config parsing for Fe-Cu-Ni alloy. ([5923a4b](https://git.gensh.me/HPCer/CrystalMD/commits/5923a4b))
-* **datatype:** add pre_define.h file ([6312dcc](https://git.gensh.me/HPCer/CrystalMD/commits/6312dcc))
-* **dependency:** update to kiwi framework. ([6e93276](https://git.gensh.me/HPCer/CrystalMD/commits/6e93276))
-* **logs:** add kiwi logs support. ([5c33809](https://git.gensh.me/HPCer/CrystalMD/commits/5c33809))
-* **simulation-output test tools:** merge output files into one file using mpi-IO ([9503f86](https://git.gensh.me/HPCer/CrystalMD/commits/9503f86)), closes [#2](https://git.gensh.me/HPCer/CrystalMD/issues/2)
-* **test:** add test framework catch2 for testing. ([69c1aee](https://git.gensh.me/HPCer/CrystalMD/commits/69c1aee))
+<a name="v0.2.0"></a>
+## [v0.2.0] - 2018-03-08
+### Docs
+- **README.md .input.swo:** add contributing section to README.md and remove .input.swo file.
 
 
+<a name="v0.1.3-sunway"></a>
+## [v0.1.3-sunway] - 2017-11-17
 
-<a name="0.2.0"></a>
-# [0.2.0](https://git.gensh.me/HPCer/CrystalMD/compare/v0.1.0...v0.2.0) (2018-03-08)
+<a name="v0.1.2-sunway"></a>
+## [v0.1.2-sunway] - 2017-11-17
 
+<a name="v0.1.1-sunway"></a>
+## [v0.1.1-sunway] - 2017-11-17
 
+<a name="v0.1.0"></a>
+## v0.1.0 - 2017-11-17
 
-<a name="0.1.0"></a>
-# 0.1.0 (2016-12-20)
-
-
-
+[Unreleased]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.0...HEAD
+[v0.3.0]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.2.0...v0.3.0
+[v0.2.0]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.1.3-sunway...v0.2.0
+[v0.1.3-sunway]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.1.2-sunway...v0.1.3-sunway
+[v0.1.2-sunway]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.1.1-sunway...v0.1.2-sunway
+[v0.1.1-sunway]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.1.0...v0.1.1-sunway
