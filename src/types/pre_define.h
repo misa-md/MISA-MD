@@ -24,7 +24,7 @@ typedef _type_lattice_size _type_lattice_coord;
 
 // atom
 typedef unsigned long _type_atom_id;
-typedef unsigned long _type_atom_index;
+typedef long _type_atom_index; // index can be minus
 typedef unsigned long _type_atom_count;
 typedef int _type_atom_type; // @deprecated
 typedef short _type_inter_type; // inter atom type.

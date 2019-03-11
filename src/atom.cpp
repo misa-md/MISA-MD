@@ -9,14 +9,32 @@
 #include <eam.h>
 
 #include "atom.h"
+#include "atom/ws_utils.h"
 #include "pack/pack.h"
 #include "toml_config.h"
 #include "hardware_accelerate.hpp" // use hardware(eg.GPU, MIC,Sunway slave cores.) to achieve calculate accelerating.
 
-atom::atom(Domain *domain, double latticeconst,
-           double cutoffRadiusFactor) :
-        AtomSet(domain, latticeconst, cutoffRadiusFactor) {
+atom::atom(Domain *domain)
+        : AtomSet(domain->lattice_const * domain->cutoff_radius_factor,
+                  domain->lattice_size_ghost_extended,
+                  domain->lattice_size_sub_box,
+                  domain->lattice_size_ghost),
+          p_domain(domain) {
+    if (isAccelerateSupport()) {
+        accelerateInit(p_domain->dbx_lattice_coord_sub_box_region.x_low,
+                       p_domain->dbx_lattice_coord_sub_box_region.y_low,
+                       p_domain->dbx_lattice_coord_sub_box_region.z_low,
+                       p_domain->dbx_lattice_size_sub_box[0],
+                       p_domain->dbx_lattice_size_sub_box[1],
+                       p_domain->dbx_lattice_size_sub_box[2],
+                       p_domain->dbx_lattice_coord_ghost_region.x_low,
+                       p_domain->dbx_lattice_coord_ghost_region.y_low,
+                       p_domain->dbx_lattice_coord_ghost_region.z_low,
+                       p_domain->dbx_lattice_size_ghost_extended[0],
+                       p_domain->dbx_lattice_size_ghost_extended[1],
+                       p_domain->dbx_lattice_size_ghost_extended[2]);
     }
+}
 
 int atom::decide() {
     inter_atom_list->nghostinter = 0;
@@ -24,14 +42,11 @@ int atom::decide() {
     long kk = 0;
     double dist;
     double xtemp, ytemp, ztemp;
-//    int xstart = p_domain->getGhostLatticeSize(0);
-//    int ystart = p_domain->getGhostLatticeSize(1);
-//    int zstart = p_domain->getGhostLatticeSize(2);
 
     //对本地晶格点原子进行判断，看是否运动为间隙原子
-    for (int k = 0; k < p_domain->dbx_lattice_size_sub_box[2]; k++) {
-        for (int j = 0; j < p_domain->dbx_lattice_size_sub_box[1]; j++) {
-            for (int i = 0; i < p_domain->dbx_lattice_size_sub_box[0]; i++) {
+    for (_type_atom_index k = 0; k < p_domain->dbx_lattice_size_sub_box[2]; k++) {
+        for (_type_atom_index j = 0; j < p_domain->dbx_lattice_size_sub_box[1]; j++) {
+            for (_type_atom_index i = 0; i < p_domain->dbx_lattice_size_sub_box[0]; i++) {
 //                kk = atom_list->IndexOf3DIndex(i, j, k);
                 AtomElement &atom_ = atom_list->getAtomEleBySubBoxIndex(i, j, k); // todo long type
                 if (!atom_.isInterElement()) {
@@ -56,72 +71,31 @@ int atom::decide() {
         }
     }
 
-    // periodic boundary
-    for (AtomElement &inter_ref :inter_atom_list->inter_list) {
-        if (inter_ref.x[0] < p_domain->meas_global_box_coord_region.x_low) {
-            inter_ref.x[0] += p_domain->meas_global_length[0];
-        } else {
-            if (inter_ref.x[0] >= p_domain->meas_global_box_coord_region.x_high) {
-                inter_ref.x[0] -= p_domain->meas_global_length[0];
-            }
-        }
-        if (inter_ref.x[1] < p_domain->meas_global_box_coord_region.y_low) {
-            inter_ref.x[1] += p_domain->meas_global_length[1];
-        } else {
-            if (inter_ref.x[1] >= p_domain->meas_global_box_coord_region.y_high) {
-                inter_ref.x[1] -= p_domain->meas_global_length[1];
-            }
-        }
-        if (inter_ref.x[2] < p_domain->meas_global_box_coord_region.z_low) {
-            inter_ref.x[2] += p_domain->meas_global_length[2];
-        } else {
-            if (inter_ref.x[2] >= p_domain->meas_global_box_coord_region.z_high) {
-                inter_ref.x[2] -= p_domain->meas_global_length[2];
-            }
-        }
-    }
-
     // 如果间隙原子跑入晶格点,且晶格点为空位, 则空位-间隙发生复合.
+    // note: the out-of-lattice atoms can be out of sub-box.
     _type_inter_list::iterator inter_it;
     for (inter_it = inter_atom_list->inter_list.begin(); inter_it != inter_atom_list->inter_list.end();) {
         AtomElement &inter_ref = *inter_it;
-//    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
-        _type_atom_index near_index;
-        int j, k, l;
-        xtemp = inter_ref.x[0];
-        ytemp = inter_ref.x[1];
-        ztemp = inter_ref.x[2];
-        j = xtemp * 2 / p_domain->lattice_const + 0.5;
-        k = ytemp * 2 / p_domain->lattice_const + 0.5;
-        l = ztemp * 2 / p_domain->lattice_const + 0.5;
-        k = k / 2;
-        l = l / 2;
-        j -= p_domain->dbx_lattice_coord_ghost_region.x_low;
-        k -= p_domain->dbx_lattice_coord_ghost_region.y_low;
-        l -= p_domain->dbx_lattice_coord_ghost_region.z_low;
+        // get the near atom of the inter atom
+        // If we use func findNearLatAtom to find a near atom of an inter atom in atoms list
+        // the near atom can be an ghost atom (but the position of that ghost atom may still be in sub-box).
+        // we should find near atom only in lattice atoms(exclude ghost atoms), so we use func finNearLatAtomInSubBox.
+        AtomElement *near_atom = ws::findNearLatAtomInSubBox(atom_list, inter_ref, p_domain);
+        // the near atom must be in sub-box, and it is in the lattice atom lists.
+        if (near_atom != nullptr && near_atom->isInterElement() &&
+            ws::isOutBox(*near_atom, p_domain) == box::IN_BOX) {
+            near_atom->id = inter_ref.id;
+            near_atom->type = inter_ref.type; // set type to valid.
+            near_atom->x[0] = inter_ref.x[0];
+            near_atom->x[1] = inter_ref.x[1];
+            near_atom->x[2] = inter_ref.x[2];
+            near_atom->v[0] = inter_ref.v[0];
+            near_atom->v[1] = inter_ref.v[1];
+            near_atom->v[2] = inter_ref.v[2];
 
-        //判断是否在所表示晶格范围内
-        if (j <= (p_domain->dbx_lattice_size_sub_box[0] + 2 * (ceil(_cutoffRadius / p_domain->lattice_const) + 1))
-            && k <= (p_domain->dbx_lattice_size_sub_box[1] + (ceil(_cutoffRadius / p_domain->lattice_const) + 1))
-            && l <= (p_domain->dbx_lattice_size_sub_box[2] + (ceil(_cutoffRadius / p_domain->lattice_const) + 1))) {
-            near_index = atom_list->IndexOf3DIndex(j, k, l);
-            AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(near_index);
-            if (atom_.isInterElement()) {
-                atom_.id = inter_ref.id;
-                atom_.type = inter_ref.type; // set type to valid.
-                atom_.x[0] = inter_ref.x[0];
-                atom_.x[1] = inter_ref.x[1];
-                atom_.x[2] = inter_ref.x[2];
-                atom_.v[0] = inter_ref.v[0];
-                atom_.v[1] = inter_ref.v[1];
-                atom_.v[2] = inter_ref.v[2];
-
-                // remove this atom from inter list.
-                inter_it = inter_atom_list->inter_list.erase(inter_it); // fixme: bug: inter_it reached to end();
-                inter_atom_list->nlocalinter--;
-            } else {
-                inter_it++;
-            }
+            // remove this atom from inter list.
+            inter_it = inter_atom_list->inter_list.erase(inter_it);
+            inter_atom_list->nlocalinter--;
         } else {
             inter_it++;
         }
@@ -201,31 +175,23 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
     }
 
     //间隙原子电子云密度
-    int j, k, l;
-    _type_atom_index near_index;
+    _type_atom_index near_atom_index;
+    // note that some inter atoms may be not in sub-box, we should exclude them.
     for (_type_inter_list::iterator inter_it = inter_atom_list->inter_list.begin();
          inter_it != inter_atom_list->inter_list.end(); inter_it++) {
-//    for (int i = 0; i < inter_atom_list->nlocalinter; i++) {
-        xtemp = (*inter_it).x[0];
-        ytemp = (*inter_it).x[1];
-        ztemp = (*inter_it).x[2];
-        j = xtemp * 2 / p_domain->lattice_const + 0.5;
-        k = ytemp * 2 / p_domain->lattice_const + 0.5;
-        l = ztemp * 2 / p_domain->lattice_const + 0.5;
-        k = k / 2;
-        l = l / 2;
-        j -= p_domain->dbx_lattice_coord_ghost_region.x_low;
-        k -= p_domain->dbx_lattice_coord_ghost_region.y_low;
-        l -= p_domain->dbx_lattice_coord_ghost_region.z_low;
-        near_index = atom_list->IndexOf3DIndex(j, k, l);
-
-        AtomElement &atom_near = atom_list->getAtomEleByLinearIndex(near_index);
-        delx = xtemp - atom_near.x[0];
-        dely = ytemp - atom_near.x[1];
-        delz = ztemp - atom_near.x[2];
+        // get index of nearest atom of inter atoms.
+        near_atom_index = ws::findNearLatIndexInSubBox(atom_list, *inter_it, p_domain);
+        if (near_atom_index == box::IndexNotExists) {
+            continue; // make sure the inter atoms is in sub box.
+            // todo find a good way to filter out-of-box atoms while exchanging inter atoms.
+        }
+        AtomElement &atom_near = atom_list->getAtomEleByLinearIndex(near_atom_index);
+        delx = (*inter_it).x[0] - atom_near.x[0];
+        dely = (*inter_it).x[1] - atom_near.x[1];
+        delz = (*inter_it).x[2] - atom_near.x[2];
         dist2 = delx * delx + dely * dely + delz * delz;
         if (!atom_near.isInterElement() && dist2 < (_cutoffRadius * _cutoffRadius)) {
-            (*inter_it).rho += pot->rhoContribution(atom_type::getTypeIdByType(atom_near.type), dist2);
+            inter_it->rho += pot->rhoContribution(atom_type::getTypeIdByType(atom_near.type), dist2);
             atom_near.rho += pot->rhoContribution(atom_type::getTypeIdByType((*inter_it).type), dist2);
             // fixme
         }
@@ -233,12 +199,12 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
         for (neighbourOffsetsIter = NeighbourOffsets.begin();
              neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
             //计算间隙原子的所有邻居
-            n = (near_index + *neighbourOffsetsIter);
+            n = (near_atom_index + *neighbourOffsetsIter);
             AtomElement &atom_neighbour_up = atom_list->getAtomEleByLinearIndex(n);
             if (!atom_neighbour_up.isInterElement()) {
-                delx = xtemp - atom_neighbour_up.x[0];
-                dely = ytemp - atom_neighbour_up.x[1];
-                delz = ztemp - atom_neighbour_up.x[2];
+                delx = (*inter_it).x[0] - atom_neighbour_up.x[0];
+                dely = (*inter_it).x[1] - atom_neighbour_up.x[1];
+                delz = (*inter_it).x[2] - atom_neighbour_up.x[2];
                 dist2 = delx * delx + dely * dely + delz * delz;
                 if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                     (*inter_it).rho += pot->rhoContribution(
@@ -249,12 +215,12 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
                 }
             }
 
-            n = (near_index - *neighbourOffsetsIter);
+            n = (near_atom_index - *neighbourOffsetsIter);
             AtomElement &atom_neighbour_down = atom_list->getAtomEleByLinearIndex(n);
             if (!atom_neighbour_down.isInterElement()) {
-                delx = xtemp - atom_neighbour_down.x[0];
-                dely = ytemp - atom_neighbour_down.x[1];
-                delz = ztemp - atom_neighbour_down.x[2];
+                delx = (*inter_it).x[0] - atom_neighbour_down.x[0];
+                dely = (*inter_it).x[1] - atom_neighbour_down.x[1];
+                delz = (*inter_it).x[2] - atom_neighbour_down.x[2];
                 dist2 = delx * delx + dely * dely + delz * delz;
                 if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                     (*inter_it).rho += pot->rhoContribution(
@@ -271,9 +237,9 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
             if (next_inter_it == inter_atom_list->inter_list.end()) {
                 next_inter_it = inter_atom_list->inter_ghost_list.begin();
             }
-            delx = xtemp - (*next_inter_it).x[0];
-            dely = ytemp - (*next_inter_it).x[1];
-            delz = ztemp - (*next_inter_it).x[2];
+            delx = (*inter_it).x[0] - (*next_inter_it).x[0];
+            dely = (*inter_it).x[1] - (*next_inter_it).x[1];
+            delz = (*inter_it).x[2] - (*next_inter_it).x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                 (*inter_it).rho += pot->rhoContribution(atom_type::getTypeIdByType((*next_inter_it).type), dist2);
@@ -292,6 +258,7 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
     /* char tmp[20];
     sprintf(tmp, "electron_density.atom");
     outfile.open(tmp);
+    int j, k, l;
     for(int k =0; k < p_domain->getSubBoxLatticeSize(2) ; k++){
             for(int j = 0; j < p_domain->getSubBoxLatticeSize(1); j++){
                     for(int i =0; i < p_domain->getSubBoxLatticeSize(0) ; i++){
@@ -316,7 +283,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
     /*sprintf(tmp, "rho2.atom");
     outfile;
     outfile.open(tmp);
-
+    int j, k, l;
     for(int k =0; k < p_domain->getSubBoxLatticeSize(2) ; k++){
             for(int j = 0; j < p_domain->getSubBoxLatticeSize(1); j++){
                     for(int i =0; i < p_domain->getSubBoxLatticeSize(0) ; i++){
@@ -428,26 +395,20 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
       outfile.close();*/ // 2.todo remove end.
 
     //间隙原子计算嵌入能和对势带来的力
+    _type_atom_index _atom_near_index;
     for (_type_inter_list::iterator inter_it = inter_atom_list->inter_list.begin();
          inter_it != inter_atom_list->inter_list.end(); inter_it++) {
-        int j, k, l;
-        xtemp = (*inter_it).x[0];
-        ytemp = (*inter_it).x[1];
-        ztemp = (*inter_it).x[2];
-        j = xtemp * 2 / p_domain->lattice_const + 0.5;
-        k = ytemp * 2 / p_domain->lattice_const + 0.5;
-        l = ztemp * 2 / p_domain->lattice_const + 0.5;
-        k = k / 2;
-        l = l / 2;
-        j -= p_domain->dbx_lattice_coord_ghost_region.x_low;
-        k -= p_domain->dbx_lattice_coord_ghost_region.y_low;
-        l -= p_domain->dbx_lattice_coord_ghost_region.z_low;
-        j = atom_list->IndexOf3DIndex(j, k, l);
-        AtomElement &atom_central = atom_list->getAtomEleByLinearIndex(j); // cgs: 间隙原子所在晶格处的原子
+        _atom_near_index = ws::findNearLatIndexInSubBox(atom_list, *inter_it, p_domain);
+        if (_atom_near_index == box::IndexNotExists) {
+            continue; // make sure the inter atoms is in sub box.
+            // todo find a good way to filter out-of-box atoms while exchanging inter atoms.
+        }
+        // 间隙原子所在晶格处的原子
+        AtomElement &atom_central = atom_list->getAtomEleByLinearIndex(_atom_near_index);
 
-        delx = xtemp - atom_central.x[0];
-        dely = ytemp - atom_central.x[1];
-        delz = ztemp - atom_central.x[2];
+        delx = (*inter_it).x[0] - atom_central.x[0];
+        dely = (*inter_it).x[1]  - atom_central.x[1];
+        delz = (*inter_it).x[2] - atom_central.x[2];
         dist2 = delx * delx + dely * dely + delz * delz;
         if (dist2 < (_cutoffRadius * _cutoffRadius) && !atom_central.isInterElement()) {
             // fixme
@@ -467,11 +428,11 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
         for (neighbourOffsetsIter = NeighbourOffsets.begin();
              neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
             //计算间隙原子的所有邻居
-            n = (j + *neighbourOffsetsIter);
+            n = (_atom_near_index + *neighbourOffsetsIter);
             AtomElement &atom_neighbour_up = atom_list->getAtomEleByLinearIndex(n);
-            delx = xtemp - atom_neighbour_up.x[0];
-            dely = ytemp - atom_neighbour_up.x[1];
-            delz = ztemp - atom_neighbour_up.x[2];
+            delx = (*inter_it).x[0] - atom_neighbour_up.x[0];
+            dely = (*inter_it).x[1]  - atom_neighbour_up.x[1];
+            delz = (*inter_it).x[2] - atom_neighbour_up.x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius) && !atom_neighbour_up.isInterElement()) {
                 // fixme
@@ -488,12 +449,12 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                 atom_neighbour_up.f[1] -= dely * fpair;
                 atom_neighbour_up.f[2] -= delz * fpair;
             }
-            n = (j - *neighbourOffsetsIter);
+            n = (_atom_near_index - *neighbourOffsetsIter);
             AtomElement &atom_neighbour_down = atom_list->getAtomEleByLinearIndex(n);
 
-            delx = xtemp - atom_neighbour_down.x[0];
-            dely = ytemp - atom_neighbour_down.x[1];
-            delz = ztemp - atom_neighbour_down.x[2];
+            delx = (*inter_it).x[0] - atom_neighbour_down.x[0];
+            dely = (*inter_it).x[1]  - atom_neighbour_down.x[1];
+            delz = (*inter_it).x[2] - atom_neighbour_down.x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius && !atom_neighbour_down.isInterElement())) {
                 // fixme
@@ -518,9 +479,9 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                 next_inter_it = inter_atom_list->inter_ghost_list.begin();
             }
             // for (int k = i + 1; k < (inter_atom_list->nghostinter + inter_atom_list->nlocalinter); k++) {
-            delx = xtemp - (*next_inter_it).x[0];
-            dely = ytemp - (*next_inter_it).x[1];
-            delz = ztemp - (*next_inter_it).x[2];
+            delx = (*inter_it).x[0] - (*next_inter_it).x[0];
+            dely = (*inter_it).x[1]  - (*next_inter_it).x[1];
+            delz = (*inter_it).x[2] - (*next_inter_it).x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                 // fixme

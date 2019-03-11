@@ -13,6 +13,7 @@
 #include "../pack/lat_particle_data.h"
 #include "../types/pre_define.h"
 #include "../types/atom_types.h"
+#include "box.h"
 
 typedef std::list<AtomElement> _type_inter_list;
 typedef std::vector<std::vector<AtomElement *> > _type_inter_buf;
@@ -83,11 +84,9 @@ private:
     /**
      * count the size of out-of-box inter atoms.
      * @param p_domain  pointer of simulation domain
-     * @param dimension  dimension of 3d. @param d values = {0,1,2}
-     * @param direction direction of LOW or HIGH.
-     * @return the number of out-of-box inter atoms.
+     * @param n_to_send  the number of out-of-box inter atoms will be stored in each dimension and each direction.
      */
-    unsigned long countExSendNum(Domain *p_domain, int dimension, int direction);
+    void countExSendNum(Domain *p_domain, int n_to_send[DIMENSION][2]);
 
     /**
      * If some inter atoms get out of box, those atom is no more in current dox of current processor.
@@ -99,12 +98,27 @@ private:
      * @param dimension dimension of 3d. @param d values = {0,1,2}
      * @param direction direction of LOW or HIGH.
      */
-    void packExInterToSend(Domain *p_domain, particledata *buf, int dimension, int direction);
+    void packExInterToSend(Domain *p_domain, particledata *buf, int dimension, int direction,
+                           box::_type_flag_32 excepted_flag[DIMENSION][2], double offset[DIMENSION]);
 
-    void unpackExInterRecv(int d, int n,
-                           const double *lower, // p_domain->getMeasuredSubBoxLowerBounding(d)
-                           const double *upper, // p_domain->getMeasuredSubBoxUpperBounding(d)
-                           particledata *buf);
+    /**
+     * unpack exchanged inter atoms data, and save the inter atoms to local inter atom list.
+     *
+     * @note that we use a delay buffer to recoder the inter atom that is not in this box.
+     * those atoms will be written into inter atoms list after exchange finished (delay write).
+     * Assume that we write those atoms directly, it will cause some faults:
+     * If we save those atoms into inter atom list directly,
+     * later communication of other direction or dimension may count those atoms and send them to other processors,
+     * but the communication data size (count of atoms to be send to other processors) is precomputed,
+     * which can make the data exchange messy.
+     *
+     * @param buf data buffer
+     * @param delay_buffer reference of delay buffer
+     * @param n the count of inter atoms in @param buf
+     */
+    void unpackExInterRecv(Domain *p_domain, particledata *buf,
+                           std::list<AtomElement> &delay_buffer,
+                           int n);
 
 };
 

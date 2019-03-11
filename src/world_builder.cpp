@@ -18,7 +18,7 @@ WorldBuilder &WorldBuilder::setDomain(Domain *p_domain) {
     return *this;
 }
 
-WorldBuilder &WorldBuilder::setAtomsContainer(atom *p_atom) {
+WorldBuilder &WorldBuilder::setAtomsContainer(AtomSet *p_atom) {
     this->_p_atom = p_atom;
     return *this;
 }
@@ -67,7 +67,8 @@ void WorldBuilder::build() {
     vcm(p);
     MPI_Allreduce(p, _vcm, 4, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
-    _type_atom_count n_atoms_global = 2 * (unsigned long) box_x * (unsigned long) box_y * (unsigned long) box_z;  // todo type
+    _type_atom_count n_atoms_global =
+            2 * (unsigned long) box_x * (unsigned long) box_y * (unsigned long) box_z;  // todo type
 //    double mass_total = n_atoms_global * atom_type::getAtomMass(atom_type::Fe); // todo multiple type.
     double &mass_total = _vcm[3];
 
@@ -146,9 +147,6 @@ void WorldBuilder::createPhaseSpace() {
  * Thus, \sum_{i=1}^{N} v_i' * m_i  =0.
  */
 void WorldBuilder::zeroMomentum(double *vcm) {
-//    int xstart = _p_domain->getGlobalSubBoxLatticeCoordLower(0) - _p_domain->getGlobalGhostLatticeCoordLower(0);
-//    int ystart = _p_domain->getGlobalSubBoxLatticeCoordLower(1) - _p_domain->getGlobalGhostLatticeCoordLower(1);
-//    int zstart = _p_domain->getGlobalSubBoxLatticeCoordLower(2) - _p_domain->getGlobalGhostLatticeCoordLower(2);
 //    long kk; // todo unsigned
     _type_atom_mass mass;
     for (int k = 0; k < _p_domain->dbx_lattice_size_sub_box[2]; k++) {
@@ -167,9 +165,6 @@ void WorldBuilder::zeroMomentum(double *vcm) {
 
 double WorldBuilder::computeScalar(_type_atom_count n_atoms) {
     double t = 0.0;
-//    int xstart = _p_domain->getGlobalSubBoxLatticeCoordLower(0) - _p_domain->getGlobalGhostLatticeCoordLower(0);
-//    int ystart = _p_domain->getGlobalSubBoxLatticeCoordLower(1) - _p_domain->getGlobalGhostLatticeCoordLower(1);
-//    int zstart = _p_domain->getGlobalSubBoxLatticeCoordLower(2) - _p_domain->getGlobalGhostLatticeCoordLower(2);
 //    long kk; // todo unsigned
     for (int k = 0; k < _p_domain->dbx_lattice_size_sub_box[2]; k++) {
         for (int j = 0; j < _p_domain->dbx_lattice_size_sub_box[1]; j++) {
@@ -190,9 +185,6 @@ double WorldBuilder::computeScalar(_type_atom_count n_atoms) {
 }
 
 void WorldBuilder::rescale(double rescale_factor) {
-//    int xstart = _p_domain->getGlobalSubBoxLatticeCoordLower(0) - _p_domain->getGlobalGhostLatticeCoordLower(0);
-//    int ystart = _p_domain->getGlobalSubBoxLatticeCoordLower(1) - _p_domain->getGlobalGhostLatticeCoordLower(1);
-//    int zstart = _p_domain->getGlobalSubBoxLatticeCoordLower(2) - _p_domain->getGlobalGhostLatticeCoordLower(2);
 //    long kk;
     for (int k = 0; k < _p_domain->dbx_lattice_size_sub_box[2]; k++) {
         for (int j = 0; j < _p_domain->dbx_lattice_size_sub_box[1]; j++) {

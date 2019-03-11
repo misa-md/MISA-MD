@@ -23,7 +23,7 @@ public:
 
     WorldBuilder &setDomain(Domain *p_domain);
 
-    WorldBuilder &setAtomsContainer(atom *p_atom);
+    WorldBuilder &setAtomsContainer(AtomSet *p_atom);
 
     WorldBuilder &setRandomSeed(int seek);
 
@@ -62,7 +62,7 @@ protected:
 
 private:
     Domain *_p_domain;
-    atom *_p_atom;
+    AtomSet *_p_atom;
 
     int _random_seed; // random seed for creating atoms.
     int64_t box_x = 0, box_y = 0, box_z = 0; // todo re type

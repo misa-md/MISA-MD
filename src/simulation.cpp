@@ -43,8 +43,9 @@ void simulation::createDomainDecomposition() {
 }
 
 void simulation::createAtoms() {
-    _atom = new atom(_p_domain, pConfigVal->latticeConst, pConfigVal->cutoffRadiusFactor);
-    _atom->calculateNeighbourIndices(); // establish index offset for neighbour.
+    _atom = new atom(_p_domain);
+    // establish index offset for neighbour.
+    _atom->calcNeighbourIndices(_p_domain->cutoff_radius_factor, _p_domain->cut_lattice);
 
     if (pConfigVal->createPhaseMode) {  //创建原子坐标、速度信息
         WorldBuilder mWorldBuilder;
@@ -58,7 +59,7 @@ void simulation::createAtoms() {
                 .build();
     } else { //读取原子坐标、速度信息
         _input = new input();
-        _input->readPhaseSpace(_atom);
+        _input->readPhaseSpace(_atom, _p_domain);
     }
     _newton_motion = new NewtonMotion(pConfigVal->timeStepLength); // time step length.
 }
@@ -113,7 +114,7 @@ void simulation::prepareForStart() {
 
     starttime = MPI_Wtime();
     // todo make _cut_lattice a member of class AtomList
-    _atom->getAtomList()->exchangeAtomFirst(_p_domain, _atom->getCutLattice());
+    _atom->getAtomList()->exchangeAtomFirst(_p_domain, _p_domain->cut_lattice);
     // fixme those code does not fit [read atom mode], because in [create atom mode], inter is empty at first step;
     // so borderInter is not get called.
     stoptime = MPI_Wtime();
@@ -190,7 +191,7 @@ void simulation::simulate() {
         _newton_motion->secondstep(_atom->getAtomList(), _atom->getInterList());
 
         //输出原子信息
-        if ((_simulation_time_step + 1) % pConfigVal->atomsDumpInterval == 0) {// todo output atoms every 10 steps.
+        if ((_simulation_time_step + 1) % pConfigVal->atomsDumpInterval == 0) {
             output(_simulation_time_step + 1);
         }
     }

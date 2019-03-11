@@ -7,7 +7,7 @@ input::input() {}
 
 input::~input() {}
 
-void input::readPhaseSpace(atom *_atom) {
+void input::readPhaseSpace(atom *_atom, Domain *p_domain) {
     particledata *sendbuf;
     _phaseSpaceFile = "dump.atom";
     kiwi::logs::e("phase-space", "Opening phase space file {}.\n", _phaseSpaceFile);
@@ -22,7 +22,7 @@ void input::readPhaseSpace(atom *_atom) {
     x = y = z = vx = vy = vz = 0.;
     for (unsigned long i = 0; i < 432; i++) {
         _phaseSpaceFileStream >> id >> x >> y >> z >> vx >> vy >> vz;
-        _atom->addAtom(id, x, y, z, vx, vy, vz);
+        _atom->addAtom(p_domain, id, x, y, z, vx, vy, vz);
     }
     _phaseSpaceFileStream.close();
 }

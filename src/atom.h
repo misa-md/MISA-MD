@@ -17,10 +17,14 @@
 #include "pack/particledata.h"
 #include "pack/lat_particle_data.h"
 
-class atom: public AtomSet {
+class atom : public AtomSet {
 public :
-    atom(Domain *domain, double latticeconst, double cutoffRadiusFactor);
+    atom(Domain *domain);
 
+    /**
+     * move atoms to inter-atom list if the atoms is not in its lattice.
+     * @return n_flag
+     */
     int decide();
 
     void clearForce();
@@ -41,13 +45,10 @@ public :
 
     void print_force();
 
-    inline int getCutLattice() {
-        return _cutlattice;
-    }
-
     void sendForce();
 
 private:
+    Domain *p_domain;
 
     void sendrho();
 

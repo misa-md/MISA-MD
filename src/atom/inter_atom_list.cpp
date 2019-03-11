@@ -2,6 +2,7 @@
 // Created by genshen on 5/19/18.
 //
 
+#include <cmath>
 #include "inter_atom_list.h"
 #include "../domain/domain.h"
 #include "../utils/mpi_domain.h"

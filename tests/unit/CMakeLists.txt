@@ -18,6 +18,7 @@ set(TEST_SOURCE_FILES
         world_builder_test.cpp
         domain_test_utils.cpp
         particledata_test.cpp
+        inter_atom_test.cpp
         )
 
 # set binary path and lib storage path wile compiling process.

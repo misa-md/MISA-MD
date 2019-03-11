@@ -14,7 +14,7 @@ TEST(zero_momentum_test, world_builder_test) {
     double cutoff_radius_factor = 1.1421;
     int rand_seek = 1024;
     Domain *_domain = getDomainInstance(space, lattice_const, cutoff_radius_factor);
-    auto *_atom = new atom(_domain, lattice_const, cutoff_radius_factor);
+    auto *_atom = new atom(_domain);
 
     int ra[3] = {97, 3, 1};
     WorldBuilder mWorldBuilder;
