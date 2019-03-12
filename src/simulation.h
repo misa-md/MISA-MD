@@ -10,7 +10,6 @@
 #include <io/io_writer.h>
 #include <eam.h>
 
-#include "toml_config.h"
 #include "newton_motion.h"
 #include "input.h"
 #include "atom_dump.h"
@@ -18,7 +17,7 @@
 class simulation {
 public:
 
-    simulation();
+    simulation(ConfigValues *p_config);
 
     ~simulation();
 

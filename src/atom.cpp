@@ -11,7 +11,6 @@
 #include "atom.h"
 #include "atom/ws_utils.h"
 #include "pack/pack.h"
-#include "toml_config.h"
 #include "hardware_accelerate.hpp" // use hardware(eg.GPU, MIC,Sunway slave cores.) to achieve calculate accelerating.
 
 atom::atom(Domain *domain)

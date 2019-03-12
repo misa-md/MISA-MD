@@ -1,3 +1,7 @@
+//
+// Created by gensh(genshenchu@gmail.com) on 2017/4/16.
+//
+
 #include <iostream>
 #include <fstream>
 #include <utils/mpi_utils.h>
@@ -7,9 +11,6 @@
 #include "toml_config.h"
 #include "utils/rpcc.hpp"
 
-//
-// Created by gensh(genshenchu@gmail.com) on 2017/4/16.
-//
 
 ConfigParser *ConfigParser::m_pInstance = nullptr;
 

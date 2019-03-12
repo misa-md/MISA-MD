@@ -85,7 +85,7 @@ bool crystalMD::prepare() {
     kiwi::logs::d("domain2", "ranks {}\n", MPIDomain::sim_processor.all_ranks);
 
     mpi_types::setInterMPIType();
-    pSimulation = new simulation();
+    pSimulation = new simulation(&(ConfigParser::getInstance()->configValues));
     pSimulation->createDomainDecomposition(); // 区域分解
     pSimulation->createAtoms();
     return true;

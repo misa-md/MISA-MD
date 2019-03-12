@@ -9,9 +9,9 @@
 #include "world_builder.h"
 #include "atom_dump.h"
 
-simulation::simulation() : _p_domain(nullptr), _atom(nullptr),
+simulation::simulation(ConfigValues *p_config) :
+        pConfigVal(p_config), _p_domain(nullptr), _atom(nullptr),
                            _newton_motion(nullptr), _input(nullptr), _pot(nullptr) {
-    pConfigVal = &(ConfigParser::getInstance()->configValues);
 //    createDomainDecomposition();
 //    collision_step = -1;
 }
