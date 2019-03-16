@@ -24,9 +24,12 @@ set(HEADER_FILES
         types/pre_config.h
         types/pre_define.h
         types/atom_info_dump.h
+        pack/df_embed_packer.h
+        pack/force_packer.h
         pack/lat_particle_data.h
         pack/pack.h
         pack/particledata.h
+        pack/rho_packer.h
         utils/mpi_data_types.h
         utils/mpi_domain.h
         utils/rpcc.hpp
@@ -48,9 +51,12 @@ set(SOURCE_FILES
         atom/inter_atom_list_minor.cpp
         atom/ws_utils.cpp
         types/atom_info_dump.cpp
+        pack/df_embed_packer.cpp
+        pack/force_packer.cpp
         pack/lat_particle_data.cpp
         pack/pack.cpp
         pack/particledata.cpp
+        pack/rho_packer.cpp
         utils/mpi_domain.cpp
         utils/mpi_data_types.cpp
         )

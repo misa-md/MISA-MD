@@ -51,10 +51,6 @@ public :
 private:
     comm::Domain *p_domain;
 
-    void sendrho();
-
-    void sendDfEmbed();
-
 };
 
 #endif // CRYSTAL_MD_ATOM_H
