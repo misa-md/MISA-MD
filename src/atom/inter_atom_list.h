@@ -7,7 +7,9 @@
 
 #include <vector>
 #include <list>
-#include "domain/domain.h"
+
+#include <domain/domain.h>
+
 #include "atom_element.h"
 #include "../pack/particledata.h"
 #include "../pack/lat_particle_data.h"
@@ -46,9 +48,9 @@ public:
         return nlocalinter;
     }
 
-    void exchangeInter(Domain *p_domain);
+    void exchangeInter(comm::Domain *p_domain);
 
-    void borderInter(Domain *p_domain);
+    void borderInter(comm::Domain *p_domain);
 
     /**
      * pointer of element in atom_list (pointer of {@class AtomElement}).
@@ -78,7 +80,7 @@ private:
      * @param ghostlengh the measured length of ghost area.
      * @param sendlist the atoms to be send will be saved in this data.
      */
-    void getIntertosend(Domain *p_domain, int d, int direction,
+    void getIntertosend(comm::Domain *p_domain, int d, int direction,
                         double ghostlengh, std::vector<AtomElement *> &sendlist);
 
     /**
@@ -86,7 +88,7 @@ private:
      * @param p_domain  pointer of simulation domain
      * @param n_to_send  the number of out-of-box inter atoms will be stored in each dimension and each direction.
      */
-    void countExSendNum(Domain *p_domain, int n_to_send[DIMENSION][2]);
+    void countExSendNum(comm::Domain *p_domain, int n_to_send[DIMENSION][2]);
 
     /**
      * If some inter atoms get out of box, those atom is no more in current dox of current processor.
@@ -98,7 +100,7 @@ private:
      * @param dimension dimension of 3d. @param d values = {0,1,2}
      * @param direction direction of LOW or HIGH.
      */
-    void packExInterToSend(Domain *p_domain, particledata *buf, int dimension, int direction,
+    void packExInterToSend(comm::Domain *p_domain, particledata *buf, int dimension, int direction,
                            box::_type_flag_32 excepted_flag[DIMENSION][2], double offset[DIMENSION]);
 
     /**
@@ -116,7 +118,7 @@ private:
      * @param delay_buffer reference of delay buffer
      * @param n the count of inter atoms in @param buf
      */
-    void unpackExInterRecv(Domain *p_domain, particledata *buf,
+    void unpackExInterRecv(comm::Domain *p_domain, particledata *buf,
                            std::list<AtomElement> &delay_buffer,
                            int n);
 

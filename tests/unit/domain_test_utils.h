@@ -8,6 +8,6 @@
 #include <cstdint>
 #include <domain/domain.h>
 
-Domain *getDomainInstance(int64_t space[3], double lattice_const, double cutoff_radius);
+comm::Domain *getDomainInstance(int64_t space[3], double lattice_const, double cutoff_radius);
 
 #endif //CRYSTAL_MD_DOMAIN_TEST_UTILS_H

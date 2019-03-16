@@ -8,7 +8,7 @@
 #include "../utils/mpi_data_types.h"
 #include "ws_utils.h"
 
-void InterAtomList::exchangeInter(Domain *p_domain) {
+void InterAtomList::exchangeInter(comm::Domain *p_domain) {
     // 发送、接收数据缓冲区
     int num_parts_to_send[DIMENSION][2];
     int numPartsToRecv[DIMENSION][2];
@@ -89,7 +89,7 @@ void InterAtomList::exchangeInter(Domain *p_domain) {
     }
 }
 
-void InterAtomList::countExSendNum(Domain *p_domain, int n_to_send[DIMENSION][2]) {
+void InterAtomList::countExSendNum(comm::Domain *p_domain, int n_to_send[DIMENSION][2]) {
     box::_type_flag_32 flag;
     // clear data.
     for (int d = 0; d < DIMENSION; d++) {
@@ -117,7 +117,7 @@ void InterAtomList::countExSendNum(Domain *p_domain, int n_to_send[DIMENSION][2]
     }
 }
 
-void InterAtomList::packExInterToSend(Domain *p_domain, particledata *buf, int dimension, int direction,
+void InterAtomList::packExInterToSend(comm::Domain *p_domain, particledata *buf, int dimension, int direction,
                                       box::_type_flag_32 excepted_flag[DIMENSION][2], double offset[DIMENSION]) {
     unsigned long i = 0; // todo type
     for (_type_inter_list::iterator inter_it = inter_list.begin(); inter_it != inter_list.end();) {
@@ -143,7 +143,7 @@ void InterAtomList::packExInterToSend(Domain *p_domain, particledata *buf, int d
 }
 
 void
-InterAtomList::unpackExInterRecv(Domain *p_domain, particledata *buf, std::list<AtomElement> &delay_buffer, int n) {
+InterAtomList::unpackExInterRecv(comm::Domain *p_domain, particledata *buf, std::list<AtomElement> &delay_buffer, int n) {
     AtomElement atom{};
     for (int i = 0; i < n; i++) {
         atom.id = buf[i].id;

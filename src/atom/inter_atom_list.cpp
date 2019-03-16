@@ -3,8 +3,8 @@
 //
 
 #include <cmath>
+#include <domain/domain.h>
 #include "inter_atom_list.h"
-#include "../domain/domain.h"
 #include "../utils/mpi_domain.h"
 #include "../utils/mpi_data_types.h"
 
@@ -21,7 +21,7 @@ void InterAtomList::addInterAtom(AtomElement &atom) {
     // todo set df,f,rhointer to 0.
 }
 
-void InterAtomList::borderInter(Domain *p_domain) {
+void InterAtomList::borderInter(comm::Domain *p_domain) {
     intersendlist.clear();
     interrecvlist.clear();
     intersendlist.resize(6);
@@ -172,7 +172,7 @@ void InterAtomList::unpack_borderrecv(int n, const double lower[DIMENSION], cons
     }
 }
 
-void InterAtomList::getIntertosend(Domain *p_domain, int d, int direction, double ghostlengh,
+void InterAtomList::getIntertosend(comm::Domain *p_domain, int d, int direction, double ghostlengh,
                                    std::vector<AtomElement *> &sendlist) {
     double low, high;
     if (d == 0) {

@@ -20,8 +20,6 @@ set(HEADER_FILES
         atom/atom_set.h
         atom/inter_atom_list.h
         atom/ws_utils.h
-        domain/domain.h
-        domain/region.hpp
         types/atom_types.h
         types/pre_config.h
         types/pre_define.h
@@ -49,7 +47,6 @@ set(SOURCE_FILES
         atom/inter_atom_list.cpp
         atom/inter_atom_list_minor.cpp
         atom/ws_utils.cpp
-        domain/domain.cpp
         types/atom_info_dump.cpp
         pack/lat_particle_data.cpp
         pack/pack.cpp

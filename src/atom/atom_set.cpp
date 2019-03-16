@@ -5,6 +5,8 @@
 #include <cmath>
 #include <types/pre_define.h>
 #include <hardware_accelerate.hpp>
+#include <domain/domain.h>
+
 #include "atom_set.h"
 
 AtomSet::AtomSet(const double cutoff_radius,
@@ -79,7 +81,8 @@ void AtomSet::calcNeighbourIndices(const double cutoff_radius_factor, const _typ
 }
 
 void
-AtomSet::addAtom(Domain *p_domain, _type_atom_id id, double rx, double ry, double rz, double vx, double vy, double vz) {
+AtomSet::addAtom(comm::Domain *p_domain, _type_atom_id id,
+                 double rx, double ry, double rz, double vx, double vy, double vz) {
     int i;
     if ((rx >= p_domain->meas_sub_box_region.x_low) &&
         (rx < p_domain->meas_sub_box_region.x_high) &&
@@ -109,7 +112,7 @@ AtomSet::addAtom(Domain *p_domain, _type_atom_id id, double rx, double ry, doubl
     }
 }
 
-_type_atom_count AtomSet::getnlocalatom(Domain *p_domain) {
+_type_atom_count AtomSet::getnlocalatom(comm::Domain *p_domain) {
     return (p_domain->lattice_size_sub_box[0] * p_domain->lattice_size_sub_box[1] *
             p_domain->lattice_size_sub_box[2]);
 }

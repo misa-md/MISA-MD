@@ -13,7 +13,6 @@ set(TEST_SOURCE_FILES
         domain_test_utils.h
         main.cpp
         f_test.cpp
-        domain_test.cpp
         atom_iterator.cpp
         world_builder_test.cpp
         domain_test_utils.cpp

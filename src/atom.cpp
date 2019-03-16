@@ -7,13 +7,14 @@
 #include <utils/mpi_domain.h>
 #include <logs/logs.h>
 #include <eam.h>
+#include <comm.hpp>
 
 #include "atom.h"
 #include "atom/ws_utils.h"
 #include "pack/pack.h"
 #include "hardware_accelerate.hpp" // use hardware(eg.GPU, MIC,Sunway slave cores.) to achieve calculate accelerating.
 
-atom::atom(Domain *domain)
+atom::atom(comm::Domain *domain)
         : AtomSet(domain->lattice_const * domain->cutoff_radius_factor,
                   domain->lattice_size_ghost_extended,
                   domain->lattice_size_sub_box,
@@ -118,7 +119,7 @@ void atom::clearForce() {
     }
 }
 
-void atom::computeEam(eam *pot, Domain *domain, double &comm) {
+void atom::computeEam(eam *pot, comm::Domain *domain, double &comm) {
     double starttime, stoptime;
     double xtemp, ytemp, ztemp;
     double delx, dely, delz;

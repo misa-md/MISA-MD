@@ -38,7 +38,7 @@ AtomList::~AtomList() {
     delete[] _atoms;
 }
 
-void AtomList::exchangeAtomFirst(Domain *p_domain, int cutlattice) {
+void AtomList::exchangeAtomFirst(comm::Domain *p_domain, int cutlattice) {
     sendlist.resize(6);
     recvlist.resize(6);
 
@@ -138,7 +138,7 @@ void AtomList::exchangeAtomFirst(Domain *p_domain, int cutlattice) {
     }
 }
 
-void AtomList::exchangeAtom(Domain *p_domain) {
+void AtomList::exchangeAtom(comm::Domain *p_domain) {
     double ghostlengh[DIMENSION]; // ghost区域大小
 
     for (int d = 0; d < DIMENSION; d++) {
@@ -220,7 +220,7 @@ void AtomList::exchangeAtom(Domain *p_domain) {
 }
 
 
-void AtomList::getatomx(Domain *p_domain, int _cutlattice, int direction,
+void AtomList::getatomx(comm::Domain *p_domain, int _cutlattice, int direction,
                         std::vector<std::vector<_type_atom_id> > &sendlist) {
     _type_atom_id i;
     if (direction == 0) {
@@ -262,7 +262,7 @@ void AtomList::getatomx(Domain *p_domain, int _cutlattice, int direction,
     }
 }
 
-void AtomList::getatomy(Domain *p_domain, int _cutlattice, int direction,
+void AtomList::getatomy(comm::Domain *p_domain, int _cutlattice, int direction,
                         std::vector<std::vector<_type_atom_id> > &sendlist) {
     int i;
     if (direction == 0) {
@@ -304,7 +304,7 @@ void AtomList::getatomy(Domain *p_domain, int _cutlattice, int direction,
     }
 }
 
-void AtomList::getatomz(Domain *p_domain, int _cutlattice, int direction,
+void AtomList::getatomz(comm::Domain *p_domain, int _cutlattice, int direction,
                         std::vector<std::vector<_type_atom_id> > &sendlist) {
     int i;
     if (direction == 0) {
