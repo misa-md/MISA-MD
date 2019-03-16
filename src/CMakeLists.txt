@@ -71,7 +71,9 @@ target_include_directories(
 )
 target_link_libraries(
         ${MD_LIB_NAME}
-        PUBLIC pot::pot
+        PUBLIC
+        pot::pot
+        comm::comm
         # todo kiwi, fmt.
 )
 
