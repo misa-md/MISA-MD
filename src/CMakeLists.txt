@@ -26,6 +26,7 @@ set(HEADER_FILES
         types/atom_info_dump.h
         pack/df_embed_packer.h
         pack/force_packer.h
+        pack/inter_particle_packer.h
         pack/lat_particle_data.h
         pack/lat_particle_packer.h
         pack/pack.h
@@ -49,11 +50,11 @@ set(SOURCE_FILES
         atom/atom_set.cpp
         atom/box.h
         atom/inter_atom_list.cpp
-        atom/inter_atom_list_minor.cpp
         atom/ws_utils.cpp
         types/atom_info_dump.cpp
         pack/df_embed_packer.cpp
         pack/force_packer.cpp
+        atom/inter_atom_list_minor.cpp # todo rename to pack/inter_particle_packer.cpp
         pack/lat_particle_data.cpp
         pack/lat_particle_packer.cpp
         pack/pack.cpp

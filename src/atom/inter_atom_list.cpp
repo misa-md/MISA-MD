@@ -4,12 +4,23 @@
 
 #include <cmath>
 #include <domain/domain.h>
+#include <comm.hpp>
+
+#include "pack/inter_particle_packer.h"
 #include "inter_atom_list.h"
 #include "../utils/mpi_domain.h"
 #include "../utils/mpi_data_types.h"
 
 InterAtomList::InterAtomList() : nlocalinter(0), nghostinter(0),
                                  intersendlist(6), interrecvlist(6) {}
+
+void InterAtomList::exchangeInter(comm::Domain *p_domain) {
+    InterParticlePacker inter_packer(*p_domain, *this);
+    comm::neiSendReceive<particledata>(&inter_packer,
+                                       MPIDomain::toCommProcess(),
+                                       mpi_types::_mpi_Particle_data,
+                                       p_domain->rank_id_neighbours);
+}
 
 void InterAtomList::appendInter(_type_atom_id atom_id) {
 
@@ -26,6 +37,7 @@ void InterAtomList::borderInter(comm::Domain *p_domain) {
     interrecvlist.clear();
     intersendlist.resize(6);
     interrecvlist.resize(6);
+
     // 发送、接收数据缓冲区
     int numPartsToSend[DIMENSION][2];
     int numPartsToRecv[DIMENSION][2];
