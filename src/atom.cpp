@@ -136,6 +136,100 @@ void atom::computeEam(eam *pot, comm::Domain *domain, double &comm) {
     int ystart = p_domain->dbx_lattice_size_ghost[1];
     int zstart = p_domain->dbx_lattice_size_ghost[2];
 
+    latRho(pot, domain, comm);
+    interRho(pot, domain, comm);
+//    ofstream outfile;
+    /* char tmp[20];
+    sprintf(tmp, "electron_density.atom");
+    outfile.open(tmp);
+    int j, k, l;
+    for(int k =0; k < p_domain->getSubBoxLatticeSize(2) ; k++){
+            for(int j = 0; j < p_domain->getSubBoxLatticeSize(1); j++){
+                    for(int i =0; i < p_domain->getSubBoxLatticeSize(0) ; i++){
+                             AtomElement &atom_ = atom_list->getAtomEleBySubBoxIndex(i,j,k);
+                            if(!atom_.isInterElement())
+                                    outfile << atom_.electron_density << std::endl;
+                    }
+            }
+    }
+for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
+    outfile << rho_spline->spline[i][6] << std::endl;
+} // 1. todo remove end.
+    outfile.close();*/
+
+    {
+        // 发送电子云密度
+        // 将ghost区域的粒子的电子云密度发送给其所在的进程，得到完整的电子云密度
+        starttime = MPI_Wtime();
+        RhoPacker rho_packer(getAtomListRef(), atom_list->sendlist, atom_list->recvlist);
+        comm::neiSendReceive<double, MPI_DOUBLE>(&rho_packer, MPIDomain::toCommProcess(), p_domain->rank_id_neighbours);
+        stoptime = MPI_Wtime();
+        comm = stoptime - starttime;
+    }
+
+    /*sprintf(tmp, "rho2.atom");
+    outfile;
+    outfile.open(tmp);
+    int j, k, l;
+    for(int k =0; k < p_domain->getSubBoxLatticeSize(2) ; k++){
+            for(int j = 0; j < p_domain->getSubBoxLatticeSize(1); j++){
+                    for(int i =0; i < p_domain->getSubBoxLatticeSize(0) ; i++){
+                             AtomElement &atom_ = atom_list->getAtomEleBySubBoxIndex(i,j,k);
+                            if(!atom_.isInterElement())
+                                    outfile << atom_.electron_density << std::endl;
+                    }
+            }
+    }
+    outfile.close();*/
+
+    //本地晶格点计算嵌入能导数
+    latDf(pot, domain, comm);
+
+    /*sprintf(tmp, "df.atom");
+    outfile.open(tmp);
+    for(int i = 0; i < f_spline->n; i++){
+        outfile << i << " " << f_spline->spline[i][6] << std::endl;
+    }
+    outfile.close();*/
+
+    {
+        // 发送嵌入能导数
+        // 将本地box属于邻居进程ghost区域的粒子的嵌入能导数发送给邻居进程
+        starttime = MPI_Wtime();
+        DfEmbedPacker packer(getAtomListRef(), *inter_atom_list,
+                             atom_list->sendlist, atom_list->recvlist,
+                             inter_atom_list->intersendlist,
+                             inter_atom_list->interrecvlist);
+        comm::neiSendReceive<double, MPI_DOUBLE>(&packer, MPIDomain::toCommProcess(), p_domain->rank_id_neighbours);
+        stoptime = MPI_Wtime();
+        comm += stoptime - starttime;
+    }
+
+    // force for local lattice.
+    latForce(pot, domain, comm);
+
+    /*sprintf(tmp, "f.atom");  // 2.todo remove start.
+      outfile.open(tmp);
+      for(int i = 0; i < phi_spline->n; i++){
+         outfile << i << " " << phi_spline->spline[i][6] << std::endl;
+      }
+      outfile.close();*/ // 2.todo remove end.
+    //间隙原子计算嵌入能和对势带来的力
+    interForce(pot, domain, comm);
+}
+
+void atom::latRho(eam *pot, comm::Domain *domain, double &comm) {
+    double xtemp, ytemp, ztemp;
+    double delx, dely, delz;
+    _type_atom_index kk;
+    _type_atom_index n;
+    double dist2;
+    int xstart = p_domain->dbx_lattice_size_ghost[0];
+    int ystart = p_domain->dbx_lattice_size_ghost[1];
+    int zstart = p_domain->dbx_lattice_size_ghost[2];
+
+    std::vector<_type_atom_index>::iterator neighbourOffsetsIter;
+
     // 本地晶格点上的原子计算电子云密度
     if (isAccelerateSupport()) {
 //     fixme  accelerateEamRhoCalc(&(rho_spline->n), atom_list, &_cutoffRadius,
@@ -176,6 +270,15 @@ void atom::computeEam(eam *pot, comm::Domain *domain, double &comm) {
             }
         }
     }
+}
+
+void atom::interRho(eam *pot, comm::Domain *domain, double &comm) {
+    double delx, dely, delz;
+    _type_atom_index n;
+    double dist2;
+    double dfEmbed;
+
+    std::vector<_type_atom_index>::iterator neighbourOffsetsIter;
 
     //间隙原子电子云密度
     _type_atom_index near_atom_index;
@@ -256,50 +359,14 @@ void atom::computeEam(eam *pot, comm::Domain *domain, double &comm) {
         dfEmbed = pot->embedEnergyContribution(atom_type::getTypeIdByType((*inter_it).type), (*inter_it).rho);
         (*inter_it).df = dfEmbed;
     }
+}
 
-//    ofstream outfile;
-    /* char tmp[20];
-    sprintf(tmp, "electron_density.atom");
-    outfile.open(tmp);
-    int j, k, l;
-    for(int k =0; k < p_domain->getSubBoxLatticeSize(2) ; k++){
-            for(int j = 0; j < p_domain->getSubBoxLatticeSize(1); j++){
-                    for(int i =0; i < p_domain->getSubBoxLatticeSize(0) ; i++){
-                             AtomElement &atom_ = atom_list->getAtomEleBySubBoxIndex(i,j,k);
-                            if(!atom_.isInterElement())
-                                    outfile << atom_.electron_density << std::endl;
-                    }
-            }
-    }
-for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
-    outfile << rho_spline->spline[i][6] << std::endl;
-} // 1. todo remove end.
-    outfile.close();*/
-
-    {
-        // 发送电子云密度
-        // 将ghost区域的粒子的电子云密度发送给其所在的进程，得到完整的电子云密度
-        starttime = MPI_Wtime();
-        RhoPacker rho_packer(getAtomListRef(), atom_list->sendlist, atom_list->recvlist);
-        comm::neiSendReceive<double, MPI_DOUBLE>(&rho_packer, MPIDomain::toCommProcess(), p_domain->rank_id_neighbours);
-        stoptime = MPI_Wtime();
-        comm = stoptime - starttime;
-    }
-
-    /*sprintf(tmp, "rho2.atom");
-    outfile;
-    outfile.open(tmp);
-    int j, k, l;
-    for(int k =0; k < p_domain->getSubBoxLatticeSize(2) ; k++){
-            for(int j = 0; j < p_domain->getSubBoxLatticeSize(1); j++){
-                    for(int i =0; i < p_domain->getSubBoxLatticeSize(0) ; i++){
-                             AtomElement &atom_ = atom_list->getAtomEleBySubBoxIndex(i,j,k);
-                            if(!atom_.isInterElement())
-                                    outfile << atom_.electron_density << std::endl;
-                    }
-            }
-    }
-    outfile.close();*/
+void atom::latDf(eam *pot, comm::Domain *domain, double &comm) {
+    double dfEmbed;
+    int xstart = p_domain->dbx_lattice_size_ghost[0];
+    int ystart = p_domain->dbx_lattice_size_ghost[1];
+    int zstart = p_domain->dbx_lattice_size_ghost[2];
+    _type_atom_index kk;
 
     //本地晶格点计算嵌入能导数
     if (isAccelerateSupport()) {
@@ -320,26 +387,21 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             }
         }
     }
+}
 
-    /*sprintf(tmp, "df.atom");
-    outfile.open(tmp);
-    for(int i = 0; i < f_spline->n; i++){
-        outfile << i << " " << f_spline->spline[i][6] << std::endl;
-    }
-    outfile.close();*/
+void atom::latForce(eam *pot, comm::Domain *domain, double &comm) {
+    double xtemp, ytemp, ztemp;
+    double delx, dely, delz;
+    _type_atom_index kk;
+    _type_atom_index n;
+    double dist2;
+    double fpair;
 
-    {
-        // 发送嵌入能导数
-        // 将本地box属于邻居进程ghost区域的粒子的嵌入能导数发送给邻居进程
-        starttime = MPI_Wtime();
-        DfEmbedPacker packer(getAtomListRef(), *inter_atom_list,
-                             atom_list->sendlist, atom_list->recvlist,
-                             inter_atom_list->intersendlist,
-                             inter_atom_list->interrecvlist);
-        comm::neiSendReceive<double, MPI_DOUBLE>(&packer, MPIDomain::toCommProcess(), p_domain->rank_id_neighbours);
-        stoptime = MPI_Wtime();
-        comm += stoptime - starttime;
-    }
+    int xstart = p_domain->dbx_lattice_size_ghost[0];
+    int ystart = p_domain->dbx_lattice_size_ghost[1];
+    int zstart = p_domain->dbx_lattice_size_ghost[2];
+
+    std::vector<_type_atom_index>::iterator neighbourOffsetsIter;
 
     if (isAccelerateSupport()) {
 //    fixme    accelerateEamForceCalc(nullptr, atom_list, &_cutoffRadius,
@@ -398,13 +460,15 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             }
         }
     } // end of if-isAccelerateSupport.
+}
 
-    /*sprintf(tmp, "f.atom");  // 2.todo remove start.
-      outfile.open(tmp);
-      for(int i = 0; i < phi_spline->n; i++){
-         outfile << i << " " << phi_spline->spline[i][6] << std::endl;
-      }
-      outfile.close();*/ // 2.todo remove end.
+void atom::interForce(eam *pot, comm::Domain *domain, double &comm) {
+    double delx, dely, delz;
+    _type_atom_index n;
+    double dist2;
+    double fpair;
+
+    std::vector<_type_atom_index>::iterator neighbourOffsetsIter;
 
     //间隙原子计算嵌入能和对势带来的力
     _type_atom_index _atom_near_index;
@@ -419,7 +483,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
         AtomElement &atom_central = atom_list->getAtomEleByLinearIndex(_atom_near_index);
 
         delx = (*inter_it).x[0] - atom_central.x[0];
-        dely = (*inter_it).x[1]  - atom_central.x[1];
+        dely = (*inter_it).x[1] - atom_central.x[1];
         delz = (*inter_it).x[2] - atom_central.x[2];
         dist2 = delx * delx + dely * dely + delz * delz;
         if (dist2 < (_cutoffRadius * _cutoffRadius) && !atom_central.isInterElement()) {
@@ -443,7 +507,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             n = (_atom_near_index + *neighbourOffsetsIter);
             AtomElement &atom_neighbour_up = atom_list->getAtomEleByLinearIndex(n);
             delx = (*inter_it).x[0] - atom_neighbour_up.x[0];
-            dely = (*inter_it).x[1]  - atom_neighbour_up.x[1];
+            dely = (*inter_it).x[1] - atom_neighbour_up.x[1];
             delz = (*inter_it).x[2] - atom_neighbour_up.x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius) && !atom_neighbour_up.isInterElement()) {
@@ -465,7 +529,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             AtomElement &atom_neighbour_down = atom_list->getAtomEleByLinearIndex(n);
 
             delx = (*inter_it).x[0] - atom_neighbour_down.x[0];
-            dely = (*inter_it).x[1]  - atom_neighbour_down.x[1];
+            dely = (*inter_it).x[1] - atom_neighbour_down.x[1];
             delz = (*inter_it).x[2] - atom_neighbour_down.x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius && !atom_neighbour_down.isInterElement())) {
@@ -492,7 +556,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             }
             // for (int k = i + 1; k < (inter_atom_list->nghostinter + inter_atom_list->nlocalinter); k++) {
             delx = (*inter_it).x[0] - (*next_inter_it).x[0];
-            dely = (*inter_it).x[1]  - (*next_inter_it).x[1];
+            dely = (*inter_it).x[1] - (*next_inter_it).x[1];
             delz = (*inter_it).x[2] - (*next_inter_it).x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius)) {

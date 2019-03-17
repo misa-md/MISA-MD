@@ -32,6 +32,16 @@ public :
 
     void computeEam(eam *pot, comm::Domain *domain, double &comm);
 
+    void latRho(eam *pot, comm::Domain *domain, double &comm);
+
+    void interRho(eam *pot, comm::Domain *domain, double &comm);
+
+    void latDf(eam *pot, comm::Domain *domain, double &comm);
+
+    void latForce(eam *pot, comm::Domain *domain, double &comm);
+
+    void interForce(eam *pot, comm::Domain *domain, double &comm);
+
     /**
      * set velocity of a atom whose position is specified by array @param lat
      * This atom is called PKA (Primary Knock-on Atom).
