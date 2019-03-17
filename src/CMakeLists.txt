@@ -56,7 +56,7 @@ set(SOURCE_FILES
         pack/df_embed_packer.cpp
         pack/force_packer.cpp
         pack/inter_border_packer.cpp
-        atom/inter_atom_list_minor.cpp # todo rename to pack/inter_particle_packer.cpp
+        pack/inter_particle_packer.cpp
         pack/lat_particle_data.cpp
         pack/lat_particle_packer.cpp
         pack/pack.cpp

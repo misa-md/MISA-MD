@@ -6,7 +6,7 @@
 #include <atom/ws_utils.h>
 #include <logs/logs.h>
 #include "atom/inter_atom_list.h"
-#include "../pack/inter_particle_packer.h"
+#include "inter_particle_packer.h"
 
 
 InterParticlePacker::InterParticlePacker(const comm::Domain &domain, InterAtomList &inter_atom_list)
