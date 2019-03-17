@@ -7,6 +7,7 @@
 #ifndef CRYSTALMD_WORLD_BUILDER_H
 #define CRYSTALMD_WORLD_BUILDER_H
 
+#include <domain/domain.h>
 #include "atom.h"
 #include "types/atom_types.h"
 
@@ -21,7 +22,7 @@ class WorldBuilder {
 public:
     WorldBuilder();
 
-    WorldBuilder &setDomain(Domain *p_domain);
+    WorldBuilder &setDomain(comm::Domain *p_domain);
 
     WorldBuilder &setAtomsContainer(AtomSet *p_atom);
 
@@ -61,7 +62,7 @@ protected:
     atom_type::atom_type randomAtomsType();
 
 private:
-    Domain *_p_domain;
+    comm::Domain *_p_domain;
     AtomSet *_p_atom;
 
     int _random_seed; // random seed for creating atoms.

@@ -7,7 +7,8 @@
 
 #include <vector>
 
-#include "domain/domain.h"
+#include <domain/domain.h>
+
 #include "atom/atom_element.h"
 #include "atom/atom_list.h"
 #include "atom/inter_atom_list.h"
@@ -37,7 +38,7 @@ public:
         return inter_atom_list;
     }
 
-    _type_atom_count getnlocalatom(Domain *p_domain);
+    _type_atom_count getnlocalatom(comm::Domain *p_domain);
 
     /**
       * compute the index offset of neighbour atoms.
@@ -47,7 +48,7 @@ public:
     /**
     * used in read creating mode.
     */
-    void addAtom(Domain *p_domain, unsigned long id, double rx, double ry, double rz, double vx, double vy, double vz);
+    void addAtom(comm::Domain *p_domain, unsigned long id, double rx, double ry, double rz, double vx, double vy, double vz);
 
 protected:
     int numberoflattice;

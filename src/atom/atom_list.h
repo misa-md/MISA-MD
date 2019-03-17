@@ -8,7 +8,9 @@
 #include <iterator>
 #include <vector>
 #include <functional>
-#include "../domain/domain.h"
+
+#include <domain/domain.h>
+
 #include "../types/pre_define.h"
 #include "atom_element.h"
 
@@ -167,9 +169,9 @@ public:
      */
     void appendInter(_type_atom_id atom_id);
 
-    void exchangeAtomFirst(Domain *p_domain, int cutlattice);
+    void exchangeAtomFirst(comm::Domain *p_domain, int cutlattice);
 
-    void exchangeAtom(Domain *p_domain);
+    void exchangeAtom(comm::Domain *p_domain);
 
 private:
     // 晶格点原子用数组存储其信息,including ghost atoms.
@@ -184,11 +186,11 @@ private:
     const _type_atom_count _size_sub_box_x, _size_sub_box_y, _size_sub_box_z;
     const _type_atom_count purge_ghost_count_x, purge_ghost_count_y, purge_ghost_count_z;
 
-    void getatomx(Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
+    void getatomx(comm::Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
 
-    void getatomy(Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
+    void getatomy(comm::Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
 
-    void getatomz(Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
+    void getatomz(comm::Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
 };
 
 

@@ -20,15 +20,19 @@ set(HEADER_FILES
         atom/atom_set.h
         atom/inter_atom_list.h
         atom/ws_utils.h
-        domain/domain.h
-        domain/region.hpp
         types/atom_types.h
         types/pre_config.h
         types/pre_define.h
         types/atom_info_dump.h
+        pack/df_embed_packer.h
+        pack/force_packer.h
+        pack/inter_border_packer.h
+        pack/inter_particle_packer.h
         pack/lat_particle_data.h
+        pack/lat_particle_packer.h
         pack/pack.h
         pack/particledata.h
+        pack/rho_packer.h
         utils/mpi_data_types.h
         utils/mpi_domain.h
         utils/rpcc.hpp
@@ -47,13 +51,17 @@ set(SOURCE_FILES
         atom/atom_set.cpp
         atom/box.h
         atom/inter_atom_list.cpp
-        atom/inter_atom_list_minor.cpp
         atom/ws_utils.cpp
-        domain/domain.cpp
         types/atom_info_dump.cpp
+        pack/df_embed_packer.cpp
+        pack/force_packer.cpp
+        pack/inter_border_packer.cpp
+        atom/inter_atom_list_minor.cpp # todo rename to pack/inter_particle_packer.cpp
         pack/lat_particle_data.cpp
+        pack/lat_particle_packer.cpp
         pack/pack.cpp
         pack/particledata.cpp
+        pack/rho_packer.cpp
         utils/mpi_domain.cpp
         utils/mpi_data_types.cpp
         )
@@ -71,7 +79,9 @@ target_include_directories(
 )
 target_link_libraries(
         ${MD_LIB_NAME}
-        PUBLIC pot::pot
+        PUBLIC
+        pot::pot
+        comm::comm
         # todo kiwi, fmt.
 )
 

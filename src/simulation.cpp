@@ -2,6 +2,7 @@
 #include <logs/logs.h>
 #include <eam.h>
 #include <parser/setfl_parser.h>
+#include <domain/domain.h>
 
 #include "simulation.h"
 #include "utils/mpi_domain.h"
@@ -11,7 +12,7 @@
 
 simulation::simulation(ConfigValues *p_config) :
         pConfigVal(p_config), _p_domain(nullptr), _atom(nullptr),
-                           _newton_motion(nullptr), _input(nullptr), _pot(nullptr) {
+        _newton_motion(nullptr), _input(nullptr), _pot(nullptr) {
 //    createDomainDecomposition();
 //    collision_step = -1;
 }
@@ -30,8 +31,13 @@ void simulation::createDomainDecomposition() {
     //进行区域分解
     kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initializing GlobalDomain decomposition.\n");
     MPI_Comm new_comm;
-    _p_domain = Domain::Builder()
-            .setComm(MPIDomain::sim_processor, &new_comm)
+    comm::mpi_process pro = comm::mpi_process{
+            MPIDomain::sim_processor.own_rank,
+            MPIDomain::sim_processor.all_ranks,
+            MPIDomain::sim_processor.comm,
+    };
+    _p_domain = comm::Domain::Builder()
+            .setComm(pro, &new_comm)
             .setPhaseSpace(pConfigVal->phaseSpace)
             .setCutoffRadius(pConfigVal->cutoffRadiusFactor)
             .setLatticeConst(pConfigVal->latticeConst)

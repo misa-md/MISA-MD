@@ -7,7 +7,7 @@ input::input() {}
 
 input::~input() {}
 
-void input::readPhaseSpace(atom *_atom, Domain *p_domain) {
+void input::readPhaseSpace(atom *_atom, comm::Domain *p_domain) {
     particledata *sendbuf;
     _phaseSpaceFile = "dump.atom";
     kiwi::logs::e("phase-space", "Opening phase space file {}.\n", _phaseSpaceFile);
