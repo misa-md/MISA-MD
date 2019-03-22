@@ -23,8 +23,24 @@ void InterAtomList::exchangeInter(comm::Domain *p_domain) {
                                        p_domain->rank_id_neighbours);
 }
 
-void InterAtomList::appendInter(_type_atom_id atom_id) {
-
+void InterAtomList::makeIndex(AtomList *atom_list, const comm::Domain *p_domain) {
+    inter_map.clear();
+    // index inter atoms
+    for (_type_inter_list::iterator inter_it = inter_list.begin(); inter_it != inter_list.end(); inter_it++) {
+        _type_atom_index coords[DIMENSION]; // coords in box (starting from ghost area.)
+        ws::getNearLatCoord(*inter_it, p_domain, coords);
+        // todo checkout coords boundary.
+        const _type_atom_index _atom_near_index = atom_list->IndexOf3DIndex(coords[0], coords[1], coords[2]);
+        inter_map.insert(std::make_pair(_atom_near_index, &(*inter_it))); // save address
+    }
+    // index ghost inter atoms
+    for (_type_inter_list::iterator inter_it = inter_ghost_list.begin();
+         inter_it != inter_ghost_list.end(); inter_it++) {
+        _type_atom_index coords[DIMENSION]; // coords in box (starting from ghost area.)
+        ws::getNearLatCoord(*inter_it, p_domain, coords);
+        const _type_atom_index _atom_near_index = atom_list->IndexOf3DIndex(coords[0], coords[1], coords[2]);
+        inter_map.insert(std::make_pair(_atom_near_index, &(*inter_it))); // save address
+    }
 }
 
 void InterAtomList::borderInter(comm::Domain *p_domain) {

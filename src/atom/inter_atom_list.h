@@ -7,9 +7,10 @@
 
 #include <vector>
 #include <list>
-
+#include <unordered_map>
 #include <domain/domain.h>
 
+#include "atom_list.h"
 #include "atom_element.h"
 #include "../pack/particledata.h"
 #include "../pack/lat_particle_data.h"
@@ -19,6 +20,9 @@
 
 typedef std::list<AtomElement> _type_inter_list;
 typedef std::vector<std::vector<AtomElement *> > _type_inter_buf;
+typedef std::pair<std::unordered_multimap<_type_atom_index, AtomElement *>::iterator,
+        std::unordered_multimap<_type_atom_index, AtomElement *>::iterator> inter_map_range;
+typedef std::unordered_multimap<_type_atom_index, AtomElement *>::iterator inter_map_range_itl;
 
 /**
  * storing inter atoms
@@ -30,10 +34,11 @@ public:
     size_t nlocalinter; // 本地间隙原子数
     size_t nghostinter; // ghost间隙原子数
 
-    _type_inter_buf intersendlist;
+    _type_inter_buf intersendlist; // the atoms to be send to other processes as ghost.
     _type_inter_buf interrecvlist;
 
-    InterAtomList();
+    std::unordered_multimap<_type_atom_index, AtomElement *> inter_map;
+
 
     void appendInter(_type_atom_id atom_id);
 
@@ -53,6 +58,8 @@ public:
     void exchangeInter(comm::Domain *p_domain);
 
     void borderInter(comm::Domain *p_domain);
+
+    void makeIndex(AtomList *atom_list, const comm::Domain *p_domain);
 
     _type_inter_list::iterator removeInter(_type_inter_list::iterator);
 
