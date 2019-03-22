@@ -68,8 +68,7 @@ void InterParticlePacker::onSend(particledata *buffer, const unsigned long send_
             buffer[i].v[2] = inter_it->v[2];
             // remove the inter atom.
             // exchange the atom at end of vector to the position of atom (inter[j]) te be removed .
-            inter_it = inter_list.erase(inter_it);
-            inter_atom_list.nlocalinter--;
+            inter_it = inter_atom_list.removeInter(inter_it);
             i++;
         } else {
             inter_it++;

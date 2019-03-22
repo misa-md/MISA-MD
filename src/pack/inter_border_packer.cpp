@@ -84,8 +84,7 @@ void InterBorderPacker::onReceive(LatParticleData buffer[],
             ele.x[1] < domain.meas_ghost_region.high[1] &&
             ele.x[2] >= domain.meas_ghost_region.low[2] &&
             ele.x[2] < domain.meas_ghost_region.high[2]) {
-            inter_atom_list.inter_ghost_list.push_back(ele);
-            inter_atom_list.nghostinter++;
+            inter_atom_list.addGhostAtom(ele);
         } else {
             // todo warning
             inter_atom_list.interrecvlist[index][i] = nullptr;

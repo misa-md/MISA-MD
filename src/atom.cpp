@@ -97,8 +97,7 @@ int atom::decide() {
             near_atom->v[2] = inter_ref.v[2];
 
             // remove this atom from inter list.
-            inter_it = inter_atom_list->inter_list.erase(inter_it);
-            inter_atom_list->nlocalinter--;
+            inter_it = inter_atom_list->removeInter(inter_it);
         } else {
             inter_it++;
         }
@@ -532,7 +531,7 @@ void atom::interForce(eam *pot, comm::Domain *domain, double &comm) {
             dely = (*inter_it).x[1] - atom_neighbour_down.x[1];
             delz = (*inter_it).x[2] - atom_neighbour_down.x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
-            if (dist2 < (_cutoffRadius * _cutoffRadius && !atom_neighbour_down.isInterElement())) {
+            if (dist2 < (_cutoffRadius * _cutoffRadius) && !atom_neighbour_down.isInterElement()) {
                 // fixme
                 fpair = pot->toForce(
                         atom_type::getTypeIdByType((*inter_it).type),
