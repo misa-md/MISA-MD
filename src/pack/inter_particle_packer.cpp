@@ -3,6 +3,7 @@
 // Updated by genshen on 2019-03-17 to add libcomm.
 //
 
+#include <cstring>
 #include <atom/ws_utils.h>
 #include <logs/logs.h>
 #include "atom/inter_atom_list.h"

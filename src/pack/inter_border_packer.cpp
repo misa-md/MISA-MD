@@ -2,6 +2,7 @@
 // Created by genshen on 2019-03-17.
 //
 
+#include <cstring>
 #include "inter_border_packer.h"
 
 

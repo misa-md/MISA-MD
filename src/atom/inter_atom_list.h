@@ -39,6 +39,7 @@ public:
 
     std::unordered_multimap<_type_atom_index, AtomElement *> inter_map;
 
+    InterAtomList();
 
     void appendInter(_type_atom_id atom_id);
 

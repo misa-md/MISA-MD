@@ -11,6 +11,7 @@
 #include "inter_atom_list.h"
 #include "../utils/mpi_domain.h"
 #include "../utils/mpi_data_types.h"
+#include "ws_utils.h"
 
 InterAtomList::InterAtomList() : nlocalinter(0), nghostinter(0),
                                  intersendlist(6), interrecvlist(6) {}
