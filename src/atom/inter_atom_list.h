@@ -44,6 +44,8 @@ public:
      */
     void addInterAtom(AtomElement &atom);
 
+    void addGhostAtom(AtomElement &ghost_atom);
+
     inline size_t nLocalInter() {
         return nlocalinter;
     }
@@ -52,11 +54,10 @@ public:
 
     void borderInter(comm::Domain *p_domain);
 
-    /**
-     * pointer of element in atom_list (pointer of {@class AtomElement}).
-     * // todo use avl tree.
-     * // todo use pointer.
-     */
+    _type_inter_list::iterator removeInter(_type_inter_list::iterator);
+
+    void clearGhost();
+
 
 };
 
