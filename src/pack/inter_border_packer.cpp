@@ -73,7 +73,9 @@ void InterBorderPacker::onReceive(LatParticleData buffer[],
     inter_atom_list.interrecvlist[index].resize(receive_len);
 
     AtomElement ele;
+    memset(&ele, 0, sizeof(AtomElement)); // set f,v,rho,df to 0.
     for (int i = 0; i < receive_len; i++) {
+        // id is not necessary for ghost inter atoms.
         ele.type = buffer[i].type; // todo check type invalid
         ele.x[0] = buffer[i].r[0];
         ele.x[1] = buffer[i].r[1];

@@ -79,6 +79,7 @@ void InterParticlePacker::onSend(particledata *buffer, const unsigned long send_
 void InterParticlePacker::onReceive(particledata *buffer, const unsigned long receive_len,
                                     const int dimension, const int direction) {
     AtomElement atom{};
+    memset(&atom, 0, sizeof(AtomElement)); // set f,rho,df to 0.
     for (int i = 0; i < receive_len; i++) {
         atom.id = buffer[i].id;
         atom.type = buffer[i].type;
