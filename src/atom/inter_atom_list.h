@@ -55,11 +55,9 @@ public:
     void borderInter(comm::Domain *p_domain);
 
     _type_inter_list::iterator removeInter(_type_inter_list::iterator);
-    /**
-     * pointer of element in atom_list (pointer of {@class AtomElement}).
-     * // todo use avl tree.
-     * // todo use pointer.
-     */
+
+    void clearGhost();
+
 
 };
 

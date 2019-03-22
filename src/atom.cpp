@@ -40,7 +40,7 @@ atom::atom(comm::Domain *domain)
 }
 
 int atom::decide() {
-    inter_atom_list->nghostinter = 0;
+    inter_atom_list->clearGhost();
     int nflag = 0;
     long kk = 0;
     double dist;

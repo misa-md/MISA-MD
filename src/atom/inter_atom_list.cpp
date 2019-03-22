@@ -50,3 +50,8 @@ _type_inter_list::iterator InterAtomList::removeInter(_type_inter_list::iterator
     nlocalinter--;
     return inter_list.erase(inter_it);
 }
+
+void InterAtomList::clearGhost() {
+    inter_ghost_list.clear(); // clear ghost inter atoms.
+    nghostinter = 0; // todo nghostinter is not used.
+}
