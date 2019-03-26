@@ -82,7 +82,8 @@ target_link_libraries(
         PUBLIC
         pot::pot
         comm::comm
-        # todo kiwi, fmt.
+        kiwi::kiwi
+        # fmt is included in kiwi.
 )
 
 ##########################
