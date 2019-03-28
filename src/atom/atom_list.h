@@ -173,6 +173,13 @@ public:
 
     void exchangeAtom(comm::Domain *p_domain);
 
+    /**
+     * return true if the there is atom in current box that is far away out of this box.
+     * @param domain
+     * @return
+     */
+    bool isBadList(comm::Domain domain);
+
 private:
     // 晶格点原子用数组存储其信息,including ghost atoms.
     AtomElement ***_atoms; // atoms in 3d.
@@ -186,11 +193,14 @@ private:
     const _type_atom_count _size_sub_box_x, _size_sub_box_y, _size_sub_box_z;
     const _type_atom_count purge_ghost_count_x, purge_ghost_count_y, purge_ghost_count_z;
 
-    void getatomx(comm::Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
+    void
+    getatomx(comm::Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
 
-    void getatomy(comm::Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
+    void
+    getatomy(comm::Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
 
-    void getatomz(comm::Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
+    void
+    getatomz(comm::Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
 };
 
 

@@ -202,6 +202,25 @@ void AtomList::getatomz(comm::Domain *p_domain, int _cutlattice, int direction,
     }
 }
 
+bool AtomList::isBadList(comm::Domain domain) {
+    const double delta = 10;
+    for (long z = purge_ghost_count_z; z < _size_sub_box_z + purge_ghost_count_z; z++) {
+        for (long y = purge_ghost_count_y; y < _size_sub_box_y + purge_ghost_count_y; y++) {
+            for (long x = purge_ghost_count_x; x < _size_sub_box_x + purge_ghost_count_x; x++) {
+                if (_atoms[z][y][x].x[0] < domain.meas_global_box_coord_region.x_low - delta ||
+                    _atoms[z][y][x].x[1] < domain.meas_global_box_coord_region.y_low - delta ||
+                    _atoms[z][y][x].x[2] < domain.meas_global_box_coord_region.z_low - delta ||
+                    _atoms[z][y][x].x[0] > domain.meas_global_box_coord_region.x_high + delta ||
+                    _atoms[z][y][x].x[1] > domain.meas_global_box_coord_region.y_high + delta ||
+                    _atoms[z][y][x].x[2] > domain.meas_global_box_coord_region.z_high + delta) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 /**
  *******************************************
  * following (to end of this file) are the
