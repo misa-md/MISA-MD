@@ -164,6 +164,14 @@ public:
     void foreachSubBoxAtom(Callable callback);
 
     /**
+     * get the size of lattices in the box (including ghost lattice atoms).
+     * @return
+     */
+    inline _type_lattice_size size() {
+        return _size;
+    }
+
+    /**
      * append/set an atom to inter. // todo unit test.
      * @param atom_id atom id.
      */

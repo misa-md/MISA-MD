@@ -13,8 +13,7 @@ AtomSet::AtomSet(const double cutoff_radius,
                  const _type_lattice_size extended_lattice_size[DIMENSION],
                  const _type_lattice_size sub_box_lattice_size[DIMENSION],
                  const _type_lattice_size ghost_lattice_size[DIMENSION])
-        : _cutoffRadius(cutoff_radius),
-          numberoflattice(extended_lattice_size[0] * extended_lattice_size[1] * extended_lattice_size[2]) {
+        : _cutoffRadius(cutoff_radius){
     // the length of atom array at x direction is doubled due to the special data structure.
     atom_list = new AtomList(extended_lattice_size[0] * 2,
                              extended_lattice_size[1],

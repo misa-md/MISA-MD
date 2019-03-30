@@ -105,7 +105,7 @@ int atom::decide() {
 }
 
 void atom::clearForce() {
-    for (_type_atom_index i = 0; i < numberoflattice; i++) {
+    for (_type_atom_index i = 0; i < atom_list->size(); i++) {
         AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(i);
         atom_.f[0] = 0;
         atom_.f[1] = 0;

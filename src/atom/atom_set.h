@@ -12,6 +12,7 @@
 #include "atom/atom_element.h"
 #include "atom/atom_list.h"
 #include "atom/inter_atom_list.h"
+#include "../types/atom_types.h"
 
 /**
  * the container of latticed atom list and inter atom list (all atoms in this sub-box).
@@ -48,10 +49,19 @@ public:
     /**
     * used in read creating mode.
     */
-    void addAtom(comm::Domain *p_domain, unsigned long id, double rx, double ry, double rz, double vx, double vy, double vz);
+    void addAtom(comm::Domain *p_domain, unsigned long id,
+                 double rx, double ry, double rz, double vx, double vy, double vz);
+
+#ifdef MD_DEV_MODE
+
+    /**
+     * in development mode, we can check system temperature, energy or momentum.
+     */
+    std::array<_type_atom_force, DIMENSION> systemForce();
+
+#endif
 
 protected:
-    int numberoflattice;
 
     double _cutoffRadius;
 //    int _cutlattice;
