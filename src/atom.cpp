@@ -11,7 +11,6 @@
 
 #include "atom.h"
 #include "atom/ws_utils.h"
-#include "pack/pack.h"
 #include "pack/rho_packer.h"
 #include "pack/force_packer.h"
 #include "pack/df_embed_packer.h"
