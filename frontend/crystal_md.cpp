@@ -62,7 +62,7 @@ void crystalMD::onCreate() {
         pConfig = ConfigParser::getInstance();
     }
     pConfig->sync(); // sync config data to other processors from master processor.
-#ifdef DEV_MODE
+#ifdef MD_DEV_MODE
 // print configure.
     if (kiwi::mpiUtils::global_process.own_rank == MASTER_PROCESSOR) {
         std::cout << pConfig->configValues;

@@ -13,14 +13,16 @@ option(MPI_ENABLE_FLAG "Use MPI library" ON) #change this flag to false to disab
 option(TEST_ENABLE_FLAG "Enable test" ON) # enable test
 option(TEST_MPI_ENABLE_FLAG "Enable MPI in test" ON) # enable mpi in test, its value depends on option MPI_ENABLE_FLAG.
 option(TOOLS_BUILD_ENABLE_FLAG "Enable tools building" ON) # enable tools building (in tools directory) binary.(tools example: convert simulation result binary file to text file)
-option(DEBUG_BUILD_ENABLE_FLAG "Enable debug mode" OFF) # enable debug mode building.
+
 
 ## architecture ralated values.
 option(ARCH_SW "Enable sunway athread" OFF) # enable sunway athread if its running on sunway system.
 
-if (DEBUG_BUILD_ENABLE_FLAG)
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
-    set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
+
+if (CMAKE_BUILD_TYPE MATCHES "^(Debug|DEBUG|debug)$")
+    set(MD_DEV_MODE ON)
 endif ()
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
