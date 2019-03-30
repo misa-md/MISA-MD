@@ -5,6 +5,7 @@
 #include <vector>
 #include <logs/logs.h>
 #include "atom/atom_element.h"
+#include "atom/atom_list.h"
 #include "lat_particle_packer.h"
 
 LatParticlePacker::LatParticlePacker(const comm::Domain &domain, AtomList &atom_list,
@@ -29,7 +30,6 @@ void LatParticlePacker::setOffset(double offset[DIMENSION],
         offset[dimension] = -((domain.meas_global_length[dimension]));
     }
 }
-
 
 void LatPackerFirst::onSend(LatParticleData *buffer, const unsigned long send_len,
                             const int dimension, const int direction) {
@@ -176,71 +176,19 @@ void LatPacker::onSend(LatParticleData *buffer, const unsigned long send_len,
 
 void LatPacker::onReceive(LatParticleData *buffer, const unsigned long receive_len,
                           const int dimension, const int direction) {
-    int const d = dimension;
     int const n = receive_len;
     LatParticleData *buf = buffer;
     std::vector<std::vector<_type_atom_id>> &recvlist = receive_list;
 
+    const int list_index = 2 * dimension + direction; // fixme Flip the direction
+
     long kk;
-    if (d == 0) {
-        if (direction == 0) {
-            for (int i = 0; i < n; i++) {
-                kk = recvlist[0][i];
-                AtomElement &atom_ = atom_list.getAtomEleByLinearIndex(kk);
-                atom_.type = buf[i].type;
-                atom_.x[0] = buf[i].r[0];
-                atom_.x[1] = buf[i].r[1];
-                atom_.x[2] = buf[i].r[2];
-            }
-        } else {
-            for (int i = 0; i < n; i++) {
-                kk = recvlist[1][i];
-                AtomElement &atom_ = atom_list.getAtomEleByLinearIndex(kk);
-                atom_.type = buf[i].type;
-                atom_.x[0] = buf[i].r[0];
-                atom_.x[1] = buf[i].r[1];
-                atom_.x[2] = buf[i].r[2];
-            }
-        }
-    } else if (d == 1) {
-        if (direction == 0) {
-            for (int i = 0; i < n; i++) {
-                kk = recvlist[2][i];
-                AtomElement &atom_ = atom_list.getAtomEleByLinearIndex(kk);
-                atom_.type = buf[i].type;
-                atom_.x[0] = buf[i].r[0];
-                atom_.x[1] = buf[i].r[1];
-                atom_.x[2] = buf[i].r[2];
-            }
-        } else {
-            for (int i = 0; i < n; i++) {
-                kk = recvlist[3][i];
-                AtomElement &atom_ = atom_list.getAtomEleByLinearIndex(kk);
-                atom_.type = buf[i].type;
-                atom_.x[0] = buf[i].r[0];
-                atom_.x[1] = buf[i].r[1];
-                atom_.x[2] = buf[i].r[2];
-            }
-        }
-    } else {
-        if (direction == 0) {
-            for (int i = 0; i < n; i++) {
-                kk = recvlist[4][i];
-                AtomElement &atom_ = atom_list.getAtomEleByLinearIndex(kk);
-                atom_.type = buf[i].type;
-                atom_.x[0] = buf[i].r[0];
-                atom_.x[1] = buf[i].r[1];
-                atom_.x[2] = buf[i].r[2];
-            }
-        } else {
-            for (int i = 0; i < n; i++) {
-                kk = recvlist[5][i];
-                AtomElement &atom_ = atom_list.getAtomEleByLinearIndex(kk);
-                atom_.type = buf[i].type;
-                atom_.x[0] = buf[i].r[0];
-                atom_.x[1] = buf[i].r[1];
-                atom_.x[2] = buf[i].r[2];
-            }
-        }
+    for (int i = 0; i < n; i++) {
+        kk = recvlist[list_index][i];
+        AtomElement &atom_ = atom_list.getAtomEleByLinearIndex(kk);
+        atom_.type = buf[i].type;
+        atom_.x[0] = buf[i].r[0];
+        atom_.x[1] = buf[i].r[1];
+        atom_.x[2] = buf[i].r[2];
     }
 }
