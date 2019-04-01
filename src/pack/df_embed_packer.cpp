@@ -3,7 +3,6 @@
 //
 
 #include "df_embed_packer.h"
-#include "pack.h"
 
 DfEmbedPacker::DfEmbedPacker(AtomList &atom_list, InterAtomList &inter_atom_list,
                              std::vector<std::vector<_type_atom_id>> &send_list,
@@ -22,14 +21,47 @@ const unsigned long DfEmbedPacker::sendLength(const int dimension, const int dir
 void DfEmbedPacker::onSend(double *buffer, const unsigned long send_len,
                            const int dimension, const int direction) {
     const int index = 2 * dimension + direction;
-    pack::pack_df(atom_list, buffer, &inter_atom_list,
-                  send_list[index], inter_send_list[index]);
+    std::vector<_type_atom_id> &sendlist = send_list[index];
+    std::vector<AtomElement *> &intersendlist = inter_send_list[index];
+    int j, m = 0;
+    int n = sendlist.size();
+    for (int i = 0; i < n; i++) {
+        j = sendlist[i];
+        AtomElement &atom = atom_list.getAtomEleByLinearIndex(j);
+        buffer[m++] = atom.df;
+    }
+    n = intersendlist.size();
+    for (int i = 0; i < n; i++) {
+        //   j = intersendlist[i];
+        buffer[m++] = intersendlist[i]->df;
+    }
 }
 
 void DfEmbedPacker::onReceive(double *buffer, const unsigned long receive_len,
                               const int dimension, const int direction) {
     const int index = 2 * dimension + direction;
     //将收到的嵌入能导数信息加到对应存储位置上
-    pack::unpack_df(receive_len, atom_list, buffer, &inter_atom_list,
-                    receive_list[index], inter_receive_list[index]);
+    std::vector<_type_atom_id> &recvlist = receive_list[index];
+    std::vector<AtomElement *> &interrecvlist = inter_receive_list[index];
+
+    long kk;
+    auto m = 0;
+    if (receive_len != (recvlist.size() + interrecvlist.size())) {
+        printf("wrong number of dfembed recv!!!");
+        MPI_Abort(MPI_COMM_WORLD, 2);
+    }
+    unsigned long len1 = recvlist.size();
+    for (int i = 0; i < len1; i++) {
+        kk = recvlist[i];
+        AtomElement &atom_ = atom_list.getAtomEleByLinearIndex(kk);
+        atom_.df = buffer[m++];
+    }
+    unsigned long len2 = interrecvlist.size();
+    for (int i = 0; i < len2; i++) {
+        if (interrecvlist[i] == nullptr) {
+            m++; // todo error
+            continue;
+        }
+        interrecvlist[i]->df = buffer[m++];
+    }
 }

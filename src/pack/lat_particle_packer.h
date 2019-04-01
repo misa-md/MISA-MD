@@ -8,9 +8,9 @@
 #include <vector>
 #include <packer.h>
 #include <domain/domain.h>
+#include "atom/atom_list.h"
 #include "lat_particle_data.h"
 
-class AtomList;
 
 /**
  * lattice particle packer for exchange lattice atoms with neighbours.
@@ -43,6 +43,17 @@ public:
     void onSend(LatParticleData buffer[], const unsigned long send_len,
                 const int dimension, const int direction) override;
 
+    /**
+     * see {@path figure_pack_area.txt} for detail.
+     * In the figure, at x dimension, the packed atoms is in box A (front and back);
+     * at y dimension, the packed atoms is in box B (left and right);
+     * at z dimension, the packed atoms is in box C (up and bottom);
+     * the volume: V(A) < V(B) < V(C).
+     * @param buffer data buffer received.
+     * @param receive_len the count of data to be packed.
+     * @param dimension dimension {0,1,2}
+     * @param direction direction 0,1; left (0) or right, up(1) or bottom(0), front(1) or back(0)
+     */
     void onReceive(LatParticleData buffer[], const unsigned long receive_len,
                    const int dimension, const int direction) override;
 };

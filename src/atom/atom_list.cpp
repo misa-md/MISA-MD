@@ -6,7 +6,6 @@
 #include <pack/lat_particle_packer.h>
 #include <comm.hpp>
 #include "atom_list.h"
-#include "../pack/pack.h"
 #include "../utils/mpi_data_types.h"
 
 AtomList::AtomList(_type_atom_count size_x, _type_atom_count size_y, _type_atom_count size_z,

@@ -30,7 +30,6 @@ set(HEADER_FILES
         pack/inter_particle_packer.h
         pack/lat_particle_data.h
         pack/lat_particle_packer.h
-        pack/pack.h
         pack/particledata.h
         pack/rho_packer.h
         utils/mpi_data_types.h
@@ -59,7 +58,6 @@ set(SOURCE_FILES
         pack/inter_particle_packer.cpp
         pack/lat_particle_data.cpp
         pack/lat_particle_packer.cpp
-        pack/pack.cpp
         pack/particledata.cpp
         pack/rho_packer.cpp
         utils/mpi_domain.cpp
