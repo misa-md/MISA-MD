@@ -4,6 +4,7 @@
 //
 
 #include <cstring>
+#include <cassert>
 #include <atom/ws_utils.h>
 #include <logs/logs.h>
 #include "atom/inter_atom_list.h"
@@ -11,30 +12,43 @@
 
 
 InterParticlePacker::InterParticlePacker(const comm::Domain &domain, InterAtomList &inter_atom_list)
-        : domain(domain), inter_atom_list(inter_atom_list) {
-    // pre calculate the length of sending data.
-    box::_type_flag_32 flag;
-    for (AtomElement &inter_ref :inter_atom_list.inter_list) {
-        // we assume that, a atom cannot cross 2 or more than 2 sub-boxes
-        flag = ws::isOutBox(inter_ref, &domain);
-        if (flag & box::OUT_BOX_X_LITTER) {
-            n_to_send[0][LOWER]++;
-        } else if (flag & box::OUT_BOX_X_BIG) {
-            n_to_send[0][HIGHER]++;
-        } else if (flag & box::OUT_BOX_Y_LITTER) {
-            n_to_send[1][LOWER]++;
-        } else if (flag & box::OUT_BOX_Y_BIG) {
-            n_to_send[1][HIGHER]++;
-        } else if (flag & box::OUT_BOX_Z_LITTER) {
-            n_to_send[2][LOWER]++;
-        } else if (flag & box::OUT_BOX_Z_BIG) {
-            n_to_send[2][HIGHER]++;
-        }
-    }
-}
+        : domain(domain), inter_atom_list(inter_atom_list) {}
 
 const unsigned long InterParticlePacker::sendLength(const int dimension, const int direction) {
-    return n_to_send[dimension][direction];
+    const static box::_type_flag_32 out_box_flags[DIMENSION][2] = {
+            {box::OUT_BOX_X_LITTER, box::OUT_BOX_X_BIG},
+            {box::OUT_BOX_Y_LITTER, box::OUT_BOX_Y_BIG},
+            {box::OUT_BOX_Z_LITTER, box::OUT_BOX_Z_BIG},
+    };
+    unsigned int num_to_send = 0;
+    for (_type_inter_list::iterator inter_it = inter_atom_list.inter_list.begin();
+         inter_it != inter_atom_list.inter_list.end(); inter_it++) {
+#ifdef MD_DEV_MODE
+        {
+            const box::_type_flag_32 flag = ws::isOutBox(*inter_it, &domain);
+            if (dimension == 1) { // y dimension
+                // In y dimension communication, atoms in inter atoms list
+                // can not be out of x boundary of simulation box.
+                // Because we have a communication in x dimension before.
+                assert((flag & box::OUT_BOX_X_LITTER) == 0);
+                assert((flag & box::OUT_BOX_X_BIG) == 0);
+            }
+            if (dimension == 2) { // z dimension
+                // In y dimension communication, atoms in inter atoms list
+                // can not be out of x and y boundary of simulation box due to preview communications.
+                assert((flag & box::OUT_BOX_X_LITTER) == 0);
+                assert((flag & box::OUT_BOX_X_BIG) == 0);
+                assert((flag & box::OUT_BOX_Y_LITTER) == 0);
+                assert((flag & box::OUT_BOX_Y_BIG) == 0);
+            }
+        }
+#endif
+        // we assume that, a atom cannot cross 2 or more than 2 sub-boxes
+        if (ws::isOutBox(*inter_it, &domain) & out_box_flags[dimension][direction]) {
+            num_to_send++;
+        }
+    }
+    return num_to_send;
 }
 
 void InterParticlePacker::onSend(particledata *buffer, const unsigned long send_len,
@@ -90,20 +104,6 @@ void InterParticlePacker::onReceive(particledata *buffer, const unsigned long re
         atom.v[0] = buffer[i].v[0];
         atom.v[1] = buffer[i].v[1];
         atom.v[2] = buffer[i].v[2];
-        // todo condition: we can judge only one direction the inter atom comes from.
-        if (ws::isOutBox(atom, &domain) == box::IN_BOX) {
-            inter_atom_list.addInterAtom(atom);
-        } else {
-            kiwi::logs::w("unpack", "unexpected atom, id: {}\n", atom.id);
-            delayed_buffer.push_back(atom);
-        }
-    }
-}
-
-
-void InterParticlePacker::onFinish() {
-    // delayed write the intel atoms that is not in this sub-box/domain.
-    for (AtomElement &delay_atom :delayed_buffer) {
-        inter_atom_list.addInterAtom(delay_atom);
+        inter_atom_list.addInterAtom(atom);
     }
 }
