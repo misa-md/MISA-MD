@@ -19,6 +19,8 @@ set(HEADER_FILES
         atom/atom_list.h
         atom/atom_set.h
         atom/inter_atom_list.h
+        atom/neighbour_index.h
+        atom/neighbour_iterator.h
         atom/ws_utils.h
         types/atom_types.h
         types/pre_config.h
@@ -50,6 +52,8 @@ set(SOURCE_FILES
         atom/atom_set.cpp
         atom/box.h
         atom/inter_atom_list.cpp
+        atom/neighbour_index.inl
+        atom/neighbour_iterator.inl
         atom/ws_utils.cpp
         types/atom_info_dump.cpp
         pack/df_embed_packer.cpp
