@@ -539,32 +539,17 @@ void atom::interForce(eam *pot, comm::Domain *domain, double &comm) {
     }
 }
 
-void atom::print_force() {
-    char tmp[20];
-    sprintf(tmp, "force.txt");
+void atom::print_force(char filename[20]) {
     std::ofstream outfile;
-    outfile.open(tmp);
+    outfile.open(filename);
 
     atom_list->foreachSubBoxAtom(
             [&outfile](AtomElement &_atom_ref) {
-                outfile << _atom_ref.f[0] << " " << _atom_ref.f[1] << " " << _atom_ref.f[2] << std::endl;
+                outfile << _atom_ref.id << "\t"
+                        << _atom_ref.x[0] << "\t" << _atom_ref.x[1] << "\t" << _atom_ref.x[2] << "\t"
+                        << _atom_ref.f[0] << "\t" << _atom_ref.f[1] << "\t" << _atom_ref.f[2] << std::endl;
             }
     );
-
-    long kk;
-    int xstart = p_domain->dbx_lattice_size_ghost[0];
-    int ystart = p_domain->dbx_lattice_size_ghost[1];
-    int zstart = p_domain->dbx_lattice_size_ghost[2];
-    std::cout << "print_force" << std::endl;
-    for (int k = zstart; k < p_domain->dbx_lattice_size_sub_box[2] + zstart; k++) {
-        for (int j = ystart; j < p_domain->dbx_lattice_size_sub_box[1] + ystart; j++) {
-            for (int i = xstart; i < p_domain->dbx_lattice_size_sub_box[0] + xstart; i++) {
-                kk = atom_list->IndexOf3DIndex(i, j, k);
-                AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
-                outfile << atom_.f[0] << " " << atom_.f[1] << " " << atom_.f[2] << std::endl;
-            }
-        }
-    }
     outfile.close();
 }
 

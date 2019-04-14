@@ -54,7 +54,7 @@ public :
      */
     void setv(int lat[4], double direction[3], double energy);
 
-    void print_force();
+    void print_force(char filename[20]);
 
     void sendForce();
 
