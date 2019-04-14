@@ -38,6 +38,7 @@ public:
      * begin of iterator
      * @param half_itl whether to use half iterator(iterator nei_half_even_offsets or nei_half_odd_offsets).
      * @param x, y, z the coord of source lattices at each dimension.
+     * @note x is twice times as the normal lattice size at x dimension.
      */
     iterator begin(const bool half_itl, const _type_atom_index x,
                    const _type_atom_index y, const _type_atom_index z);

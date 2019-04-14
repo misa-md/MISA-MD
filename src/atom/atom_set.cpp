@@ -13,7 +13,7 @@ AtomSet::AtomSet(const double cutoff_radius,
                  const _type_lattice_size extended_lattice_size[DIMENSION],
                  const _type_lattice_size sub_box_lattice_size[DIMENSION],
                  const _type_lattice_size ghost_lattice_size[DIMENSION])
-        : _cutoffRadius(cutoff_radius){
+        : _cutoffRadius(cutoff_radius) {
     // the length of atom array at x direction is doubled due to the special data structure.
     atom_list = new AtomList(extended_lattice_size[0] * 2,
                              extended_lattice_size[1],
@@ -26,58 +26,19 @@ AtomSet::AtomSet(const double cutoff_radius,
                              ghost_lattice_size[2]);
 
     inter_atom_list = new InterAtomList();
+    // create neighbour relative index.
+    neighbours = new NeighbourIndex<AtomElement>(*atom_list);
 }
 
 AtomSet::~AtomSet() {
     delete atom_list;
     delete inter_atom_list;
+    delete neighbours;
 }
 
 void AtomSet::calcNeighbourIndices(const double cutoff_radius_factor, const _type_lattice_size cut_lattice) {
-    double x, y, z;
-    int mark = 0;
-    std::vector<_type_atom_index>::iterator neighbourOffsetsIter;
-    for (_type_atom_index zIndex = -cut_lattice;
-         zIndex <= cut_lattice; zIndex++) { // loop for (2*_cutlattice + 1) times.
-        for (_type_atom_index yIndex = -cut_lattice; yIndex <= cut_lattice; yIndex++) {
-            for (_type_atom_index xIndex = -cut_lattice * 2; xIndex <= cut_lattice * 2; xIndex++) {
-                // 体心
-                z = (double) zIndex + (((double) (xIndex % 2)) / 2); // zIndex plus 1/2 (odd) or 0(even).
-                y = (double) yIndex + (((double) (xIndex % 2)) / 2);
-                x = (double) xIndex / 2;
-                _type_atom_index offset;
-                double r = sqrt(x * x + y * y + z * z);
-                if (r < (cutoff_radius_factor + 0.4)) { // todo 0.4?
-                    offset = atom_list->IndexOf3DIndex(xIndex, yIndex, zIndex);
-                    if (offset > 0) {
-                        NeighbourOffsets.push_back(offset);
-                    }
-                }
-
-                // 晶格点
-                z = (double) zIndex - (((double) (xIndex % 2)) / 2);
-                y = (double) yIndex - (((double) (xIndex % 2)) / 2);
-                x = (double) xIndex / 2;
-                r = sqrt(x * x + y * y + z * z);
-                if (r < (cutoff_radius_factor + 0.4)) {
-                    offset = atom_list->IndexOf3DIndex(xIndex, yIndex, zIndex);
-                    if (offset > 0) {
-                        for (neighbourOffsetsIter = NeighbourOffsets.begin();
-                             neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
-                            if (*neighbourOffsetsIter == offset) {
-                                mark = 1;
-                            }
+    neighbours->make(cut_lattice, cutoff_radius_factor);
                         }
-                        if (mark != 1) {
-                            NeighbourOffsets.push_back(offset);
-                        }
-                        mark = 0;
-                    }
-                }
-            }
-        }
-    }
-}
 
 void
 AtomSet::addAtom(comm::Domain *p_domain, _type_atom_id id,

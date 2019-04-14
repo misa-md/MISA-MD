@@ -213,6 +213,7 @@ private:
     std::vector<std::vector<_type_atom_id> > recvlist;
 
     const _type_atom_count _size;
+    // note: _size_x is twice times than the lattice size in x dimension.
     const _type_atom_count _size_x, _size_y, _size_z;
     const _type_atom_count _size_sub_box_x, _size_sub_box_y, _size_sub_box_z;
     const _type_atom_count purge_ghost_count_x, purge_ghost_count_y, purge_ghost_count_z;

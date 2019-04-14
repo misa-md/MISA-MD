@@ -86,12 +86,14 @@ public:
     // return reference of next available node.
     self &operator++();
 
+public:
+    // current index of particles in each dimension, cur_index = src_index + p_nei_index[current_nei_index].
+    _type_atom_index cur_index_x, cur_index_y, cur_index_z;
+
 protected:
     link_type p_nei_index; // pointer of neighbour index vector todo make it const
     // source particle index for iterator, all offset of neighbour particles is based on this source particles index.
     _type_atom_index src_index_x, src_index_y, src_index_z; // todo make in const
-    // current index of particles in each dimension, cur_index = src_index + p_nei_index[current_nei_index].
-    _type_atom_index cur_index_x, cur_index_y, cur_index_z;
     // current index for neighbour index.
     size_type current_nei_index;
     const AtomList *atom_list;
