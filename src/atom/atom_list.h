@@ -127,7 +127,7 @@ public:
      * @return
      */
     inline AtomElement &
-    getAtomEleByGhostIndex(_type_atom_index index_x, _type_atom_index index_y, _type_atom_index index_z) {
+    getAtomEleByGhostIndex(_type_atom_index index_x, _type_atom_index index_y, _type_atom_index index_z) const {
         return _atoms[index_z][index_y][index_x];
     }
 
@@ -137,12 +137,28 @@ public:
      * @param index
      * @return
      */
-    inline AtomElement &getAtomEleByLinearIndex(_type_atom_index index) {
+    inline AtomElement &getAtomEleByLinearIndex(_type_atom_index index) const {
         _type_atom_count x = index % _size_x;
         index = index / _size_x;
         _type_atom_count y = index % _size_y;
         _type_atom_count z = index / _size_y;
         return _atoms[z][y][x];
+    }
+
+    /**
+     * get the atom  3d index by linear index.
+     * index = (zIndex * p_domain->getGhostLatticeSize(1) + yIndex) * p_domain->getGhostLatticeSize(0) + xIndex;
+     * @param index target linear index
+     * @param x 3d index in x dimension
+     * @param y 3d index in y dimension
+     * @param z 3d index in z dimension
+     */
+    inline void get3DIndexByLinearIndex(_type_atom_index index, _type_atom_index &x,
+                                        _type_atom_index &y, _type_atom_index &z) {
+        x = index % _size_x;
+        index = index / _size_x;
+        y = index % _size_y;
+        z = index / _size_y;
     }
 
     /**
@@ -164,6 +180,14 @@ public:
     void foreachSubBoxAtom(Callable callback);
 
     /**
+     * get the size of lattices in the box (including ghost lattice atoms).
+     * @return
+     */
+    inline _type_lattice_size size() {
+        return _size;
+    }
+
+    /**
      * append/set an atom to inter. // todo unit test.
      * @param atom_id atom id.
      */
@@ -172,6 +196,13 @@ public:
     void exchangeAtomFirst(comm::Domain *p_domain, int cutlattice);
 
     void exchangeAtom(comm::Domain *p_domain);
+
+    /**
+     * return true if the there is atom in current box that is far away out of this box.
+     * @param domain
+     * @return
+     */
+    bool isBadList(comm::Domain domain);
 
 private:
     // 晶格点原子用数组存储其信息,including ghost atoms.
@@ -182,15 +213,19 @@ private:
     std::vector<std::vector<_type_atom_id> > recvlist;
 
     const _type_atom_count _size;
+    // note: _size_x is twice times than the lattice size in x dimension.
     const _type_atom_count _size_x, _size_y, _size_z;
     const _type_atom_count _size_sub_box_x, _size_sub_box_y, _size_sub_box_z;
     const _type_atom_count purge_ghost_count_x, purge_ghost_count_y, purge_ghost_count_z;
 
-    void getatomx(comm::Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
+    void
+    getatomx(comm::Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
 
-    void getatomy(comm::Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
+    void
+    getatomy(comm::Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
 
-    void getatomz(comm::Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
+    void
+    getatomz(comm::Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
 };
 
 

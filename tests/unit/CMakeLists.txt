@@ -16,6 +16,8 @@ set(TEST_SOURCE_FILES
         atom_iterator.cpp
         world_builder_test.cpp
         domain_test_utils.cpp
+        neighbour_index_test.cpp 
+        neighbour_index_iterator_test.cpp
         particledata_test.cpp
         inter_atom_test.cpp
         )

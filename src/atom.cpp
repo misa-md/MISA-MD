@@ -105,7 +105,7 @@ int atom::decide() {
 }
 
 void atom::clearForce() {
-    for (_type_atom_index i = 0; i < numberoflattice; i++) {
+    for (_type_atom_index i = 0; i < atom_list->size(); i++) {
         AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(i);
         atom_.f[0] = 0;
         atom_.f[1] = 0;
@@ -150,7 +150,8 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
         // 将ghost区域的粒子的电子云密度发送给其所在的进程，得到完整的电子云密度
         starttime = MPI_Wtime();
         RhoPacker rho_packer(getAtomListRef(), atom_list->sendlist, atom_list->recvlist);
-        comm::neiSendReceive<double, MPI_DOUBLE>(&rho_packer, MPIDomain::toCommProcess(), p_domain->rank_id_neighbours);
+        comm::neiSendReceive<double, MPI_DOUBLE>(&rho_packer, MPIDomain::toCommProcess(),
+                                                 p_domain->rank_id_neighbours, true);
         stoptime = MPI_Wtime();
         comm = stoptime - starttime;
     }
@@ -216,8 +217,6 @@ void atom::latRho(eam *pot, comm::Domain *domain, double &comm) {
     int ystart = p_domain->dbx_lattice_size_ghost[1];
     int zstart = p_domain->dbx_lattice_size_ghost[2];
 
-    std::vector<_type_atom_index>::iterator neighbourOffsetsIter;
-
     // 本地晶格点上的原子计算电子云密度
     if (isAccelerateSupport()) {
 //     fixme  accelerateEamRhoCalc(&(rho_spline->n), atom_list, &_cutoffRadius,
@@ -234,10 +233,10 @@ void atom::latRho(eam *pot, comm::Domain *domain, double &comm) {
                     if (!atom_central.isInterElement()) {
                         //对晶格点邻居原子遍历
                         // only consider the atoms whose id is bigger than {@var atom_central}, just single side.
-                        for (neighbourOffsetsIter = NeighbourOffsets.begin();
-                             neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
-                            n = (kk + *neighbourOffsetsIter);
-                            AtomElement &atom_neighbour = atom_list->getAtomEleByLinearIndex(n);
+                        AtomNei::iterator nei_itl_end = neighbours->end(true, i, j, k);
+                        for (AtomNei::iterator nei_itl = neighbours->begin(true, i, j, k);
+                             nei_itl != nei_itl_end; ++nei_itl) {
+                            AtomElement &atom_neighbour = *nei_itl;
                             if (atom_neighbour.isInterElement()) {
                                 continue;
                             }
@@ -290,56 +289,38 @@ void atom::interRho(eam *pot, comm::Domain *domain, double &comm) {
             // fixme
         }
 
-        for (neighbourOffsetsIter = NeighbourOffsets.begin();
-             neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
-            //计算间隙原子的所有邻居
-            n = (near_atom_index + *neighbourOffsetsIter);
-            // for up lattice neighbour atoms
-            AtomElement &atom_neighbour_up = atom_list->getAtomEleByLinearIndex(n);
-            if (!atom_neighbour_up.isInterElement()) {
-                delx = (*inter_it).x[0] - atom_neighbour_up.x[0];
-                dely = (*inter_it).x[1] - atom_neighbour_up.x[1];
-                delz = (*inter_it).x[2] - atom_neighbour_up.x[2];
+        _type_atom_index x, y, z;
+        atom_list->get3DIndexByLinearIndex(near_atom_index, x, y, z);
+        // rho between inter atoms and lattice atoms (use full neighbour index).
+        AtomNei::iterator nei_full_itl_end = neighbours->end(false, x, y, z);
+        for (AtomNei::iterator nei_itl = neighbours->begin(false, x, y, z);
+             nei_itl != nei_full_itl_end; ++nei_itl) {
+            AtomElement &lat_nei_atom = *nei_itl; // this is a lattice atom.
+            if (!lat_nei_atom.isInterElement()) {
+                delx = (*inter_it).x[0] - lat_nei_atom.x[0];
+                dely = (*inter_it).x[1] - lat_nei_atom.x[1];
+                delz = (*inter_it).x[2] - lat_nei_atom.x[2];
                 dist2 = delx * delx + dely * dely + delz * delz;
                 if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                     (*inter_it).rho += pot->rhoContribution(
-                            atom_type::getTypeIdByType(atom_neighbour_up.type), dist2);
-                    atom_neighbour_up.rho += pot->rhoContribution(
+                            atom_type::getTypeIdByType(lat_nei_atom.type), dist2);
+                    lat_nei_atom.rho += pot->rhoContribution(
                             atom_type::getTypeIdByType((*inter_it).type), dist2);
                     // fixme
                 }
             }
-            // for up inter neighbour atoms on this lattice atom (search by inter index).
-            inter_map_range inter_map_range_up = inter_atom_list->inter_map.equal_range(n);
-            for (inter_map_range_itl itl_up = inter_map_range_up.first; itl_up != inter_map_range_up.second; ++itl_up) {
-                delx = (*inter_it).x[0] - itl_up->second->x[0];
-                dely = (*inter_it).x[1] - itl_up->second->x[1];
-                delz = (*inter_it).x[2] - itl_up->second->x[2];
-                dist2 = delx * delx + dely * dely + delz * delz;
-                if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                    (*inter_it).rho += pot->rhoContribution(atom_type::getTypeIdByType(itl_up->second->type), dist2);
-                    itl_up->second->rho += pot->rhoContribution(atom_type::getTypeIdByType((*inter_it).type), dist2);
                 }
-            }
-            // for down lattice neighbour atoms.
-            n = (near_atom_index - *neighbourOffsetsIter);
-            AtomElement &atom_neighbour_down = atom_list->getAtomEleByLinearIndex(n);
-            if (!atom_neighbour_down.isInterElement()) {
-                delx = (*inter_it).x[0] - atom_neighbour_down.x[0];
-                dely = (*inter_it).x[1] - atom_neighbour_down.x[1];
-                delz = (*inter_it).x[2] - atom_neighbour_down.x[2];
-                dist2 = delx * delx + dely * dely + delz * delz;
-                if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                    (*inter_it).rho += pot->rhoContribution(
-                            atom_type::getTypeIdByType(atom_neighbour_down.type), dist2);
-                    atom_neighbour_down.rho += pot->rhoContribution(
-                            atom_type::getTypeIdByType((*inter_it).type), dist2);
-                    // fixme
-                }
-            }
-            // for down inter neighbour atoms.
-            inter_map_range inter_map_range_down = inter_atom_list->inter_map.equal_range(n);
-            for (inter_map_range_itl itl = inter_map_range_down.first; itl != inter_map_range_down.second; ++itl) {
+
+        // rho between inter atoms and inter atoms (use half neighbour index).
+        AtomNei::iterator nei_half_itl_end = neighbours->end(true, x, y, z);
+        for (AtomNei::iterator nei_itl = neighbours->begin(true, x, y, z);
+             nei_itl != nei_half_itl_end; ++nei_itl) {
+            const _type_atom_index inter_nei_id = atom_list->IndexOf3DIndex(
+                    nei_itl.cur_index_x, nei_itl.cur_index_y,
+                    nei_itl.cur_index_z); // get index of the neighbour lattice.
+            // get intel atoms on this neighbour lattice and calculate inter-rho.
+            inter_map_range inter_map_range = inter_atom_list->inter_map.equal_range(inter_nei_id);
+            for (inter_map_range_itl itl = inter_map_range.first; itl != inter_map_range.second; ++itl) {
                 delx = (*inter_it).x[0] - itl->second->x[0];
                 dely = (*inter_it).x[1] - itl->second->x[1];
                 delz = (*inter_it).x[2] - itl->second->x[2];
@@ -390,7 +371,6 @@ void atom::latForce(eam *pot, comm::Domain *domain, double &comm) {
     double xtemp, ytemp, ztemp;
     double delx, dely, delz;
     _type_atom_index kk;
-    _type_atom_index n;
     double dist2;
     double fpair;
 
@@ -429,11 +409,12 @@ void atom::latForce(eam *pot, comm::Domain *domain, double &comm) {
                     if (atom_.isInterElement()) {
                         continue;
                     }
+
                     //对晶格点邻居原子遍历
-                    for (neighbourOffsetsIter = NeighbourOffsets.begin();
-                         neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
-                        n = (kk + *neighbourOffsetsIter); // todo what it is inter atom?
-                        AtomElement &atom_n = atom_list->getAtomEleByLinearIndex(n);
+                    AtomNei::iterator nei_itl_end = neighbours->end(true, i, j, k);
+                    for (AtomNei::iterator nei_itl = neighbours->begin(true, i, j, k);
+                         nei_itl != nei_itl_end; ++nei_itl) {
+                        AtomElement &atom_n = *nei_itl;
                         delx = xtemp - atom_n.x[0];
                         dely = ytemp - atom_n.x[1];
                         delz = ztemp - atom_n.x[2];
@@ -461,7 +442,6 @@ void atom::latForce(eam *pot, comm::Domain *domain, double &comm) {
 
 void atom::interForce(eam *pot, comm::Domain *domain, double &comm) {
     double delx, dely, delz;
-    _type_atom_index n;
     double dist2;
     double fpair;
 
@@ -498,12 +478,14 @@ void atom::interForce(eam *pot, comm::Domain *domain, double &comm) {
             atom_central.f[1] -= dely * fpair;
             atom_central.f[2] -= delz * fpair;
         }
-        for (neighbourOffsetsIter = NeighbourOffsets.begin();
-             neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
-            //计算间隙原子的所有邻居
-            // up lattice atoms
-            n = (_atom_near_index + *neighbourOffsetsIter);
-            AtomElement &atom_neighbour_up = atom_list->getAtomEleByLinearIndex(n);
+
+        _type_atom_index x, y, z;
+        atom_list->get3DIndexByLinearIndex(_atom_near_index, x, y, z);
+        // force between inter atoms and lattice atoms (use full neighbour index).
+        AtomNei::iterator nei_full_itl_end = neighbours->end(false, x, y, z);
+        for (AtomNei::iterator nei_itl = neighbours->begin(false, x, y, z);
+             nei_itl != nei_full_itl_end; ++nei_itl) {
+            AtomElement &atom_neighbour_up = *nei_itl; // this is a lattice atom.
             delx = (*inter_it).x[0] - atom_neighbour_up.x[0];
             dely = (*inter_it).x[1] - atom_neighbour_up.x[1];
             delz = (*inter_it).x[2] - atom_neighbour_up.x[2];
@@ -523,109 +505,51 @@ void atom::interForce(eam *pot, comm::Domain *domain, double &comm) {
                 atom_neighbour_up.f[1] -= dely * fpair;
                 atom_neighbour_up.f[2] -= delz * fpair;
             }
-            // up inter atoms
-            {
-                inter_map_range inter_map_range_up = inter_atom_list->inter_map.equal_range(n);
-                for (inter_map_range_itl itl_up = inter_map_range_up.first;
-                     itl_up != inter_map_range_up.second; ++itl_up) {
-                    delx = (*inter_it).x[0] - itl_up->second->x[0];
-                    dely = (*inter_it).x[1] - itl_up->second->x[1];
-                    delz = (*inter_it).x[2] - itl_up->second->x[2];
-                    dist2 = delx * delx + dely * dely + delz * delz;
-                    if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                        fpair = pot->toForce(
-                                atom_type::getTypeIdByType((*inter_it).type),
-                                atom_type::getTypeIdByType(itl_up->second->type),
-                                dist2, (*inter_it).df + itl_up->second->df);
+        }
+        // force between inter atoms and inter atoms (use half neighbour index).
+        AtomNei::iterator nei_half_itl_end = neighbours->end(true, x, y, z);
+        for (AtomNei::iterator nei_itl = neighbours->begin(true, x, y, z);
+             nei_itl != nei_half_itl_end; ++nei_itl) {
+            const _type_atom_index inter_nei_id = atom_list->IndexOf3DIndex(
+                    nei_itl.cur_index_x, nei_itl.cur_index_y,
+                    nei_itl.cur_index_z); // get index of the neighbour lattice.
+            inter_map_range inter_map_range_up = inter_atom_list->inter_map.equal_range(inter_nei_id);
+            for (inter_map_range_itl itl_up = inter_map_range_up.first;
+                 itl_up != inter_map_range_up.second; ++itl_up) {
+                delx = (*inter_it).x[0] - itl_up->second->x[0];
+                dely = (*inter_it).x[1] - itl_up->second->x[1];
+                delz = (*inter_it).x[2] - itl_up->second->x[2];
+                dist2 = delx * delx + dely * dely + delz * delz;
+                if (dist2 < (_cutoffRadius * _cutoffRadius)) {
+                    fpair = pot->toForce(
+                            atom_type::getTypeIdByType((*inter_it).type),
+                            atom_type::getTypeIdByType(itl_up->second->type),
+                            dist2, (*inter_it).df + itl_up->second->df);
 
-                        (*inter_it).f[0] += delx * fpair;
-                        (*inter_it).f[1] += dely * fpair;
-                        (*inter_it).f[2] += delz * fpair;
+                    (*inter_it).f[0] += delx * fpair;
+                    (*inter_it).f[1] += dely * fpair;
+                    (*inter_it).f[2] += delz * fpair;
 
-                        itl_up->second->f[0] -= delx * fpair;
-                        itl_up->second->f[1] -= dely * fpair;
-                        itl_up->second->f[2] -= delz * fpair;
-                    }
-                }
-            }
-            // down lattice atoms
-            n = (_atom_near_index - *neighbourOffsetsIter);
-            AtomElement &atom_neighbour_down = atom_list->getAtomEleByLinearIndex(n);
-
-            delx = (*inter_it).x[0] - atom_neighbour_down.x[0];
-            dely = (*inter_it).x[1] - atom_neighbour_down.x[1];
-            delz = (*inter_it).x[2] - atom_neighbour_down.x[2];
-            dist2 = delx * delx + dely * dely + delz * delz;
-            if (dist2 < (_cutoffRadius * _cutoffRadius) && !atom_neighbour_down.isInterElement()) {
-                // fixme
-                fpair = pot->toForce(
-                        atom_type::getTypeIdByType((*inter_it).type),
-                        atom_type::getTypeIdByType(atom_neighbour_down.type),
-                        dist2, (*inter_it).df + atom_neighbour_down.df);
-
-                (*inter_it).f[0] += delx * fpair;
-                (*inter_it).f[1] += dely * fpair;
-                (*inter_it).f[2] += delz * fpair;
-
-                atom_neighbour_down.f[0] -= delx * fpair;
-                atom_neighbour_down.f[1] -= dely * fpair;
-                atom_neighbour_down.f[2] -= delz * fpair;
-            }
-            // down inter atoms
-            {
-                inter_map_range inter_map_range_up = inter_atom_list->inter_map.equal_range(n);
-                for (inter_map_range_itl itl_up = inter_map_range_up.first;
-                     itl_up != inter_map_range_up.second; ++itl_up) {
-                    delx = (*inter_it).x[0] - itl_up->second->x[0];
-                    dely = (*inter_it).x[1] - itl_up->second->x[1];
-                    delz = (*inter_it).x[2] - itl_up->second->x[2];
-            dist2 = delx * delx + dely * dely + delz * delz;
-            if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                fpair = pot->toForce(
-                        atom_type::getTypeIdByType((*inter_it).type),
-                                atom_type::getTypeIdByType(itl_up->second->type),
-                                dist2, (*inter_it).df + itl_up->second->df);
-
-                (*inter_it).f[0] += delx * fpair;
-                (*inter_it).f[1] += dely * fpair;
-                (*inter_it).f[2] += delz * fpair;
-
-                        itl_up->second->f[0] -= delx * fpair;
-                        itl_up->second->f[1] -= dely * fpair;
-                        itl_up->second->f[2] -= delz * fpair;
-                    }
+                    itl_up->second->f[0] -= delx * fpair;
+                    itl_up->second->f[1] -= dely * fpair;
+                    itl_up->second->f[2] -= delz * fpair;
                 }
             }
         }
     }
 }
 
-void atom::print_force() {
-    char tmp[20];
-    sprintf(tmp, "force.txt");
+void atom::print_force(char filename[20]) {
     std::ofstream outfile;
-    outfile.open(tmp);
+    outfile.open(filename);
 
     atom_list->foreachSubBoxAtom(
             [&outfile](AtomElement &_atom_ref) {
-                outfile << _atom_ref.f[0] << " " << _atom_ref.f[1] << " " << _atom_ref.f[2] << std::endl;
+                outfile << _atom_ref.id << "\t"
+                        << _atom_ref.x[0] << "\t" << _atom_ref.x[1] << "\t" << _atom_ref.x[2] << "\t"
+                        << _atom_ref.f[0] << "\t" << _atom_ref.f[1] << "\t" << _atom_ref.f[2] << std::endl;
             }
     );
-
-    long kk;
-    int xstart = p_domain->dbx_lattice_size_ghost[0];
-    int ystart = p_domain->dbx_lattice_size_ghost[1];
-    int zstart = p_domain->dbx_lattice_size_ghost[2];
-    std::cout << "print_force" << std::endl;
-    for (int k = zstart; k < p_domain->dbx_lattice_size_sub_box[2] + zstart; k++) {
-        for (int j = ystart; j < p_domain->dbx_lattice_size_sub_box[1] + ystart; j++) {
-            for (int i = xstart; i < p_domain->dbx_lattice_size_sub_box[0] + xstart; i++) {
-                kk = atom_list->IndexOf3DIndex(i, j, k);
-                AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
-                outfile << atom_.f[0] << " " << atom_.f[1] << " " << atom_.f[2] << std::endl;
-            }
-        }
-    }
     outfile.close();
 }
 
@@ -652,5 +576,6 @@ void atom::setv(int lat[4], double direction[3], double energy) {
 
 void atom::sendForce() {
     ForcePacker force_packer(getAtomListRef(), atom_list->sendlist, atom_list->recvlist);
-    comm::neiSendReceive<double, MPI_DOUBLE>(&force_packer, MPIDomain::toCommProcess(), p_domain->rank_id_neighbours);
+    comm::neiSendReceive<double, MPI_DOUBLE>(&force_packer, MPIDomain::toCommProcess(),
+                                             p_domain->rank_id_neighbours, true);
 }

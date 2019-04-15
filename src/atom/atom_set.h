@@ -12,12 +12,16 @@
 #include "atom/atom_element.h"
 #include "atom/atom_list.h"
 #include "atom/inter_atom_list.h"
+#include "atom/neighbour_index.h"
+#include "../types/atom_types.h"
 
 /**
  * the container of latticed atom list and inter atom list (all atoms in this sub-box).
  *
  */
 class AtomSet {
+public:
+    typedef NeighbourIndex<AtomElement> AtomNei;
 public:
     AtomSet(const double cutoff_radius,
             const _type_lattice_size extended_lattice_size[DIMENSION],
@@ -48,16 +52,29 @@ public:
     /**
     * used in read creating mode.
     */
-    void addAtom(comm::Domain *p_domain, unsigned long id, double rx, double ry, double rz, double vx, double vy, double vz);
+    void addAtom(comm::Domain *p_domain, unsigned long id,
+                 double rx, double ry, double rz, double vx, double vy, double vz);
+
+#ifdef MD_DEV_MODE
+
+    /**
+     * in development mode, we can check system temperature, energy or momentum.
+     */
+    std::array<_type_atom_force, DIMENSION> systemForce();
+
+    /**
+     * @return the count of atoms that are not vacancy (not type of INVALID).
+     */
+    _type_atom_count realAtoms();
+
+#endif
 
 protected:
-    int numberoflattice;
 
     double _cutoffRadius;
 //    int _cutlattice;
     //   double _latticeconst;
-
-    std::vector<_type_atom_index> NeighbourOffsets; // 邻居粒子偏移量 // todo use offset in x,y,z dimension
+    NeighbourIndex<AtomElement> *neighbours;
 
     AtomList *atom_list;
     InterAtomList *inter_atom_list;

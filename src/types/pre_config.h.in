@@ -11,7 +11,7 @@
 
 #cmakedefine ARCH_SW  // for Sunway SW26010.
 
-#define DEV_MODE
+#cmakedefine MD_DEV_MODE
 
 #ifdef ARCH_SW
 #define ARCH_SUNWAY

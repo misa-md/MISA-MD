@@ -45,7 +45,7 @@ public:
     void onReceive(particledata buffer[], const unsigned long receive_len,
                    const int dimension, const int direction) override;
 
-protegcted:
+protected:
     const comm::Domain &domain;
     InterAtomList &inter_atom_list;
 };

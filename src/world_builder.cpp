@@ -79,7 +79,7 @@ void WorldBuilder::build() {
     }
 
     zeroMomentum(_vcm);
-#ifdef DEV_MODE
+#ifdef MD_DEV_MODE
     vcm(p);
     kiwi::logs::d("momentum", "momentum:{0} {1} {2}\n", p[0], p[1], p[2]);
 #endif
@@ -206,7 +206,7 @@ double WorldBuilder::dofCompute(unsigned long n_atoms) {
 }
 
 double WorldBuilder::uniform() {
-//#ifdef DEV_MODE
+//#ifdef MD_DEV_MODE
 //    return 1;
 //#else
     int k = _random_seed / IQ;
@@ -252,7 +252,7 @@ atom_type::atom_type WorldBuilder::randomAtomsType() {
     for (int i = 0; i < atom_type::num_atom_types; i++) {
         ratio_total += _atoms_ratio[i];
     }
-#ifdef DEV_MODE
+#ifdef MD_DEV_MODE
     int rand_ = rand() % ratio_total;
 #else
     int rand_ = rand() % ratio_total; // todo srank. Rand() has limited randomness; use C++ lib instead.
