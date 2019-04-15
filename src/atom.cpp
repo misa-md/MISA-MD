@@ -41,7 +41,6 @@ atom::atom(comm::Domain *domain)
 int atom::decide() {
     inter_atom_list->clearGhost();
     int nflag = 0;
-    long kk = 0;
     double dist;
     double xtemp, ytemp, ztemp;
 
@@ -211,7 +210,6 @@ void atom::latRho(eam *pot, comm::Domain *domain, double &comm) {
     double xtemp, ytemp, ztemp;
     double delx, dely, delz;
     _type_atom_index kk;
-    _type_atom_index n;
     double dist2;
     int xstart = p_domain->dbx_lattice_size_ghost[0];
     int ystart = p_domain->dbx_lattice_size_ghost[1];
@@ -261,7 +259,6 @@ void atom::latRho(eam *pot, comm::Domain *domain, double &comm) {
 
 void atom::interRho(eam *pot, comm::Domain *domain, double &comm) {
     double delx, dely, delz;
-    _type_atom_index n;
     double dist2;
     double dfEmbed;
 
@@ -309,7 +306,7 @@ void atom::interRho(eam *pot, comm::Domain *domain, double &comm) {
                     // fixme
                 }
             }
-                }
+        }
 
         // rho between inter atoms and inter atoms (use half neighbour index).
         AtomNei::iterator nei_half_itl_end = neighbours->end(true, x, y, z);
@@ -444,8 +441,6 @@ void atom::interForce(eam *pot, comm::Domain *domain, double &comm) {
     double delx, dely, delz;
     double dist2;
     double fpair;
-
-    std::vector<_type_atom_index>::iterator neighbourOffsetsIter;
 
     //间隙原子计算嵌入能和对势带来的力
     _type_atom_index _atom_near_index;

@@ -38,7 +38,7 @@ AtomSet::~AtomSet() {
 
 void AtomSet::calcNeighbourIndices(const double cutoff_radius_factor, const _type_lattice_size cut_lattice) {
     neighbours->make(cut_lattice, cutoff_radius_factor);
-                        }
+}
 
 void
 AtomSet::addAtom(comm::Domain *p_domain, _type_atom_id id,

@@ -2,6 +2,7 @@
 // Created by genshen on 2019-03-16.
 //
 
+#include <mpi.h>
 #include "df_embed_packer.h"
 
 DfEmbedPacker::DfEmbedPacker(AtomList &atom_list, InterAtomList &inter_atom_list,

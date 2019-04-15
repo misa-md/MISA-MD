@@ -21,7 +21,7 @@ public:
     const unsigned long sendLength(const int dimension, const int direction) override;
 
     /**
-     * If some inter atoms get out of box, those atom is no more in current dox of current processor.
+     * If some inter atoms get out of box, those atom is no more in current box of current processor.
      * they should be send to corresponding neighbour processors.
      * The out-of-box atoms will be removed from @memberof inter_atom_list.inter_list in this function.
      *
