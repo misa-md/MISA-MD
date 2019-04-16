@@ -193,7 +193,7 @@ public:
      */
     void appendInter(_type_atom_id atom_id);
 
-    void exchangeAtomFirst(comm::Domain *p_domain, int cutlattice);
+    void exchangeAtomFirst(comm::Domain *p_domain);
 
     void exchangeAtom(comm::Domain *p_domain);
 
@@ -217,15 +217,6 @@ private:
     const _type_atom_count _size_x, _size_y, _size_z;
     const _type_atom_count _size_sub_box_x, _size_sub_box_y, _size_sub_box_z;
     const _type_atom_count purge_ghost_count_x, purge_ghost_count_y, purge_ghost_count_z;
-
-    void
-    getatomx(comm::Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
-
-    void
-    getatomy(comm::Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
-
-    void
-    getatomz(comm::Domain *p_domain, int _cutlattice, int direction, std::vector<std::vector<_type_atom_id>> &sendlist);
 };
 
 

@@ -120,7 +120,7 @@ void simulation::prepareForStart() {
 
     starttime = MPI_Wtime();
     // todo make _cut_lattice a member of class AtomList
-    _atom->getAtomList()->exchangeAtomFirst(_p_domain, _p_domain->cut_lattice);
+    _atom->getAtomList()->exchangeAtomFirst(_p_domain);
     // fixme those code does not fit [read atom mode], because in [create atom mode], inter is empty at first step;
     // so borderInter is not get called.
     stoptime = MPI_Wtime();
