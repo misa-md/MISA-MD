@@ -43,7 +43,7 @@ void AtomList::exchangeAtomFirst(comm::Domain *p_domain, int cutlattice) {
     sendlist.resize(6);
     recvlist.resize(6);
     for (unsigned short d = 0; d < DIMENSION; d++) {
-        for (int direction = LOWER; direction <= HIGHER; direction++) {
+        for (int direction = comm::DIR_LOWER; direction <= comm::DIR_HIGHER; direction++) {
             // 找到要发送给邻居的原子
             switch (d) {
                 case 0:

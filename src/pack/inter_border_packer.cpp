@@ -27,10 +27,10 @@ void InterBorderPacker::onSend(LatParticleData buffer[],
                                const int dimension,
                                const int direction) {
     double shift = 0.0;
-    if (domain.grid_coord_sub_box[dimension] == 0 && direction == LOWER) {
+    if (domain.grid_coord_sub_box[dimension] == 0 && direction == comm::DIR_LOWER) {
         shift = domain.meas_global_length[dimension];
     }
-    if (domain.grid_coord_sub_box[dimension] == domain.grid_size[dimension] - 1 && direction == HIGHER) {
+    if (domain.grid_coord_sub_box[dimension] == domain.grid_size[dimension] - 1 && direction == comm::DIR_HIGHER) {
         shift = -((domain.meas_global_length[dimension]));
     }
 

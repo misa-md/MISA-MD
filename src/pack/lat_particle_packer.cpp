@@ -22,11 +22,11 @@ const unsigned long LatParticlePacker::sendLength(const int dimension, const int
 void LatParticlePacker::setOffset(double offset[DIMENSION],
                                   const int dimension, const int direction) {
     // 进程在左侧边界
-    if (domain.grid_coord_sub_box[dimension] == 0 && direction == LOWER) {
+    if (domain.grid_coord_sub_box[dimension] == 0 && direction == comm::DIR_LOWER) {
         offset[dimension] = domain.meas_global_length[dimension];
     }
     // 进程在右侧边界
-    if (domain.grid_coord_sub_box[dimension] == domain.grid_size[dimension] - 1 && direction == HIGHER) {
+    if (domain.grid_coord_sub_box[dimension] == domain.grid_size[dimension] - 1 && direction == comm::DIR_HIGHER) {
         offset[dimension] = -((domain.meas_global_length[dimension]));
     }
 }

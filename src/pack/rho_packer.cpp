@@ -14,13 +14,13 @@ const unsigned long RhoPacker::sendLength(const int dimension, const int directi
     // dimension: 2   1    0
     // direction:L H  L H  L H
     // index:    5 4  3 2  1 0
-    const int index = 2 * dimension + (direction == LOWER ? 1 : 0);
+    const int index = 2 * dimension + (direction == comm::DIR_LOWER ? 1 : 0);
     return receive_list[index].size();
 }
 
 void RhoPacker::onSend(double *buffer, const unsigned long send_len,
                        const int dimension, const int direction) {
-    const int index = 2 * dimension + (direction == LOWER ? 1 : 0);
+    const int index = 2 * dimension + (direction == comm::DIR_LOWER ? 1 : 0);
     std::vector<_type_atom_id> &recvlist = receive_list[index];
     int j, m = 0;
     for (int i = 0; i < send_len; i++) {
@@ -34,7 +34,8 @@ void RhoPacker::onReceive(double buffer[], const unsigned long receive_len,
                           const int dimension, const int direction) {
     //将收到的电子云密度信息加到对应存储位置上
     double *buf = buffer;
-    const int list_index = 2 * dimension + (direction == LOWER ? HIGHER : LOWER); // flip the direction
+    // flip the direction
+    const int list_index = 2 * dimension + (direction == comm::DIR_LOWER ? comm::DIR_HIGHER : comm::DIR_LOWER);
 
     int j, m = 0;
     for (int i = 0; i < send_list[list_index].size(); i++) {
