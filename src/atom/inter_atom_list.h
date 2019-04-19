@@ -50,7 +50,12 @@ public:
      */
     void addInterAtom(AtomElement &atom);
 
-    void addGhostAtom(AtomElement &ghost_atom);
+    /**
+     * insert an atom into ghost list, and return the atom pointer inserted.
+     * @param ghost_atom ref of ghost atom.
+     * @return the pointer inserted in atom list.
+     */
+    AtomElement *addGhostAtom(AtomElement &ghost_atom);
 
     inline size_t nLocalInter() {
         return nlocalinter;
@@ -58,6 +63,11 @@ public:
 
     void exchangeInter(comm::Domain *p_domain);
 
+    /**
+     * setup ghost area for inter atoms.
+     * send inter atoms in simulation area that are contributed to ghost area of other processes.
+     * @param p_domain pointer of domain
+     */
     void borderInter(comm::Domain *p_domain);
 
     void makeIndex(AtomList *atom_list, const comm::Domain *p_domain);

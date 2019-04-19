@@ -57,9 +57,10 @@ void InterAtomList::addInterAtom(AtomElement &atom) {
     nlocalinter++;
 }
 
-void InterAtomList::addGhostAtom(AtomElement &ghost_atom) {
+AtomElement *InterAtomList::addGhostAtom(AtomElement &ghost_atom) {
     inter_ghost_list.push_back(ghost_atom);
     nghostinter++;
+    return &(inter_ghost_list.back());
 }
 
 _type_inter_list::iterator InterAtomList::removeInter(_type_inter_list::iterator inter_it) {
