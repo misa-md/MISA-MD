@@ -12,14 +12,8 @@
 AtomList::AtomList(_type_atom_count size_x, _type_atom_count size_y, _type_atom_count size_z,
                    _type_atom_count size_sub_box_x, _type_atom_count size_sub_box_y, _type_atom_count size_sub_box_z,
                    _type_atom_count ghost_count_x, _type_atom_count ghost_count_y, _type_atom_count ghost_count_z) :
-        _size(size_x * size_y * size_z),
-        _size_x(size_x), _size_y(size_y), _size_z(size_z),
-        _size_sub_box_x(size_sub_box_x),
-        _size_sub_box_y(size_sub_box_y),
-        _size_sub_box_z(size_sub_box_z),
-        purge_ghost_count_x(ghost_count_x),
-        purge_ghost_count_y(ghost_count_y),
-        purge_ghost_count_z(ghost_count_z) {
+        lattice(size_x, size_y, size_z, size_sub_box_x, size_sub_box_y, size_sub_box_z,
+                ghost_count_x, ghost_count_y, ghost_count_z) {
 
     _atoms = new AtomElement **[size_z];
     for (_type_atom_count z = 0; z < size_z; z++) {
@@ -31,8 +25,8 @@ AtomList::AtomList(_type_atom_count size_x, _type_atom_count size_y, _type_atom_
 }
 
 AtomList::~AtomList() {
-    for (_type_atom_count z = 0; z < _size_z; z++) {
-        for (_type_atom_count y = 0; y < _size_y; y++) {
+    for (_type_atom_count z = 0; z < lattice._size_z; z++) {
+        for (_type_atom_count y = 0; y < lattice._size_y; y++) {
             delete[] _atoms[z][y];
         }
         delete[] _atoms[z];
@@ -52,7 +46,7 @@ void AtomList::exchangeAtomFirst(comm::Domain *p_domain) {
             for (int iz = region.z_low; iz < region.z_high; iz++) {
                 for (int iy = region.y_low; iy < region.y_high; iy++) {
                     for (int ix = region.x_low; ix < region.x_high; ix++) {
-                        dd_send_list.push_back(IndexOf3DIndex(ix, iy, iz));
+                        dd_send_list.push_back(lattice.IndexOf3DIndex(ix, iy, iz));
                     }
                 }
             }
@@ -76,9 +70,9 @@ void AtomList::exchangeAtom(comm::Domain *p_domain) {
 
 bool AtomList::isBadList(comm::Domain domain) {
     const double delta = 10;
-    for (long z = purge_ghost_count_z; z < _size_sub_box_z + purge_ghost_count_z; z++) {
-        for (long y = purge_ghost_count_y; y < _size_sub_box_y + purge_ghost_count_y; y++) {
-            for (long x = purge_ghost_count_x; x < _size_sub_box_x + purge_ghost_count_x; x++) {
+    for (long z = lattice.purge_ghost_count_z; z < lattice._size_sub_box_z + lattice.purge_ghost_count_z; z++) {
+        for (long y = lattice.purge_ghost_count_y; y < lattice._size_sub_box_y + lattice.purge_ghost_count_y; y++) {
+            for (long x = lattice.purge_ghost_count_x; x < lattice._size_sub_box_x + lattice.purge_ghost_count_x; x++) {
                 if (_atoms[z][y][x].x[0] < domain.meas_global_box_coord_region.x_low - delta ||
                     _atoms[z][y][x].x[1] < domain.meas_global_box_coord_region.y_low - delta ||
                     _atoms[z][y][x].x[2] < domain.meas_global_box_coord_region.z_low - delta ||

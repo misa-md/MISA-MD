@@ -37,7 +37,7 @@ const box::_type_flag_32 ws::isOutBox(const AtomElement &src_atom, const comm::D
 AtomElement &ws::findNearLatAtom(AtomList *atom_list, const AtomElement &src_atom, const comm::Domain *p_domain) {
     _type_atom_index coords[DIMENSION];
     getNearLatCoord(src_atom, p_domain, coords);
-    _type_atom_index near_index = atom_list->IndexOf3DIndex(coords[0], coords[1], coords[2]);
+    _type_atom_index near_index = atom_list->lattice.IndexOf3DIndex(coords[0], coords[1], coords[2]);
     return atom_list->getAtomEleByLinearIndex(near_index); // todo return _atoms[l][k][j];
 }
 
@@ -69,7 +69,7 @@ ws::findNearLatIndexInSubBox(AtomList *atom_list, const AtomElement &src_atom, c
     j += 2 * p_domain->lattice_size_ghost[0];
     k += p_domain->lattice_size_ghost[1];
     l += p_domain->lattice_size_ghost[2];
-    return atom_list->IndexOf3DIndex(j, k, l);
+    return atom_list->lattice.IndexOf3DIndex(j, k, l);
 }
 
 void ws::getNearLatCoord(const AtomElement &src_atom, const comm::Domain *p_domain, _type_atom_index coords[DIMENSION]) {

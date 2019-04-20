@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 #include <domain/domain.h>
 #include <atom/inter_atom_list.h>
-#include <atom/ws_utils.h>
+#include <lattice/ws_utils.h>
 
 comm::Domain *buildLocalDomain(const int64_t local_space[DIMENSION],
                          const int grid_size[DIMENSION],

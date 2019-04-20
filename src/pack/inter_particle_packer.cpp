@@ -5,7 +5,7 @@
 
 #include <cstring>
 #include <cassert>
-#include <atom/ws_utils.h>
+#include <lattice/ws_utils.h>
 #include <logs/logs.h>
 #include "atom/inter_atom_list.h"
 #include "inter_particle_packer.h"
