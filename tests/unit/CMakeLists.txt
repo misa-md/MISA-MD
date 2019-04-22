@@ -13,12 +13,14 @@ set(TEST_SOURCE_FILES
         domain_test_utils.h
         main.cpp
         f_test.cpp
-        domain_test.cpp
         atom_iterator.cpp
+        inter_atom_test.cpp
+        lattice/ws_utils_test.cpp
         world_builder_test.cpp
         domain_test_utils.cpp
+        neighbour_index_test.cpp 
+        neighbour_index_iterator_test.cpp
         particledata_test.cpp
-        inter_atom_test.cpp
         )
 
 # set binary path and lib storage path wile compiling process.

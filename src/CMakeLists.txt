@@ -1,6 +1,3 @@
-# vendor include directory
-include_directories(${VENDOR_PATH}/include)
-
 # configure a header file to pass some of the CMake settings to the source code
 configure_file(
         "${PROJECT_SOURCE_DIR}/src/types/pre_config.h.in"
@@ -11,8 +8,6 @@ set(HEADER_FILES
         arch_env.hpp
         atom.h
         atom_dump.h
-        crystal_md.h
-        toml_config.h
         config_values.h
         def_config_values.h
         hardware_accelerate.hpp
@@ -24,16 +19,22 @@ set(HEADER_FILES
         atom/atom_list.h
         atom/atom_set.h
         atom/inter_atom_list.h
-        atom/ws_utils.h
-        domain/domain.h
-        domain/region.hpp
+        atom/neighbour_index.h
+        atom/neighbour_iterator.h
+        lattice/lattice.h
+        lattice/ws_utils.h
         types/atom_types.h
         types/pre_config.h
         types/pre_define.h
         types/atom_info_dump.h
+        pack/df_embed_packer.h
+        pack/force_packer.h
+        pack/inter_border_packer.h
+        pack/inter_particle_packer.h
         pack/lat_particle_data.h
-        pack/pack.h
+        pack/lat_particle_packer.h
         pack/particledata.h
+        pack/rho_packer.h
         utils/mpi_data_types.h
         utils/mpi_domain.h
         utils/rpcc.hpp
@@ -42,8 +43,6 @@ set(HEADER_FILES
 set(SOURCE_FILES
         atom.cpp
         atom_dump.cpp
-        crystal_md.cpp
-        toml_config.cpp
         config_values.cpp
         input.cpp
         newton_motion.cpp
@@ -52,17 +51,24 @@ set(SOURCE_FILES
         atom/atom_element.cpp
         atom/atom_list.cpp
         atom/atom_set.cpp
+        lattice/box.h
         atom/inter_atom_list.cpp
-        atom/inter_atom_list_minor.cpp
-        atom/ws_utils.cpp
-        domain/domain.cpp
+        atom/neighbour_index.inl
+        atom/neighbour_iterator.inl
+        lattice/lattice.cpp
+        lattice/ws_utils.cpp
         types/atom_info_dump.cpp
+        pack/df_embed_packer.cpp
+        pack/force_packer.cpp
+        pack/inter_border_packer.cpp
+        pack/inter_particle_packer.cpp
         pack/lat_particle_data.cpp
-        pack/pack.cpp
+        pack/lat_particle_packer.cpp
         pack/particledata.cpp
+        pack/rho_packer.cpp
         utils/mpi_domain.cpp
         utils/mpi_data_types.cpp
-        atom/box.h)
+        )
 
 
 # set binary path and lib storage path for compiling process.
@@ -77,22 +83,18 @@ target_include_directories(
 )
 target_link_libraries(
         ${MD_LIB_NAME}
-        PUBLIC pot::pot
-        # todo kiwi, fmt.
+        PUBLIC
+        pot::pot
+        comm::comm
+        kiwi::kiwi
+        # fmt is included in kiwi.
 )
-
-add_executable(${EXECUTE_BIN_NAME} main.cpp)
-
-target_link_libraries(${EXECUTE_BIN_NAME}
-        PRIVATE ${MD_LIB_NAME} ${EXTRA_LIBS}
-        )
-
 
 ##########################
 ##### install files
 ##########################
 # install bin and libs
-install(TARGETS ${EXECUTE_BIN_NAME} ${MD_LIB_NAME}
+install(TARGETS ${MD_LIB_NAME}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib

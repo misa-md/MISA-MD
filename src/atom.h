@@ -9,7 +9,8 @@
 #include <vector>
 #include <eam.h>
 
-#include "domain/domain.h"
+#include <domain/domain.h>
+
 #include "atom/atom_set.h"
 #include "atom/atom_element.h"
 #include "atom/atom_list.h"
@@ -19,7 +20,7 @@
 
 class atom : public AtomSet {
 public :
-    atom(Domain *domain);
+    atom(comm::Domain *domain);
 
     /**
      * move atoms to inter-atom list if the atoms is not in its lattice.
@@ -29,7 +30,17 @@ public :
 
     void clearForce();
 
-    void computeEam(eam *pot, Domain *domain, double &comm);
+    void computeEam(eam *pot, comm::Domain *domain, double &comm);
+
+    void latRho(eam *pot, comm::Domain *domain, double &comm);
+
+    void interRho(eam *pot, comm::Domain *domain, double &comm);
+
+    void latDf(eam *pot, comm::Domain *domain, double &comm);
+
+    void latForce(eam *pot, comm::Domain *domain, double &comm);
+
+    void interForce(eam *pot, comm::Domain *domain, double &comm);
 
     /**
      * set velocity of a atom whose position is specified by array @param lat
@@ -43,16 +54,12 @@ public :
      */
     void setv(int lat[4], double direction[3], double energy);
 
-    void print_force();
+    void print_force(const std::string filename);
 
     void sendForce();
 
 private:
-    Domain *p_domain;
-
-    void sendrho();
-
-    void sendDfEmbed();
+    comm::Domain *p_domain;
 
 };
 

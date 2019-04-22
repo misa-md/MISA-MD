@@ -5,14 +5,15 @@
 #include <cmath>
 #include <types/pre_define.h>
 #include <hardware_accelerate.hpp>
+#include <domain/domain.h>
+
 #include "atom_set.h"
 
 AtomSet::AtomSet(const double cutoff_radius,
                  const _type_lattice_size extended_lattice_size[DIMENSION],
                  const _type_lattice_size sub_box_lattice_size[DIMENSION],
                  const _type_lattice_size ghost_lattice_size[DIMENSION])
-        : _cutoffRadius(cutoff_radius),
-          numberoflattice(extended_lattice_size[0] * extended_lattice_size[1] * extended_lattice_size[2]) {
+        : _cutoffRadius(cutoff_radius) {
     // the length of atom array at x direction is doubled due to the special data structure.
     atom_list = new AtomList(extended_lattice_size[0] * 2,
                              extended_lattice_size[1],
@@ -25,61 +26,23 @@ AtomSet::AtomSet(const double cutoff_radius,
                              ghost_lattice_size[2]);
 
     inter_atom_list = new InterAtomList();
+    // create neighbour relative index.
+    neighbours = new NeighbourIndex<AtomElement>(*atom_list);
 }
 
 AtomSet::~AtomSet() {
     delete atom_list;
     delete inter_atom_list;
+    delete neighbours;
 }
 
 void AtomSet::calcNeighbourIndices(const double cutoff_radius_factor, const _type_lattice_size cut_lattice) {
-    double x, y, z;
-    int mark = 0;
-    std::vector<_type_atom_index>::iterator neighbourOffsetsIter;
-    for (_type_atom_index zIndex = -cut_lattice;
-         zIndex <= cut_lattice; zIndex++) { // loop for (2*_cutlattice + 1) times.
-        for (_type_atom_index yIndex = -cut_lattice; yIndex <= cut_lattice; yIndex++) {
-            for (_type_atom_index xIndex = -cut_lattice * 2; xIndex <= cut_lattice * 2; xIndex++) {
-                // 体心
-                z = (double) zIndex + (((double) (xIndex % 2)) / 2); // zIndex plus 1/2 (odd) or 0(even).
-                y = (double) yIndex + (((double) (xIndex % 2)) / 2);
-                x = (double) xIndex / 2;
-                _type_atom_index offset;
-                double r = sqrt(x * x + y * y + z * z);
-                if (r < (cutoff_radius_factor + 0.4)) { // todo 0.4?
-                    offset = atom_list->IndexOf3DIndex(xIndex, yIndex, zIndex);
-                    if (offset > 0) {
-                        NeighbourOffsets.push_back(offset);
-                    }
-                }
-
-                // 晶格点
-                z = (double) zIndex - (((double) (xIndex % 2)) / 2);
-                y = (double) yIndex - (((double) (xIndex % 2)) / 2);
-                x = (double) xIndex / 2;
-                r = sqrt(x * x + y * y + z * z);
-                if (r < (cutoff_radius_factor + 0.4)) {
-                    offset = atom_list->IndexOf3DIndex(xIndex, yIndex, zIndex);
-                    if (offset > 0) {
-                        for (neighbourOffsetsIter = NeighbourOffsets.begin();
-                             neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
-                            if (*neighbourOffsetsIter == offset) {
-                                mark = 1;
-                            }
-                        }
-                        if (mark != 1) {
-                            NeighbourOffsets.push_back(offset);
-                        }
-                        mark = 0;
-                    }
-                }
-            }
-        }
-    }
+    neighbours->make(cut_lattice, cutoff_radius_factor);
 }
 
 void
-AtomSet::addAtom(Domain *p_domain, _type_atom_id id, double rx, double ry, double rz, double vx, double vy, double vz) {
+AtomSet::addAtom(comm::Domain *p_domain, _type_atom_id id,
+                 double rx, double ry, double rz, double vx, double vy, double vz) {
     int i;
     if ((rx >= p_domain->meas_sub_box_region.x_low) &&
         (rx < p_domain->meas_sub_box_region.x_high) &&
@@ -109,7 +72,40 @@ AtomSet::addAtom(Domain *p_domain, _type_atom_id id, double rx, double ry, doubl
     }
 }
 
-_type_atom_count AtomSet::getnlocalatom(Domain *p_domain) {
+_type_atom_count AtomSet::getnlocalatom(comm::Domain *p_domain) {
     return (p_domain->lattice_size_sub_box[0] * p_domain->lattice_size_sub_box[1] *
             p_domain->lattice_size_sub_box[2]);
 }
+
+#ifdef MD_DEV_MODE
+
+std::array<_type_atom_force, DIMENSION> AtomSet::systemForce() {
+    _type_atom_force force_x = 0.0, force_y = 0.0, force_z = 0.0;
+    atom_list->foreachSubBoxAtom([&force_x, &force_y, &force_z](AtomElement &_atom_ref) {
+        if (_atom_ref.type != atom_type::INVALID) {
+            force_x += _atom_ref.f[0];
+            force_y += _atom_ref.f[1];
+            force_z += _atom_ref.f[2];
+        }
+    });
+    for (AtomElement &atom_ele:inter_atom_list->inter_list) {
+        force_x += atom_ele.f[0];
+        force_y += atom_ele.f[1];
+        force_z += atom_ele.f[2];
+    }
+    return std::array<_type_atom_force, DIMENSION>{force_x, force_y, force_z};
+}
+
+_type_atom_count AtomSet::realAtoms() {
+    _type_atom_count count = 0;
+    atom_list->foreachSubBoxAtom(
+            [&count](AtomElement &_atom_ref) {
+                if (_atom_ref.type != atom_type::INVALID) {
+                    count++;
+                }
+            }
+    );
+    return count;
+}
+
+#endif

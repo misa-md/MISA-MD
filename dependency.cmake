@@ -41,4 +41,3 @@ MESSAGE(STATUS "pthread is used.")
 
 
 include(pkg.dep.cmake)
-set(EXTRA_LIBS fmt kiwi ${EXTRA_LIBS})

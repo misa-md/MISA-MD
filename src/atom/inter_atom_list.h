@@ -7,16 +7,22 @@
 
 #include <vector>
 #include <list>
-#include "domain/domain.h"
+#include <unordered_map>
+#include <domain/domain.h>
+
+#include "atom_list.h"
 #include "atom_element.h"
 #include "../pack/particledata.h"
 #include "../pack/lat_particle_data.h"
 #include "../types/pre_define.h"
 #include "../types/atom_types.h"
-#include "box.h"
+#include "lattice/box.h"
 
 typedef std::list<AtomElement> _type_inter_list;
 typedef std::vector<std::vector<AtomElement *> > _type_inter_buf;
+typedef std::pair<std::unordered_multimap<_type_atom_index, AtomElement *>::iterator,
+        std::unordered_multimap<_type_atom_index, AtomElement *>::iterator> inter_map_range;
+typedef std::unordered_multimap<_type_atom_index, AtomElement *>::iterator inter_map_range_itl;
 
 /**
  * storing inter atoms
@@ -28,8 +34,10 @@ public:
     size_t nlocalinter; // 本地间隙原子数
     size_t nghostinter; // ghost间隙原子数
 
-    _type_inter_buf intersendlist;
+    _type_inter_buf intersendlist; // the atoms to be send to other processes as ghost.
     _type_inter_buf interrecvlist;
+
+    std::unordered_multimap<_type_atom_index, AtomElement *> inter_map;
 
     InterAtomList();
 
@@ -42,83 +50,32 @@ public:
      */
     void addInterAtom(AtomElement &atom);
 
+    /**
+     * insert an atom into ghost list, and return the atom pointer inserted.
+     * @param ghost_atom ref of ghost atom.
+     * @return the pointer inserted in atom list.
+     */
+    AtomElement *addGhostAtom(AtomElement &ghost_atom);
+
     inline size_t nLocalInter() {
         return nlocalinter;
     }
 
-    void exchangeInter(Domain *p_domain);
-
-    void borderInter(Domain *p_domain);
+    void exchangeInter(comm::Domain *p_domain);
 
     /**
-     * pointer of element in atom_list (pointer of {@class AtomElement}).
-     * // todo use avl tree.
-     * // todo use pointer.
+     * setup ghost area for inter atoms.
+     * send inter atoms in simulation area that are contributed to ghost area of other processes.
+     * @param p_domain pointer of domain
      */
-private:
-    void pack_bordersend(int dimension, int n, std::vector<AtomElement *> &sendlist,
-                         LatParticleData *buf, double shift);
+    void borderInter(comm::Domain *p_domain);
 
-    void unpack_borderrecv(int n, const double lower[DIMENSION], // p_domain->getMeasuredGhostLowerBounding(d)
-                           const double upper[DIMENSION], // p_domain->getMeasuredGhostUpperBounding(d)
-                           LatParticleData *buf, std::vector<AtomElement *> &recvlist);
+    void makeIndex(AtomList *atom_list, const comm::Domain *p_domain);
 
-    unsigned long getinteridsendsize();
+    _type_inter_list::iterator removeInter(_type_inter_list::iterator);
 
-    /**
-     * If some inter atoms get into ghost area of neighbour processors(they are still in local box.),
-     * those atoms should be send to neighbour processors
-     * (neighbour processors will save those atoms as ghost intel atoms).
-     * We call those atoms as "neighbour ghost intel atom".
-     *
-     * @brief This method will record those atoms.
-     * @param p_domain pointer of simulation domain
-     * @param d dimension 0,1,2 of 3d. @param d values = {0,1,2}
-     * @param direction direction of LOW or HIGH. One direction has 2 direction(such as up and down, back and front, left and right).
-     * @param ghostlengh the measured length of ghost area.
-     * @param sendlist the atoms to be send will be saved in this data.
-     */
-    void getIntertosend(Domain *p_domain, int d, int direction,
-                        double ghostlengh, std::vector<AtomElement *> &sendlist);
+    void clearGhost();
 
-    /**
-     * count the size of out-of-box inter atoms.
-     * @param p_domain  pointer of simulation domain
-     * @param n_to_send  the number of out-of-box inter atoms will be stored in each dimension and each direction.
-     */
-    void countExSendNum(Domain *p_domain, int n_to_send[DIMENSION][2]);
-
-    /**
-     * If some inter atoms get out of box, those atom is no more in current dox of current processor.
-     * they should be send to corresponding neighbour processors.
-     * The out-of-box atoms will be removed from @memberof inter_list in this function.
-     *
-     * @param p_domain pointer of simulation domain.
-     * @param buf the buffer to save the out-of-box atoms.
-     * @param dimension dimension of 3d. @param d values = {0,1,2}
-     * @param direction direction of LOW or HIGH.
-     */
-    void packExInterToSend(Domain *p_domain, particledata *buf, int dimension, int direction,
-                           box::_type_flag_32 excepted_flag[DIMENSION][2], double offset[DIMENSION]);
-
-    /**
-     * unpack exchanged inter atoms data, and save the inter atoms to local inter atom list.
-     *
-     * @note that we use a delay buffer to recoder the inter atom that is not in this box.
-     * those atoms will be written into inter atoms list after exchange finished (delay write).
-     * Assume that we write those atoms directly, it will cause some faults:
-     * If we save those atoms into inter atom list directly,
-     * later communication of other direction or dimension may count those atoms and send them to other processors,
-     * but the communication data size (count of atoms to be send to other processors) is precomputed,
-     * which can make the data exchange messy.
-     *
-     * @param buf data buffer
-     * @param delay_buffer reference of delay buffer
-     * @param n the count of inter atoms in @param buf
-     */
-    void unpackExInterRecv(Domain *p_domain, particledata *buf,
-                           std::list<AtomElement> &delay_buffer,
-                           int n);
 
 };
 

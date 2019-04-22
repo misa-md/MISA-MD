@@ -5,9 +5,9 @@
 #include <gtest/gtest.h>
 #include <domain/domain.h>
 #include <atom/inter_atom_list.h>
-#include <atom/ws_utils.h>
+#include <lattice/ws_utils.h>
 
-Domain *buildLocalDomain(const int64_t local_space[DIMENSION],
+comm::Domain *buildLocalDomain(const int64_t local_space[DIMENSION],
                          const int grid_size[DIMENSION],
                          const int grid_coord[DIMENSION],
                          const double lattice_const = 0.86,
@@ -16,7 +16,7 @@ Domain *buildLocalDomain(const int64_t local_space[DIMENSION],
     const int64_t space[3] = {local_space[0] * grid_size[0],
                               local_space[1] * grid_size[1],
                               local_space[2] * grid_size[2]};
-    return Domain::Builder()
+    return comm::Domain::Builder()
             .setPhaseSpace(space)
             .setCutoffRadius(cutoff_radius_factor)
             .setLatticeConst(lattice_const)
@@ -29,7 +29,7 @@ TEST(inter_atom_test_isInBox_litter, inter_atom_Test) {
     const int grid_size[3] = {2, 2, 2};
     const int grid_coord[3] = {0, 0, 0};
     const int64_t local_space[3] = {50, 60, 72};
-    Domain *p_domain = buildLocalDomain(local_space, grid_size, grid_coord, lattice_const, cutoff_factor);
+    comm::Domain *p_domain = buildLocalDomain(local_space, grid_size, grid_coord, lattice_const, cutoff_factor);
 
     AtomElement atom;
     // test in box
@@ -68,7 +68,7 @@ TEST(inter_atom_test_isInBox_big, inter_atom_Test) {
     const int grid_size[3] = {2, 2, 1};
     const int grid_coord[3] = {1, 1, 0};
     const int64_t local_space[3] = {25, 25, 50};
-    Domain *p_domain = buildLocalDomain(local_space, grid_size, grid_coord, lattice_const, cutoff_factor);
+    comm::Domain *p_domain = buildLocalDomain(local_space, grid_size, grid_coord, lattice_const, cutoff_factor);
 
     AtomElement atom;
     // test in box

@@ -7,14 +7,16 @@
 #include <utils/mpi_domain.h>
 #include <logs/logs.h>
 #include <eam.h>
+#include <comm.hpp>
 
 #include "atom.h"
-#include "atom/ws_utils.h"
-#include "pack/pack.h"
-#include "toml_config.h"
+#include "lattice/ws_utils.h"
+#include "pack/rho_packer.h"
+#include "pack/force_packer.h"
+#include "pack/df_embed_packer.h"
 #include "hardware_accelerate.hpp" // use hardware(eg.GPU, MIC,Sunway slave cores.) to achieve calculate accelerating.
 
-atom::atom(Domain *domain)
+atom::atom(comm::Domain *domain)
         : AtomSet(domain->lattice_const * domain->cutoff_radius_factor,
                   domain->lattice_size_ghost_extended,
                   domain->lattice_size_sub_box,
@@ -37,9 +39,8 @@ atom::atom(Domain *domain)
 }
 
 int atom::decide() {
-    inter_atom_list->nghostinter = 0;
+    inter_atom_list->clearGhost();
     int nflag = 0;
-    long kk = 0;
     double dist;
     double xtemp, ytemp, ztemp;
 
@@ -94,8 +95,7 @@ int atom::decide() {
             near_atom->v[2] = inter_ref.v[2];
 
             // remove this atom from inter list.
-            inter_it = inter_atom_list->inter_list.erase(inter_it);
-            inter_atom_list->nlocalinter--;
+            inter_it = inter_atom_list->removeInter(inter_it);
         } else {
             inter_it++;
         }
@@ -104,7 +104,7 @@ int atom::decide() {
 }
 
 void atom::clearForce() {
-    for (_type_atom_index i = 0; i < numberoflattice; i++) {
+    for (_type_atom_index i = 0; i < atom_list->size(); i++) {
         AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(i);
         atom_.f[0] = 0;
         atom_.f[1] = 0;
@@ -119,16 +119,98 @@ void atom::clearForce() {
     }
 }
 
-void atom::computeEam(eam *pot, Domain *domain, double &comm) {
+void atom::computeEam(eam *pot, comm::Domain *domain, double &comm) {
     double starttime, stoptime;
+    inter_atom_list->makeIndex(atom_list, p_domain); // create index for inter atom and inter ghost atoms.
+
+    latRho(pot, domain, comm);
+    interRho(pot, domain, comm);
+//    ofstream outfile;
+    /* char tmp[20];
+    sprintf(tmp, "electron_density.atom");
+    outfile.open(tmp);
+    int j, k, l;
+    for(int k =0; k < p_domain->getSubBoxLatticeSize(2) ; k++){
+            for(int j = 0; j < p_domain->getSubBoxLatticeSize(1); j++){
+                    for(int i =0; i < p_domain->getSubBoxLatticeSize(0) ; i++){
+                             AtomElement &atom_ = atom_list->getAtomEleBySubBoxIndex(i,j,k);
+                            if(!atom_.isInterElement())
+                                    outfile << atom_.electron_density << std::endl;
+                    }
+            }
+    }
+for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
+    outfile << rho_spline->spline[i][6] << std::endl;
+} // 1. todo remove end.
+    outfile.close();*/
+
+    {
+        // 发送电子云密度
+        // 将ghost区域的粒子的电子云密度发送给其所在的进程，得到完整的电子云密度
+        starttime = MPI_Wtime();
+        RhoPacker rho_packer(getAtomListRef(), atom_list->sendlist, atom_list->recvlist);
+        comm::neiSendReceive<double, MPI_DOUBLE>(&rho_packer, MPIDomain::toCommProcess(),
+                                                 p_domain->rank_id_neighbours, true);
+        stoptime = MPI_Wtime();
+        comm = stoptime - starttime;
+    }
+
+    /*sprintf(tmp, "rho2.atom");
+    outfile;
+    outfile.open(tmp);
+    int j, k, l;
+    for(int k =0; k < p_domain->getSubBoxLatticeSize(2) ; k++){
+            for(int j = 0; j < p_domain->getSubBoxLatticeSize(1); j++){
+                    for(int i =0; i < p_domain->getSubBoxLatticeSize(0) ; i++){
+                             AtomElement &atom_ = atom_list->getAtomEleBySubBoxIndex(i,j,k);
+                            if(!atom_.isInterElement())
+                                    outfile << atom_.electron_density << std::endl;
+                    }
+            }
+    }
+    outfile.close();*/
+
+    //本地晶格点计算嵌入能导数
+    latDf(pot, domain, comm);
+
+    /*sprintf(tmp, "df.atom");
+    outfile.open(tmp);
+    for(int i = 0; i < f_spline->n; i++){
+        outfile << i << " " << f_spline->spline[i][6] << std::endl;
+    }
+    outfile.close();*/
+
+    {
+        // 发送嵌入能导数
+        // 将本地box属于邻居进程ghost区域的粒子的嵌入能导数发送给邻居进程
+        starttime = MPI_Wtime();
+        DfEmbedPacker packer(getAtomListRef(), *inter_atom_list,
+                             atom_list->sendlist, atom_list->recvlist,
+                             inter_atom_list->intersendlist,
+                             inter_atom_list->interrecvlist);
+        comm::neiSendReceive<double, MPI_DOUBLE>(&packer, MPIDomain::toCommProcess(), p_domain->rank_id_neighbours);
+        stoptime = MPI_Wtime();
+        comm += stoptime - starttime;
+    }
+
+    // force for local lattice.
+    latForce(pot, domain, comm);
+
+    /*sprintf(tmp, "f.atom");  // 2.todo remove start.
+      outfile.open(tmp);
+      for(int i = 0; i < phi_spline->n; i++){
+         outfile << i << " " << phi_spline->spline[i][6] << std::endl;
+      }
+      outfile.close();*/ // 2.todo remove end.
+    //间隙原子计算嵌入能和对势带来的力
+    interForce(pot, domain, comm);
+}
+
+void atom::latRho(eam *pot, comm::Domain *domain, double &comm) {
     double xtemp, ytemp, ztemp;
     double delx, dely, delz;
-    std::vector<_type_atom_index>::iterator neighbourOffsetsIter;
-    _type_atom_index n;
-    double dist2;
-    double rhoTmp, dfEmbed;
-    double fpair;
     _type_atom_index kk;
+    double dist2;
     int xstart = p_domain->dbx_lattice_size_ghost[0];
     int ystart = p_domain->dbx_lattice_size_ghost[1];
     int zstart = p_domain->dbx_lattice_size_ghost[2];
@@ -141,7 +223,7 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
         for (int k = zstart; k < p_domain->dbx_lattice_size_sub_box[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_lattice_size_sub_box[1] + ystart; j++) {
                 for (int i = xstart; i < p_domain->dbx_lattice_size_sub_box[0] + xstart; i++) {
-                    kk = atom_list->IndexOf3DIndex(i, j, k);
+                    kk = atom_list->lattice.IndexOf3DIndex(i, j, k);
                     AtomElement &atom_central = atom_list->getAtomEleByLinearIndex(kk);
                     xtemp = atom_central.x[0];
                     ytemp = atom_central.x[1];
@@ -149,10 +231,10 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
                     if (!atom_central.isInterElement()) {
                         //对晶格点邻居原子遍历
                         // only consider the atoms whose id is bigger than {@var atom_central}, just single side.
-                        for (neighbourOffsetsIter = NeighbourOffsets.begin();
-                             neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
-                            n = (kk + *neighbourOffsetsIter);
-                            AtomElement &atom_neighbour = atom_list->getAtomEleByLinearIndex(n);
+                        AtomNei::iterator nei_itl_end = neighbours->end(true, i, j, k);
+                        for (AtomNei::iterator nei_itl = neighbours->begin(true, i, j, k);
+                             nei_itl != nei_itl_end; ++nei_itl) {
+                            AtomElement &atom_neighbour = *nei_itl;
                             if (atom_neighbour.isInterElement()) {
                                 continue;
                             }
@@ -173,6 +255,14 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
             }
         }
     }
+}
+
+void atom::interRho(eam *pot, comm::Domain *domain, double &comm) {
+    double delx, dely, delz;
+    double dist2;
+    double dfEmbed;
+
+    std::vector<_type_atom_index>::iterator neighbourOffsetsIter;
 
     //间隙原子电子云密度
     _type_atom_index near_atom_index;
@@ -196,104 +286,61 @@ void atom::computeEam(eam *pot, Domain *domain, double &comm) {
             // fixme
         }
 
-        for (neighbourOffsetsIter = NeighbourOffsets.begin();
-             neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
-            //计算间隙原子的所有邻居
-            n = (near_atom_index + *neighbourOffsetsIter);
-            AtomElement &atom_neighbour_up = atom_list->getAtomEleByLinearIndex(n);
-            if (!atom_neighbour_up.isInterElement()) {
-                delx = (*inter_it).x[0] - atom_neighbour_up.x[0];
-                dely = (*inter_it).x[1] - atom_neighbour_up.x[1];
-                delz = (*inter_it).x[2] - atom_neighbour_up.x[2];
+        _type_atom_index x, y, z;
+        atom_list->lattice.get3DIndexByLinearIndex(near_atom_index, x, y, z);
+        // rho between inter atoms and lattice atoms (use full neighbour index).
+        AtomNei::iterator nei_full_itl_end = neighbours->end(false, x, y, z);
+        for (AtomNei::iterator nei_itl = neighbours->begin(false, x, y, z);
+             nei_itl != nei_full_itl_end; ++nei_itl) {
+            AtomElement &lat_nei_atom = *nei_itl; // this is a lattice atom.
+            if (!lat_nei_atom.isInterElement()) {
+                delx = (*inter_it).x[0] - lat_nei_atom.x[0];
+                dely = (*inter_it).x[1] - lat_nei_atom.x[1];
+                delz = (*inter_it).x[2] - lat_nei_atom.x[2];
                 dist2 = delx * delx + dely * dely + delz * delz;
                 if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                     (*inter_it).rho += pot->rhoContribution(
-                            atom_type::getTypeIdByType(atom_neighbour_up.type), dist2);
-                    atom_neighbour_up.rho += pot->rhoContribution(
+                            atom_type::getTypeIdByType(lat_nei_atom.type), dist2);
+                    lat_nei_atom.rho += pot->rhoContribution(
                             atom_type::getTypeIdByType((*inter_it).type), dist2);
                     // fixme
                 }
             }
+        }
 
-            n = (near_atom_index - *neighbourOffsetsIter);
-            AtomElement &atom_neighbour_down = atom_list->getAtomEleByLinearIndex(n);
-            if (!atom_neighbour_down.isInterElement()) {
-                delx = (*inter_it).x[0] - atom_neighbour_down.x[0];
-                dely = (*inter_it).x[1] - atom_neighbour_down.x[1];
-                delz = (*inter_it).x[2] - atom_neighbour_down.x[2];
+        // rho between inter atoms and inter atoms (use full neighbour index).
+        AtomNei::iterator nei_half_itl_end = neighbours->end(false, x, y, z);
+        for (AtomNei::iterator nei_itl = neighbours->begin(false, x, y, z);
+             nei_itl != nei_half_itl_end; ++nei_itl) {
+            const _type_atom_index inter_nei_id = atom_list->lattice.IndexOf3DIndex(
+                    nei_itl.cur_index_x, nei_itl.cur_index_y,
+                    nei_itl.cur_index_z); // get index of the neighbour lattice.
+            // get intel atoms on this neighbour lattice and calculate inter-rho.
+            inter_map_range inter_map_range = inter_atom_list->inter_map.equal_range(inter_nei_id);
+            for (inter_map_range_itl itl = inter_map_range.first; itl != inter_map_range.second; ++itl) {
+                delx = (*inter_it).x[0] - itl->second->x[0];
+                dely = (*inter_it).x[1] - itl->second->x[1];
+                delz = (*inter_it).x[2] - itl->second->x[2];
                 dist2 = delx * delx + dely * dely + delz * delz;
                 if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                    (*inter_it).rho += pot->rhoContribution(
-                            atom_type::getTypeIdByType(atom_neighbour_down.type), dist2);
-                    atom_neighbour_down.rho += pot->rhoContribution(
-                            atom_type::getTypeIdByType((*inter_it).type), dist2);
-                    // fixme
+                    (*inter_it).rho += pot->rhoContribution(atom_type::getTypeIdByType(itl->second->type), dist2);
+//                    itl->second->rho += pot->rhoContribution(atom_type::getTypeIdByType((*inter_it).type), dist2);
                 }
             }
         }
-        //对间隙原子遍历
-        for (_type_inter_list::iterator next_inter_it = std::next(inter_it, 1);
-             next_inter_it != inter_atom_list->inter_ghost_list.end(); next_inter_it++) {
-            if (next_inter_it == inter_atom_list->inter_list.end()) {
-                next_inter_it = inter_atom_list->inter_ghost_list.begin();
-            }
-            delx = (*inter_it).x[0] - (*next_inter_it).x[0];
-            dely = (*inter_it).x[1] - (*next_inter_it).x[1];
-            delz = (*inter_it).x[2] - (*next_inter_it).x[2];
-            dist2 = delx * delx + dely * dely + delz * delz;
-            if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                (*inter_it).rho += pot->rhoContribution(atom_type::getTypeIdByType((*next_inter_it).type), dist2);
-                (*next_inter_it).rho += pot->rhoContribution(atom_type::getTypeIdByType((*inter_it).type), dist2);
-                // fixme
-            }
-        }
-        // todo inter ghost atoms -> cell atoms
         //计算间隙原子嵌入能导数
         // fixme
         dfEmbed = pot->embedEnergyContribution(atom_type::getTypeIdByType((*inter_it).type), (*inter_it).rho);
         (*inter_it).df = dfEmbed;
     }
+}
 
-//    ofstream outfile;
-    /* char tmp[20];
-    sprintf(tmp, "electron_density.atom");
-    outfile.open(tmp);
-    int j, k, l;
-    for(int k =0; k < p_domain->getSubBoxLatticeSize(2) ; k++){
-            for(int j = 0; j < p_domain->getSubBoxLatticeSize(1); j++){
-                    for(int i =0; i < p_domain->getSubBoxLatticeSize(0) ; i++){
-                             AtomElement &atom_ = atom_list->getAtomEleBySubBoxIndex(i,j,k);
-                            if(!atom_.isInterElement())
-                                    outfile << atom_.electron_density << std::endl;
-                    }
-            }
-    }
-for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
-    outfile << rho_spline->spline[i][6] << std::endl;
-} // 1. todo remove end.
-    outfile.close();*/
-
-    // 发送电子云密度
-    // 将ghost区域的粒子的电子云密度发送给其所在的进程，得到完整的电子云密度
-    starttime = MPI_Wtime();
-    sendrho();
-    stoptime = MPI_Wtime();
-    comm = stoptime - starttime;
-
-    /*sprintf(tmp, "rho2.atom");
-    outfile;
-    outfile.open(tmp);
-    int j, k, l;
-    for(int k =0; k < p_domain->getSubBoxLatticeSize(2) ; k++){
-            for(int j = 0; j < p_domain->getSubBoxLatticeSize(1); j++){
-                    for(int i =0; i < p_domain->getSubBoxLatticeSize(0) ; i++){
-                             AtomElement &atom_ = atom_list->getAtomEleBySubBoxIndex(i,j,k);
-                            if(!atom_.isInterElement())
-                                    outfile << atom_.electron_density << std::endl;
-                    }
-            }
-    }
-    outfile.close();*/
+void atom::latDf(eam *pot, comm::Domain *domain, double &comm) {
+    double dfEmbed;
+    int xstart = p_domain->dbx_lattice_size_ghost[0];
+    int ystart = p_domain->dbx_lattice_size_ghost[1];
+    int zstart = p_domain->dbx_lattice_size_ghost[2];
+    _type_atom_index kk;
 
     //本地晶格点计算嵌入能导数
     if (isAccelerateSupport()) {
@@ -303,7 +350,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
         for (int k = zstart; k < p_domain->dbx_lattice_size_sub_box[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_lattice_size_sub_box[1] + ystart; j++) {
                 for (int i = xstart; i < p_domain->dbx_lattice_size_sub_box[0] + xstart; i++) {
-                    kk = atom_list->IndexOf3DIndex(i, j, k);
+                    kk = atom_list->lattice.IndexOf3DIndex(i, j, k);
                     AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
                     if (atom_.isInterElement()) {
                         continue;
@@ -314,20 +361,20 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             }
         }
     }
+}
 
-    /*sprintf(tmp, "df.atom");
-    outfile.open(tmp);
-    for(int i = 0; i < f_spline->n; i++){
-        outfile << i << " " << f_spline->spline[i][6] << std::endl;
-    }
-    outfile.close();*/
+void atom::latForce(eam *pot, comm::Domain *domain, double &comm) {
+    double xtemp, ytemp, ztemp;
+    double delx, dely, delz;
+    _type_atom_index kk;
+    double dist2;
+    double fpair;
 
-    // 发送嵌入能导数
-    // 将本地box属于邻居进程ghost区域的粒子的嵌入能导数发送给邻居进程
-    starttime = MPI_Wtime();
-    sendDfEmbed();
-    stoptime = MPI_Wtime();
-    comm += stoptime - starttime;
+    int xstart = p_domain->dbx_lattice_size_ghost[0];
+    int ystart = p_domain->dbx_lattice_size_ghost[1];
+    int zstart = p_domain->dbx_lattice_size_ghost[2];
+
+    std::vector<_type_atom_index>::iterator neighbourOffsetsIter;
 
     if (isAccelerateSupport()) {
 //    fixme    accelerateEamForceCalc(nullptr, atom_list, &_cutoffRadius,
@@ -350,7 +397,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
         for (int k = zstart; k < p_domain->dbx_lattice_size_sub_box[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_lattice_size_sub_box[1] + ystart; j++) {
                 for (int i = xstart; i < p_domain->dbx_lattice_size_sub_box[0] + xstart; i++) {
-                    kk = atom_list->IndexOf3DIndex(i, j, k);
+                    kk = atom_list->lattice.IndexOf3DIndex(i, j, k);
                     AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
                     xtemp = atom_.x[0];
                     ytemp = atom_.x[1];
@@ -358,11 +405,12 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                     if (atom_.isInterElement()) {
                         continue;
                     }
+
                     //对晶格点邻居原子遍历
-                    for (neighbourOffsetsIter = NeighbourOffsets.begin();
-                         neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
-                        n = (kk + *neighbourOffsetsIter); // todo what it is inter atom?
-                        AtomElement &atom_n = atom_list->getAtomEleByLinearIndex(n);
+                    AtomNei::iterator nei_itl_end = neighbours->end(true, i, j, k);
+                    for (AtomNei::iterator nei_itl = neighbours->begin(true, i, j, k);
+                         nei_itl != nei_itl_end; ++nei_itl) {
+                        AtomElement &atom_n = *nei_itl;
                         delx = xtemp - atom_n.x[0];
                         dely = ytemp - atom_n.x[1];
                         delz = ztemp - atom_n.x[2];
@@ -386,13 +434,12 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             }
         }
     } // end of if-isAccelerateSupport.
+}
 
-    /*sprintf(tmp, "f.atom");  // 2.todo remove start.
-      outfile.open(tmp);
-      for(int i = 0; i < phi_spline->n; i++){
-         outfile << i << " " << phi_spline->spline[i][6] << std::endl;
-      }
-      outfile.close();*/ // 2.todo remove end.
+void atom::interForce(eam *pot, comm::Domain *domain, double &comm) {
+    double delx, dely, delz;
+    double dist2;
+    double fpair;
 
     //间隙原子计算嵌入能和对势带来的力
     _type_atom_index _atom_near_index;
@@ -407,7 +454,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
         AtomElement &atom_central = atom_list->getAtomEleByLinearIndex(_atom_near_index);
 
         delx = (*inter_it).x[0] - atom_central.x[0];
-        dely = (*inter_it).x[1]  - atom_central.x[1];
+        dely = (*inter_it).x[1] - atom_central.x[1];
         delz = (*inter_it).x[2] - atom_central.x[2];
         dist2 = delx * delx + dely * dely + delz * delz;
         if (dist2 < (_cutoffRadius * _cutoffRadius) && !atom_central.isInterElement()) {
@@ -425,108 +472,85 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
             atom_central.f[1] -= dely * fpair;
             atom_central.f[2] -= delz * fpair;
         }
-        for (neighbourOffsetsIter = NeighbourOffsets.begin();
-             neighbourOffsetsIter != NeighbourOffsets.end(); neighbourOffsetsIter++) {
-            //计算间隙原子的所有邻居
-            n = (_atom_near_index + *neighbourOffsetsIter);
-            AtomElement &atom_neighbour_up = atom_list->getAtomEleByLinearIndex(n);
-            delx = (*inter_it).x[0] - atom_neighbour_up.x[0];
-            dely = (*inter_it).x[1]  - atom_neighbour_up.x[1];
-            delz = (*inter_it).x[2] - atom_neighbour_up.x[2];
+
+        _type_atom_index x, y, z;
+        atom_list->lattice.get3DIndexByLinearIndex(_atom_near_index, x, y, z);
+        // force between inter atoms and lattice atoms (use full neighbour index).
+        AtomNei::iterator nei_full_itl_end = neighbours->end(false, x, y, z);
+        for (AtomNei::iterator nei_itl = neighbours->begin(false, x, y, z);
+             nei_itl != nei_full_itl_end; ++nei_itl) {
+            AtomElement &lattice_neighbour = *nei_itl; // this is a lattice atom.
+            delx = (*inter_it).x[0] - lattice_neighbour.x[0];
+            dely = (*inter_it).x[1] - lattice_neighbour.x[1];
+            delz = (*inter_it).x[2] - lattice_neighbour.x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
-            if (dist2 < (_cutoffRadius * _cutoffRadius) && !atom_neighbour_up.isInterElement()) {
+            if (dist2 < (_cutoffRadius * _cutoffRadius) && !lattice_neighbour.isInterElement()) {
                 // fixme
                 fpair = pot->toForce(
                         atom_type::getTypeIdByType((*inter_it).type),
-                        atom_type::getTypeIdByType(atom_neighbour_up.type),
-                        dist2, (*inter_it).df + atom_neighbour_up.df);
+                        atom_type::getTypeIdByType(lattice_neighbour.type),
+                        dist2, (*inter_it).df + lattice_neighbour.df);
 
                 (*inter_it).f[0] += delx * fpair;
                 (*inter_it).f[1] += dely * fpair;
                 (*inter_it).f[2] += delz * fpair;
 
-                atom_neighbour_up.f[0] -= delx * fpair;
-                atom_neighbour_up.f[1] -= dely * fpair;
-                atom_neighbour_up.f[2] -= delz * fpair;
-            }
-            n = (_atom_near_index - *neighbourOffsetsIter);
-            AtomElement &atom_neighbour_down = atom_list->getAtomEleByLinearIndex(n);
-
-            delx = (*inter_it).x[0] - atom_neighbour_down.x[0];
-            dely = (*inter_it).x[1]  - atom_neighbour_down.x[1];
-            delz = (*inter_it).x[2] - atom_neighbour_down.x[2];
-            dist2 = delx * delx + dely * dely + delz * delz;
-            if (dist2 < (_cutoffRadius * _cutoffRadius && !atom_neighbour_down.isInterElement())) {
-                // fixme
-                fpair = pot->toForce(
-                        atom_type::getTypeIdByType((*inter_it).type),
-                        atom_type::getTypeIdByType(atom_neighbour_down.type),
-                        dist2, (*inter_it).df + atom_neighbour_down.df);
-
-                (*inter_it).f[0] += delx * fpair;
-                (*inter_it).f[1] += dely * fpair;
-                (*inter_it).f[2] += delz * fpair;
-
-                atom_neighbour_down.f[0] -= delx * fpair;
-                atom_neighbour_down.f[1] -= dely * fpair;
-                atom_neighbour_down.f[2] -= delz * fpair;
+                lattice_neighbour.f[0] -= delx * fpair;
+                lattice_neighbour.f[1] -= dely * fpair;
+                lattice_neighbour.f[2] -= delz * fpair;
             }
         }
-        //对间隙原子遍历
-        for (_type_inter_list::iterator next_inter_it = std::next(inter_it, 1);
-             next_inter_it != inter_atom_list->inter_ghost_list.end(); next_inter_it++) {
-            if (next_inter_it == inter_atom_list->inter_list.end()) {
-                next_inter_it = inter_atom_list->inter_ghost_list.begin();
-            }
-            // for (int k = i + 1; k < (inter_atom_list->nghostinter + inter_atom_list->nlocalinter); k++) {
-            delx = (*inter_it).x[0] - (*next_inter_it).x[0];
-            dely = (*inter_it).x[1]  - (*next_inter_it).x[1];
-            delz = (*inter_it).x[2] - (*next_inter_it).x[2];
-            dist2 = delx * delx + dely * dely + delz * delz;
-            if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                // fixme
-                fpair = pot->toForce(
-                        atom_type::getTypeIdByType((*inter_it).type),
-                        atom_type::getTypeIdByType((*next_inter_it).type),
-                        dist2, (*inter_it).df + (*next_inter_it).df);
+        // force between inter atoms and inter atoms(including inter ghost atom) (use full neighbour index).
+        AtomNei::iterator nei_half_itl_end = neighbours->end(false, x, y, z);
+        for (AtomNei::iterator nei_itl = neighbours->begin(false, x, y, z);
+             nei_itl != nei_half_itl_end; ++nei_itl) {
+            const _type_atom_index inter_nei_id = atom_list->lattice.IndexOf3DIndex(
+                    nei_itl.cur_index_x, nei_itl.cur_index_y,
+                    nei_itl.cur_index_z); // get index of the neighbour lattice.
+            inter_map_range inter_map_range_up = inter_atom_list->inter_map.equal_range(inter_nei_id);
+            // fixme neighbour atoms in the same bucket.
+            for (inter_map_range_itl itl_up = inter_map_range_up.first;
+                 itl_up != inter_map_range_up.second; ++itl_up) {
+                delx = (*inter_it).x[0] - itl_up->second->x[0];
+                dely = (*inter_it).x[1] - itl_up->second->x[1];
+                delz = (*inter_it).x[2] - itl_up->second->x[2];
+                dist2 = delx * delx + dely * dely + delz * delz;
+                if (dist2 < (_cutoffRadius * _cutoffRadius)) {
+                    fpair = pot->toForce(
+                            atom_type::getTypeIdByType((*inter_it).type),
+                            atom_type::getTypeIdByType(itl_up->second->type),
+                            dist2, (*inter_it).df + itl_up->second->df);
 
-                (*inter_it).f[0] += delx * fpair;
-                (*inter_it).f[1] += dely * fpair;
-                (*inter_it).f[2] += delz * fpair;
+                    (*inter_it).f[0] += delx * fpair;
+                    (*inter_it).f[1] += dely * fpair;
+                    (*inter_it).f[2] += delz * fpair;
 
-                (*next_inter_it).f[0] -= delx * fpair;
-                (*next_inter_it).f[1] -= dely * fpair;
-                (*next_inter_it).f[2] -= delz * fpair;
+//                    itl_up->second->f[0] -= delx * fpair;
+//                    itl_up->second->f[1] -= dely * fpair;
+//                    itl_up->second->f[2] -= delz * fpair;
+                }
             }
         }
     }
 }
 
-void atom::print_force() {
-    char tmp[20];
-    sprintf(tmp, "force.txt");
+void atom::print_force(const std::string filename) {
     std::ofstream outfile;
-    outfile.open(tmp);
+    outfile.open(filename);
 
     atom_list->foreachSubBoxAtom(
             [&outfile](AtomElement &_atom_ref) {
-                outfile << _atom_ref.f[0] << " " << _atom_ref.f[1] << " " << _atom_ref.f[2] << std::endl;
+                outfile << _atom_ref.id << "\t"
+                        << _atom_ref.x[0] << "\t" << _atom_ref.x[1] << "\t" << _atom_ref.x[2] << "\t"
+                        << _atom_ref.f[0] << "\t" << _atom_ref.f[1] << "\t" << _atom_ref.f[2] << std::endl;
             }
     );
-
-    long kk;
-    int xstart = p_domain->dbx_lattice_size_ghost[0];
-    int ystart = p_domain->dbx_lattice_size_ghost[1];
-    int zstart = p_domain->dbx_lattice_size_ghost[2];
-    std::cout << "print_force" << std::endl;
-    for (int k = zstart; k < p_domain->dbx_lattice_size_sub_box[2] + zstart; k++) {
-        for (int j = ystart; j < p_domain->dbx_lattice_size_sub_box[1] + ystart; j++) {
-            for (int i = xstart; i < p_domain->dbx_lattice_size_sub_box[0] + xstart; i++) {
-                kk = atom_list->IndexOf3DIndex(i, j, k);
-                AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
-                outfile << atom_.f[0] << " " << atom_.f[1] << " " << atom_.f[2] << std::endl;
-            }
-        }
+    for (_type_inter_list::iterator inter_it = inter_atom_list->inter_list.begin();
+         inter_it != inter_atom_list->inter_list.end(); inter_it++) {
+        AtomElement &_atom_ref = *inter_it;
+        outfile << std::endl << _atom_ref.id << "\t"
+                << _atom_ref.x[0] << "\t" << _atom_ref.x[1] << "\t" << _atom_ref.x[2] << "\t"
+                << _atom_ref.f[0] << "\t" << _atom_ref.f[1] << "\t" << _atom_ref.f[2] << std::endl;
     }
     outfile.close();
 }
@@ -539,9 +563,9 @@ void atom::setv(int lat[4], double direction[3], double energy) {
         lat[1] < (p_domain->dbx_lattice_coord_sub_box_region.y_low + p_domain->dbx_lattice_size_sub_box[1])
         && lat[2] >= p_domain->dbx_lattice_coord_sub_box_region.z_low &&
         lat[2] < (p_domain->dbx_lattice_coord_sub_box_region.z_low + p_domain->dbx_lattice_size_sub_box[2])) {
-        kk = (atom_list->IndexOf3DIndex(lat[0] * 2 - p_domain->dbx_lattice_coord_ghost_region.x_low,
-                                        lat[1] - p_domain->dbx_lattice_coord_ghost_region.y_low,
-                                        lat[2] - p_domain->dbx_lattice_coord_ghost_region.z_low) + lat[3]);
+        kk = (atom_list->lattice.IndexOf3DIndex(lat[0] * 2 - p_domain->dbx_lattice_coord_ghost_region.x_low,
+                                                lat[1] - p_domain->dbx_lattice_coord_ghost_region.y_low,
+                                                lat[2] - p_domain->dbx_lattice_coord_ghost_region.z_low) + lat[3]);
         // todo verify the position.
         AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
         double v_ = sqrt(energy / atom_type::getAtomMass(atom_.type) / mvv2e); // the unit of v is 100m/s
@@ -553,177 +577,7 @@ void atom::setv(int lat[4], double direction[3], double energy) {
 }
 
 void atom::sendForce() {
-    // 发送、接收数据缓冲区
-    int numPartsToSend[DIMENSION][2];
-    int numPartsToRecv[DIMENSION][2];
-    double *sendbuf[2];
-    double *recvbuf[2];
-
-    MPI_Status status;
-    MPI_Status send_statuses[DIMENSION][2];
-    MPI_Status recv_statuses[DIMENSION][2];
-    MPI_Request send_requests[DIMENSION][2];
-    MPI_Request recv_requests[DIMENSION][2];
-
-    int direction;
-    int iswap = 5;
-    for (int d = (DIMENSION - 1); d >= 0; d--) {
-        for (direction = LOWER; direction <= HIGHER; direction++) {
-            numPartsToSend[d][direction] = atom_list->recvlist[iswap].size();
-            sendbuf[direction] = new double[numPartsToSend[d][direction] * 3];
-            pack::pack_force(numPartsToSend[d][direction], getAtomListRef(),
-                             sendbuf[direction], atom_list->recvlist[iswap--]);
-        }
-        for (direction = LOWER; direction <= HIGHER; direction++) {
-            int numsend = numPartsToSend[d][direction] * 3;
-            int numrecv;
-
-            MPI_Isend(sendbuf[direction], numsend, MPI_DOUBLE, p_domain->rank_id_neighbours[d][direction], 99,
-                      MPIDomain::sim_processor.comm, &send_requests[d][direction]);
-            MPI_Probe(p_domain->rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
-                      &status);//测试邻居是否有信息发送给本地
-            MPI_Get_count(&status, MPI_DOUBLE, &numrecv);//得到要接收的粒子数目
-            // 初始化接收缓冲区
-            //依据得到发送方要发送粒子信息大小，初始化接收缓冲区
-            recvbuf[direction] = new double[numrecv];
-            numPartsToRecv[d][direction] = numrecv;
-            MPI_Irecv(recvbuf[direction], numrecv, MPI_DOUBLE,
-                      p_domain->rank_id_neighbours[d][(direction + 1) % 2], 99,
-                      MPIDomain::sim_processor.comm, &recv_requests[d][direction]);
-        }
-        for (direction = LOWER; direction <= HIGHER; direction++) {
-            int numrecv = numPartsToRecv[d][direction]; // todo remove not used variable.
-            MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
-            MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
-
-            //将收到的粒子位置信息加到对应存储位置上
-            pack::unpack_force(d, direction, getAtomListRef(), recvbuf[direction], atom_list->sendlist);
-
-            delete[] sendbuf[direction];
-            delete[] recvbuf[direction];
-        }
-    }
-}
-
-void atom::sendrho() {
-    // 发送、接收数据缓冲区
-    int numPartsToSend[DIMENSION][2];
-    int numPartsToRecv[DIMENSION][2];
-    double *sendbuf[2];
-    double *recvbuf[2];
-
-    MPI_Status status;
-    MPI_Status send_statuses[DIMENSION][2];
-    MPI_Status recv_statuses[DIMENSION][2];
-    MPI_Request send_requests[DIMENSION][2];
-    MPI_Request recv_requests[DIMENSION][2];
-
-    int direction;
-    int iswap = 5;
-    for (int d = (DIMENSION - 1); d >= 0; d--) {
-        for (direction = LOWER; direction <= HIGHER; direction++) {
-            numPartsToSend[d][direction] = atom_list->recvlist[iswap].size();
-            sendbuf[direction] = new double[numPartsToSend[d][direction]];
-            pack::pack_rho(numPartsToSend[d][direction], getAtomListRef(),
-                           sendbuf[direction], atom_list->recvlist[iswap--]);
-//            _atom->pack_rho(numPartsToSend[d][direction], recvlist[iswap--], sendbuf[direction]);
-        }
-        for (direction = LOWER; direction <= HIGHER; direction++) {
-            int numsend = numPartsToSend[d][direction];
-            int numrecv;
-
-            MPI_Isend(sendbuf[direction], numsend, MPI_DOUBLE,
-                      p_domain->rank_id_neighbours[d][direction], 99,
-                      MPIDomain::sim_processor.comm, &send_requests[d][direction]);
-            MPI_Probe(p_domain->rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
-                      &status);//测试邻居是否有信息发送给本地
-            MPI_Get_count(&status, MPI_DOUBLE, &numrecv);//得到要接收的粒子数目
-            // 初始化接收缓冲区
-            //依据得到发送方要发送粒子信息大小，初始化接收缓冲区
-            recvbuf[direction] = new double[numrecv];
-            numPartsToRecv[d][direction] = numrecv;
-            MPI_Irecv(recvbuf[direction], numrecv, MPI_DOUBLE,
-                      p_domain->rank_id_neighbours[d][(direction + 1) % 2],
-                      99,
-                      MPIDomain::sim_processor.comm, &recv_requests[d][direction]);
-        }
-        for (direction = LOWER; direction <= HIGHER; direction++) {
-            int numrecv = numPartsToRecv[d][direction];
-            MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
-            MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
-
-            //将收到的电子云密度信息加到对应存储位置上
-            pack::unpack_rho(d, direction, getAtomListRef(), recvbuf[direction], atom_list->sendlist);
-//            _atom->unpack_rho(d, direction, recvbuf[direction], sendlist);
-            // 释放buffer
-            delete[] sendbuf[direction];
-            delete[] recvbuf[direction];
-        }
-    }
-}
-
-void atom::sendDfEmbed() {
-    // 发送、接收数据缓冲区
-    int numPartsToSend[DIMENSION][2];
-    int numPartsToRecv[DIMENSION][2];
-    double *sendbuf[2];
-    double *recvbuf[2];
-
-    MPI_Status status;
-    MPI_Status send_statuses[DIMENSION][2];
-    MPI_Status recv_statuses[DIMENSION][2];
-    MPI_Request send_requests[DIMENSION][2];
-    MPI_Request recv_requests[DIMENSION][2];
-
-    int direction;
-    int iswap = 0;
-    int jswap = 0;
-    for (unsigned short d = 0; d < DIMENSION; d++) {
-        for (direction = LOWER; direction <= HIGHER; direction++) {
-            // 初始化发送缓冲区
-            numPartsToSend[d][direction] =
-                    atom_list->sendlist[iswap].size() + inter_atom_list->intersendlist[iswap].size();
-            sendbuf[direction] = new double[numPartsToSend[d][direction]];
-            pack::pack_df(getAtomListRef(), sendbuf[direction], inter_atom_list,
-                          atom_list->sendlist[iswap], inter_atom_list->intersendlist[iswap]);
-//            _atom->pack_df(sendlist[iswap], intersendlist[iswap], sendbuf[direction]);
-            iswap++;
-        }
-
-        // 与上下邻居通信
-        for (direction = LOWER; direction <= HIGHER; direction++) {
-            int numsend = numPartsToSend[d][direction];
-            int numrecv;
-
-            MPI_Isend(sendbuf[direction], numsend, MPI_DOUBLE, p_domain->rank_id_neighbours[d][direction], 99,
-                      MPIDomain::sim_processor.comm, &send_requests[d][direction]);
-            MPI_Probe(p_domain->rank_id_neighbours[d][(direction + 1) % 2], 99, MPIDomain::sim_processor.comm,
-                      &status);//测试邻居是否有信息发送给本地
-            MPI_Get_count(&status, MPI_DOUBLE, &numrecv);//得到要接收的粒子数目
-            // 初始化接收缓冲区
-            //依据得到发送方要发送粒子信息大小，初始化接收缓冲区
-            recvbuf[direction] = new double[numrecv];
-            numPartsToRecv[d][direction] = numrecv;
-            MPI_Irecv(recvbuf[direction], numrecv, MPI_DOUBLE,
-                      p_domain->rank_id_neighbours[d][(direction + 1) % 2],
-                      99,
-                      MPIDomain::sim_processor.comm, &recv_requests[d][direction]);
-        }
-
-        for (direction = LOWER; direction <= HIGHER; direction++) {
-            int numrecv = numPartsToRecv[d][direction];
-            MPI_Wait(&send_requests[d][direction], &send_statuses[d][direction]);
-            MPI_Wait(&recv_requests[d][direction], &recv_statuses[d][direction]);
-
-            //将收到的嵌入能导数信息加到对应存储位置上
-            pack::unpack_df(numrecv, getAtomListRef(), recvbuf[direction],
-                            inter_atom_list, atom_list->recvlist[jswap], inter_atom_list->interrecvlist[jswap]);
-//            _atom->unpack_df(numrecv, recvbuf[direction], recvlist[jswap], interrecvlist[jswap]);
-            jswap++;
-
-            // release memory of buffer
-            delete[] sendbuf[direction];
-            delete[] recvbuf[direction];
-        }
-    }
+    ForcePacker force_packer(getAtomListRef(), atom_list->sendlist, atom_list->recvlist);
+    comm::neiSendReceive<double, MPI_DOUBLE>(&force_packer, MPIDomain::toCommProcess(),
+                                             p_domain->rank_id_neighbours, true);
 }

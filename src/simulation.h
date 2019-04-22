@@ -10,7 +10,6 @@
 #include <io/io_writer.h>
 #include <eam.h>
 
-#include "toml_config.h"
 #include "newton_motion.h"
 #include "input.h"
 #include "atom_dump.h"
@@ -18,7 +17,7 @@
 class simulation {
 public:
 
-    simulation();
+    simulation(ConfigValues *p_config);
 
     ~simulation();
 
@@ -57,7 +56,7 @@ private:
      * pointer to config data.
      */
     ConfigValues *pConfigVal;
-    Domain *_p_domain; //仅rank==0的进程有效
+    comm::Domain *_p_domain; //仅rank==0的进程有效
     // GlobalDomain *p_domain;  //仅rank==0的进程有效 // todo ??
     atom *_atom;
     NewtonMotion *_newton_motion;
@@ -66,6 +65,13 @@ private:
     eam *_pot; // eam potential
 
     bool _finalCheckpoint;
+
+    /**
+     * check force, only works in dev mode.
+     * if the sum of all atoms not 0, program will exists with error message.
+     */
+    void forceChecking();
+
 };
 
 #endif //CRYSTAL_MD_SIMULATION_H

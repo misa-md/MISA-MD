@@ -5,8 +5,9 @@
 #ifndef CRYSTALMD_WS_UTILS_H
 #define CRYSTALMD_WS_UTILS_H
 
-#include "atom_list.h"
-#include "inter_atom_list.h"
+#include <domain/domain.h>
+#include "atom/atom_list.h"
+#include "atom/inter_atom_list.h"
 #include "box.h"
 
 /**
@@ -22,7 +23,7 @@ namespace ws {
      * @param p_domain the domain of current processor
      * @return the flag of status.
      */
-    const box::_type_flag_32 isOutBox(const AtomElement &src_atom, const Domain *p_domain);
+    const box::_type_flag_32 isOutBox(const AtomElement &src_atom, const comm::Domain *p_domain);
 
     /**
      * It returns reference of a atom(nearest atom) who has a least distance
@@ -34,7 +35,7 @@ namespace ws {
      * @param p_domain box domain.
      * @return an atom reference who has a least distance from its lattice coordinate to the source atom.
      */
-    AtomElement &findNearLatAtom(AtomList *atom_list, const AtomElement &src_atom, const Domain *p_domain);
+    AtomElement &findNearLatAtom(AtomList *atom_list, const AtomElement &src_atom, const comm::Domain *p_domain);
 
     /**
      * find an near atom from all lattice atoms in sub box (the ghost area in not included).
@@ -47,7 +48,7 @@ namespace ws {
      * @param p_domain pointer to box domain.
      * @return pointer to the nearest atom or nullptr if the nearest atom is not found.
      */
-    AtomElement *findNearLatAtomInSubBox(AtomList *atom_list, const AtomElement &src_atom, const Domain *p_domain);
+    AtomElement *findNearLatAtomInSubBox(AtomList *atom_list, const AtomElement &src_atom, const comm::Domain *p_domain);
 
     /**
      * It returns the lattice index in 3d(not atom) of nearest lattice of @param src_atom.
@@ -60,7 +61,7 @@ namespace ws {
      * @param p_domain pointer to box domain.
      * @return lattice index of nearest atom in 3d, or box::IndexNotExists if the nearest atom is not found
      */
-    _type_atom_index findNearLatIndexInSubBox(AtomList *atom_list, const AtomElement &src_atom, const Domain *p_domain);
+    _type_atom_index findNearLatIndexInSubBox(AtomList *atom_list, const AtomElement &src_atom, const comm::Domain *p_domain);
 
     /**
      * get the coordinate(starting from ghost area, not sub-box) of nearest lattice of @param src_atom.
@@ -70,7 +71,7 @@ namespace ws {
      * @param p_domain pointer to box domain.
      * @param coords the coordinate of nearest lattice to be returned.
      */
-    void getNearLatCoord(const AtomElement &src_atom, const Domain *p_domain, _type_atom_index coords[DIMENSION]);
+    void getNearLatCoord(const AtomElement &src_atom, const comm::Domain *p_domain, _type_atom_index coords[DIMENSION]);
 
     /**
      * similar as above, but the lattice coordinate is relative to sub-box, ghost area is not included.
@@ -80,7 +81,7 @@ namespace ws {
      * @param p_domain pointer to box domain.
      * @param coords the coordinate of nearest lattice to be returned.
      */
-    void getNearLatSubBoxCoord(const AtomElement &src_atom, const Domain *p_domain, _type_atom_index coords[DIMENSION]);
+    void getNearLatSubBoxCoord(const AtomElement &src_atom, const comm::Domain *p_domain, _type_atom_index coords[DIMENSION]);
 
     /**
      * check weather an atom's coordinate is in current sub-box (the sub box on current processor).
@@ -90,7 +91,7 @@ namespace ws {
      * We does not check the real coordinate of source atom (it is not very elegant).
      * @return true for in the sub-box, false for otherwise.
      */
-    bool isInBox(const AtomElement &src_atom, const Domain *p_domain);
+    bool isInBox(const AtomElement &src_atom, const comm::Domain *p_domain);
 };
 
 
