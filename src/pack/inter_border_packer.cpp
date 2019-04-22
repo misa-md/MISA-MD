@@ -3,6 +3,9 @@
 //
 
 #include <cstring>
+#include <logs/logs.h>
+#include <comm_forwarding_region.h>
+#include <lattice/ws_utils.h>
 #include "inter_border_packer.h"
 
 
@@ -16,10 +19,25 @@ InterBorderPacker::InterBorderPacker(const comm::Domain &domain, InterAtomList &
 
 const unsigned long InterBorderPacker::sendLength(const int dimension, const int direction) {
     const int index = 2 * dimension + direction;
-    getIntertosend(&domain, dimension, direction,
-                   domain.meas_ghost_length[dimension],
-                   inter_atom_list.intersendlist[index]);
-    return inter_atom_list.intersendlist[index].size();
+    std::vector<AtomElement *> &sendlist = inter_atom_list.intersendlist[index];
+    // before x dimension communication, ghost list is empty.
+    comm::Region<comm::_type_lattice_size> region = comm::fwCommLocalRegion(&domain, dimension, direction);
+    _type_atom_index coords[DIMENSION] = {0, 0, 0};
+
+    for (AtomElement &inter_ref : inter_atom_list.inter_list) {
+        // get the lattice coordinate the inter atom belongs to.
+        ws::getNearLatCoord(inter_ref, &domain, coords);
+        if (region.isIn(coords[0], coords[1], coords[2])) {
+            sendlist.push_back(&inter_ref);
+        }
+    }
+    for (AtomElement &ghost_ref :inter_atom_list.inter_ghost_list) {
+        ws::getNearLatCoord(ghost_ref, &domain, coords);
+        if (region.isIn(coords[0], coords[1], coords[2])) {
+            sendlist.push_back(&ghost_ref);
+        }
+    }
+    return sendlist.size();
 }
 
 void InterBorderPacker::onSend(LatParticleData buffer[],
@@ -77,110 +95,12 @@ void InterBorderPacker::onReceive(LatParticleData buffer[],
     memset(&ele, 0, sizeof(AtomElement)); // set f,v,rho,df to 0.
     for (int i = 0; i < receive_len; i++) {
         // id is not necessary for ghost inter atoms.
-        ele.type = buffer[i].type; // todo check type invalid
+        ele.type = buffer[i].type; // all type are valid(inter atoms)
         ele.x[0] = buffer[i].r[0];
         ele.x[1] = buffer[i].r[1];
         ele.x[2] = buffer[i].r[2];
-        if (ele.x[0] >= domain.meas_ghost_region.low[0] &&
-            ele.x[0] < domain.meas_ghost_region.high[0] &&
-            ele.x[1] >= domain.meas_ghost_region.low[1] &&
-            ele.x[1] < domain.meas_ghost_region.high[1] &&
-            ele.x[2] >= domain.meas_ghost_region.low[2] &&
-            ele.x[2] < domain.meas_ghost_region.high[2]) {
-            inter_atom_list.addGhostAtom(ele);
-        } else {
-            // todo warning
-            inter_atom_list.interrecvlist[index][i] = nullptr;
-        }
-    }
-}
-
-void InterBorderPacker::getIntertosend(const comm::Domain *p_domain, int d, int direction,
-                                       double ghostlengh, std::vector<AtomElement *> &sendlist) {
-    double low, high;
-    if (d == 0) {
-        if (direction == 0) {
-            low = p_domain->meas_sub_box_region.x_low;
-            high = p_domain->meas_sub_box_region.x_low + ghostlengh;
-            for (AtomElement &inter_ref : inter_atom_list.inter_list) {
-                if (inter_ref.x[0] < high && inter_ref.x[0] >= low) {
-                    sendlist.push_back(&inter_ref);
-                }
-            }
-            for (AtomElement &ghost_ref :inter_atom_list.inter_ghost_list) {
-                if (ghost_ref.x[0] < high && ghost_ref.x[0] >= low) {
-                    sendlist.push_back(&ghost_ref);
-                }
-            }
-        } else {
-            low = p_domain->meas_sub_box_region.x_high - ghostlengh;
-            high = p_domain->meas_sub_box_region.x_high;
-            for (AtomElement &inter_ref :inter_atom_list.inter_list) {
-                if (inter_ref.x[0] <= high && inter_ref.x[0] > low) {
-                    sendlist.push_back(&inter_ref);
-                }
-            }
-            for (AtomElement &ghost_ref :inter_atom_list.inter_ghost_list) {
-                if (ghost_ref.x[0] <= high && ghost_ref.x[0] > low) {
-                    sendlist.push_back(&ghost_ref);
-                }
-            }
-        }
-    } else if (d == 1) {
-        if (direction == 0) {
-            low = p_domain->meas_sub_box_region.y_low;
-            high = p_domain->meas_sub_box_region.y_low + ghostlengh;
-            for (AtomElement &inter_ref :inter_atom_list.inter_list) {
-                if (inter_ref.x[1] < high && inter_ref.x[1] >= low) {
-                    sendlist.push_back(&inter_ref);
-                }
-            }
-            for (AtomElement &ghost_ref :inter_atom_list.inter_ghost_list) {
-                if (ghost_ref.x[1] < high && ghost_ref.x[1] >= low) {
-                    sendlist.push_back(&ghost_ref);
-                }
-            }
-        } else {
-            low = p_domain->meas_sub_box_region.y_high - ghostlengh;
-            high = p_domain->meas_sub_box_region.y_high;
-            for (AtomElement &inter_ref :inter_atom_list.inter_list) {
-                if (inter_ref.x[1] <= high && inter_ref.x[1] > low) {
-                    sendlist.push_back(&inter_ref);
-                }
-            }
-            for (AtomElement &ghost_ref :inter_atom_list.inter_ghost_list) {
-                if (ghost_ref.x[1] <= high && ghost_ref.x[1] > low) {
-                    sendlist.push_back(&ghost_ref);
-                }
-            }
-        }
-    } else {
-        if (direction == 0) {
-            low = p_domain->meas_sub_box_region.z_low;
-            high = p_domain->meas_sub_box_region.z_low + ghostlengh;
-            for (AtomElement &inter_ref :inter_atom_list.inter_list) {
-                if (inter_ref.x[2] < high && inter_ref.x[2] >= low) {
-                    sendlist.push_back(&inter_ref);
-                }
-            }
-            for (AtomElement &ghost_ref :inter_atom_list.inter_ghost_list) {
-                if (ghost_ref.x[2] < high && ghost_ref.x[2] >= low) {
-                    sendlist.push_back(&ghost_ref);
-                }
-            }
-        } else {
-            low = p_domain->meas_sub_box_region.z_high - ghostlengh;
-            high = p_domain->meas_sub_box_region.z_high;
-            for (AtomElement &inter_ref :inter_atom_list.inter_list) {
-                if (inter_ref.x[2] <= high && inter_ref.x[2] > low) {
-                    sendlist.push_back(&inter_ref);
-                }
-            }
-            for (AtomElement &ghost_ref :inter_atom_list.inter_ghost_list) {
-                if (ghost_ref.x[2] <= high && ghost_ref.x[2] > low) {
-                    sendlist.push_back(&ghost_ref);
-                }
-            }
-        }
+        // todo: check if the atom is in ghost area using lattice coord.
+        // kiwi::logs::w("inter", "unexpected atom.\n");
+        inter_atom_list.interrecvlist[index][i] = inter_atom_list.addGhostAtom(ele);
     }
 }

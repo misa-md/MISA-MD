@@ -20,6 +20,18 @@ const unsigned long InterParticlePacker::sendLength(const int dimension, const i
             {box::OUT_BOX_Y_LITTER, box::OUT_BOX_Y_BIG},
             {box::OUT_BOX_Z_LITTER, box::OUT_BOX_Z_BIG},
     };
+
+#ifdef MD_DEV_MODE
+    auto pos_assert = [](bool flag, AtomElement &atom, const char *file, const char *func, const int line) {
+        if (flag) {
+            kiwi::logs::e("comm", "atom position out of box, assert failed in file {}, line {}\n", file, line);
+            kiwi::logs::e("comm", "atom id: {};atom position:({}, {}, {}).\n",
+                          atom.id, atom.x[0], atom.x[1], atom.x[2]);
+            MPI_Abort(MPI_COMM_WORLD, -1);
+        }
+    };
+#endif
+
     unsigned int num_to_send = 0;
     for (_type_inter_list::iterator inter_it = inter_atom_list.inter_list.begin();
          inter_it != inter_atom_list.inter_list.end(); inter_it++) {
@@ -30,16 +42,16 @@ const unsigned long InterParticlePacker::sendLength(const int dimension, const i
                 // In y dimension communication, atoms in inter atoms list
                 // can not be out of x boundary of simulation box.
                 // Because we have a communication in x dimension before.
-                assert((flag & box::OUT_BOX_X_LITTER) == 0);
-                assert((flag & box::OUT_BOX_X_BIG) == 0);
+                pos_assert(flag & box::OUT_BOX_X_LITTER, *inter_it, __FILE__, __func__, __LINE__);
+                pos_assert(flag & box::OUT_BOX_X_BIG, *inter_it, __FILE__, __func__, __LINE__);
             }
             if (dimension == 2) { // z dimension
-                // In y dimension communication, atoms in inter atoms list
+                // In z dimension communication, atoms in inter atoms list
                 // can not be out of x and y boundary of simulation box due to preview communications.
-                assert((flag & box::OUT_BOX_X_LITTER) == 0);
-                assert((flag & box::OUT_BOX_X_BIG) == 0);
-                assert((flag & box::OUT_BOX_Y_LITTER) == 0);
-                assert((flag & box::OUT_BOX_Y_BIG) == 0);
+                pos_assert(flag & box::OUT_BOX_X_LITTER, *inter_it, __FILE__, __func__, __LINE__);
+                pos_assert(flag & box::OUT_BOX_X_BIG, *inter_it, __FILE__, __func__, __LINE__);
+                pos_assert(flag & box::OUT_BOX_Y_LITTER, *inter_it, __FILE__, __func__, __LINE__);
+                pos_assert(flag & box::OUT_BOX_Y_BIG, *inter_it, __FILE__, __func__, __LINE__);
             }
         }
 #endif

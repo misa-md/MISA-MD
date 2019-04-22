@@ -65,6 +65,13 @@ private:
     eam *_pot; // eam potential
 
     bool _finalCheckpoint;
+
+    /**
+     * check force, only works in dev mode.
+     * if the sum of all atoms not 0, program will exists with error message.
+     */
+    void forceChecking();
+
 };
 
 #endif //CRYSTAL_MD_SIMULATION_H

@@ -308,9 +308,9 @@ void atom::interRho(eam *pot, comm::Domain *domain, double &comm) {
             }
         }
 
-        // rho between inter atoms and inter atoms (use half neighbour index).
-        AtomNei::iterator nei_half_itl_end = neighbours->end(true, x, y, z);
-        for (AtomNei::iterator nei_itl = neighbours->begin(true, x, y, z);
+        // rho between inter atoms and inter atoms (use full neighbour index).
+        AtomNei::iterator nei_half_itl_end = neighbours->end(false, x, y, z);
+        for (AtomNei::iterator nei_itl = neighbours->begin(false, x, y, z);
              nei_itl != nei_half_itl_end; ++nei_itl) {
             const _type_atom_index inter_nei_id = atom_list->lattice.IndexOf3DIndex(
                     nei_itl.cur_index_x, nei_itl.cur_index_y,
@@ -321,14 +321,13 @@ void atom::interRho(eam *pot, comm::Domain *domain, double &comm) {
                 delx = (*inter_it).x[0] - itl->second->x[0];
                 dely = (*inter_it).x[1] - itl->second->x[1];
                 delz = (*inter_it).x[2] - itl->second->x[2];
-            dist2 = delx * delx + dely * dely + delz * delz;
-            if (dist2 < (_cutoffRadius * _cutoffRadius)) {
+                dist2 = delx * delx + dely * dely + delz * delz;
+                if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                     (*inter_it).rho += pot->rhoContribution(atom_type::getTypeIdByType(itl->second->type), dist2);
-                    itl->second->rho += pot->rhoContribution(atom_type::getTypeIdByType((*inter_it).type), dist2);
+//                    itl->second->rho += pot->rhoContribution(atom_type::getTypeIdByType((*inter_it).type), dist2);
                 }
             }
         }
-        // todo inter ghost atoms -> cell atoms
         //计算间隙原子嵌入能导数
         // fixme
         dfEmbed = pot->embedEnergyContribution(atom_type::getTypeIdByType((*inter_it).type), (*inter_it).rho);
@@ -480,35 +479,36 @@ void atom::interForce(eam *pot, comm::Domain *domain, double &comm) {
         AtomNei::iterator nei_full_itl_end = neighbours->end(false, x, y, z);
         for (AtomNei::iterator nei_itl = neighbours->begin(false, x, y, z);
              nei_itl != nei_full_itl_end; ++nei_itl) {
-            AtomElement &atom_neighbour_up = *nei_itl; // this is a lattice atom.
-            delx = (*inter_it).x[0] - atom_neighbour_up.x[0];
-            dely = (*inter_it).x[1] - atom_neighbour_up.x[1];
-            delz = (*inter_it).x[2] - atom_neighbour_up.x[2];
+            AtomElement &lattice_neighbour = *nei_itl; // this is a lattice atom.
+            delx = (*inter_it).x[0] - lattice_neighbour.x[0];
+            dely = (*inter_it).x[1] - lattice_neighbour.x[1];
+            delz = (*inter_it).x[2] - lattice_neighbour.x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
-            if (dist2 < (_cutoffRadius * _cutoffRadius) && !atom_neighbour_up.isInterElement()) {
+            if (dist2 < (_cutoffRadius * _cutoffRadius) && !lattice_neighbour.isInterElement()) {
                 // fixme
                 fpair = pot->toForce(
                         atom_type::getTypeIdByType((*inter_it).type),
-                        atom_type::getTypeIdByType(atom_neighbour_up.type),
-                        dist2, (*inter_it).df + atom_neighbour_up.df);
+                        atom_type::getTypeIdByType(lattice_neighbour.type),
+                        dist2, (*inter_it).df + lattice_neighbour.df);
 
                 (*inter_it).f[0] += delx * fpair;
                 (*inter_it).f[1] += dely * fpair;
                 (*inter_it).f[2] += delz * fpair;
 
-                atom_neighbour_up.f[0] -= delx * fpair;
-                atom_neighbour_up.f[1] -= dely * fpair;
-                atom_neighbour_up.f[2] -= delz * fpair;
+                lattice_neighbour.f[0] -= delx * fpair;
+                lattice_neighbour.f[1] -= dely * fpair;
+                lattice_neighbour.f[2] -= delz * fpair;
             }
         }
-        // force between inter atoms and inter atoms (use half neighbour index).
-        AtomNei::iterator nei_half_itl_end = neighbours->end(true, x, y, z);
-        for (AtomNei::iterator nei_itl = neighbours->begin(true, x, y, z);
+        // force between inter atoms and inter atoms(including inter ghost atom) (use full neighbour index).
+        AtomNei::iterator nei_half_itl_end = neighbours->end(false, x, y, z);
+        for (AtomNei::iterator nei_itl = neighbours->begin(false, x, y, z);
              nei_itl != nei_half_itl_end; ++nei_itl) {
             const _type_atom_index inter_nei_id = atom_list->lattice.IndexOf3DIndex(
                     nei_itl.cur_index_x, nei_itl.cur_index_y,
                     nei_itl.cur_index_z); // get index of the neighbour lattice.
             inter_map_range inter_map_range_up = inter_atom_list->inter_map.equal_range(inter_nei_id);
+            // fixme neighbour atoms in the same bucket.
             for (inter_map_range_itl itl_up = inter_map_range_up.first;
                  itl_up != inter_map_range_up.second; ++itl_up) {
                 delx = (*inter_it).x[0] - itl_up->second->x[0];
@@ -525,16 +525,16 @@ void atom::interForce(eam *pot, comm::Domain *domain, double &comm) {
                     (*inter_it).f[1] += dely * fpair;
                     (*inter_it).f[2] += delz * fpair;
 
-                    itl_up->second->f[0] -= delx * fpair;
-                    itl_up->second->f[1] -= dely * fpair;
-                    itl_up->second->f[2] -= delz * fpair;
+//                    itl_up->second->f[0] -= delx * fpair;
+//                    itl_up->second->f[1] -= dely * fpair;
+//                    itl_up->second->f[2] -= delz * fpair;
                 }
             }
         }
     }
 }
 
-void atom::print_force(char filename[20]) {
+void atom::print_force(const std::string filename) {
     std::ofstream outfile;
     outfile.open(filename);
 
@@ -545,6 +545,13 @@ void atom::print_force(char filename[20]) {
                         << _atom_ref.f[0] << "\t" << _atom_ref.f[1] << "\t" << _atom_ref.f[2] << std::endl;
             }
     );
+    for (_type_inter_list::iterator inter_it = inter_atom_list->inter_list.begin();
+         inter_it != inter_atom_list->inter_list.end(); inter_it++) {
+        AtomElement &_atom_ref = *inter_it;
+        outfile << std::endl << _atom_ref.id << "\t"
+                << _atom_ref.x[0] << "\t" << _atom_ref.x[1] << "\t" << _atom_ref.x[2] << "\t"
+                << _atom_ref.f[0] << "\t" << _atom_ref.f[1] << "\t" << _atom_ref.f[2] << std::endl;
+    }
     outfile.close();
 }
 

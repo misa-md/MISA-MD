@@ -13,10 +13,23 @@
 #include "particledata.h"
 #include "lat_particle_data.h"
 
+/**
+ * If some inter atoms get into ghost area of neighbour processors(they are still in local box.),
+ * those atoms should be send to neighbour processors
+ * (neighbour processors will save those atoms as ghost intel atoms).
+ * We call those atoms as "neighbour ghost intel atom".
+ *
+ */
 class InterBorderPacker : public Packer<LatParticleData> {
 public:
     explicit InterBorderPacker(const comm::Domain &domain, InterAtomList &inter_atom_list);
 
+    /**
+     * the atoms to be send will be saved in sendlist..
+     * @param dimension dimension 0,1,2 of 3d. @param d values = {0,1,2}
+     * @param direction direction of LOW or HIGH. One direction has 2 direction(such as up and down, back and front, left and right).
+     * @return the size to be sent.
+     */
     const unsigned long sendLength(const int dimension, const int direction) override;
 
     void onSend(LatParticleData buffer[], const unsigned long send_len,
@@ -28,23 +41,6 @@ public:
 private:
     const comm::Domain &domain;
     InterAtomList &inter_atom_list;
-
-private:
-    /**
-     * If some inter atoms get into ghost area of neighbour processors(they are still in local box.),
-     * those atoms should be send to neighbour processors
-     * (neighbour processors will save those atoms as ghost intel atoms).
-     * We call those atoms as "neighbour ghost intel atom".
-     *
-     * @brief This method will record those atoms.
-     * @param p_domain pointer of simulation domain
-     * @param d dimension 0,1,2 of 3d. @param d values = {0,1,2}
-     * @param direction direction of LOW or HIGH. One direction has 2 direction(such as up and down, back and front, left and right).
-     * @param ghostlengh the measured length of ghost area.
-     * @param sendlist the atoms to be send will be saved in this data.
-     */
-    void getIntertosend(const comm::Domain *p_domain, int d, int direction, double ghostlengh,
-                        std::vector<AtomElement *> &sendlist);
 };
 
 
