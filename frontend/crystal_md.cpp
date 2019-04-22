@@ -11,7 +11,7 @@
 #include "utils/mpi_domain.h"
 #include "arch_env.hpp"
 
-const std::string crystalMD::VERSION_NUMBER = "0.3.0";
+const std::string crystalMD::VERSION_NUMBER = "0.3.1";
 
 bool crystalMD::beforeCreate(int argc, char *argv[]) {
     // parser arguments
