@@ -10,7 +10,7 @@
 #include <comm.hpp>
 
 #include "atom.h"
-#include "atom/ws_utils.h"
+#include "lattice/ws_utils.h"
 #include "pack/rho_packer.h"
 #include "pack/force_packer.h"
 #include "pack/df_embed_packer.h"
@@ -223,7 +223,7 @@ void atom::latRho(eam *pot, comm::Domain *domain, double &comm) {
         for (int k = zstart; k < p_domain->dbx_lattice_size_sub_box[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_lattice_size_sub_box[1] + ystart; j++) {
                 for (int i = xstart; i < p_domain->dbx_lattice_size_sub_box[0] + xstart; i++) {
-                    kk = atom_list->IndexOf3DIndex(i, j, k);
+                    kk = atom_list->lattice.IndexOf3DIndex(i, j, k);
                     AtomElement &atom_central = atom_list->getAtomEleByLinearIndex(kk);
                     xtemp = atom_central.x[0];
                     ytemp = atom_central.x[1];
@@ -287,7 +287,7 @@ void atom::interRho(eam *pot, comm::Domain *domain, double &comm) {
         }
 
         _type_atom_index x, y, z;
-        atom_list->get3DIndexByLinearIndex(near_atom_index, x, y, z);
+        atom_list->lattice.get3DIndexByLinearIndex(near_atom_index, x, y, z);
         // rho between inter atoms and lattice atoms (use full neighbour index).
         AtomNei::iterator nei_full_itl_end = neighbours->end(false, x, y, z);
         for (AtomNei::iterator nei_itl = neighbours->begin(false, x, y, z);
@@ -312,7 +312,7 @@ void atom::interRho(eam *pot, comm::Domain *domain, double &comm) {
         AtomNei::iterator nei_half_itl_end = neighbours->end(true, x, y, z);
         for (AtomNei::iterator nei_itl = neighbours->begin(true, x, y, z);
              nei_itl != nei_half_itl_end; ++nei_itl) {
-            const _type_atom_index inter_nei_id = atom_list->IndexOf3DIndex(
+            const _type_atom_index inter_nei_id = atom_list->lattice.IndexOf3DIndex(
                     nei_itl.cur_index_x, nei_itl.cur_index_y,
                     nei_itl.cur_index_z); // get index of the neighbour lattice.
             // get intel atoms on this neighbour lattice and calculate inter-rho.
@@ -351,7 +351,7 @@ void atom::latDf(eam *pot, comm::Domain *domain, double &comm) {
         for (int k = zstart; k < p_domain->dbx_lattice_size_sub_box[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_lattice_size_sub_box[1] + ystart; j++) {
                 for (int i = xstart; i < p_domain->dbx_lattice_size_sub_box[0] + xstart; i++) {
-                    kk = atom_list->IndexOf3DIndex(i, j, k);
+                    kk = atom_list->lattice.IndexOf3DIndex(i, j, k);
                     AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
                     if (atom_.isInterElement()) {
                         continue;
@@ -398,7 +398,7 @@ void atom::latForce(eam *pot, comm::Domain *domain, double &comm) {
         for (int k = zstart; k < p_domain->dbx_lattice_size_sub_box[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_lattice_size_sub_box[1] + ystart; j++) {
                 for (int i = xstart; i < p_domain->dbx_lattice_size_sub_box[0] + xstart; i++) {
-                    kk = atom_list->IndexOf3DIndex(i, j, k);
+                    kk = atom_list->lattice.IndexOf3DIndex(i, j, k);
                     AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
                     xtemp = atom_.x[0];
                     ytemp = atom_.x[1];
@@ -475,7 +475,7 @@ void atom::interForce(eam *pot, comm::Domain *domain, double &comm) {
         }
 
         _type_atom_index x, y, z;
-        atom_list->get3DIndexByLinearIndex(_atom_near_index, x, y, z);
+        atom_list->lattice.get3DIndexByLinearIndex(_atom_near_index, x, y, z);
         // force between inter atoms and lattice atoms (use full neighbour index).
         AtomNei::iterator nei_full_itl_end = neighbours->end(false, x, y, z);
         for (AtomNei::iterator nei_itl = neighbours->begin(false, x, y, z);
@@ -505,7 +505,7 @@ void atom::interForce(eam *pot, comm::Domain *domain, double &comm) {
         AtomNei::iterator nei_half_itl_end = neighbours->end(true, x, y, z);
         for (AtomNei::iterator nei_itl = neighbours->begin(true, x, y, z);
              nei_itl != nei_half_itl_end; ++nei_itl) {
-            const _type_atom_index inter_nei_id = atom_list->IndexOf3DIndex(
+            const _type_atom_index inter_nei_id = atom_list->lattice.IndexOf3DIndex(
                     nei_itl.cur_index_x, nei_itl.cur_index_y,
                     nei_itl.cur_index_z); // get index of the neighbour lattice.
             inter_map_range inter_map_range_up = inter_atom_list->inter_map.equal_range(inter_nei_id);
@@ -556,9 +556,9 @@ void atom::setv(int lat[4], double direction[3], double energy) {
         lat[1] < (p_domain->dbx_lattice_coord_sub_box_region.y_low + p_domain->dbx_lattice_size_sub_box[1])
         && lat[2] >= p_domain->dbx_lattice_coord_sub_box_region.z_low &&
         lat[2] < (p_domain->dbx_lattice_coord_sub_box_region.z_low + p_domain->dbx_lattice_size_sub_box[2])) {
-        kk = (atom_list->IndexOf3DIndex(lat[0] * 2 - p_domain->dbx_lattice_coord_ghost_region.x_low,
-                                        lat[1] - p_domain->dbx_lattice_coord_ghost_region.y_low,
-                                        lat[2] - p_domain->dbx_lattice_coord_ghost_region.z_low) + lat[3]);
+        kk = (atom_list->lattice.IndexOf3DIndex(lat[0] * 2 - p_domain->dbx_lattice_coord_ghost_region.x_low,
+                                                lat[1] - p_domain->dbx_lattice_coord_ghost_region.y_low,
+                                                lat[2] - p_domain->dbx_lattice_coord_ghost_region.z_low) + lat[3]);
         // todo verify the position.
         AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
         double v_ = sqrt(energy / atom_type::getAtomMass(atom_.type) / mvv2e); // the unit of v is 100m/s
