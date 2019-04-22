@@ -534,7 +534,7 @@ void atom::interForce(eam *pot, comm::Domain *domain, double &comm) {
     }
 }
 
-void atom::print_force(char filename[20]) {
+void atom::print_force(const std::string filename) {
     std::ofstream outfile;
     outfile.open(filename);
 
@@ -545,6 +545,13 @@ void atom::print_force(char filename[20]) {
                         << _atom_ref.f[0] << "\t" << _atom_ref.f[1] << "\t" << _atom_ref.f[2] << std::endl;
             }
     );
+    for (_type_inter_list::iterator inter_it = inter_atom_list->inter_list.begin();
+         inter_it != inter_atom_list->inter_list.end(); inter_it++) {
+        AtomElement &_atom_ref = *inter_it;
+        outfile << std::endl << _atom_ref.id << "\t"
+                << _atom_ref.x[0] << "\t" << _atom_ref.x[1] << "\t" << _atom_ref.x[2] << "\t"
+                << _atom_ref.f[0] << "\t" << _atom_ref.f[1] << "\t" << _atom_ref.f[2] << std::endl;
+    }
     outfile.close();
 }
 
