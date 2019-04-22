@@ -99,16 +99,8 @@ void InterBorderPacker::onReceive(LatParticleData buffer[],
         ele.x[0] = buffer[i].r[0];
         ele.x[1] = buffer[i].r[1];
         ele.x[2] = buffer[i].r[2];
-        if (ele.x[0] >= domain.meas_ghost_region.low[0] &&
-            ele.x[0] < domain.meas_ghost_region.high[0] &&
-            ele.x[1] >= domain.meas_ghost_region.low[1] &&
-            ele.x[1] < domain.meas_ghost_region.high[1] &&
-            ele.x[2] >= domain.meas_ghost_region.low[2] &&
-            ele.x[2] < domain.meas_ghost_region.high[2]) {
-            inter_atom_list.interrecvlist[index][i] = inter_atom_list.addGhostAtom(ele);
-        } else {
-            kiwi::logs::w("inter", "unexpected atom.\n");
-            inter_atom_list.interrecvlist[index][i] = nullptr;
-        }
+        // todo: check if the atom is in ghost area using lattice coord.
+        // kiwi::logs::w("inter", "unexpected atom.\n");
+        inter_atom_list.interrecvlist[index][i] = inter_atom_list.addGhostAtom(ele);
     }
 }
