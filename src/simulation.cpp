@@ -286,6 +286,8 @@ void simulation::abort(int exitcode) {
     MPI_Abort(MPI_COMM_WORLD, exitcode);
 }
 
+#ifdef MD_DEV_MODE
+
 void simulation::forceChecking() {
     auto forces = _atom->systemForce();
     double fx[3] = {forces[0], forces[1], forces[2]};
@@ -301,3 +303,5 @@ void simulation::forceChecking() {
         MPI_Abort(MPI_COMM_WORLD, 0);
     }
 }
+
+#endif

@@ -66,11 +66,15 @@ private:
 
     bool _finalCheckpoint;
 
+#ifdef MD_DEV_MODE
+
     /**
      * check force, only works in dev mode.
      * if the sum of all atoms not 0, program will exists with error message.
      */
     void forceChecking();
+
+#endif
 
 };
 
