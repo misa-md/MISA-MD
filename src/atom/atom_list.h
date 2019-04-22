@@ -13,6 +13,7 @@
 
 #include "../types/pre_define.h"
 #include "atom_element.h"
+#include "lattice/lattice.h"
 
 
 class AtomList {
@@ -116,7 +117,9 @@ public:
      */
     inline AtomElement &
     getAtomEleBySubBoxIndex(_type_atom_index index_x, _type_atom_index index_y, _type_atom_index index_z) {
-        return _atoms[purge_ghost_count_z + index_z][purge_ghost_count_y + index_y][purge_ghost_count_x + index_x];
+        return _atoms[lattice.purge_ghost_count_z + index_z]
+        [lattice.purge_ghost_count_y + index_y]
+        [lattice.purge_ghost_count_x + index_x];
     }
 
     /**
@@ -138,39 +141,11 @@ public:
      * @return
      */
     inline AtomElement &getAtomEleByLinearIndex(_type_atom_index index) const {
-        _type_atom_count x = index % _size_x;
-        index = index / _size_x;
-        _type_atom_count y = index % _size_y;
-        _type_atom_count z = index / _size_y;
+        _type_atom_count x = index % lattice._size_x;
+        index = index / lattice._size_x;
+        _type_atom_count y = index % lattice._size_y;
+        _type_atom_count z = index / lattice._size_y;
         return _atoms[z][y][x];
-    }
-
-    /**
-     * get the atom  3d index by linear index.
-     * index = (zIndex * p_domain->getGhostLatticeSize(1) + yIndex) * p_domain->getGhostLatticeSize(0) + xIndex;
-     * @param index target linear index
-     * @param x 3d index in x dimension
-     * @param y 3d index in y dimension
-     * @param z 3d index in z dimension
-     */
-    inline void get3DIndexByLinearIndex(_type_atom_index index, _type_atom_index &x,
-                                        _type_atom_index &y, _type_atom_index &z) {
-        x = index % _size_x;
-        index = index / _size_x;
-        y = index % _size_y;
-        z = index / _size_y;
-    }
-
-    /**
-     * get linear index of 3d atoms array
-     * @param xIndex index at x dimension
-     * @param yIndex index at y dimension
-     * @param zIndex
-     * @return
-     */
-    inline _type_atom_index
-    IndexOf3DIndex(_type_atom_index xIndex, _type_atom_index yIndex, _type_atom_index zIndex) const {
-        return (zIndex * _size_y + yIndex) * _size_x + xIndex;
     }
 
     /**
@@ -184,7 +159,7 @@ public:
      * @return
      */
     inline _type_lattice_size size() {
-        return _size;
+        return lattice._size;
     }
 
     /**
@@ -204,6 +179,9 @@ public:
      */
     bool isBadList(comm::Domain domain);
 
+public:
+    const BccLattice lattice;
+
 private:
     // 晶格点原子用数组存储其信息,including ghost atoms.
     AtomElement ***_atoms; // atoms in 3d.
@@ -212,19 +190,14 @@ private:
     std::vector<std::vector<_type_atom_id> > sendlist; // todo make it temp data
     std::vector<std::vector<_type_atom_id> > recvlist;
 
-    const _type_atom_count _size;
-    // note: _size_x is twice times than the lattice size in x dimension.
-    const _type_atom_count _size_x, _size_y, _size_z;
-    const _type_atom_count _size_sub_box_x, _size_sub_box_y, _size_sub_box_z;
-    const _type_atom_count purge_ghost_count_x, purge_ghost_count_y, purge_ghost_count_z;
 };
 
 
 template<typename Callable>
 void AtomList::foreachSubBoxAtom(Callable callback) {
-    for (long z = purge_ghost_count_z; z < _size_sub_box_z + purge_ghost_count_z; z++) {
-        for (long y = purge_ghost_count_y; y < _size_sub_box_y + purge_ghost_count_y; y++) {
-            for (long x = purge_ghost_count_x; x < _size_sub_box_x + purge_ghost_count_x; x++) {
+    for (long z = lattice.purge_ghost_count_z; z < lattice._size_sub_box_z + lattice.purge_ghost_count_z; z++) {
+        for (long y = lattice.purge_ghost_count_y; y < lattice._size_sub_box_y + lattice.purge_ghost_count_y; y++) {
+            for (long x = lattice.purge_ghost_count_x; x < lattice._size_sub_box_x + lattice.purge_ghost_count_x; x++) {
                 callback(_atoms[z][y][x]);
             }
         }

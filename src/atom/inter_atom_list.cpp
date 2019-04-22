@@ -11,7 +11,7 @@
 #include "inter_atom_list.h"
 #include "../utils/mpi_domain.h"
 #include "../utils/mpi_data_types.h"
-#include "ws_utils.h"
+#include "lattice/ws_utils.h"
 
 InterAtomList::InterAtomList() : nlocalinter(0), nghostinter(0),
                                  intersendlist(6), interrecvlist(6) {}
@@ -31,7 +31,7 @@ void InterAtomList::makeIndex(AtomList *atom_list, const comm::Domain *p_domain)
         _type_atom_index coords[DIMENSION]; // coords in box (starting from ghost area.)
         ws::getNearLatCoord(*inter_it, p_domain, coords);
         // todo checkout coords boundary.
-        const _type_atom_index _atom_near_index = atom_list->IndexOf3DIndex(coords[0], coords[1], coords[2]);
+        const _type_atom_index _atom_near_index = atom_list->lattice.IndexOf3DIndex(coords[0], coords[1], coords[2]);
         inter_map.insert(std::make_pair(_atom_near_index, &(*inter_it))); // save address
     }
     // index ghost inter atoms
@@ -39,7 +39,7 @@ void InterAtomList::makeIndex(AtomList *atom_list, const comm::Domain *p_domain)
          inter_it != inter_ghost_list.end(); inter_it++) {
         _type_atom_index coords[DIMENSION]; // coords in box (starting from ghost area.)
         ws::getNearLatCoord(*inter_it, p_domain, coords);
-        const _type_atom_index _atom_near_index = atom_list->IndexOf3DIndex(coords[0], coords[1], coords[2]);
+        const _type_atom_index _atom_near_index = atom_list->lattice.IndexOf3DIndex(coords[0], coords[1], coords[2]);
         inter_map.insert(std::make_pair(_atom_near_index, &(*inter_it))); // save address
     }
 }

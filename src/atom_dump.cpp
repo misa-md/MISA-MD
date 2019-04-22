@@ -76,7 +76,7 @@ void AtomDump::dumpModeCopy(AtomList *atom_list, InterAtomList *inter_list, size
     for (int k = _begin[2]; k < _end[2]; k++) {
         for (int j = _begin[1]; j < _end[1]; j++) {
             for (int i = _begin[0]; i < _end[0]; i++) {
-                kk = atom_list->IndexOf3DIndex(i, j, k);
+                kk = atom_list->lattice.IndexOf3DIndex(i, j, k);
                 AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
                 if (atom_.type == atom_type::INVALID) {
                     continue; // skip out of boxed atoms.

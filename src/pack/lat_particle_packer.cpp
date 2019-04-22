@@ -83,7 +83,7 @@ void LatPackerFirst::onReceive(LatParticleData *buffer, const unsigned long rece
                     atom_.x[0] = buffer[m].r[0];
                     atom_.x[1] = buffer[m].r[1];
                     atom_.x[2] = buffer[m++].r[2];
-                    receive_list[recv_idnex].push_back(atom_list.IndexOf3DIndex(i, j, k));
+                    receive_list[recv_idnex].push_back(atom_list.lattice.IndexOf3DIndex(i, j, k));
                 }
             }
         }
@@ -112,7 +112,7 @@ void LatPackerFirst::onReceive(LatParticleData *buffer, const unsigned long rece
                     atom_.x[0] = buffer[m].r[0];
                     atom_.x[1] = buffer[m].r[1];
                     atom_.x[2] = buffer[m++].r[2];
-                    receive_list[recv_idnex].push_back(atom_list.IndexOf3DIndex(i, j, k));
+                    receive_list[recv_idnex].push_back(atom_list.lattice.IndexOf3DIndex(i, j, k));
                 }
             }
         }
@@ -140,7 +140,7 @@ void LatPackerFirst::onReceive(LatParticleData *buffer, const unsigned long rece
                     atom_.x[0] = buffer[m].r[0];
                     atom_.x[1] = buffer[m].r[1];
                     atom_.x[2] = buffer[m++].r[2];
-                    receive_list[recv_idnex].push_back(atom_list.IndexOf3DIndex(i, j, k));
+                    receive_list[recv_idnex].push_back(atom_list.lattice.IndexOf3DIndex(i, j, k));
                 }
             }
         }

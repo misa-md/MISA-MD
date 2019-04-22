@@ -5,7 +5,7 @@
 #include <cstring>
 #include <logs/logs.h>
 #include <comm_forwarding_region.h>
-#include <atom/ws_utils.h>
+#include <lattice/ws_utils.h>
 #include "inter_border_packer.h"
 
 

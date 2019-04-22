@@ -6,8 +6,8 @@
 #define CRYSTALMD_WS_UTILS_H
 
 #include <domain/domain.h>
-#include "atom_list.h"
-#include "inter_atom_list.h"
+#include "atom/atom_list.h"
+#include "atom/inter_atom_list.h"
 #include "box.h"
 
 /**

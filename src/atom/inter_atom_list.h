@@ -16,7 +16,7 @@
 #include "../pack/lat_particle_data.h"
 #include "../types/pre_define.h"
 #include "../types/atom_types.h"
-#include "box.h"
+#include "lattice/box.h"
 
 typedef std::list<AtomElement> _type_inter_list;
 typedef std::vector<std::vector<AtomElement *> > _type_inter_buf;
