@@ -479,28 +479,28 @@ void atom::interForce(eam *pot, comm::Domain *domain, double &comm) {
         AtomNei::iterator nei_full_itl_end = neighbours->end(false, x, y, z);
         for (AtomNei::iterator nei_itl = neighbours->begin(false, x, y, z);
              nei_itl != nei_full_itl_end; ++nei_itl) {
-            AtomElement &atom_neighbour_up = *nei_itl; // this is a lattice atom.
-            delx = (*inter_it).x[0] - atom_neighbour_up.x[0];
-            dely = (*inter_it).x[1] - atom_neighbour_up.x[1];
-            delz = (*inter_it).x[2] - atom_neighbour_up.x[2];
+            AtomElement &lattice_neighbour = *nei_itl; // this is a lattice atom.
+            delx = (*inter_it).x[0] - lattice_neighbour.x[0];
+            dely = (*inter_it).x[1] - lattice_neighbour.x[1];
+            delz = (*inter_it).x[2] - lattice_neighbour.x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
-            if (dist2 < (_cutoffRadius * _cutoffRadius) && !atom_neighbour_up.isInterElement()) {
+            if (dist2 < (_cutoffRadius * _cutoffRadius) && !lattice_neighbour.isInterElement()) {
                 // fixme
                 fpair = pot->toForce(
                         atom_type::getTypeIdByType((*inter_it).type),
-                        atom_type::getTypeIdByType(atom_neighbour_up.type),
-                        dist2, (*inter_it).df + atom_neighbour_up.df);
+                        atom_type::getTypeIdByType(lattice_neighbour.type),
+                        dist2, (*inter_it).df + lattice_neighbour.df);
 
                 (*inter_it).f[0] += delx * fpair;
                 (*inter_it).f[1] += dely * fpair;
                 (*inter_it).f[2] += delz * fpair;
 
-                atom_neighbour_up.f[0] -= delx * fpair;
-                atom_neighbour_up.f[1] -= dely * fpair;
-                atom_neighbour_up.f[2] -= delz * fpair;
+                lattice_neighbour.f[0] -= delx * fpair;
+                lattice_neighbour.f[1] -= dely * fpair;
+                lattice_neighbour.f[2] -= delz * fpair;
             }
         }
-        // force between inter atoms and inter atoms (use full neighbour index).
+        // force between inter atoms and inter atoms(including inter ghost atom) (use full neighbour index).
         AtomNei::iterator nei_half_itl_end = neighbours->end(false, x, y, z);
         for (AtomNei::iterator nei_itl = neighbours->begin(false, x, y, z);
              nei_itl != nei_half_itl_end; ++nei_itl) {

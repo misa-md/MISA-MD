@@ -34,7 +34,7 @@ const unsigned long InterParticlePacker::sendLength(const int dimension, const i
                 assert((flag & box::OUT_BOX_X_BIG) == 0);
             }
             if (dimension == 2) { // z dimension
-                // In y dimension communication, atoms in inter atoms list
+                // In z dimension communication, atoms in inter atoms list
                 // can not be out of x and y boundary of simulation box due to preview communications.
                 assert((flag & box::OUT_BOX_X_LITTER) == 0);
                 assert((flag & box::OUT_BOX_X_BIG) == 0);
