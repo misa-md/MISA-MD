@@ -48,6 +48,7 @@ private:
     char **argv;
 
     std::string configFilePath = "config.toml"; // configure file path default value.
+    const static std::string VERSION_NUMBER;
     ConfigParser *pConfig;
     simulation *pSimulation;
 
