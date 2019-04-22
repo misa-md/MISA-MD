@@ -2,10 +2,63 @@
 ## [Unreleased]
 
 
+<a name="v0.3.1"></a>
+## [v0.3.1] - 2019-04-23
+### Docs
+- **changelog:** add changelog for version 0.3.1
+
+### Feat
+- **cli:** add 'version' to command line options.
+- **force:** add system force output in development mode.
+- **force:** add implementation for systemForce computing in dev mode.
+- **inter:** add more assert details when atom position is not as expected in InterParticlePacker::s
+- **inter:** add member function addInterAtom/removeInterAtom and addGhostAtom to class InterAtomList.
+- **lattice-atom:** add checking function for out-of-simulation-box atoms in lattice lists.
+- **libcomm:** update libcomm version to v0.1.0-beta
+- **libcomm:** add communication and domain dependency lib: libcomm.
+- **neighbour:** add new neighbour lattice index and index iterator as well as its tests.
+
+### Fix
+- **$compile:** add MD_DEV_MODE macro to simulation.cpp/.h file to fix compilation issue.
+- **$compile:** add missing header files to fix compilation issue.
+- **eam:** use full neighbour index to calculate force and eam rho between inter atoms, instead of half neighbour index.
+- **eam:** use reverted communication(z->y->x, not x->y->z) for electron density(rho) and force exchanging.
+- **force:** fix the force reset bug: not all lattice atoms' force are reset.
+- **ghost:** fix ghost atoms communication of inter atoms.
+- **inter:** set df,rho,f and v values to 0 when receiving a new inter atom (or inter ghost atom).
+- **inter:** remove mismatched coordinate checking method for received ghost atoms.
+- **inter:** clear ghost inter atoms before each simulation step.
+- **ws:** fix incorrect calculating of atom lattice coordinate in y and z dimension.
+
+### Perf
+- **inter:** add HashTable for inter(and ghost) atoms to reduce the time complexity of inter atoms searching.
+
+### Refactor
+- **eam:** use new neighbour atoms index to compute eam rho(electron density).
+- **eam:** spilit atom::computeEam code into latRho,interRho,latDf,latForce,interForce.
+- **force:** rename variable atom_neighbour_up to lattice_neighbour in inter force calculation.
+- **force:** refactor func print_force to use lambda expressions.
+- **force:** use new neighbour atoms index to compute force.
+- **frontend:** move non md lib files to frontend directory.
+- **lattice:** move members in AtomList to class BccLattice.
+- **libcomm:** refactor AtomList::exchangeAtomFirst and exchangeAtom to use libcomm Packer.
+- **libcomm:** remove getatomx/y/z funcs and use comm::fwCommLocalRegion to get lattice region for forwarding communication.
+- **libcomm:** refactor InterAtomList::borderInter to use libcomm Packer.
+- **libcomm:** refactor InterAtomList::exchangeInter to use libcomm Packer.
+- **libcomm:** remove Crystal MD domain module and use domain module in libcomm.
+- **packer:** mv pack and unpack funcs under namespace pack to corresponding Packer class.
+- **packer:** remove temp variables in packer onSend and onReceive funcs in pre inlining commit.
+- **packer:** simplify code of force unpack in ForcePacker::onReceive, LatPacker::onReceive and RhoPacker::onReceive.
+
+### Test
+- **ws:** add missing tests for ws_utils.
+
+
 <a name="v0.3.0"></a>
 ## [v0.3.0] - 2019-03-11
 ### Docs
 - **README:** update authors scope in README.md
+- **changelog:** add changelog for version 0.3.0
 - **config:** add commnets for config parser.
 
 ### Feat
@@ -147,7 +200,8 @@ config Term collision_v have been removed.
 <a name="v0.1.0"></a>
 ## v0.1.0 - 2017-11-17
 
-[Unreleased]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.0...HEAD
+[Unreleased]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.1...HEAD
+[v0.3.1]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.0...v0.3.1
 [v0.3.0]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.2.0...v0.3.0
 [v0.2.0]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.1.3-sunway...v0.2.0
 [v0.1.3-sunway]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.1.2-sunway...v0.1.3-sunway
