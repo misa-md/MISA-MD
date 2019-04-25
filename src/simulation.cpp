@@ -11,6 +11,7 @@
 #include "hardware_accelerate.hpp"
 #include "world_builder.h"
 #include "atom_dump.h"
+#include "system_configuration.h"
 
 simulation::simulation(ConfigValues *p_config) :
         pConfigVal(p_config), _p_domain(nullptr), _atom(nullptr),
@@ -289,7 +290,7 @@ void simulation::abort(int exitcode) {
 #ifdef MD_DEV_MODE
 
 void simulation::forceChecking() {
-    auto forces = _atom->systemForce();
+    auto forces = configuration::systemForce(_atom->getAtomList(), _atom->getInterList());
     double fx[3] = {forces[0], forces[1], forces[2]};
     double fx_2[3] = {0.0, 0.0, 0.0};
     MPI_Allreduce(fx, fx_2, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
