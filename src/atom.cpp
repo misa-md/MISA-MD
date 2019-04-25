@@ -149,8 +149,8 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
         // 将ghost区域的粒子的电子云密度发送给其所在的进程，得到完整的电子云密度
         starttime = MPI_Wtime();
         RhoPacker rho_packer(getAtomListRef(), atom_list->sendlist, atom_list->recvlist);
-        comm::neiSendReceive<double, MPI_DOUBLE>(&rho_packer, MPIDomain::toCommProcess(),
-                                                 p_domain->rank_id_neighbours, true);
+        comm::neiSendReceive<double>(&rho_packer, MPIDomain::toCommProcess(),
+                                     MPI_DOUBLE, p_domain->rank_id_neighbours, true);
         stoptime = MPI_Wtime();
         comm = stoptime - starttime;
     }
@@ -188,7 +188,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
                              atom_list->sendlist, atom_list->recvlist,
                              inter_atom_list->intersendlist,
                              inter_atom_list->interrecvlist);
-        comm::neiSendReceive<double, MPI_DOUBLE>(&packer, MPIDomain::toCommProcess(), p_domain->rank_id_neighbours);
+        comm::neiSendReceive<double>(&packer, MPIDomain::toCommProcess(), MPI_DOUBLE, p_domain->rank_id_neighbours);
         stoptime = MPI_Wtime();
         comm += stoptime - starttime;
     }
@@ -578,6 +578,6 @@ void atom::setv(int lat[4], double direction[3], double energy) {
 
 void atom::sendForce() {
     ForcePacker force_packer(getAtomListRef(), atom_list->sendlist, atom_list->recvlist);
-    comm::neiSendReceive<double, MPI_DOUBLE>(&force_packer, MPIDomain::toCommProcess(),
-                                             p_domain->rank_id_neighbours, true);
+    comm::neiSendReceive<double>(&force_packer, MPIDomain::toCommProcess(),
+                                 MPI_DOUBLE, p_domain->rank_id_neighbours, true);
 }
