@@ -30,17 +30,17 @@ public :
 
     void clearForce();
 
-    void computeEam(eam *pot, comm::Domain *domain, double &comm);
+    void computeEam(eam *pot, double &comm);
 
-    void latRho(eam *pot, comm::Domain *domain, double &comm);
+    void latRho(eam *pot, double &comm);
 
-    void interRho(eam *pot, comm::Domain *domain, double &comm);
+    void interRho(eam *pot, double &comm);
 
-    void latDf(eam *pot, comm::Domain *domain, double &comm);
+    void latDf(eam *pot, double &comm);
 
-    void latForce(eam *pot, comm::Domain *domain, double &comm);
+    void latForce(eam *pot, double &comm);
 
-    void interForce(eam *pot, comm::Domain *domain, double &comm);
+    void interForce(eam *pot, double &comm);
 
     /**
      * set velocity of a atom whose position is specified by array @param lat

@@ -130,7 +130,7 @@ void simulation::prepareForStart() {
 
     _atom->clearForce(); // clear force before running simulation.
     starttime = MPI_Wtime();
-    _atom->computeEam(_pot, _p_domain, comm);
+    _atom->computeEam(_pot, comm);
     stoptime = MPI_Wtime();
     computetime = stoptime - starttime - comm;
     commtime += comm;
@@ -167,7 +167,7 @@ void simulation::simulate() {
             _atom->getInterList()->borderInter(_p_domain);
             _atom->getAtomList()->exchangeAtom(_p_domain);
             _atom->clearForce();
-            _atom->computeEam(_pot, _p_domain, comm);
+            _atom->computeEam(_pot, comm);
             _atom->sendForce();
         }
         //先进行求解牛顿运动方程第一步
@@ -187,7 +187,7 @@ void simulation::simulate() {
         //计算力
         _atom->clearForce();
         starttime = MPI_Wtime();
-        _atom->computeEam(_pot, _p_domain, comm);
+        _atom->computeEam(_pot, comm);
         stoptime = MPI_Wtime();
         computetime += stoptime - starttime - comm;
         commtime += comm;
