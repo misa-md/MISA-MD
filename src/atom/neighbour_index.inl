@@ -10,6 +10,7 @@ NeighbourIndex<T>::NeighbourIndex(AtomList &atom_list)
 template<class T>
 void NeighbourIndex<T>::make(const _type_lattice_size cut_lattice,
                              const double cutoff_radius_factor) {
+    const double cutoff_lat_factor = cutoff_radius_factor + 1.0 / 2 + 1.0 / 2;
     // if x index of a particle is even (the particle is lattice point,晶格点).
     for (_type_atom_index zIndex = -cut_lattice;
          zIndex <= cut_lattice; zIndex++) { // loop for (2*_cutlattice + 1) times.
@@ -22,7 +23,7 @@ void NeighbourIndex<T>::make(const _type_lattice_size cut_lattice,
                 {
                     const double r = xIndex * xIndex + yIndex * yIndex + zIndex * zIndex;
                     // r > 0 means neighbour index can not be itself.
-                    if (r < cutoff_radius_factor * cutoff_radius_factor && r > 0) {
+                    if (r < cutoff_lat_factor * cutoff_lat_factor && r > 0) {
                         nei_even_offsets.push_back(NeiOffset{2 * xIndex, yIndex, zIndex});
                         if (isPositiveIndex(xIndex, yIndex, zIndex)) {
                             nei_half_even_offsets.push_back(NeiOffset{2 * xIndex, yIndex, zIndex});
@@ -34,7 +35,7 @@ void NeighbourIndex<T>::make(const _type_lattice_size cut_lattice,
                     const double r = (xIndex + 0.5) * (xIndex + 0.5) +
                                      (yIndex + 0.5) * (yIndex + 0.5) +
                                      (zIndex + 0.5) * (zIndex + 0.5);
-                    if (r < cutoff_radius_factor * cutoff_radius_factor && r > 0) { // in fact "r > 0" is not used.
+                    if (r < cutoff_lat_factor * cutoff_lat_factor && r > 0) { // in fact "r > 0" is not used.
                         nei_even_offsets.push_back(NeiOffset{2 * xIndex + 1, yIndex, zIndex});
                         if (isPositiveIndex(xIndex + 0.5, yIndex + 0.5, zIndex + 0.5)) {
                             nei_half_even_offsets.push_back(NeiOffset{2 * xIndex + 1, yIndex, zIndex});
@@ -52,7 +53,7 @@ void NeighbourIndex<T>::make(const _type_lattice_size cut_lattice,
                 // BCC body center neighbour points whose index is (2*Index,yIndex,zIndex).
                 {
                     const double r = xIndex * xIndex + yIndex * yIndex + zIndex * zIndex;
-                    if (r < cutoff_radius_factor * cutoff_radius_factor && r > 0) {
+                    if (r < cutoff_lat_factor * cutoff_lat_factor && r > 0) {
                         nei_odd_offsets.push_back(NeiOffset{2 * xIndex, yIndex, zIndex});
                         if (isPositiveIndex(xIndex, yIndex, zIndex)) {
                             nei_half_odd_offsets.push_back(NeiOffset{2 * xIndex, yIndex, zIndex});
@@ -64,7 +65,7 @@ void NeighbourIndex<T>::make(const _type_lattice_size cut_lattice,
                     const double r = (xIndex - 0.5) * (xIndex - 0.5) +
                                      (yIndex - 0.5) * (yIndex - 0.5) +
                                      (zIndex - 0.5) * (zIndex - 0.5);
-                    if (r < cutoff_radius_factor * cutoff_radius_factor && r > 0) {
+                    if (r < cutoff_lat_factor * cutoff_lat_factor && r > 0) {
                         nei_odd_offsets.push_back(NeiOffset{2 * xIndex - 1, yIndex, zIndex});
                         if (isPositiveIndex(xIndex - 0.5, yIndex - 0.5, zIndex - 0.6)) {
                             nei_half_odd_offsets.push_back(NeiOffset{2 * xIndex - 1, yIndex, zIndex});
