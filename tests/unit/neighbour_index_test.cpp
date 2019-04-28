@@ -16,6 +16,8 @@ public:
     FRIEND_TEST(nei_index_test_index_1nn, nei_index_test);
 
     FRIEND_TEST(nei_index_test_index_2nn, nei_index_test);
+
+    FRIEND_TEST(nei_index_test_index_case, nei_index_test);
 };
 
 // test index array length
@@ -60,4 +62,27 @@ TEST(nei_index_test_index_2nn, nei_index_test) {
     EXPECT_EQ(nei_index.nei_odd_offsets.size(), 8 + 6);
     EXPECT_EQ(nei_index.nei_even_offsets.size(), 8 + 6);
     // todo test more detail
+}
+
+TEST(nei_index_test_index_case, nei_index_test) {
+    const _type_lattice_size ext_size = 9;
+    const _type_lattice_size box_size = 6;
+    const _type_lattice_size ghost_size = ext_size - box_size;
+    AtomList atom_list(ext_size * 2, ext_size, ext_size,
+                       box_size * 2, box_size, box_size,
+                       ghost_size * 3, ghost_size, ghost_size);
+    NeiIndexTests nei_index(atom_list);
+    nei_index.make(3, 1.96125);
+
+//    24	16	3
+// its neighbour (23,17,4) should be included.
+    bool exists = false;
+    NeighbourIndex<AtomElement>::iterator nei_itl_end = nei_index.end(true, 24, 16, 3);
+    for (NeighbourIndex<AtomElement>::iterator nei_itl = nei_index.begin(true, 24, 16, 3);
+         nei_itl != nei_itl_end; ++nei_itl) {
+        if (nei_itl.cur_index_x == 23 && nei_itl.cur_index_y == 17 && nei_itl.cur_index_z == 4) {
+            exists = true;
+        }
+    }
+    EXPECT_EQ(exists, true);
 }
