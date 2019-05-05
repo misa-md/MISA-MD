@@ -5,9 +5,13 @@
 #include <gtest/gtest.h>
 #include <world_builder.h>
 #include <iostream>
+#include <system_configuration.h>
+#include <utils/mpi_utils.h>
+#include <logs/logs.h>
 
 #include "domain_test_utils.h"
 
+// @MPI
 TEST(zero_momentum_test, world_builder_test) {
     int64_t space[3] = {50, 60, 72};
     double lattice_const = 0.86;
@@ -27,15 +31,20 @@ TEST(zero_momentum_test, world_builder_test) {
             .setAlloyRatio(ra)
             .build();
 
+    // test temperature
+    const double T = mWorldBuilder.computeScalar(static_cast<_type_atom_count>(2 * space[0] * space[1] * space[2]));
+    EXPECT_FLOAT_EQ(T, 600);
+
+    // test configuration system temperature.
+    const double e = configuration::kineticEnergy(_atom->getAtomList(), _atom->getInterList(),
+                                                  configuration::ReturnMod::All, 0);
+    const double T2 = configuration::temperature(e, 2 * space[0] * space[1] * space[2]);
+    EXPECT_DOUBLE_EQ(T, T2);
+
+    // test zero momentum.
     double p[4];
     mWorldBuilder.vcm(p);
-    std::cout << "<<<<<"
-              << mWorldBuilder.computeScalar(static_cast<_type_atom_count>(2 * space[0] * space[1] * space[2]));
-
     for (int i = 0; i < DIMENSION; i++) {
-        double a = p[i];
-//        double b = a + std::numeric_limits<double>::epsilon();
-//        REQUIRE_FALSE(b == a);
-        EXPECT_FLOAT_EQ(0, a);  // zero momentumat each dimension.
+        EXPECT_NEAR(0, p[i], 1e-8);  // zero momentum in each dimension.
     }
 }

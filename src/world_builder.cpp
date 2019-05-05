@@ -166,9 +166,9 @@ void WorldBuilder::zeroMomentum(double *vcm) {
 double WorldBuilder::computeScalar(_type_atom_count n_atoms) {
     double t = 0.0;
 //    long kk; // todo unsigned
-    for (int k = 0; k < _p_domain->dbx_lattice_size_sub_box[2]; k++) {
-        for (int j = 0; j < _p_domain->dbx_lattice_size_sub_box[1]; j++) {
-            for (int i = 0; i < _p_domain->dbx_lattice_size_sub_box[0]; i++) {
+    for (_type_lattice_size k = 0; k < _p_domain->dbx_lattice_size_sub_box[2]; k++) {
+        for (_type_lattice_size j = 0; j < _p_domain->dbx_lattice_size_sub_box[1]; j++) {
+            for (_type_lattice_size i = 0; i < _p_domain->dbx_lattice_size_sub_box[0]; i++) {
                 AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
 //                kk = _p_atom->IndexOf3DIndex(i, j, k);
                 t += (atom_.v[0] * atom_.v[0] +
@@ -180,7 +180,8 @@ double WorldBuilder::computeScalar(_type_atom_count n_atoms) {
 
     double t_global;
     MPI_Allreduce(&t, &t_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    t_global *= dofCompute(n_atoms);
+    const _type_atom_count dof = 3 * n_atoms - 3; // fixme - 3, why?
+    t_global *= mvv2e / (dof * BOLTZ); // todo: math error and precision.
     return t_global;
 }
 
@@ -197,12 +198,6 @@ void WorldBuilder::rescale(double rescale_factor) {
             }
         }
     }
-}
-
-double WorldBuilder::dofCompute(unsigned long n_atoms) {
-    unsigned long dof = 3 * n_atoms;
-    dof -= 3; // fixme, why?
-    return mvv2e / (dof * BOLTZ);
 }
 
 double WorldBuilder::uniform() {

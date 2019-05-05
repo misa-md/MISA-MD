@@ -73,8 +73,6 @@ private:
 //    fixme double _mass, _mass_factor;
 //    double _mass, _mass_factor;
 
-    double dofCompute(unsigned long n_atoms);
-
     void createPhaseSpace();
 
     /**
