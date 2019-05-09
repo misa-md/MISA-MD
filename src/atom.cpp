@@ -243,11 +243,10 @@ void atom::latRho(eam *pot, double &comm) {
                             delz = ztemp - atom_neighbour.x[2];
                             dist2 = delx * delx + dely * dely + delz * delz;
                             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                                atom_central.rho += pot->rhoContribution(
+                                atom_central.rho += pot->chargeDensity(
                                         atom_type::getTypeIdByType(atom_neighbour.type), dist2);
-                                atom_neighbour.rho += pot->rhoContribution(
+                                atom_neighbour.rho += pot->chargeDensity(
                                         atom_type::getTypeIdByType(atom_central.type), dist2);
-                                // fixme
                             }
                         }
                     }
@@ -281,9 +280,8 @@ void atom::interRho(eam *pot, double &comm) {
         delz = (*inter_it).x[2] - atom_near.x[2];
         dist2 = delx * delx + dely * dely + delz * delz;
         if (!atom_near.isInterElement() && dist2 < (_cutoffRadius * _cutoffRadius)) {
-            inter_it->rho += pot->rhoContribution(atom_type::getTypeIdByType(atom_near.type), dist2);
-            atom_near.rho += pot->rhoContribution(atom_type::getTypeIdByType((*inter_it).type), dist2);
-            // fixme
+            inter_it->rho += pot->chargeDensity(atom_type::getTypeIdByType(atom_near.type), dist2);
+            atom_near.rho += pot->chargeDensity(atom_type::getTypeIdByType((*inter_it).type), dist2);
         }
 
         _type_atom_index x, y, z;
@@ -299,11 +297,10 @@ void atom::interRho(eam *pot, double &comm) {
                 delz = (*inter_it).x[2] - lat_nei_atom.x[2];
                 dist2 = delx * delx + dely * dely + delz * delz;
                 if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                    (*inter_it).rho += pot->rhoContribution(
+                    (*inter_it).rho += pot->chargeDensity(
                             atom_type::getTypeIdByType(lat_nei_atom.type), dist2);
-                    lat_nei_atom.rho += pot->rhoContribution(
+                    lat_nei_atom.rho += pot->chargeDensity(
                             atom_type::getTypeIdByType((*inter_it).type), dist2);
-                    // fixme
                 }
             }
         }
@@ -323,14 +320,13 @@ void atom::interRho(eam *pot, double &comm) {
                 delz = (*inter_it).x[2] - itl->second->x[2];
                 dist2 = delx * delx + dely * dely + delz * delz;
                 if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                    (*inter_it).rho += pot->rhoContribution(atom_type::getTypeIdByType(itl->second->type), dist2);
+                    (*inter_it).rho += pot->chargeDensity(atom_type::getTypeIdByType(itl->second->type), dist2);
 //                    itl->second->rho += pot->rhoContribution(atom_type::getTypeIdByType((*inter_it).type), dist2);
                 }
             }
         }
         //计算间隙原子嵌入能导数
-        // fixme
-        dfEmbed = pot->embedEnergyContribution(atom_type::getTypeIdByType((*inter_it).type), (*inter_it).rho);
+        dfEmbed = pot->dEmbedEnergy(atom_type::getTypeIdByType((*inter_it).type), (*inter_it).rho);
         (*inter_it).df = dfEmbed;
     }
 }
@@ -355,7 +351,7 @@ void atom::latDf(eam *pot, double &comm) {
                     if (atom_.isInterElement()) {
                         continue;
                     }
-                    dfEmbed = pot->embedEnergyContribution(atom_type::getTypeIdByType(atom_.type), atom_.rho); // fixme
+                    dfEmbed = pot->dEmbedEnergy(atom_type::getTypeIdByType(atom_.type), atom_.rho); // fixme
                     atom_.df = dfEmbed;
                 }
             }
@@ -416,10 +412,9 @@ void atom::latForce(eam *pot, double &comm) {
                         delz = ztemp - atom_n.x[2];
                         dist2 = delx * delx + dely * dely + delz * delz;
                         if (dist2 < (_cutoffRadius * _cutoffRadius) && !atom_n.isInterElement()) {
-                            // fixme
                             fpair = pot->toForce(atom_type::getTypeIdByType(atom_.type),
                                                  atom_type::getTypeIdByType(atom_n.type),
-                                                 dist2, atom_.df + atom_n.df);
+                                                 dist2, atom_.df, atom_n.df);
 
                             atom_.f[0] += delx * fpair;
                             atom_.f[1] += dely * fpair;
@@ -458,11 +453,10 @@ void atom::interForce(eam *pot, double &comm) {
         delz = (*inter_it).x[2] - atom_central.x[2];
         dist2 = delx * delx + dely * dely + delz * delz;
         if (dist2 < (_cutoffRadius * _cutoffRadius) && !atom_central.isInterElement()) {
-            // fixme
             fpair = pot->toForce(
                     atom_type::getTypeIdByType((*inter_it).type),
                     atom_type::getTypeIdByType(atom_central.type),
-                    dist2, (*inter_it).df + atom_central.df);
+                    dist2, (*inter_it).df, atom_central.df);
 
             (*inter_it).f[0] += delx * fpair;
             (*inter_it).f[1] += dely * fpair;
@@ -485,11 +479,10 @@ void atom::interForce(eam *pot, double &comm) {
             delz = (*inter_it).x[2] - lattice_neighbour.x[2];
             dist2 = delx * delx + dely * dely + delz * delz;
             if (dist2 < (_cutoffRadius * _cutoffRadius) && !lattice_neighbour.isInterElement()) {
-                // fixme
                 fpair = pot->toForce(
                         atom_type::getTypeIdByType((*inter_it).type),
                         atom_type::getTypeIdByType(lattice_neighbour.type),
-                        dist2, (*inter_it).df + lattice_neighbour.df);
+                        dist2, (*inter_it).df, lattice_neighbour.df);
 
                 (*inter_it).f[0] += delx * fpair;
                 (*inter_it).f[1] += dely * fpair;
@@ -516,8 +509,7 @@ void atom::interForce(eam *pot, double &comm) {
                     fpair = pot->toForce(
                             atom_type::getTypeIdByType((*inter_it).type),
                             atom_type::getTypeIdByType(bucket_nei_itl->second->type),
-                            dist2, (*inter_it).df + bucket_nei_itl->second->df);
-                    logForce(&(*inter_it), bucket_nei_itl->second, delx, dely, delz, fpair, 3);
+                            dist2, (*inter_it).df, bucket_nei_itl->second->df);
 
                     (*inter_it).f[0] += delx * fpair;
                     (*inter_it).f[1] += dely * fpair;
@@ -544,7 +536,7 @@ void atom::interForce(eam *pot, double &comm) {
                     fpair = pot->toForce(
                             atom_type::getTypeIdByType((*inter_it).type),
                             atom_type::getTypeIdByType(itl_up->second->type),
-                            dist2, (*inter_it).df + itl_up->second->df);
+                            dist2, (*inter_it).df, itl_up->second->df);
 
                     (*inter_it).f[0] += delx * fpair;
                     (*inter_it).f[1] += dely * fpair;
