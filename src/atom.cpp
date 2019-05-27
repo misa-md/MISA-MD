@@ -305,6 +305,25 @@ void atom::interRho(eam *pot, double &comm) {
             }
         }
 
+        // rho contribution of neighbour atoms in the same bucket.
+        {
+            const inter_map_range inter_map_range = inter_atom_list->inter_map.equal_range(near_atom_index);
+            for (inter_map_range_itl bucket_nei_itl = inter_map_range.first;
+                 bucket_nei_itl != inter_map_range.second; ++bucket_nei_itl) {
+                if (bucket_nei_itl->second->id == inter_it->id) {
+                    continue; // can not be itself.
+                }
+                delx = (*inter_it).x[0] - bucket_nei_itl->second->x[0];
+                dely = (*inter_it).x[1] - bucket_nei_itl->second->x[1];
+                delz = (*inter_it).x[2] - bucket_nei_itl->second->x[2];
+                dist2 = delx * delx + dely * dely + delz * delz;
+                if (dist2 < (_cutoffRadius * _cutoffRadius)) {
+                    (*inter_it).rho += pot->chargeDensity(
+                            atom_type::getTypeIdByType(bucket_nei_itl->second->type), dist2);
+                }
+            }
+        }
+
         // rho between inter atoms and inter atoms (use full neighbour index).
         AtomNei::iterator nei_half_itl_end = neighbours->end(false, x, y, z);
         for (AtomNei::iterator nei_itl = neighbours->begin(false, x, y, z);
