@@ -29,7 +29,6 @@ simulation::~simulation() {
 }
 
 void simulation::createDomainDecomposition() {
-    _finalCheckpoint = true;
 
     //进行区域分解
     kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initializing GlobalDomain decomposition.\n");

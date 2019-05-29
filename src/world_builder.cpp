@@ -54,9 +54,11 @@ WorldBuilder &WorldBuilder::setBoxSize(int64_t box_x, int64_t box_y, int64_t box
 
 void WorldBuilder::build() {
     if (_p_atom == nullptr) {
+        throw std::invalid_argument("no atom container");
         // todo return error.
     }
     if (_p_domain == nullptr) {
+        throw std::invalid_argument("no domain");
         // todo return error
     }
 
@@ -180,7 +182,7 @@ double WorldBuilder::computeScalar(_type_atom_count n_atoms) {
 
     double t_global;
     MPI_Allreduce(&t, &t_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    const _type_atom_count dof = 3 * n_atoms - 3; // fixme - 3, why?
+    const _type_atom_count dof = 3 * n_atoms - 3; // The factor 3(n-1) appears because the center of mass (COM) is fixed in space.
     t_global *= mvv2e / (dof * BOLTZ); // todo: math error and precision.
     return t_global;
 }

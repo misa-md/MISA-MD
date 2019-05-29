@@ -90,7 +90,7 @@ void crystalMD::onCreate() {
 }
 
 bool crystalMD::prepare() {
-    kiwi::logs::d("domain2", "ranks {}\n", MPIDomain::sim_processor.all_ranks);
+    kiwi::logs::d(MASTER_PROCESSOR, "domain", "ranks {}\n", MPIDomain::sim_processor.all_ranks);
 
     mpi_types::setInterMPIType();
     pSimulation = new simulation(&(ConfigParser::getInstance()->configValues));

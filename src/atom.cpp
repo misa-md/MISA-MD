@@ -389,8 +389,6 @@ void atom::latForce(eam *pot, double &comm) {
     int ystart = p_domain->dbx_lattice_size_ghost[1];
     int zstart = p_domain->dbx_lattice_size_ghost[2];
 
-    std::vector<_type_atom_index>::iterator neighbourOffsetsIter;
-
     if (isAccelerateSupport()) {
 //    fixme    accelerateEamForceCalc(nullptr, atom_list, &_cutoffRadius,
 //                               nullptr, nullptr, rho_spline->values);
@@ -421,7 +419,7 @@ void atom::latForce(eam *pot, double &comm) {
                         continue;
                     }
 
-                    //对晶格点邻居原子遍历
+                    // force between lattice atoms and lattice atoms.
                     AtomNei::iterator nei_itl_end = neighbours->end(true, i, j, k);
                     for (AtomNei::iterator nei_itl = neighbours->begin(true, i, j, k);
                          nei_itl != nei_itl_end; ++nei_itl) {
