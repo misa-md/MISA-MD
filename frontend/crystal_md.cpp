@@ -10,6 +10,7 @@
 #include "crystal_md.h"
 #include "utils/mpi_domain.h"
 #include "arch_env.hpp"
+#include "device.h"
 
 const std::string crystalMD::VERSION_NUMBER = "0.3.1";
 
@@ -78,7 +79,8 @@ void crystalMD::onCreate() {
 #endif
 
     // prepare logs.
-    if (pConfig->configValues.logs_mode == LOGS_MODE_CONSOLE) {
+    if (pConfig->configValues.logs_mode == LOGS_MODE_CONSOLE && istty()) {
+        // set colorful log if we output to console and it is a real tty(no io redirection).
         kiwi::logs::setCorlorFul(true);
     } else if (pConfig->configValues.logs_mode == LOGS_MODE_FILE) {
         kiwi::logs::setLogFile(pConfig->configValues.logs_filename);
