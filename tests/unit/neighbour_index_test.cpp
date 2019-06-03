@@ -11,6 +11,8 @@ class NeiIndexTests : public NeighbourIndex<AtomElement> {
 public:
     explicit NeiIndexTests(AtomList &atom_list) : NeighbourIndex<AtomElement>(atom_list) {}
 
+    FRIEND_TEST(isPositive_test, nei_index_test);
+
     FRIEND_TEST(nei_index_test_index_vector_len, nei_index_test);
 
     FRIEND_TEST(nei_index_test_index_1nn, nei_index_test);
@@ -19,6 +21,12 @@ public:
 
     FRIEND_TEST(nei_index_test_index_case, nei_index_test);
 };
+
+TEST(isPositive_test, nei_index_test) {
+    EXPECT_EQ(NeiIndexTests::isPositiveIndex(-3, -2, 0), false);
+    EXPECT_EQ(NeiIndexTests::isPositiveIndex(-3, -2, -1), false);
+    EXPECT_EQ(NeiIndexTests::isPositiveIndex(-3, 1, 0), true);
+}
 
 // test index array length
 TEST(nei_index_test_index_vector_len, nei_index_test) {
@@ -30,8 +38,10 @@ TEST(nei_index_test_index_vector_len, nei_index_test) {
                        ghost_size * 2, ghost_size, ghost_size);
     NeiIndexTests nei_index(atom_list);
     nei_index.make(ghost_size, ghost_size - 0.1);
-    EXPECT_EQ(nei_index.nei_odd_offsets.size(), 2 * nei_index.nei_half_even_offsets.size());
+
+    EXPECT_EQ(nei_index.nei_odd_offsets.size(), 2 * nei_index.nei_half_odd_offsets.size());
     EXPECT_EQ(nei_index.nei_even_offsets.size(), 2 * nei_index.nei_half_even_offsets.size());
+    EXPECT_EQ(nei_index.nei_odd_offsets.size(), nei_index.nei_even_offsets.size());
 }
 
 TEST(nei_index_test_index_1nn, nei_index_test) {
@@ -49,6 +59,7 @@ TEST(nei_index_test_index_1nn, nei_index_test) {
     // todo test more detail
 }
 
+// fixme: wrong test case (this case will fail):
 TEST(nei_index_test_index_2nn, nei_index_test) {
     const _type_lattice_size ext_size = 8;
     const _type_lattice_size box_size = 6;

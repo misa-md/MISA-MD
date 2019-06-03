@@ -65,7 +65,7 @@ protected:
      * @param x,y,z the index in x,y,z dimension.
      * @return true for positive index, false for otherwise.
      */
-    bool isPositiveIndex(const double x, const double y, const double z);
+    static bool isPositiveIndex(const double x, const double y, const double z);
 };
 
 

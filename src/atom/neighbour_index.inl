@@ -1,6 +1,7 @@
 //
 // Created by genshen on 2019-04-11.
 //
+#include <cassert>
 
 template<class T>
 NeighbourIndex<T>::NeighbourIndex(AtomList &atom_list)
@@ -12,10 +13,10 @@ void NeighbourIndex<T>::make(const _type_lattice_size cut_lattice,
                              const double cutoff_radius_factor) {
     const double cutoff_lat_factor = cutoff_radius_factor + 1.0 / 2 + 1.0 / 2;
     // if x index of a particle is even (the particle is lattice point,晶格点).
-    for (_type_atom_index zIndex = -cut_lattice;
-         zIndex <= cut_lattice; zIndex++) { // loop for (2*_cutlattice + 1) times.
-        for (_type_atom_index yIndex = -cut_lattice; yIndex <= cut_lattice; yIndex++) {
-            for (_type_atom_index xIndex = -cut_lattice; xIndex <= cut_lattice; xIndex++) {
+    for (_type_atom_index zIndex = -cut_lattice - 1;
+         zIndex <= cut_lattice + 1; zIndex++) { // loop for (2*_cutlattice + 1) times.
+        for (_type_atom_index yIndex = -cut_lattice - 1; yIndex <= cut_lattice + 1; yIndex++) {
+            for (_type_atom_index xIndex = -cut_lattice - 1; xIndex <= cut_lattice + 1; xIndex++) {
 //               uint z = (double) zIndex + (((double) (xIndex % 2)) / 2); // zIndex plus 1/2 (odd) or 0(even).
 //               uint y = (double) yIndex + (((double) (xIndex % 2)) / 2);
 //               uint x = (double) xIndex / 2;
@@ -46,10 +47,10 @@ void NeighbourIndex<T>::make(const _type_lattice_size cut_lattice,
         }
     }
     // if x index of a particle is odd (the particle is BCC body center point,体心).
-    for (_type_atom_index zIndex = -cut_lattice;
-         zIndex <= cut_lattice; zIndex++) { // loop for (2*_cutlattice + 1) times.
-        for (_type_atom_index yIndex = -cut_lattice; yIndex <= cut_lattice; yIndex++) {
-            for (_type_atom_index xIndex = -cut_lattice; xIndex <= cut_lattice; xIndex++) {
+    for (_type_atom_index zIndex = -cut_lattice - 1;
+         zIndex <= cut_lattice + 1; zIndex++) { // loop for (2*_cutlattice + 1) times.
+        for (_type_atom_index yIndex = -cut_lattice - 1; yIndex <= cut_lattice + 1; yIndex++) {
+            for (_type_atom_index xIndex = -cut_lattice - 1; xIndex <= cut_lattice + 1; xIndex++) {
                 // BCC body center neighbour points whose index is (2*Index,yIndex,zIndex).
                 {
                     const double r = xIndex * xIndex + yIndex * yIndex + zIndex * zIndex;
@@ -75,6 +76,11 @@ void NeighbourIndex<T>::make(const _type_lattice_size cut_lattice,
             }
         }
     }
+#ifdef MD_DEV_MODE
+    assert(nei_odd_offsets.size() == 2 * nei_half_odd_offsets.size());
+    assert(nei_even_offsets.size() == 2 * nei_half_even_offsets.size());
+    assert(nei_odd_offsets.size() == nei_even_offsets.size());
+#endif
 }
 
 template<class T>
