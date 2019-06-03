@@ -2,6 +2,34 @@
 ## [Unreleased]
 
 
+<a name="v0.3.2"></a>
+## [v0.3.2] - 2019-06-03
+### Feat
+- **configuration:** add feature of system kinetic energy and temperature calculation for simulation.
+- **logs:** add istty check for colorful logs.
+
+### Fix
+- **$compile:** fix compiling error of calling comm::neiSendReceive in openmpi env.
+- **eam:** add missed rho contribution of neighbour atoms in the same bucket.
+- **force:** add the missing force contributing of neighbour atoms in the same bucket(hash table) for inter atoms.
+- **neighbour:** search more neighbour lattices(cut_lattice + 1) when making neighbour indexes.
+- **neighbour:** fix bug of "Atom's force grows to be very large suddenly."
+- **ws:** fix bug of converting atom postion to lattice index.
+
+### Refactor
+- **atoms-creator:** inlining function WorldBuilder::dofCompute().
+- **configuration:** move systemForce function in class AtomSet to namespace configuration.
+- **eam:** remove unused func params Domain* in eam calculating.
+- **motion:** remove addtional function calling and redundant intermediate variables.
+
+### Test
+- **configuration:** add test for system temperature calculating of configuration::temperature.
+
+### Pull Requests
+- Merge branch 'develop' into 'master'
+- Merge branch 'fix-missed-inter-force' into 'develop'
+
+
 <a name="v0.3.1"></a>
 ## [v0.3.1] - 2019-04-23
 ### Docs
@@ -200,7 +228,8 @@ config Term collision_v have been removed.
 <a name="v0.1.0"></a>
 ## v0.1.0 - 2017-11-17
 
-[Unreleased]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.1...HEAD
+[Unreleased]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.2...HEAD
+[v0.3.2]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.1...v0.3.2
 [v0.3.1]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.0...v0.3.1
 [v0.3.0]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.2.0...v0.3.0
 [v0.2.0]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.1.3-sunway...v0.2.0
