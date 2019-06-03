@@ -32,10 +32,6 @@ private:
      */
     double dt_inv_m[atom_type::num_atom_types];
 
-    void computeFirst(AtomList *atom_list, InterAtomList *inter_atom_list);
-
-    void computeSecond(AtomList *atom_list, InterAtomList *inter_atom_list);
-
     void preComputeDtInv2m();
 };
 

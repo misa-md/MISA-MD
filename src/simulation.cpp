@@ -11,6 +11,7 @@
 #include "hardware_accelerate.hpp"
 #include "world_builder.h"
 #include "atom_dump.h"
+#include "system_configuration.h"
 
 simulation::simulation(ConfigValues *p_config) :
         pConfigVal(p_config), _p_domain(nullptr), _atom(nullptr),
@@ -28,7 +29,6 @@ simulation::~simulation() {
 }
 
 void simulation::createDomainDecomposition() {
-    _finalCheckpoint = true;
 
     //进行区域分解
     kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initializing GlobalDomain decomposition.\n");
@@ -130,7 +130,7 @@ void simulation::prepareForStart() {
 
     _atom->clearForce(); // clear force before running simulation.
     starttime = MPI_Wtime();
-    _atom->computeEam(_pot, _p_domain, comm);
+    _atom->computeEam(_pot, comm);
     stoptime = MPI_Wtime();
     computetime = stoptime - starttime - comm;
     commtime += comm;
@@ -167,7 +167,7 @@ void simulation::simulate() {
             _atom->getInterList()->borderInter(_p_domain);
             _atom->getAtomList()->exchangeAtom(_p_domain);
             _atom->clearForce();
-            _atom->computeEam(_pot, _p_domain, comm);
+            _atom->computeEam(_pot, comm);
             _atom->sendForce();
         }
         //先进行求解牛顿运动方程第一步
@@ -187,7 +187,7 @@ void simulation::simulate() {
         //计算力
         _atom->clearForce();
         starttime = MPI_Wtime();
-        _atom->computeEam(_pot, _p_domain, comm);
+        _atom->computeEam(_pot, comm);
         stoptime = MPI_Wtime();
         computetime += stoptime - starttime - comm;
         commtime += comm;
@@ -203,6 +203,16 @@ void simulation::simulate() {
         //求解牛顿运动方程第二步
         _newton_motion->secondstep(_atom->getAtomList(), _atom->getInterList());
 
+#ifdef MD_DEV_MODE
+        {
+            const double e = configuration::kineticEnergy(_atom->getAtomList(), _atom->getInterList(),
+                                                          configuration::ReturnMod::All, 0);
+            const _type_atom_count n = 2 * pConfigVal->phaseSpace[0] *
+                                       pConfigVal->phaseSpace[1] * pConfigVal->phaseSpace[2];
+            const double T = configuration::temperature(e, n);
+            kiwi::logs::d(MASTER_PROCESSOR, "energy", "e = {}, T = {}.\n", e, T);
+        }
+#endif
         //输出原子信息
         if ((_simulation_time_step + 1) % pConfigVal->atomsDumpInterval == 0) {
             output(_simulation_time_step + 1);
@@ -289,7 +299,7 @@ void simulation::abort(int exitcode) {
 #ifdef MD_DEV_MODE
 
 void simulation::forceChecking() {
-    auto forces = _atom->systemForce();
+    auto forces = configuration::systemForce(_atom->getAtomList(), _atom->getInterList());
     double fx[3] = {forces[0], forces[1], forces[2]};
     double fx_2[3] = {0.0, 0.0, 0.0};
     MPI_Allreduce(fx, fx_2, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);

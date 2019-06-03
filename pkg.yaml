@@ -17,13 +17,13 @@ packages:
         find_package(GTest PATHS {{.CMAKE_VENDOR_PATH_PKG}})
     pot:
       path: https://git.hpcer.dev/HPCer/CrystalMD/potential.git
-      tag: v0.1.0-alpha
+      tag: v0.1.0-beta
     kiwi:
       path: https://git.hpcer.dev/genshen/kiwi.git
       tag: v0.2.0-beta
     libcomm:
       path: https://git.hpcer.dev/HPCer/CrystalMD/libcomm.git
-      tag: v0.1.0-beta
+      tag: v0.1.0
 
   files:
     agrs:

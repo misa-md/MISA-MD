@@ -56,12 +56,6 @@ public:
                  double rx, double ry, double rz, double vx, double vy, double vz);
 
 #ifdef MD_DEV_MODE
-
-    /**
-     * in development mode, we can check system temperature, energy or momentum.
-     */
-    std::array<_type_atom_force, DIMENSION> systemForce();
-
     /**
      * @return the count of atoms that are not vacancy (not type of INVALID).
      */

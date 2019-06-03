@@ -64,8 +64,6 @@ private:
     input *_input;  // 从文件读取原子坐标,速度信息
     eam *_pot; // eam potential
 
-    bool _finalCheckpoint;
-
 #ifdef MD_DEV_MODE
 
     /**

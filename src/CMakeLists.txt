@@ -14,6 +14,7 @@ set(HEADER_FILES
         input.h
         newton_motion.h
         simulation.h
+        system_configuration.h
         world_builder.h
         atom/atom_element.h
         atom/atom_list.h
@@ -47,6 +48,7 @@ set(SOURCE_FILES
         input.cpp
         newton_motion.cpp
         simulation.cpp
+        system_configuration.cpp
         world_builder.cpp
         atom/atom_element.cpp
         atom/atom_list.cpp
