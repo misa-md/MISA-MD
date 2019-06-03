@@ -7,8 +7,10 @@
 
 const box::_type_flag_32 ws::isOutBox(const AtomElement &src_atom, const comm::Domain *p_domain) {
     auto j = static_cast<_type_atom_index>(lround(src_atom.x[0] * 2 / p_domain->lattice_const));
-    auto k = static_cast<_type_atom_index>(lround(src_atom.x[1] / p_domain->lattice_const));
-    auto l = static_cast<_type_atom_index>(lround(src_atom.x[2] / p_domain->lattice_const));
+    auto k = static_cast<_type_atom_index>(lround(
+            (src_atom.x[1] - (j % 2) * p_domain->lattice_const / 2) / p_domain->lattice_const));
+    auto l = static_cast<_type_atom_index>(lround(
+            (src_atom.x[2] - (j % 2) * p_domain->lattice_const / 2) / p_domain->lattice_const));
     j -= 2 * p_domain->lattice_coord_sub_box_region.x_low;
     k -= p_domain->lattice_coord_sub_box_region.y_low;
     l -= p_domain->lattice_coord_sub_box_region.z_low;
@@ -74,8 +76,11 @@ _type_atom_index ws::findNearLatIndexInSubBox(AtomList *atom_list, const AtomEle
 void ws::getNearLatCoord(const AtomElement &src_atom, const comm::Domain *p_domain,
                          _type_atom_index coords[DIMENSION]) {
     auto j = static_cast<_type_atom_index>(lround(src_atom.x[0] * 2 / p_domain->lattice_const));
-    auto k = static_cast<_type_atom_index>(lround(src_atom.x[1] / p_domain->lattice_const));
-    auto l = static_cast<_type_atom_index>(lround(src_atom.x[2] / p_domain->lattice_const));
+    auto k = static_cast<_type_atom_index>(lround(
+            (src_atom.x[1] - (j % 2) * p_domain->lattice_const / 2) / p_domain->lattice_const));
+    auto l = static_cast<_type_atom_index>(lround(
+            (src_atom.x[2] - (j % 2) * p_domain->lattice_const / 2) / p_domain->lattice_const));
+
     coords[0] = j - 2 * p_domain->lattice_coord_ghost_region.x_low;
     coords[1] = k - p_domain->lattice_coord_ghost_region.y_low;
     coords[2] = l - p_domain->lattice_coord_ghost_region.z_low;
@@ -84,8 +89,11 @@ void ws::getNearLatCoord(const AtomElement &src_atom, const comm::Domain *p_doma
 void ws::getNearLatSubBoxCoord(const AtomElement &src_atom, const comm::Domain *p_domain,
                                _type_atom_index coords[DIMENSION]) {
     auto j = static_cast<_type_atom_index>(lround(src_atom.x[0] * 2 / p_domain->lattice_const));
-    auto k = static_cast<_type_atom_index>(lround(src_atom.x[1] / p_domain->lattice_const));
-    auto l = static_cast<_type_atom_index>(lround(src_atom.x[2] / p_domain->lattice_const));
+    auto k = static_cast<_type_atom_index>(lround(
+            (src_atom.x[1] - (j % 2) * p_domain->lattice_const / 2) / p_domain->lattice_const));
+    auto l = static_cast<_type_atom_index>(lround(
+            (src_atom.x[2] - (j % 2) * p_domain->lattice_const / 2) / p_domain->lattice_const));
+
     coords[0] = j - 2 * p_domain->lattice_coord_sub_box_region.x_low;
     coords[1] = k - p_domain->lattice_coord_sub_box_region.y_low;
     coords[2] = l - p_domain->lattice_coord_sub_box_region.z_low;
@@ -93,8 +101,10 @@ void ws::getNearLatSubBoxCoord(const AtomElement &src_atom, const comm::Domain *
 
 bool ws::isInBox(const AtomElement &src_atom, const comm::Domain *p_domain) {
     auto j = static_cast<_type_atom_index>(lround(src_atom.x[0] * 2 / p_domain->lattice_const));
-    auto k = static_cast<_type_atom_index>(lround(src_atom.x[1] / p_domain->lattice_const));
-    auto l = static_cast<_type_atom_index>(lround(src_atom.x[2] / p_domain->lattice_const));
+    auto k = static_cast<_type_atom_index>(lround(
+            (src_atom.x[1] - (j % 2) * p_domain->lattice_const / 2) / p_domain->lattice_const));
+    auto l = static_cast<_type_atom_index>(lround(
+            (src_atom.x[2] - (j % 2) * p_domain->lattice_const / 2) / p_domain->lattice_const));
 
     j -= 2 * p_domain->lattice_coord_sub_box_region.x_low;
     k -= p_domain->lattice_coord_sub_box_region.y_low;
