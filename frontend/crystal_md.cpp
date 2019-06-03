@@ -12,7 +12,7 @@
 #include "arch_env.hpp"
 #include "device.h"
 
-const std::string crystalMD::VERSION_NUMBER = "0.3.1";
+const std::string crystalMD::VERSION_NUMBER = "0.3.2";
 
 bool crystalMD::beforeCreate(int argc, char *argv[]) {
     // parser arguments
