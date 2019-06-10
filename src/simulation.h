@@ -38,6 +38,18 @@ public:
     void finalize();
 
     /**
+     * this callback function will be called before a simulation step.
+     * @param step current simulation step, starting from 0.
+     */
+    virtual void beforeStep(const unsigned long step) {};
+
+    /**
+     * this callback function will be called after a simulation step.
+     * @param step current simulation step, starting from 0.
+     */
+    virtual void postStep(const unsigned long step) {};
+
+    /**
      * start to dump atoms to file
      * @param time_step current time step
      * @param before_collision true for dumping atoms before collision
@@ -46,7 +58,7 @@ public:
 
     void abort(int exitcode);
 
-private:
+protected:
     /**
      * the time steps the program have simulated.
      */

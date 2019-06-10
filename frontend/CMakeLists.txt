@@ -9,6 +9,8 @@ add_executable(${EXECUTE_BIN_NAME}
         toml_config.cpp
         main.cpp
         device.h
+        md_simulation.cpp
+        md_simulation.h
         )
 
 target_link_libraries(${EXECUTE_BIN_NAME}
