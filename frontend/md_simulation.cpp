@@ -11,9 +11,7 @@ MDSimulation::MDSimulation(ConfigValues *p_config_values) : simulation(p_config_
 void MDSimulation::beforeStep(const unsigned long step) {
     kiwi::logs::s(MASTER_PROCESSOR, "simulation", "simulating steps: {}/{}\r",
                   _simulation_time_step + 1, pConfigVal->timeSteps);
-#ifdef MD_DEV_MODE
-    kiwi::logs::d("count", "real:{}--inter:{}\n", _atom->realAtoms(), _atom->getInterList()->nlocalinter);
-#endif
+
 }
 
 void MDSimulation::postStep(const unsigned long step) {
@@ -25,6 +23,22 @@ void MDSimulation::postStep(const unsigned long step) {
                                    pConfigVal->phaseSpace[1] * pConfigVal->phaseSpace[2];
         const double T = configuration::temperature(e, n);
         kiwi::logs::d(MASTER_PROCESSOR, "energy", "e = {}, T = {}.\n", e, T);
+
+    }
+#endif
+
+#ifdef MD_DEV_MODE
+    {
+        unsigned long count[2] = {0, 0};
+        count[0] = _atom->realAtoms();
+        count[1] = _atom->getInterList()->nlocalinter;
+        unsigned long global_count[2] = {0, 0};
+        unsigned long &real_atoms = global_count[0], &inter_atoms = global_count[1];
+        MPI_Reduce(count, global_count, 2, MPI_UNSIGNED_LONG, MPI_SUM, MASTER_PROCESSOR, MPI_COMM_WORLD);
+
+        kiwi::logs::d("count", "real:{}--inter:{}\n", count[0], count[1]);
+        kiwi::logs::d(MASTER_PROCESSOR, "count", "global_real:{}--global_inter:{}\n", real_atoms, inter_atoms);
+    }
 #endif
 }
 
