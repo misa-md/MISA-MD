@@ -564,27 +564,6 @@ void atom::interForce(eam *pot, double &comm) {
     }
 }
 
-void atom::print_force(const std::string filename) {
-    std::ofstream outfile;
-    outfile.open(filename);
-
-    atom_list->foreachSubBoxAtom(
-            [&outfile](AtomElement &_atom_ref) {
-                outfile << _atom_ref.id << "\t"
-                        << _atom_ref.x[0] << "\t" << _atom_ref.x[1] << "\t" << _atom_ref.x[2] << "\t"
-                        << _atom_ref.f[0] << "\t" << _atom_ref.f[1] << "\t" << _atom_ref.f[2] << std::endl;
-            }
-    );
-    for (_type_inter_list::iterator inter_it = inter_atom_list->inter_list.begin();
-         inter_it != inter_atom_list->inter_list.end(); inter_it++) {
-        AtomElement &_atom_ref = *inter_it;
-        outfile << std::endl << _atom_ref.id << "\t"
-                << _atom_ref.x[0] << "\t" << _atom_ref.x[1] << "\t" << _atom_ref.x[2] << "\t"
-                << _atom_ref.f[0] << "\t" << _atom_ref.f[1] << "\t" << _atom_ref.f[2] << std::endl;
-    }
-    outfile.close();
-}
-
 void atom::setv(int lat[4], double direction[3], double energy) {
     long kk;
     if ((lat[0] * 2) >= p_domain->dbx_lattice_coord_sub_box_region.x_low &&

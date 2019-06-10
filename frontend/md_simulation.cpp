@@ -34,6 +34,30 @@ void MDSimulation::onForceSolved(const unsigned long step) {
 #endif
 }
 
+void MDSimulation::print_force(const std::string filename, int step) {
+    std::ofstream outfile;
+    outfile.open(filename);
+
+    _atom->atom_list->foreachSubBoxAtom(
+            [&outfile](AtomElement &_atom_ref) {
+                outfile << _atom_ref.id << "\t"
+                        << _atom_ref.x[0] << "\t" << _atom_ref.x[1] << "\t" << _atom_ref.x[2] << "\t"
+                        << _atom_ref.v[0] << "\t" << _atom_ref.v[1] << "\t" << _atom_ref.v[2] << "\t"
+                        << _atom_ref.f[0] << "\t" << _atom_ref.f[1] << "\t" << _atom_ref.f[2] << std::endl;
+            }
+    );
+    outfile << "inter atoms" << std::endl;
+    for (_type_inter_list::iterator inter_it = _atom->inter_atom_list->inter_list.begin();
+         inter_it != _atom->inter_atom_list->inter_list.end(); inter_it++) {
+        AtomElement &_atom_ref = *inter_it;
+        outfile << std::endl << _atom_ref.id << "\t"
+                << _atom_ref.x[0] << "\t" << _atom_ref.x[1] << "\t" << _atom_ref.x[2] << "\t"
+                << _atom_ref.v[0] << "\t" << _atom_ref.v[1] << "\t" << _atom_ref.v[2] << "\t"
+                << _atom_ref.f[0] << "\t" << _atom_ref.f[1] << "\t" << _atom_ref.f[2] << std::endl;
+    }
+    outfile.close();
+}
+
 
 #ifdef MD_DEV_MODE
 
@@ -47,7 +71,7 @@ void MDSimulation::forceChecking() {
     if (std::abs(fx_2[0]) > 0.00001) {
         char filename[20];
         sprintf(filename, "force_%d.txt", kiwi::mpiUtils::global_process.own_rank);
-        _atom->print_force(filename, _simulation_time_step);
+        print_force(filename, _simulation_time_step);
         MPI_Barrier(MPI_COMM_WORLD);
         MPI_Abort(MPI_COMM_WORLD, 0);
     }

@@ -31,6 +31,13 @@ public:
     void onForceSolved(const unsigned long step) override;
 
 private:
+    /**
+     * log force of all atoms in simulation system.
+     * @param filename filename to save atoms' force
+     * @param step current simulation step, starting from 0.
+     */
+    void print_force(const std::string filename, int step);
+
 #ifdef MD_DEV_MODE
 
     /**

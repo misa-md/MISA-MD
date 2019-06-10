@@ -56,6 +56,7 @@ public:
                  double rx, double ry, double rz, double vx, double vy, double vz);
 
 #ifdef MD_DEV_MODE
+
     /**
      * @return the count of atoms that are not vacancy (not type of INVALID).
      */
@@ -63,15 +64,16 @@ public:
 
 #endif
 
+public:
+    AtomList *atom_list;
+    InterAtomList *inter_atom_list;
+
 protected:
 
     double _cutoffRadius;
 //    int _cutlattice;
     //   double _latticeconst;
     NeighbourIndex<AtomElement> *neighbours;
-
-    AtomList *atom_list;
-    InterAtomList *inter_atom_list;
 };
 
 
