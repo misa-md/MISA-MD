@@ -1,6 +1,3 @@
-# all variables here start with "MD_"
-set(MD_VERSION "0.2.0")
-
 #############
 ## options ##
 #############
@@ -30,6 +27,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 #############
 ## const ##
 #############
+# all variables here start with "MD_"
 set(EXECUTE_BIN_NAME CrystalMD)
 set(MD_LIB_NAME md) # use PARENT_SCOPE to modify globle variable.
 

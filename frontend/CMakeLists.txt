@@ -1,3 +1,9 @@
+# configure a header file to pass some of the CMake settings to the source code
+configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/frontend_config.h.in"
+        "${CMAKE_CURRENT_SOURCE_DIR}/frontend_config.h"
+)
+
 # set binary path and lib storage path for compiled files.
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)

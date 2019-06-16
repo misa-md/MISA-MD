@@ -11,8 +11,7 @@
 #include "utils/mpi_domain.h"
 #include "arch_env.hpp"
 #include "device.h"
-
-const std::string crystalMD::VERSION_NUMBER = "0.3.2";
+#include "frontend_config.h"
 
 bool crystalMD::beforeCreate(int argc, char *argv[]) {
     // parser arguments
@@ -47,7 +46,7 @@ bool crystalMD::beforeCreate(int argc, char *argv[]) {
     }
 
     if (version) {
-        std::cout << "Crystal MD version " << VERSION_NUMBER << std::endl;
+        std::cout << "Crystal MD version " << MD_VERSION_STRING << std::endl;
         std::cout << "Build time: " << __TIME__ << " " << __DATE__ << "." << std::endl;
         return false;
     }
