@@ -153,11 +153,8 @@ void simulation::simulate() {
 
     allstart = MPI_Wtime();
     for (_simulation_time_step = 0; _simulation_time_step < pConfigVal->timeSteps; _simulation_time_step++) {
-        kiwi::logs::s(MASTER_PROCESSOR, "simulation", "simulating steps: {}/{}\r",
-                      _simulation_time_step + 1, pConfigVal->timeSteps);
-#ifdef MD_DEV_MODE
-        kiwi::logs::d("count", "real:{}--inter:{}\n", _atom->realAtoms(), _atom->getInterList()->nlocalinter);
-#endif
+        beforeStep(_simulation_time_step);
+
         if (_simulation_time_step == pConfigVal->collisionStep) {
             if (!pConfigVal->originDumpPath.empty()) {
                 output(_simulation_time_step, true); // dump atoms
@@ -197,22 +194,12 @@ void simulation::simulate() {
         _atom->sendForce();
         stoptime = MPI_Wtime();
         commtime += stoptime - starttime;
-#ifdef MD_DEV_MODE
-        forceChecking();
-#endif
+        onForceSolved(_simulation_time_step);
+
         //求解牛顿运动方程第二步
         _newton_motion->secondstep(_atom->getAtomList(), _atom->getInterList());
 
-#ifdef MD_DEV_MODE
-        {
-            const double e = configuration::kineticEnergy(_atom->getAtomList(), _atom->getInterList(),
-                                                          configuration::ReturnMod::All, 0);
-            const _type_atom_count n = 2 * pConfigVal->phaseSpace[0] *
-                                       pConfigVal->phaseSpace[1] * pConfigVal->phaseSpace[2];
-            const double T = configuration::temperature(e, n);
-            kiwi::logs::d(MASTER_PROCESSOR, "energy", "e = {}, T = {}.\n", e, T);
-        }
-#endif
+        postStep(_simulation_time_step);
         //输出原子信息
         if ((_simulation_time_step + 1) % pConfigVal->atomsDumpInterval == 0) {
             output(_simulation_time_step + 1);
@@ -295,23 +282,3 @@ void simulation::output(size_t time_step, bool before_collision) {
 void simulation::abort(int exitcode) {
     MPI_Abort(MPI_COMM_WORLD, exitcode);
 }
-
-#ifdef MD_DEV_MODE
-
-void simulation::forceChecking() {
-    auto forces = configuration::systemForce(_atom->getAtomList(), _atom->getInterList());
-    double fx[3] = {forces[0], forces[1], forces[2]};
-    double fx_2[3] = {0.0, 0.0, 0.0};
-    MPI_Allreduce(fx, fx_2, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    kiwi::logs::d("force2", "({}, {}, {})\n\n", forces[0], forces[1], forces[2]);
-    kiwi::logs::d(MASTER_PROCESSOR, "sum force:", "({}, {}, {})\n\n", fx_2[0], fx_2[1], fx_2[2]);
-    if (std::abs(fx_2[0]) > 0.00001) {
-        char filename[20];
-        sprintf(filename, "force_%d.txt", kiwi::mpiUtils::global_process.own_rank);
-        _atom->print_force(filename);
-        MPI_Barrier(MPI_COMM_WORLD);
-        MPI_Abort(MPI_COMM_WORLD, 0);
-    }
-}
-
-#endif

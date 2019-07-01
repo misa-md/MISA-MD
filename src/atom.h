@@ -54,7 +54,6 @@ public :
      */
     void setv(int lat[4], double direction[3], double energy);
 
-    void print_force(const std::string filename);
 
     void sendForce();
 

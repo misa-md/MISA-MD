@@ -12,6 +12,7 @@
 #include "arch_env.hpp"
 #include "device.h"
 #include "frontend_config.h"
+#include "md_simulation.h"
 
 bool crystalMD::beforeCreate(int argc, char *argv[]) {
     // parser arguments
@@ -94,7 +95,7 @@ bool crystalMD::prepare() {
     kiwi::logs::d(MASTER_PROCESSOR, "domain", "ranks {}\n", MPIDomain::sim_processor.all_ranks);
 
     mpi_types::setInterMPIType();
-    pSimulation = new simulation(&(ConfigParser::getInstance()->configValues));
+    pSimulation = new MDSimulation(&(ConfigParser::getInstance()->configValues));
     pSimulation->createDomainDecomposition(); // 区域分解
     pSimulation->createAtoms();
     return true;

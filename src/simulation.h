@@ -38,6 +38,24 @@ public:
     void finalize();
 
     /**
+     * this callback function will be called before a simulation step.
+     * @param step current simulation step, starting from 0.
+     */
+    virtual void beforeStep(const unsigned long step) {};
+
+    /**
+     * this callback function will be called after a simulation step.
+     * @param step current simulation step, starting from 0.
+     */
+    virtual void postStep(const unsigned long step) {};
+
+    /**
+     * this callback function will be called after atoms' force are computed.
+     * @param step current simulation step, starting from 0.
+     */
+    virtual void onForceSolved(const unsigned long step) {};
+
+    /**
      * start to dump atoms to file
      * @param time_step current time step
      * @param before_collision true for dumping atoms before collision
@@ -46,7 +64,7 @@ public:
 
     void abort(int exitcode);
 
-private:
+protected:
     /**
      * the time steps the program have simulated.
      */
@@ -63,16 +81,6 @@ private:
 
     input *_input;  // 从文件读取原子坐标,速度信息
     eam *_pot; // eam potential
-
-#ifdef MD_DEV_MODE
-
-    /**
-     * check force, only works in dev mode.
-     * if the sum of all atoms not 0, program will exists with error message.
-     */
-    void forceChecking();
-
-#endif
 
 };
 
