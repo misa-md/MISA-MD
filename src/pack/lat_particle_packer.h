@@ -17,7 +17,7 @@
  */
 class LatParticlePacker : public Packer<LatParticleData> {
 public:
-    LatParticlePacker(const comm::Domain &domain, AtomList &atom_list,
+    LatParticlePacker(const comm::BccDomain &domain, AtomList &atom_list,
                       std::vector<std::vector<_type_atom_id>> &send_list,
                       std::vector<std::vector<_type_atom_id>> &receive_list);
 
@@ -27,7 +27,7 @@ public:
                    const int dimension, const int direction);
 
 protected:
-    const comm::Domain &domain;
+    const comm::BccDomain &domain;
     AtomList &atom_list;
     std::vector<std::vector<_type_atom_id>> &send_list;
     std::vector<std::vector<_type_atom_id>> &receive_list;
@@ -35,7 +35,7 @@ protected:
 
 class LatPackerFirst : public LatParticlePacker {
 public:
-    LatPackerFirst(const comm::Domain &domain, AtomList &atom_list,
+    LatPackerFirst(const comm::BccDomain &domain, AtomList &atom_list,
                    std::vector<std::vector<_type_atom_id>> &send_list,
                    std::vector<std::vector<_type_atom_id>> &receive_list)
             : LatParticlePacker(domain, atom_list, send_list, receive_list) {};
@@ -60,7 +60,7 @@ public:
 
 class LatPacker : public LatParticlePacker {
 public:
-    LatPacker(const comm::Domain &domain, AtomList &atom_list,
+    LatPacker(const comm::BccDomain &domain, AtomList &atom_list,
               std::vector<std::vector<_type_atom_id>> &send_list,
               std::vector<std::vector<_type_atom_id>> &receive_list)
             : LatParticlePacker(domain, atom_list, send_list, receive_list) {};

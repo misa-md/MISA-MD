@@ -13,7 +13,7 @@ WorldBuilder::WorldBuilder() : _random_seed(1024), tset(0),
     _p_atom = nullptr;
 }
 
-WorldBuilder &WorldBuilder::setDomain(comm::Domain *p_domain) {
+WorldBuilder &WorldBuilder::setDomain(comm::BccDomain *p_domain) {
     this->_p_domain = p_domain;
     return *this;
 }

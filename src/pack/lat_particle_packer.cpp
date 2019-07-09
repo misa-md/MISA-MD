@@ -8,7 +8,7 @@
 #include "atom/atom_list.h"
 #include "lat_particle_packer.h"
 
-LatParticlePacker::LatParticlePacker(const comm::Domain &domain, AtomList &atom_list,
+LatParticlePacker::LatParticlePacker(const comm::BccDomain &domain, AtomList &atom_list,
                                      std::vector<std::vector<_type_atom_id>> &send_list,
                                      std::vector<std::vector<_type_atom_id>> &receive_list)
         : domain(domain), atom_list(atom_list),

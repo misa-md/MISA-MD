@@ -41,7 +41,7 @@ void AtomSet::calcNeighbourIndices(const double cutoff_radius_factor, const _typ
 }
 
 void
-AtomSet::addAtom(comm::Domain *p_domain, _type_atom_id id,
+AtomSet::addAtom(comm::BccDomain *p_domain, _type_atom_id id,
                  double rx, double ry, double rz, double vx, double vy, double vz) {
     int i;
     if ((rx >= p_domain->meas_sub_box_region.x_low) &&

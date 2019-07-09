@@ -52,7 +52,7 @@ public:
     /**
     * used in read creating mode.
     */
-    void addAtom(comm::Domain *p_domain, unsigned long id,
+    void addAtom(comm::BccDomain *p_domain, unsigned long id,
                  double rx, double ry, double rz, double vx, double vy, double vz);
 
 #ifdef MD_DEV_MODE

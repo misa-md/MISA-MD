@@ -22,7 +22,7 @@
  */
 class InterBorderPacker : public Packer<LatParticleData> {
 public:
-    explicit InterBorderPacker(const comm::Domain &domain, InterAtomList &inter_atom_list);
+    explicit InterBorderPacker(const comm::BccDomain &domain, InterAtomList &inter_atom_list);
 
     /**
      * the atoms to be send will be saved in sendlist..
@@ -39,7 +39,7 @@ public:
                    const int dimension, const int direction) override;
 
 private:
-    const comm::Domain &domain;
+    const comm::BccDomain &domain;
     InterAtomList &inter_atom_list;
 };
 

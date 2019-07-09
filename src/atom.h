@@ -9,7 +9,8 @@
 #include <vector>
 #include <eam.h>
 
-#include <domain/domain.h>
+#include <domain/bcc_domain.h>
+#include <logs/logs.h>
 
 #include "atom/atom_set.h"
 #include "atom/atom_element.h"
@@ -20,7 +21,7 @@
 
 class atom : public AtomSet {
 public :
-    atom(comm::Domain *domain);
+    atom(comm::BccDomain *domain);
 
     /**
      * move atoms to inter-atom list if the atoms is not in its lattice.
@@ -58,7 +59,7 @@ public :
     void sendForce();
 
 private:
-    comm::Domain *p_domain;
+    comm::BccDomain *p_domain;
 
 };
 

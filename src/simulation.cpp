@@ -38,11 +38,13 @@ void simulation::createDomainDecomposition() {
             MPIDomain::sim_processor.all_ranks,
             MPIDomain::sim_processor.comm,
     };
-    _p_domain = comm::Domain::Builder()
+    // In doamin creation, we set ghost size as (cut_lattice +1) to avoid neighbor index overflowing.
+    _p_domain = comm::BccDomain::Builder()
             .setComm(pro, &new_comm)
             .setPhaseSpace(pConfigVal->phaseSpace)
             .setCutoffRadius(pConfigVal->cutoffRadiusFactor)
             .setLatticeConst(pConfigVal->latticeConst)
+            .setGhostSize(static_cast<int>(ceil(pConfigVal->cutoffRadiusFactor)) + 1)
             .build();
     kiwi::mpiUtils::onGlobalCommChanged(new_comm); // set new domain.
     MPIDomain::sim_processor = kiwi::mpiUtils::global_process;

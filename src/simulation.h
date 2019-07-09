@@ -74,7 +74,7 @@ protected:
      * pointer to config data.
      */
     ConfigValues *pConfigVal;
-    comm::Domain *_p_domain; //仅rank==0的进程有效
+    comm::BccDomain *_p_domain;
     // GlobalDomain *p_domain;  //仅rank==0的进程有效 // todo ??
     atom *_atom;
     NewtonMotion *_newton_motion;

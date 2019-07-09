@@ -22,7 +22,7 @@ class WorldBuilder {
 public:
     WorldBuilder();
 
-    WorldBuilder &setDomain(comm::Domain *p_domain);
+    WorldBuilder &setDomain(comm::BccDomain *p_domain);
 
     WorldBuilder &setAtomsContainer(AtomSet *p_atom);
 
@@ -62,7 +62,7 @@ protected:
     atom_type::atom_type randomAtomsType();
 
 private:
-    comm::Domain *_p_domain;
+    comm::BccDomain *_p_domain;
     AtomSet *_p_atom;
 
     int _random_seed; // random seed for creating atoms.

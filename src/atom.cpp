@@ -16,7 +16,7 @@
 #include "pack/df_embed_packer.h"
 #include "hardware_accelerate.hpp" // use hardware(eg.GPU, MIC,Sunway slave cores.) to achieve calculate accelerating.
 
-atom::atom(comm::Domain *domain)
+atom::atom(comm::BccDomain *domain)
         : AtomSet(domain->lattice_const * domain->cutoff_radius_factor,
                   domain->lattice_size_ghost_extended,
                   domain->lattice_size_sub_box,
