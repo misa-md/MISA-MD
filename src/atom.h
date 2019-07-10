@@ -46,7 +46,6 @@ public :
     void setv(int lat[4], double direction[3], double energy);
 
 
-    void sendForce();
 
 private:
     comm::BccDomain *p_domain;

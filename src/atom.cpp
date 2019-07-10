@@ -204,6 +204,14 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
       outfile.close();*/ // 2.todo remove end.
     //间隙原子计算嵌入能和对势带来的力
     interForce(pot);
+
+    // send force
+    starttime = MPI_Wtime();
+    ForcePacker force_packer(getAtomListRef(), atom_list->sendlist, atom_list->recvlist);
+    comm::neiSendReceive<double>(&force_packer, MPIDomain::toCommProcess(),
+                                 MPI_DOUBLE, p_domain->rank_id_neighbours, true);
+    stoptime = MPI_Wtime();
+    comm += stoptime - starttime;
 }
 
 void atom::latRho(eam *pot) {
@@ -583,10 +591,4 @@ void atom::setv(int lat[4], double direction[3], double energy) {
         atom_.v[1] += v_ * direction[1] / sqrt(d_);
         atom_.v[2] += v_ * direction[2] / sqrt(d_);
     }
-}
-
-void atom::sendForce() {
-    ForcePacker force_packer(getAtomListRef(), atom_list->sendlist, atom_list->recvlist);
-    comm::neiSendReceive<double>(&force_packer, MPIDomain::toCommProcess(),
-                                 MPI_DOUBLE, p_domain->rank_id_neighbours, true);
 }

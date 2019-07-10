@@ -137,11 +137,6 @@ void simulation::prepareForStart() {
     computetime = stoptime - starttime - comm;
     commtime += comm;
 
-    //_atom->print_force();
-    starttime = MPI_Wtime();
-    _atom->sendForce();
-    stoptime = MPI_Wtime();
-    commtime += stoptime - starttime;
 
     kiwi::logs::i(MASTER_PROCESSOR, "sim", "first step comm time: {}\n", commtime);
     kiwi::logs::i(MASTER_PROCESSOR, "sim", "first step compute time: {}\n", computetime);
@@ -167,7 +162,6 @@ void simulation::simulate() {
             _atom->getAtomList()->exchangeAtom(_p_domain);
             _atom->clearForce();
             _atom->computeEam(_pot, comm);
-            _atom->sendForce();
         }
         //先进行求解牛顿运动方程第一步
         _newton_motion->firststep(_atom->getAtomList(), _atom->getInterList());
@@ -191,11 +185,6 @@ void simulation::simulate() {
         computetime += stoptime - starttime - comm;
         commtime += comm;
 
-        //发送力
-        starttime = MPI_Wtime();
-        _atom->sendForce();
-        stoptime = MPI_Wtime();
-        commtime += stoptime - starttime;
         onForceSolved(_simulation_time_step);
 
         //求解牛顿运动方程第二步
