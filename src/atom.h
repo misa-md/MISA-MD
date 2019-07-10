@@ -33,16 +33,6 @@ public :
 
     void computeEam(eam *pot, double &comm);
 
-    void latRho(eam *pot, double &comm);
-
-    void interRho(eam *pot, double &comm);
-
-    void latDf(eam *pot, double &comm);
-
-    void latForce(eam *pot, double &comm);
-
-    void interForce(eam *pot, double &comm);
-
     /**
      * set velocity of a atom whose position is specified by array @param lat
      * This atom is called PKA (Primary Knock-on Atom).
@@ -61,6 +51,35 @@ public :
 private:
     comm::BccDomain *p_domain;
 
+    /**
+     * calculate electron density for all lattice atoms.
+     * @param pot pointer of eam potential object.
+     */
+    void latRho(eam *pot);
+
+    /**
+     * calculate electron density for all interstitial atoms.
+     * @param pot pointer of eam potential object.
+     */
+    void interRho(eam *pot);
+
+    /**
+     * calculate derivative of embedded energy for all lattice atoms.
+     * @param pot pointer of eam potential object.
+     */
+    void latDf(eam *pot);
+
+    /**
+     * calculate force for all lattice atoms.
+     * @param pot pointer of eam potential object.
+     */
+    void latForce(eam *pot);
+
+    /**
+     * calculate force for all interstitial atoms.
+     * @param pot pointer of eam potential object.
+     */
+    void interForce(eam *pot);
 };
 
 #endif // CRYSTAL_MD_ATOM_H

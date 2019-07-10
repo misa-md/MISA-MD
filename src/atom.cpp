@@ -123,8 +123,8 @@ void atom::computeEam(eam *pot, double &comm) {
     double starttime, stoptime;
     inter_atom_list->makeIndex(atom_list, p_domain); // create index for inter atom and inter ghost atoms.
 
-    latRho(pot, comm);
-    interRho(pot, comm);
+    latRho(pot);
+    interRho(pot);
 //    ofstream outfile;
     /* char tmp[20];
     sprintf(tmp, "electron_density.atom");
@@ -171,7 +171,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
     outfile.close();*/
 
     //本地晶格点计算嵌入能导数
-    latDf(pot, comm);
+    latDf(pot);
 
     /*sprintf(tmp, "df.atom");
     outfile.open(tmp);
@@ -194,7 +194,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
     }
 
     // force for local lattice.
-    latForce(pot, comm);
+    latForce(pot);
 
     /*sprintf(tmp, "f.atom");  // 2.todo remove start.
       outfile.open(tmp);
@@ -203,10 +203,10 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
       }
       outfile.close();*/ // 2.todo remove end.
     //间隙原子计算嵌入能和对势带来的力
-    interForce(pot, comm);
+    interForce(pot);
 }
 
-void atom::latRho(eam *pot, double &comm) {
+void atom::latRho(eam *pot) {
     double xtemp, ytemp, ztemp;
     double delx, dely, delz;
     _type_atom_index kk;
@@ -256,7 +256,7 @@ void atom::latRho(eam *pot, double &comm) {
     }
 }
 
-void atom::interRho(eam *pot, double &comm) {
+void atom::interRho(eam *pot) {
     double delx, dely, delz;
     double dist2;
     double dfEmbed;
@@ -350,7 +350,7 @@ void atom::interRho(eam *pot, double &comm) {
     }
 }
 
-void atom::latDf(eam *pot, double &comm) {
+void atom::latDf(eam *pot) {
     double dfEmbed;
     int xstart = p_domain->dbx_lattice_size_ghost[0];
     int ystart = p_domain->dbx_lattice_size_ghost[1];
@@ -378,7 +378,7 @@ void atom::latDf(eam *pot, double &comm) {
     }
 }
 
-void atom::latForce(eam *pot, double &comm) {
+void atom::latForce(eam *pot) {
     double xtemp, ytemp, ztemp;
     double delx, dely, delz;
     _type_atom_index kk;
@@ -448,7 +448,7 @@ void atom::latForce(eam *pot, double &comm) {
     } // end of if-isAccelerateSupport.
 }
 
-void atom::interForce(eam *pot, double &comm) {
+void atom::interForce(eam *pot) {
     double delx, dely, delz;
     double dist2;
     double fpair;
