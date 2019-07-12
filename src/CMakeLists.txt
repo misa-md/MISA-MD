@@ -76,6 +76,11 @@ set(SOURCE_FILES
         utils/mpi_data_types.cpp
         )
 
+add_subdirectory(arch)
+# link sunway lib to libmd
+if (SUNWAY_ARCH_ENABLE_FLAG)
+    set(ARCH_LIBS md_sunway)
+endif ()
 
 # set binary path and lib storage path for compiling process.
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
@@ -93,6 +98,7 @@ target_link_libraries(
         pot::pot
         comm::comm
         kiwi::kiwi
+        ${ARCH_LIBS}
         # fmt is included in kiwi.
 )
 
