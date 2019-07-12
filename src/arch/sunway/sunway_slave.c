@@ -1,3 +1,7 @@
+//
+// Created by baihe on 2016-07-01
+//
+
 #include "slave.h"
 #include <math.h>
 #include <time.h>

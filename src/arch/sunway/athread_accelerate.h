@@ -1,5 +1,5 @@
 //
-// Created by genshen on 18-3-5.
+// Created by genshen on 2018-3-5.
 //
 
 #ifndef CRYSTAL_MD_ATHREAD_ACCELERATE_H

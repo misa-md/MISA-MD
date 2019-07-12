@@ -1,5 +1,6 @@
 //
 // Created by genshen on 2018-3-5.
+// interface for setting up sunway slave cores.
 //
 
 #include <cstdio>

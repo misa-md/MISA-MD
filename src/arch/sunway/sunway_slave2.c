@@ -1,7 +1,9 @@
-/*
- * those runs on sunway SW26010 architecture, with its slave core.
- * For accelerating calculate.
- */
+//
+// those runs on sunway SW26010 architecture, with its slave core.
+// For accelerating calculate.
+// Created by baihe on 2016-6-22.
+//
+
 #include "slave.h"
 #include <math.h>
 #include <time.h>

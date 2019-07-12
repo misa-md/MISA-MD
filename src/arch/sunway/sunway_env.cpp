@@ -3,7 +3,7 @@
 //
 
 /**
- * in this file,we initial & clean athread environment.
+ * in this file, we initial & clean athread environment.
  */
 
 #include <stdio.h>
