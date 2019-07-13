@@ -128,7 +128,7 @@ z lattice coord:
     // case 1: make z coord < 0.
     AtomElement src_atom;
     src_atom.x[0] = 3.5 * lattice_const; // odd x
-    src_atom.x[1] = 0;
+    src_atom.x[1] = 0.5 * lattice_const;
     src_atom.x[2] = 0 - 0.01;
     _type_atom_index coords[DIMENSION];
     ws::getNearLatSubBoxCoord(src_atom, p_domain, coords);
@@ -171,6 +171,8 @@ TEST(ws_utils_getNearLatSubBoxCoord_minusX_test, _ws_utils_test) {
     // case 1: make x coord < 0.
     AtomElement src_atom;
     src_atom.x[0] = 0 - 0.01;
+    src_atom.x[1] = 0.0;
+    src_atom.x[2] = 0.0;
     _type_atom_index coords[DIMENSION];
     ws::getNearLatSubBoxCoord(src_atom, p_domain, coords);
     EXPECT_EQ(coords[0], 0 * 2);
@@ -193,12 +195,12 @@ TEST(ws_utils_getNearLatSubBoxCoord_minusX_test, _ws_utils_test) {
     // case 5:
     src_atom.x[0] = lattice_const * (-2.25 - 0.1); // point in (-2.75,-2.25) will be -2.5*2 = -5
     ws::getNearLatSubBoxCoord(src_atom, p_domain, coords);
-    EXPECT_EQ(coords[0], -2 * 2 - 1);
+    EXPECT_EQ(coords[0], -2 * 2 );
 
     // case 6:
     src_atom.x[0] = lattice_const * (-2.75 + 0.1); // point in (-2.75,-2.25) will be -2.5*2 = -5
     ws::getNearLatSubBoxCoord(src_atom, p_domain, coords);
-    EXPECT_EQ(coords[0], -2 * 2 - 1);
+    EXPECT_EQ(coords[0], -2 * 3);
 
     // case 7:
     src_atom.x[0] = lattice_const * (-2.75 - 0.1); // point in (-3,-2.75) will be -3*2 = -6
