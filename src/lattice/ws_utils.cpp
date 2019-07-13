@@ -59,30 +59,56 @@ namespace ws {
 
 }
 
+/**
+ * calculate coordinate of nearest lattice for a atom:
+ * X,Y,Z is the position of atom and LC is lattice const.
+ */
+#define VORONOY(X, Y, Z, LC) \
+/* first, we get coordinate of major lattice. */ \
+_type_atom_index lat_coord_x = static_cast<_type_atom_index>(lround(X / LC)); \
+_type_atom_index lat_coord_y = static_cast<_type_atom_index>(lround(Y / LC)); \
+_type_atom_index lat_coord_z = static_cast<_type_atom_index>(lround(Z / LC)); \
+\
+/* second, get delta value which will belongs [-0.5, 0.5]. */ \
+const double delta_x = X / LC - lat_coord_x; \
+const double delta_y = Y / LC - lat_coord_y; \
+const double delta_z = Z / LC - lat_coord_z; \
+\
+const unsigned int flag_ = (delta_z > 0 ? 4u : 0u) | (delta_y > 0 ? 2u : 0u) | (delta_x > 0 ? 1u : 0u); \
+\
+/* third, shortest distance calculation. */  \
+/* note: we reuse the variable lat_coord_x, lat_coord_y and lat_coord_z as return value.  */ \
+lat_coord_x = 2 * lat_coord_x;                  \
+if (normal_vector[flag_][0] * delta_x +          \
+    normal_vector[flag_][1] * delta_y +              \
+    normal_vector[flag_][2] * delta_z + d >= 0.0) {  \
+    /* belongs to major lattice. */ \
+    lat_coord_x += offset[flag_][0]; \
+    lat_coord_y += offset[flag_][1]; \
+    lat_coord_z += offset[flag_][2]; \
+}
+
 const box::_type_flag_32 ws::isOutBox(const AtomElement &src_atom, const comm::Domain *p_domain) {
-    auto j = static_cast<_type_atom_index>(lround(src_atom.x[0] * 2 / p_domain->lattice_const));
-    auto k = static_cast<_type_atom_index>(lround(
-            (src_atom.x[1] - (j % 2) * p_domain->lattice_const / 2) / p_domain->lattice_const));
-    auto l = static_cast<_type_atom_index>(lround(
-            (src_atom.x[2] - (j % 2) * p_domain->lattice_const / 2) / p_domain->lattice_const));
-    j -= 2 * p_domain->lattice_coord_sub_box_region.x_low;
-    k -= p_domain->lattice_coord_sub_box_region.y_low;
-    l -= p_domain->lattice_coord_sub_box_region.z_low;
+    VORONOY(src_atom.x[0], src_atom.x[1], src_atom.x[2], p_domain->lattice_const)
+
+    lat_coord_x -= 2 * p_domain->lattice_coord_sub_box_region.x_low;
+    lat_coord_y -= p_domain->lattice_coord_sub_box_region.y_low;
+    lat_coord_z -= p_domain->lattice_coord_sub_box_region.z_low;
 
     box::_type_flag_32 flag = box::IN_BOX;
-    if (j < 0) {
+    if (lat_coord_x < 0) {
         flag |= box::OUT_BOX_X_LITTER;
-    } else if (j >= 2 * p_domain->lattice_size_sub_box[0]) {
+    } else if (lat_coord_x >= 2 * p_domain->lattice_size_sub_box[0]) {
         flag |= box::OUT_BOX_X_BIG;
     }
-    if (k < 0) {
+    if (lat_coord_y < 0) {
         flag |= box::OUT_BOX_Y_LITTER;
-    } else if (k >= p_domain->lattice_size_sub_box[1]) {
+    } else if (lat_coord_y >= p_domain->lattice_size_sub_box[1]) {
         flag |= box::OUT_BOX_Y_BIG;
     }
-    if (l < 0) {
+    if (lat_coord_z < 0) {
         flag |= box::OUT_BOX_Z_LITTER;
-    } else if (l >= p_domain->lattice_size_sub_box[2]) {
+    } else if (lat_coord_z >= p_domain->lattice_size_sub_box[2]) {
         flag |= box::OUT_BOX_Z_BIG;
     }
     return flag;
@@ -129,15 +155,11 @@ _type_atom_index ws::findNearLatIndexInSubBox(AtomList *atom_list, const AtomEle
 
 void ws::getNearLatCoord(const AtomElement &src_atom, const comm::Domain *p_domain,
                          _type_atom_index coords[DIMENSION]) {
-    auto j = static_cast<_type_atom_index>(lround(src_atom.x[0] * 2 / p_domain->lattice_const));
-    auto k = static_cast<_type_atom_index>(lround(
-            (src_atom.x[1] - (j % 2) * p_domain->lattice_const / 2) / p_domain->lattice_const));
-    auto l = static_cast<_type_atom_index>(lround(
-            (src_atom.x[2] - (j % 2) * p_domain->lattice_const / 2) / p_domain->lattice_const));
+    VORONOY(src_atom.x[0], src_atom.x[1], src_atom.x[2], p_domain->lattice_const)
 
-    coords[0] = j - 2 * p_domain->lattice_coord_ghost_region.x_low;
-    coords[1] = k - p_domain->lattice_coord_ghost_region.y_low;
-    coords[2] = l - p_domain->lattice_coord_ghost_region.z_low;
+    coords[0] = lat_coord_x - 2 * p_domain->lattice_coord_ghost_region.x_low;
+    coords[1] = lat_coord_y - p_domain->lattice_coord_ghost_region.y_low;
+    coords[2] = lat_coord_z - p_domain->lattice_coord_ghost_region.z_low;
 }
 
 /**
@@ -158,49 +180,22 @@ void ws::getNearLatCoord(const AtomElement &src_atom, const comm::Domain *p_doma
  */
 void ws::getNearLatSubBoxCoord(const AtomElement &src_atom, const comm::Domain *p_domain,
                                _type_atom_index coords[DIMENSION]) {
-    // first, we get coordinate of major lattice.
-    _type_atom_index major_lat_x = static_cast<_type_atom_index>(lround(src_atom.x[0] / p_domain->lattice_const));
-    _type_atom_index major_lat_y = static_cast<_type_atom_index>(lround(src_atom.x[1] / p_domain->lattice_const));
-    _type_atom_index major_lat_z = static_cast<_type_atom_index>(lround(src_atom.x[2] / p_domain->lattice_const));
+    VORONOY(src_atom.x[0], src_atom.x[1], src_atom.x[2], p_domain->lattice_const)
 
-    // second, get delta value which will belongs [-0.5, 0.5].
-    const double delta_x = src_atom.x[0] / p_domain->lattice_const - major_lat_x;
-    const double delta_y = src_atom.x[1] / p_domain->lattice_const - major_lat_y;
-    const double delta_z = src_atom.x[2] / p_domain->lattice_const - major_lat_z;
-
-    const unsigned int flag = (delta_z > 0 ? 4u : 0u) | (delta_y > 0 ? 2u : 0u) | (delta_x > 0 ? 1u : 0u);
-
-    // third, shortest distance calculation.
-    if (normal_vector[flag][0] * delta_x +
-        normal_vector[flag][1] * delta_y +
-        normal_vector[flag][2] * delta_z + d < 0.0) {
-        // belongs to major lattice
-        coords[0] = 2 * major_lat_x;
-        coords[1] = major_lat_y;
-        coords[2] = major_lat_z;
-    } else {
-        coords[0] = 2 * major_lat_x + offset[flag][0];
-        coords[1] = major_lat_y + offset[flag][1];
-        coords[2] = major_lat_z + offset[flag][2];
-    }
-    // relative coords
-    coords[0] -= 2 * p_domain->lattice_coord_sub_box_region.x_low;
-    coords[1] -= p_domain->lattice_coord_sub_box_region.y_low;
-    coords[2] -= p_domain->lattice_coord_sub_box_region.z_low;
+    // get relative coords
+    coords[0] = lat_coord_x - 2 * p_domain->lattice_coord_sub_box_region.x_low;
+    coords[1] = lat_coord_y - p_domain->lattice_coord_sub_box_region.y_low;
+    coords[2] = lat_coord_z - p_domain->lattice_coord_sub_box_region.z_low;
 }
 
 bool ws::isInBox(const AtomElement &src_atom, const comm::Domain *p_domain) {
-    auto j = static_cast<_type_atom_index>(lround(src_atom.x[0] * 2 / p_domain->lattice_const));
-    auto k = static_cast<_type_atom_index>(lround(
-            (src_atom.x[1] - (j % 2) * p_domain->lattice_const / 2) / p_domain->lattice_const));
-    auto l = static_cast<_type_atom_index>(lround(
-            (src_atom.x[2] - (j % 2) * p_domain->lattice_const / 2) / p_domain->lattice_const));
+    VORONOY(src_atom.x[0], src_atom.x[1], src_atom.x[2], p_domain->lattice_const)
 
-    j -= 2 * p_domain->lattice_coord_sub_box_region.x_low;
-    k -= p_domain->lattice_coord_sub_box_region.y_low;
-    l -= p_domain->lattice_coord_sub_box_region.z_low;
-    return (j >= 0 && k >= 0 && l >= 0 &&
-            j < p_domain->lattice_size_sub_box[0] &&
-            k < p_domain->lattice_size_sub_box[1] &&
-            l < p_domain->lattice_size_sub_box[2]);
+    lat_coord_x -= 2 * p_domain->lattice_coord_sub_box_region.x_low;
+    lat_coord_y -= p_domain->lattice_coord_sub_box_region.y_low;
+    lat_coord_z -= p_domain->lattice_coord_sub_box_region.z_low;
+    return (lat_coord_x >= 0 && lat_coord_y >= 0 && lat_coord_z >= 0 &&
+            lat_coord_x < p_domain->lattice_size_sub_box[0] &&
+            lat_coord_y < p_domain->lattice_size_sub_box[1] &&
+            lat_coord_z < p_domain->lattice_size_sub_box[2]);
 }
