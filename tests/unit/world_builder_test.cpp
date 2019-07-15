@@ -17,7 +17,7 @@ TEST(zero_momentum_test, world_builder_test) {
     double lattice_const = 0.86;
     double cutoff_radius_factor = 1.1421;
     int rand_seek = 1024;
-    comm::Domain *_domain = getDomainInstance(space, lattice_const, cutoff_radius_factor);
+    comm::BccDomain *_domain = getDomainInstance(space, lattice_const, cutoff_radius_factor);
     auto *_atom = new atom(_domain);
 
     int ra[3] = {97, 3, 1};

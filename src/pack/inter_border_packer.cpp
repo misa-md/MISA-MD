@@ -9,7 +9,7 @@
 #include "inter_border_packer.h"
 
 
-InterBorderPacker::InterBorderPacker(const comm::Domain &domain, InterAtomList &inter_atom_list)
+InterBorderPacker::InterBorderPacker(const comm::BccDomain &domain, InterAtomList &inter_atom_list)
         : domain(domain), inter_atom_list(inter_atom_list) {
     inter_atom_list.intersendlist.clear();
     inter_atom_list.interrecvlist.clear();

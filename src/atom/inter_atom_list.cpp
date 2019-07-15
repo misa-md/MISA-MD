@@ -44,7 +44,7 @@ void InterAtomList::makeIndex(AtomList *atom_list, const comm::Domain *p_domain)
     }
 }
 
-void InterAtomList::borderInter(comm::Domain *p_domain) {
+void InterAtomList::borderInter(comm::BccDomain *p_domain) {
     InterBorderPacker border_packer(*p_domain, *this);
     comm::neiSendReceive<LatParticleData>(&border_packer,
                                           MPIDomain::toCommProcess(),

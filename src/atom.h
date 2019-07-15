@@ -9,7 +9,8 @@
 #include <vector>
 #include <eam.h>
 
-#include <domain/domain.h>
+#include <domain/bcc_domain.h>
+#include <logs/logs.h>
 
 #include "atom/atom_set.h"
 #include "atom/atom_element.h"
@@ -20,7 +21,7 @@
 
 class atom : public AtomSet {
 public :
-    atom(comm::Domain *domain);
+    atom(comm::BccDomain *domain);
 
     /**
      * move atoms to inter-atom list if the atoms is not in its lattice.
@@ -31,16 +32,6 @@ public :
     void clearForce();
 
     void computeEam(eam *pot, double &comm);
-
-    void latRho(eam *pot, double &comm);
-
-    void interRho(eam *pot, double &comm);
-
-    void latDf(eam *pot, double &comm);
-
-    void latForce(eam *pot, double &comm);
-
-    void interForce(eam *pot, double &comm);
 
     /**
      * set velocity of a atom whose position is specified by array @param lat
@@ -54,13 +45,40 @@ public :
      */
     void setv(int lat[4], double direction[3], double energy);
 
-    void print_force(const std::string filename);
 
-    void sendForce();
 
 private:
-    comm::Domain *p_domain;
+    comm::BccDomain *p_domain;
 
+    /**
+     * calculate electron density for all lattice atoms.
+     * @param pot pointer of eam potential object.
+     */
+    void latRho(eam *pot);
+
+    /**
+     * calculate electron density for all interstitial atoms.
+     * @param pot pointer of eam potential object.
+     */
+    void interRho(eam *pot);
+
+    /**
+     * calculate derivative of embedded energy for all lattice atoms.
+     * @param pot pointer of eam potential object.
+     */
+    void latDf(eam *pot);
+
+    /**
+     * calculate force for all lattice atoms.
+     * @param pot pointer of eam potential object.
+     */
+    void latForce(eam *pot);
+
+    /**
+     * calculate force for all interstitial atoms.
+     * @param pot pointer of eam potential object.
+     */
+    void interForce(eam *pot);
 };
 
 #endif // CRYSTAL_MD_ATOM_H

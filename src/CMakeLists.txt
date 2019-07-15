@@ -1,7 +1,11 @@
 # configure a header file to pass some of the CMake settings to the source code
+if (SUNWAY_ARCH_ENABLE_FLAG)
+    set(ARCH_SUNWAY ON)
+endif ()
+
 configure_file(
-        "${PROJECT_SOURCE_DIR}/src/types/pre_config.h.in"
-        "${PROJECT_SOURCE_DIR}/src/types/pre_config.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/types/pre_config.h.in"
+        "${CMAKE_CURRENT_SOURCE_DIR}/types/pre_config.h"
 )
 
 set(HEADER_FILES
@@ -72,6 +76,11 @@ set(SOURCE_FILES
         utils/mpi_data_types.cpp
         )
 
+add_subdirectory(arch)
+# link sunway lib to libmd
+if (SUNWAY_ARCH_ENABLE_FLAG)
+    set(ARCH_LIBS md_sunway)
+endif ()
 
 # set binary path and lib storage path for compiling process.
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
@@ -89,6 +98,7 @@ target_link_libraries(
         pot::pot
         comm::comm
         kiwi::kiwi
+        ${ARCH_LIBS}
         # fmt is included in kiwi.
 )
 

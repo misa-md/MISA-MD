@@ -10,6 +10,7 @@
 #include <functional>
 
 #include <domain/domain.h>
+#include <domain/bcc_domain.h>
 
 #include "../types/pre_define.h"
 #include "atom_element.h"
@@ -168,9 +169,9 @@ public:
      */
     void appendInter(_type_atom_id atom_id);
 
-    void exchangeAtomFirst(comm::Domain *p_domain);
+    void exchangeAtomFirst(comm::BccDomain *p_domain);
 
-    void exchangeAtom(comm::Domain *p_domain);
+    void exchangeAtom(comm::BccDomain *p_domain);
 
     /**
      * return true if the there is atom in current box that is far away out of this box.

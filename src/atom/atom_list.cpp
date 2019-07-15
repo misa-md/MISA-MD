@@ -34,7 +34,7 @@ AtomList::~AtomList() {
     delete[] _atoms;
 }
 
-void AtomList::exchangeAtomFirst(comm::Domain *p_domain) {
+void AtomList::exchangeAtomFirst(comm::BccDomain *p_domain) {
     sendlist.resize(6);
     recvlist.resize(6);
     for (unsigned short d = 0; d < DIMENSION; d++) {
@@ -60,7 +60,7 @@ void AtomList::exchangeAtomFirst(comm::Domain *p_domain) {
                                           p_domain->rank_id_neighbours);
 }
 
-void AtomList::exchangeAtom(comm::Domain *p_domain) {
+void AtomList::exchangeAtom(comm::BccDomain *p_domain) {
     LatPacker lat_packer(*p_domain, *this, sendlist, recvlist);
     comm::neiSendReceive<LatParticleData>(&lat_packer,
                                           MPIDomain::toCommProcess(),

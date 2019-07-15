@@ -68,7 +68,7 @@ public:
      * send inter atoms in simulation area that are contributed to ghost area of other processes.
      * @param p_domain pointer of domain
      */
-    void borderInter(comm::Domain *p_domain);
+    void borderInter(comm::BccDomain *p_domain);
 
     void makeIndex(AtomList *atom_list, const comm::Domain *p_domain);
 

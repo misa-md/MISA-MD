@@ -9,12 +9,9 @@
 #ifndef CRYSTAL_MD_PRE_CONFIG_H
 #define CRYSTAL_MD_PRE_CONFIG_H
 
-#cmakedefine ARCH_SW  // for Sunway SW26010.
+#cmakedefine ARCH_SUNWAY  // for Sunway SW26010.
 
 #cmakedefine MD_DEV_MODE
 
-#ifdef ARCH_SW
-#define ARCH_SUNWAY
-#endif
 
 #endif //CRYSTAL_MD_PRE_CONFIG_H

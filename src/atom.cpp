@@ -16,7 +16,7 @@
 #include "pack/df_embed_packer.h"
 #include "hardware_accelerate.hpp" // use hardware(eg.GPU, MIC,Sunway slave cores.) to achieve calculate accelerating.
 
-atom::atom(comm::Domain *domain)
+atom::atom(comm::BccDomain *domain)
         : AtomSet(domain->lattice_const * domain->cutoff_radius_factor,
                   domain->lattice_size_ghost_extended,
                   domain->lattice_size_sub_box,
@@ -123,8 +123,8 @@ void atom::computeEam(eam *pot, double &comm) {
     double starttime, stoptime;
     inter_atom_list->makeIndex(atom_list, p_domain); // create index for inter atom and inter ghost atoms.
 
-    latRho(pot, comm);
-    interRho(pot, comm);
+    latRho(pot);
+    interRho(pot);
 //    ofstream outfile;
     /* char tmp[20];
     sprintf(tmp, "electron_density.atom");
@@ -171,7 +171,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
     outfile.close();*/
 
     //本地晶格点计算嵌入能导数
-    latDf(pot, comm);
+    latDf(pot);
 
     /*sprintf(tmp, "df.atom");
     outfile.open(tmp);
@@ -194,7 +194,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
     }
 
     // force for local lattice.
-    latForce(pot, comm);
+    latForce(pot);
 
     /*sprintf(tmp, "f.atom");  // 2.todo remove start.
       outfile.open(tmp);
@@ -203,10 +203,18 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
       }
       outfile.close();*/ // 2.todo remove end.
     //间隙原子计算嵌入能和对势带来的力
-    interForce(pot, comm);
+    interForce(pot);
+
+    // send force
+    starttime = MPI_Wtime();
+    ForcePacker force_packer(getAtomListRef(), atom_list->sendlist, atom_list->recvlist);
+    comm::neiSendReceive<double>(&force_packer, MPIDomain::toCommProcess(),
+                                 MPI_DOUBLE, p_domain->rank_id_neighbours, true);
+    stoptime = MPI_Wtime();
+    comm += stoptime - starttime;
 }
 
-void atom::latRho(eam *pot, double &comm) {
+void atom::latRho(eam *pot) {
     double xtemp, ytemp, ztemp;
     double delx, dely, delz;
     _type_atom_index kk;
@@ -256,7 +264,7 @@ void atom::latRho(eam *pot, double &comm) {
     }
 }
 
-void atom::interRho(eam *pot, double &comm) {
+void atom::interRho(eam *pot) {
     double delx, dely, delz;
     double dist2;
     double dfEmbed;
@@ -350,7 +358,7 @@ void atom::interRho(eam *pot, double &comm) {
     }
 }
 
-void atom::latDf(eam *pot, double &comm) {
+void atom::latDf(eam *pot) {
     double dfEmbed;
     int xstart = p_domain->dbx_lattice_size_ghost[0];
     int ystart = p_domain->dbx_lattice_size_ghost[1];
@@ -378,7 +386,7 @@ void atom::latDf(eam *pot, double &comm) {
     }
 }
 
-void atom::latForce(eam *pot, double &comm) {
+void atom::latForce(eam *pot) {
     double xtemp, ytemp, ztemp;
     double delx, dely, delz;
     _type_atom_index kk;
@@ -448,7 +456,7 @@ void atom::latForce(eam *pot, double &comm) {
     } // end of if-isAccelerateSupport.
 }
 
-void atom::interForce(eam *pot, double &comm) {
+void atom::interForce(eam *pot) {
     double delx, dely, delz;
     double dist2;
     double fpair;
@@ -564,27 +572,6 @@ void atom::interForce(eam *pot, double &comm) {
     }
 }
 
-void atom::print_force(const std::string filename) {
-    std::ofstream outfile;
-    outfile.open(filename);
-
-    atom_list->foreachSubBoxAtom(
-            [&outfile](AtomElement &_atom_ref) {
-                outfile << _atom_ref.id << "\t"
-                        << _atom_ref.x[0] << "\t" << _atom_ref.x[1] << "\t" << _atom_ref.x[2] << "\t"
-                        << _atom_ref.f[0] << "\t" << _atom_ref.f[1] << "\t" << _atom_ref.f[2] << std::endl;
-            }
-    );
-    for (_type_inter_list::iterator inter_it = inter_atom_list->inter_list.begin();
-         inter_it != inter_atom_list->inter_list.end(); inter_it++) {
-        AtomElement &_atom_ref = *inter_it;
-        outfile << std::endl << _atom_ref.id << "\t"
-                << _atom_ref.x[0] << "\t" << _atom_ref.x[1] << "\t" << _atom_ref.x[2] << "\t"
-                << _atom_ref.f[0] << "\t" << _atom_ref.f[1] << "\t" << _atom_ref.f[2] << std::endl;
-    }
-    outfile.close();
-}
-
 void atom::setv(int lat[4], double direction[3], double energy) {
     long kk;
     if ((lat[0] * 2) >= p_domain->dbx_lattice_coord_sub_box_region.x_low &&
@@ -604,10 +591,4 @@ void atom::setv(int lat[4], double direction[3], double energy) {
         atom_.v[1] += v_ * direction[1] / sqrt(d_);
         atom_.v[2] += v_ * direction[2] / sqrt(d_);
     }
-}
-
-void atom::sendForce() {
-    ForcePacker force_packer(getAtomListRef(), atom_list->sendlist, atom_list->recvlist);
-    comm::neiSendReceive<double>(&force_packer, MPIDomain::toCommProcess(),
-                                 MPI_DOUBLE, p_domain->rank_id_neighbours, true);
 }
