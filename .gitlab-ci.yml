@@ -1,0 +1,36 @@
+image: hpcer/hpcdev:pkg-0.3.0-alpha
+
+cache:
+  key: vendor_version_1   # change this key if vendor changed.
+  paths:
+    - vendor/
+
+stages:
+  - fetch
+  - build
+
+fetch:
+  stage: fetch
+  tags:
+    - cpp
+    - pkg
+  variables:
+    PKG_AUTH: 'gitlab-ci-token?${CI_JOB_TOKEN}@git.hpcer.dev'
+  script:
+    - pkg fetch
+    - pkg install --verbose
+  artifacts:
+    untracked: true
+
+build:
+  stage: build
+  tags:
+    - cpp
+    - pkg
+  script:
+    - cmake -Bcmake-build -DCMAKE_BUILD_TYPE=Debug -H.
+    - make -Ccmake-build
+  #  artifacts:
+  #    untracked: true
+  dependencies:
+    - fetch
