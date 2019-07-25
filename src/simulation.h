@@ -12,7 +12,7 @@
 
 #include "newton_motion.h"
 #include "input.h"
-#include "atom_dump.h"
+#include "config_values.h"
 
 class simulation {
 public:

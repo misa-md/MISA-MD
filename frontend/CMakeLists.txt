@@ -8,7 +8,14 @@ configure_file(
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
-add_executable(${EXECUTE_BIN_NAME}
+add_executable(
+        ${EXECUTE_BIN_NAME}
+        atom_dump.h
+        atom_dump.cpp
+        atom_info_dump.h
+        atom_info_dump.cpp
+        buffered_io.h
+        buffered_io.cpp
         crystal_md.h
         crystal_md.cpp
         toml_config.h
@@ -17,7 +24,7 @@ add_executable(${EXECUTE_BIN_NAME}
         device.h
         md_simulation.cpp
         md_simulation.h
-        )
+)
 
 target_link_libraries(${EXECUTE_BIN_NAME}
         PRIVATE ${MD_LIB_NAME} ${EXTRA_LIBS}
