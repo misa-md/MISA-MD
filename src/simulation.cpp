@@ -153,7 +153,7 @@ void simulation::simulate() {
         beforeStep(_simulation_time_step);
 
         if (_simulation_time_step == pConfigVal->collisionStep) {
-            if (!pConfigVal->originDumpPath.empty()) {
+            if (!pConfigVal->output.originDumpPath.empty()) {
                 output(_simulation_time_step, true); // dump atoms
             }
             _atom->setv(pConfigVal->collisionLat, pConfigVal->direction, pConfigVal->pkaEnergy);
@@ -192,7 +192,7 @@ void simulation::simulate() {
 
         postStep(_simulation_time_step);
         //输出原子信息
-        if ((_simulation_time_step + 1) % pConfigVal->atomsDumpInterval == 0) {
+        if ((_simulation_time_step + 1) % pConfigVal->output.atomsDumpInterval == 0) {
             output(_simulation_time_step + 1);
         }
     }
@@ -230,27 +230,27 @@ void simulation::output(size_t time_step, bool before_collision) {
     static double totalDumpTime = 0;
 
     start = MPI_Wtime();
-    if (!pConfigVal->outByFrame) {
+    if (!pConfigVal->output.outByFrame) {
         static AtomDump *dumpInstance = nullptr; // pointer used for non-by-frame dumping.
         if (dumpInstance == nullptr) { // initialize atomDump if it is not initialized.
-            dumpInstance = new AtomDump(pConfigVal->atomsDumpMode, pConfigVal->atomsDumpFilePath,
+            dumpInstance = new AtomDump(pConfigVal->output.atomsDumpMode, pConfigVal->output.atomsDumpFilePath,
                                         begin, end, atoms_size); // atoms dump.
             // fixme Attempting to use an MPI routine after finalizing MPICH.
         }
         dumpInstance->dump(_atom->getAtomList(), _atom->getInterList(), time_step);
-        if (time_step + pConfigVal->atomsDumpInterval > pConfigVal->timeSteps) { // the last time of dumping.
+        if (time_step + pConfigVal->output.atomsDumpInterval > pConfigVal->timeSteps) { // the last time of dumping.
             dumpInstance->writeDumpHeader();
             delete dumpInstance;
         }
     } else {
         std::string filename;
         if (before_collision) {
-            filename = pConfigVal->originDumpPath; // todo pass file name from func output parameters.
+            filename = pConfigVal->output.originDumpPath; // todo pass file name from func output parameters.
         } else {
-            filename = fmt::format(pConfigVal->atomsDumpFilePath, time_step);
+            filename = fmt::format(pConfigVal->output.atomsDumpFilePath, time_step);
         }
         // pointer to the atom dump class for outputting atoms information.
-        auto *dumpInstance = new AtomDump(pConfigVal->atomsDumpMode, filename,
+        auto *dumpInstance = new AtomDump(pConfigVal->output.atomsDumpMode, filename,
                                           begin, end, atoms_size);
         dumpInstance->dump(_atom->getAtomList(), _atom->getInterList(), time_step);
         dumpInstance->writeDumpHeader();
@@ -260,11 +260,11 @@ void simulation::output(size_t time_step, bool before_collision) {
     totalDumpTime += (stop - start);
 
     // log dumping time.
-    if (time_step + pConfigVal->atomsDumpInterval > pConfigVal->timeSteps &&
+    if (time_step + pConfigVal->output.atomsDumpInterval > pConfigVal->timeSteps &&
         MPIDomain::sim_processor.own_rank == MASTER_PROCESSOR) {
-        if (pConfigVal->atomsDumpMode == OUTPUT_COPY_MODE) {
+        if (pConfigVal->output.atomsDumpMode == OUTPUT_COPY_MODE) {
             kiwi::logs::i("dump", "time of dumping atoms in copy mode:{}.\n", totalDumpTime);
-        } else if (pConfigVal->atomsDumpMode == OUTPUT_DIRECT_MODE) {
+        } else if (pConfigVal->output.atomsDumpMode == OUTPUT_DIRECT_MODE) {
             kiwi::logs::i("dump", "time of dumping atoms in direct mode:{}.\n", totalDumpTime);
         }
     }
