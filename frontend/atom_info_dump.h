@@ -8,7 +8,7 @@
 
 #include <cstddef>
 #include <mpi.h>
-#include "pre_define.h"
+#include "types/pre_define.h"
 
 namespace atom_dump {
     struct AtomInfoDump {

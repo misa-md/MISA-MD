@@ -7,7 +7,7 @@
 #include <logs/logs.h>
 #include "atom_dump.h"
 #include "utils/mpi_domain.h"
-#include "types/atom_info_dump.h"
+#include "atom_info_dump.h"
 #include "types/pre_define.h"
 
 AtomDump::AtomDump() : _dump_file_name(DEFAULT_OUTPUT_DUMP_FILE_PATH),
@@ -21,6 +21,10 @@ AtomDump::AtomDump(_type_out_mode mode, const std::string &filename, _type_latti
 
 AtomDump::~AtomDump() {
     delete local_storage;
+    delete buffered_writer;
+    if (pFile != NULL) {
+        MPI_File_close(&pFile);
+    }
 }
 
 AtomDump &AtomDump::setMode(_type_out_mode mode) {
@@ -62,17 +66,20 @@ void AtomDump::dumpModeCopy(AtomList *atom_list, InterAtomList *inter_list, size
         }
 
         // atom_dump::registerAtomDumpMPIDataType(); // fixme: MPI_Type_contiguous(count=32768, INVALID DATATYPE,
-        local_storage = new kiwi::LocalStorage(pFile, 128, 128, 1024 * sizeof(atom_dump::AtomInfoDump));
+        // make block size equals to buffer size to fix mpi-io writing problems.
+        local_storage = new kiwi::LocalStorage(pFile, 128, 128,
+                                               BufferedFileWriter::DefaultBufferSize * sizeof(atom_dump::AtomInfoDump));
         local_storage->make(MPI_BYTE, MPIDomain::sim_processor); // create file.
+        buffered_writer = new BufferedFileWriter(local_storage, BufferedFileWriter::DefaultBufferSize);
     }
-    dumpInterLists(inter_list, time_step);
+
+    // dumping inter atoms.
+    kiwi::logs::v("dump", "inter atoms count: {}\n", inter_list->nLocalInter());
+    for (AtomElement &inter_ref :inter_list->inter_list) {
+        buffered_writer->write(&inter_ref, time_step);
+    }
     // dumping normal atoms
     _type_atom_index kk;
-
-    const size_t list_buffer_size = 4096;
-    size_t list_buff_index = 0;
-    atom_dump::AtomInfoDump atom_list_buffer[list_buffer_size]; // 4k
-
     for (int k = _begin[2]; k < _end[2]; k++) {
         for (int j = _begin[1]; j < _end[1]; j++) {
             for (int i = _begin[0]; i < _end[0]; i++) {
@@ -81,30 +88,11 @@ void AtomDump::dumpModeCopy(AtomList *atom_list, InterAtomList *inter_list, size
                 if (atom_.type == atom_type::INVALID) {
                     continue; // skip out of boxed atoms.
                 }
-                atom_list_buffer[list_buff_index].id = atom_.id;
-                atom_list_buffer[list_buff_index].step = time_step;
-                atom_list_buffer[list_buff_index].type = atom_.type;
-                atom_list_buffer[list_buff_index].inter_type = 0; // normal
-                atom_list_buffer[list_buff_index].atom_location[0] = atom_.x[0];
-                atom_list_buffer[list_buff_index].atom_location[1] = atom_.x[1];
-                atom_list_buffer[list_buff_index].atom_location[2] = atom_.x[2];
-                atom_list_buffer[list_buff_index].atom_velocity[0] = atom_.v[0];
-                atom_list_buffer[list_buff_index].atom_velocity[1] = atom_.v[1];
-                atom_list_buffer[list_buff_index].atom_velocity[2] = atom_.v[2];
-                list_buff_index++;
-                if (list_buff_index == list_buffer_size) { // write data and reset
-                    list_buff_index = 0;
-                    atom_total += list_buffer_size;
-                    local_storage->writer.write(atom_list_buffer, list_buffer_size * sizeof(atom_dump::AtomInfoDump));
-                }
+                buffered_writer->write(&atom_, time_step);
             }
         }
     }
-    if (list_buff_index != 0) {
-        atom_total += list_buff_index;
-        // write left data.
-        local_storage->writer.write(atom_list_buffer, list_buff_index * sizeof(atom_dump::AtomInfoDump));
-    }
+    buffered_writer->flush();
 }
 
 void AtomDump::dumpModeDirect(AtomList *atom_list, InterAtomList *inter_list, size_t time_step) {
@@ -141,37 +129,10 @@ void AtomDump::dumpModeDirect(AtomList *atom_list, InterAtomList *inter_list, si
     outfile.close();
 }
 
-void AtomDump::dumpInterLists(InterAtomList *inter_list, size_t step) {
-    // dumping inter atoms.
-    kiwi::logs::v("dump", "inter atoms count: {}\n", inter_list->nLocalInter());
-    atom_dump::AtomInfoDump *inter_dump = nullptr;
-    if (inter_list->nLocalInter() > 0) {
-        inter_dump = new atom_dump::AtomInfoDump[inter_list->nLocalInter()];
-    }
-    unsigned long i = 0;
-    for (AtomElement &inter_ref :inter_list->inter_list) {
-        // for (int i = 0; i < inter_list->nLocalInter(); i++) {
-        inter_dump[i].id = inter_ref.id;
-        inter_dump[i].step = step;
-        inter_dump[i].type = inter_ref.type;
-        inter_dump[i].inter_type = 1; // inter atoms.
-        inter_dump[i].atom_location[0] = inter_ref.x[0];
-        inter_dump[i].atom_location[1] = inter_ref.x[1];
-        inter_dump[i].atom_location[2] = inter_ref.x[2];
-        inter_dump[i].atom_velocity[0] = inter_ref.v[0];
-        inter_dump[i].atom_velocity[1] = inter_ref.v[1];
-        inter_dump[i].atom_velocity[2] = inter_ref.v[2];
-        i++;
-    }
-    atom_total += inter_list->nLocalInter();
-    local_storage->writer.write(inter_dump, inter_list->nLocalInter() * sizeof(atom_dump::AtomInfoDump));
-    delete[]inter_dump;
-}
-
 void AtomDump::writeDumpHeader() {
     struct {
         size_t atoms_count;
-    } header{atom_total};
+    } header{buffered_writer->totalAtomsWritten()};
 
     local_storage->writeHeader(reinterpret_cast<kiwi::byte *>(&header), sizeof(header), MPIDomain::sim_processor);
 }

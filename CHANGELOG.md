@@ -2,8 +2,34 @@
 ## [Unreleased]
 
 
+<a name="v0.3.3"></a>
+## [v0.3.3] - 2019-07-15
+### Ci
+- **gitlab-ci:** add gitlab-ci config file to build code.
+
+### Feat
+- **libcomm:** upgrade libcomm version to 0.2.0.
+- **output:** add output of global inter atoms count and global lattice atoms count(in development mode).
+- **simulation:** add onForceSolved callback for simulation, and move forceChecking() to frontend.
+- **simulation:** add beforeStep and postStep callback in simulation.
+- **version:** move version config to version.cmake file.
+- **ws:** add algorithm implementation of voronoy diagram to ws utils.
+
+### Refactor
+- **eam:** inlining func sendForce in class atom into func atom::computeEam.
+- **eam:** make atoms eam computing functions(latRho, interRho, latDf, latForce and interForce) private.
+- **force:** move system force output(development mode only) to class MDSimulation in frontend.
+- **ws:** add a common macro VORONOY to calculate coordinate of nearest lattice for a atom.
+
+### Test
+- **ws:** correct tests due to changes of implementation of ws algorithm.
+
+
 <a name="v0.3.2"></a>
 ## [v0.3.2] - 2019-06-03
+### Docs
+- **changelog:** add changelog for version 0.3.2.
+
 ### Feat
 - **configuration:** add feature of system kinetic energy and temperature calculation for simulation.
 - **logs:** add istty check for colorful logs.
@@ -228,7 +254,8 @@ config Term collision_v have been removed.
 <a name="v0.1.0"></a>
 ## v0.1.0 - 2017-11-17
 
-[Unreleased]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.2...HEAD
+[Unreleased]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.3...HEAD
+[v0.3.3]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.2...v0.3.3
 [v0.3.2]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.1...v0.3.2
 [v0.3.1]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.0...v0.3.1
 [v0.3.0]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.2.0...v0.3.0

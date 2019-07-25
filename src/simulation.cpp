@@ -10,7 +10,7 @@
 #include "utils/mpi_domain.h"
 #include "hardware_accelerate.hpp"
 #include "world_builder.h"
-#include "atom_dump.h"
+#include "../frontend/atom_dump.h"
 #include "system_configuration.h"
 
 simulation::simulation(ConfigValues *p_config) :

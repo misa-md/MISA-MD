@@ -11,7 +11,6 @@ configure_file(
 set(HEADER_FILES
         arch_env.hpp
         atom.h
-        atom_dump.h
         config_values.h
         def_config_values.h
         hardware_accelerate.hpp
@@ -31,7 +30,6 @@ set(HEADER_FILES
         types/atom_types.h
         types/pre_config.h
         types/pre_define.h
-        types/atom_info_dump.h
         pack/df_embed_packer.h
         pack/force_packer.h
         pack/inter_border_packer.h
@@ -47,7 +45,6 @@ set(HEADER_FILES
 
 set(SOURCE_FILES
         atom.cpp
-        atom_dump.cpp
         config_values.cpp
         input.cpp
         newton_motion.cpp
@@ -63,7 +60,6 @@ set(SOURCE_FILES
         atom/neighbour_iterator.inl
         lattice/lattice.cpp
         lattice/ws_utils.cpp
-        types/atom_info_dump.cpp
         pack/df_embed_packer.cpp
         pack/force_packer.cpp
         pack/inter_border_packer.cpp
