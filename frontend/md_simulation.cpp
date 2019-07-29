@@ -7,11 +7,20 @@
 #include <iostream>
 #include <utils/mpi_domain.h>
 #include "md_simulation.h"
+#include "io/output_dump.h"
+#include "io/output_copy.h"
 
 MDSimulation::MDSimulation(ConfigValues *p_config_values) : simulation(p_config_values) {}
 
 void MDSimulation::onSimulationStarted() {
-    out = new OutputInterface(pConfigVal->output);
+    switch (pConfigVal->output.atomsDumpMode) {
+        case OUTPUT_DIRECT_MODE:
+            out = new OutputDump(pConfigVal->output, *_p_domain);
+            break;
+        case OUTPUT_COPY_MODE:
+            out = new OutputCopy(pConfigVal->output, *_p_domain);
+            break;
+    }
 }
 
 void MDSimulation::onSimulationDone(const unsigned long step) {

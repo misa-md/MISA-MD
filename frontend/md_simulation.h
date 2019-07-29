@@ -7,7 +7,7 @@
 
 
 #include <simulation.h>
-#include "io/output_interface.h"
+#include "io/output_base_interface.h"
 
 class MDSimulation : public simulation {
 public:
@@ -42,7 +42,7 @@ public:
     void onForceSolved(const unsigned long step) override;
 
 private:
-    OutputInterface *out = nullptr;
+    OutputBaseInterface *out = nullptr;
 
     /**
      * log force of all atoms in simulation system.

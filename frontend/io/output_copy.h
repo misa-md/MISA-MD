@@ -2,22 +2,23 @@
 // Created by genshen on 2019-07-29.
 //
 
-#ifndef CRYSTAL_MD_OUTPUT_INTERFACE_H
-#define CRYSTAL_MD_OUTPUT_INTERFACE_H
+#ifndef CRYSTAL_MD_OUTPUT_COPY_H
+#define CRYSTAL_MD_OUTPUT_COPY_H
 
 #include "atom/atom_list.h"
 #include "atom/inter_atom_list.h"
 #include "config_values.h"
 #include "atom_dump.h"
+#include "output_base_interface.h"
 
 /**
  * @brief abstract class of simulation step callback.
  */
-class OutputInterface {
+class OutputCopy : public OutputBaseInterface {
 public:
-    explicit OutputInterface(const Output output);
+    explicit OutputCopy(const Output output, const comm::BccDomain p_domain);
 
-    virtual void prepareOutput(const comm::BccDomain p_domain);
+    void prepareOutput(const comm::BccDomain p_domain) override;
 
     /**
      * this will be call in each output step.
@@ -25,7 +26,7 @@ public:
      * @param atom_list list of lattice atoms.
      * @param inter_atom_list list of inter atoms.
      */
-    virtual void onOutputStep(const unsigned long time_step, AtomList *atom_list, InterAtomList *inter_atom_list);
+    void onOutputStep(const unsigned long time_step, AtomList *atom_list, InterAtomList *inter_atom_list) override;
 
     /**
      * this will be called before collision step.
@@ -33,21 +34,16 @@ public:
      * @param atom_list list of lattice atoms.
      * @param inter_atom_list list of inter atoms.
      */
-    virtual void beforeCollision(const unsigned long time_step, AtomList *atom_list,
-                                 InterAtomList *inter_atom_list);
+    void beforeCollision(const unsigned long time_step, AtomList *atom_list,
+                         InterAtomList *inter_atom_list) override;
 
     /**
      * this will be call when all time steps finished.
      * @param time_step current time step
      */
-    virtual void onAllOut(const unsigned long time_step);
+    void onAllOut(const unsigned long time_step) override;
 
 protected:
-    /**
-     * output configures
-     */
-    const Output output_config;
-
     /**
      * dump instance if it is not outputting by frame (only one file shared by all processors).
      */
@@ -57,11 +53,6 @@ protected:
      * time of outputting
      */
     double totalDumpTime = 0;
-
-    // atom boundary in array.
-    _type_lattice_coord begin[DIMENSION];
-    _type_lattice_coord end[DIMENSION];
-    _type_lattice_size atoms_size;
 };
 
-#endif //CRYSTAL_MD_OUTPUT_INTERFACE_H
+#endif //CRYSTAL_MD_OUTPUT_COPY_H
