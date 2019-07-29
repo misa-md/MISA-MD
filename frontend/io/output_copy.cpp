@@ -16,7 +16,7 @@ void OutputCopy::prepareOutput(const comm::BccDomain domain) {
 }
 
 void OutputCopy::onOutputStep(const unsigned long time_step, AtomList *atom_list,
-                                   InterAtomList *inter_atom_list) {
+                              InterAtomList *inter_atom_list) {
     double start = 0, stop = 0;
     start = MPI_Wtime();
     if (!output_config.outByFrame) {
@@ -38,7 +38,7 @@ void OutputCopy::onOutputStep(const unsigned long time_step, AtomList *atom_list
 }
 
 void OutputCopy::beforeCollision(const unsigned long time_step, AtomList *atom_list,
-                                   InterAtomList *inter_atom_list) {
+                                 InterAtomList *inter_atom_list) {
     std::string filename = output_config.originDumpPath; // todo pass file name from func output parameters.
     // pointer to the atom dump class for outputting atoms information.
     auto *dumpInstance = new AtomDump(filename, atoms_size, begin, end);
@@ -54,9 +54,5 @@ void OutputCopy::onAllOut(const unsigned long time_step) {
         delete dumpInstance;
     }
     // log dumping time.
-    if (MPIDomain::sim_processor.own_rank == MASTER_PROCESSOR) {
-        if (output_config.atomsDumpMode == OUTPUT_DIRECT_MODE) {
-            kiwi::logs::i("dump", "time of dumping atoms in copy mode:{}.\n", totalDumpTime);
-        }
-    }
+    kiwi::logs::i(MASTER_PROCESSOR, "dump", "time of dumping atoms in copy mode:{}.\n", totalDumpTime);
 }
