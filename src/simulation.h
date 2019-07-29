@@ -38,6 +38,17 @@ public:
     void finalize();
 
     /**
+     * this function will be called before simulation loop.
+     */
+    virtual void onSimulationStarted() {};
+
+    /**
+     * this function will be called after simulation loop finished.
+     * @param step total simulation step.
+     */
+    virtual void onSimulationDone(const unsigned long step) {};
+
+    /**
      * this callback function will be called before a simulation step.
      * @param step current simulation step, starting from 0.
      */
@@ -54,13 +65,6 @@ public:
      * @param step current simulation step, starting from 0.
      */
     virtual void onForceSolved(const unsigned long step) {};
-
-    /**
-     * start to dump atoms to file
-     * @param time_step current time step
-     * @param before_collision true for dumping atoms before collision
-     */
-    void output(size_t time_step, bool before_collision = false);
 
     void abort(int exitcode);
 

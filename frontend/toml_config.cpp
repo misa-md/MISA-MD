@@ -143,19 +143,19 @@ void ConfigParser::resolveConfigOutput(std::shared_ptr<cpptoml::table> table) {
     auto tomlAtomsDumpMode = table->get_as<std::string>("atoms_dump_mode");
     if (tomlAtomsDumpMode) {
         if ("copy" == *tomlAtomsDumpMode) { // todo equal?
-            configValues.atomsDumpMode = OUTPUT_COPY_MODE;
+            configValues.output.atomsDumpMode = OutputMode::COPY;
         } else {
-            configValues.atomsDumpMode = OUTPUT_DIRECT_MODE;
+            configValues.output.atomsDumpMode = OutputMode::DEBUG;
         }
     }
-    configValues.atomsDumpInterval = table->get_as<uint64_t>("atoms_dump_interval").value_or(ULONG_MAX);
-    configValues.outByFrame = table->get_as<bool>("by_frame").value_or(false);
+    configValues.output.atomsDumpInterval = table->get_as<uint64_t>("atoms_dump_interval").value_or(ULONG_MAX);
+    configValues.output.outByFrame = table->get_as<bool>("by_frame").value_or(false);
 
-    configValues.atomsDumpFilePath = table->get_as<std::string>("atoms_dump_file_path")
+    configValues.output.atomsDumpFilePath = table->get_as<std::string>("atoms_dump_file_path")
             .value_or(DEFAULT_OUTPUT_DUMP_FILE_PATH);
-    configValues.originDumpPath = table->get_as<std::string>("origin_dump_path").value_or("");
+    configValues.output.originDumpPath = table->get_as<std::string>("origin_dump_path").value_or("");
     // todo check if it is a real path.
-    if (configValues.outByFrame && configValues.atomsDumpFilePath.find("{}") == std::string::npos) {
+    if (configValues.output.outByFrame && configValues.output.atomsDumpFilePath.find("{}") == std::string::npos) {
         setError("error format of dump file path");
     }
 
@@ -163,17 +163,17 @@ void ConfigParser::resolveConfigOutput(std::shared_ptr<cpptoml::table> table) {
     std::shared_ptr<cpptoml::table> logs_table = table->get_table("logs");
     auto logsModeString = logs_table->get_as<std::string>("logs_mode").value_or(DEFAULT_LOGS_MODE_CONSOLE_STRING);
     if (LOGS_MODE_CONSOLE_STRING == logsModeString) {
-        configValues.logs_mode = LOGS_MODE_CONSOLE;
+        configValues.output.logs_mode = LOGS_MODE_CONSOLE;
     } else {
-        configValues.logs_mode = LOGS_MODE_FILE;
-        configValues.logs_filename = logs_table->get_as<std::string>("logs_filename").value_or("");
+        configValues.output.logs_mode = LOGS_MODE_FILE;
+        configValues.output.logs_filename = logs_table->get_as<std::string>("logs_filename").value_or("");
         // if filename is empty, we will generate a filename.
-        if (configValues.logs_filename.empty()) {
+        if (configValues.output.logs_filename.empty()) {
             std::ostringstream str_stream;
             str_stream << "md.";
             str_stream << rpcc();
             str_stream << ".log";
-            configValues.logs_filename = str_stream.str();
+            configValues.output.logs_filename = str_stream.str();
         }
     }
 }
