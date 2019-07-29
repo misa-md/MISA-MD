@@ -147,6 +147,8 @@ void simulation::simulate() {
     double alltime, allstart, allstop;
 
     allstart = MPI_Wtime();
+    onSimulationStarted();
+
     for (_simulation_time_step = 0; _simulation_time_step < pConfigVal->timeSteps; _simulation_time_step++) {
         beforeStep(_simulation_time_step);
 
@@ -191,6 +193,8 @@ void simulation::simulate() {
         kiwi::logs::i("simulation", "loop comm time: {}.\n", commtime);
         kiwi::logs::i("simulation", "loop compute time: {}.\n", computetime);
     }
+    onSimulationDone(_simulation_time_step);
+
     allstop = MPI_Wtime();
     alltime = allstop - allstart;
     if (MPIDomain::sim_processor.own_rank == MASTER_PROCESSOR) {

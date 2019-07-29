@@ -24,6 +24,8 @@ add_executable(
         device.h
         md_simulation.cpp
         md_simulation.h
+        output_interface.h
+        output_interface.cpp
 )
 
 target_link_libraries(${EXECUTE_BIN_NAME}

@@ -38,6 +38,17 @@ public:
     void finalize();
 
     /**
+     * this function will be called before simulation loop.
+     */
+    virtual void onSimulationStarted() {};
+
+    /**
+     * this function will be called after simulation loop finished.
+     * @param step total simulation step.
+     */
+    virtual void onSimulationDone(const unsigned long step) {};
+
+    /**
      * this callback function will be called before a simulation step.
      * @param step current simulation step, starting from 0.
      */

@@ -4,9 +4,21 @@
 
 #include <system_configuration.h>
 #include <logs/logs.h>
+#include <iostream>
+#include <utils/mpi_domain.h>
 #include "md_simulation.h"
+#include "atom_dump.h"
 
 MDSimulation::MDSimulation(ConfigValues *p_config_values) : simulation(p_config_values) {}
+
+void MDSimulation::onSimulationStarted() {
+    out = new OutputInterface(pConfigVal->output);
+}
+
+void MDSimulation::onSimulationDone(const unsigned long step) {
+    out->onAllOut(step);
+    delete out;
+}
 
 void MDSimulation::beforeStep(const unsigned long step) {
     kiwi::logs::s(MASTER_PROCESSOR, "simulation", "simulating steps: {}/{}\r",
@@ -14,14 +26,15 @@ void MDSimulation::beforeStep(const unsigned long step) {
 
     if (step == pConfigVal->collisionStep && !pConfigVal->output.originDumpPath.empty()) {
         // output atoms in system before collision.
-        output(step, true); // dump atoms
+        // step not plus 1 because it just start time step (step+1).
+        out->beforeCollision(step, _atom->getAtomList(), _atom->getInterList());
     }
 }
 
 void MDSimulation::postStep(const unsigned long step) {
     // output atoms information if it is dumping step
     if ((step + 1) % pConfigVal->output.atomsDumpInterval == 0) {
-        output(step + 1);
+        out->onOutputStep(step + 1, _atom->getAtomList(), _atom->getInterList());
     }
 #ifdef MD_DEV_MODE
     {
@@ -100,59 +113,3 @@ void MDSimulation::forceChecking() {
 }
 
 #endif //MD_DEV_MODE
-
-void MDSimulation::output(size_t time_step, bool before_collision) {
-    // atom boundary in array.
-    _type_lattice_coord begin[DIMENSION] = {
-            _p_domain->dbx_lattice_coord_sub_box_region.x_low - _p_domain->dbx_lattice_coord_ghost_region.x_low,
-            _p_domain->dbx_lattice_coord_sub_box_region.y_low - _p_domain->dbx_lattice_coord_ghost_region.y_low,
-            _p_domain->dbx_lattice_coord_sub_box_region.z_low - _p_domain->dbx_lattice_coord_ghost_region.z_low};
-    _type_lattice_coord end[DIMENSION] = {
-            begin[0] + _p_domain->dbx_lattice_size_sub_box[0],
-            begin[1] + _p_domain->dbx_lattice_size_sub_box[1],
-            begin[2] + _p_domain->dbx_lattice_size_sub_box[2]};
-    _type_lattice_size atoms_size = _p_domain->dbx_lattice_size_sub_box[0] * _p_domain->dbx_lattice_size_sub_box[1] *
-                                    _p_domain->dbx_lattice_size_sub_box[2];
-    double start = 0, stop = 0;
-    static double totalDumpTime = 0;
-
-    start = MPI_Wtime();
-    if (!pConfigVal->output.outByFrame) {
-        static AtomDump *dumpInstance = nullptr; // pointer used for non-by-frame dumping.
-        if (dumpInstance == nullptr) { // initialize atomDump if it is not initialized.
-            dumpInstance = new AtomDump(pConfigVal->output.atomsDumpMode, pConfigVal->output.atomsDumpFilePath,
-                                        begin, end, atoms_size); // atoms dump.
-            // fixme Attempting to use an MPI routine after finalizing MPICH.
-        }
-        dumpInstance->dump(_atom->getAtomList(), _atom->getInterList(), time_step);
-        if (time_step + pConfigVal->output.atomsDumpInterval > pConfigVal->timeSteps) { // the last time of dumping.
-            dumpInstance->writeDumpHeader();
-            delete dumpInstance;
-        }
-    } else {
-        std::string filename;
-        if (before_collision) {
-            filename = pConfigVal->output.originDumpPath; // todo pass file name from func output parameters.
-        } else {
-            filename = fmt::format(pConfigVal->output.atomsDumpFilePath, time_step);
-        }
-        // pointer to the atom dump class for outputting atoms information.
-        auto *dumpInstance = new AtomDump(pConfigVal->output.atomsDumpMode, filename,
-                                          begin, end, atoms_size);
-        dumpInstance->dump(_atom->getAtomList(), _atom->getInterList(), time_step);
-        dumpInstance->writeDumpHeader();
-        delete dumpInstance;
-    }
-    stop = MPI_Wtime();
-    totalDumpTime += (stop - start);
-
-    // log dumping time.
-    if (time_step + pConfigVal->output.atomsDumpInterval > pConfigVal->timeSteps &&
-        MPIDomain::sim_processor.own_rank == MASTER_PROCESSOR) {
-        if (pConfigVal->output.atomsDumpMode == OUTPUT_COPY_MODE) {
-            kiwi::logs::i("dump", "time of dumping atoms in copy mode:{}.\n", totalDumpTime);
-        } else if (pConfigVal->output.atomsDumpMode == OUTPUT_DIRECT_MODE) {
-            kiwi::logs::i("dump", "time of dumping atoms in direct mode:{}.\n", totalDumpTime);
-        }
-    }
-}
