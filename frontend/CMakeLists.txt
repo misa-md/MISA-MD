@@ -10,12 +10,12 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 add_executable(
         ${EXECUTE_BIN_NAME}
-        atom_dump.h
-        atom_dump.cpp
-        atom_info_dump.h
-        atom_info_dump.cpp
-        buffered_io.h
-        buffered_io.cpp
+        io/atom_dump.h
+        io/atom_dump.cpp
+        io/atom_info_dump.h
+        io/atom_info_dump.cpp
+        io/buffered_io.h
+        io/buffered_io.cpp
         crystal_md.h
         crystal_md.cpp
         toml_config.h
@@ -24,8 +24,8 @@ add_executable(
         device.h
         md_simulation.cpp
         md_simulation.h
-        output_interface.h
-        output_interface.cpp
+        io/output_interface.h
+        io/output_interface.cpp
 )
 
 target_link_libraries(${EXECUTE_BIN_NAME}

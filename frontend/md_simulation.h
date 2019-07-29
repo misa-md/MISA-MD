@@ -7,7 +7,7 @@
 
 
 #include <simulation.h>
-#include "output_interface.h"
+#include "io/output_interface.h"
 
 class MDSimulation : public simulation {
 public:

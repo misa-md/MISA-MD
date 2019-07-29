@@ -7,7 +7,6 @@
 #include <iostream>
 #include <utils/mpi_domain.h>
 #include "md_simulation.h"
-#include "atom_dump.h"
 
 MDSimulation::MDSimulation(ConfigValues *p_config_values) : simulation(p_config_values) {}
 
