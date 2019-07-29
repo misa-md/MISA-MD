@@ -14,10 +14,10 @@ MDSimulation::MDSimulation(ConfigValues *p_config_values) : simulation(p_config_
 
 void MDSimulation::onSimulationStarted() {
     switch (pConfigVal->output.atomsDumpMode) {
-        case OUTPUT_DIRECT_MODE:
+        case OutputMode::DEBUG:
             out = new OutputDump(pConfigVal->output, *_p_domain);
             break;
-        case OUTPUT_COPY_MODE:
+        case OutputMode::COPY:
             out = new OutputCopy(pConfigVal->output, *_p_domain);
             break;
     }

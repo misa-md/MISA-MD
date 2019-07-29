@@ -10,8 +10,11 @@
 #include "types/pre_define.h"
 #include "types/atom_types.h"
 
-#define OUTPUT_COPY_MODE 0
-#define OUTPUT_DIRECT_MODE 1
+enum OutputMode {
+    DEBUG = 0,
+    COPY = 1,
+};
+
 #define LOGS_MODE_CONSOLE 0
 #define LOGS_MODE_FILE 1
 #define LOGS_MODE_CONSOLE_STRING "console"
@@ -20,12 +23,11 @@
 #define DEFAULT_OUTPUT_DUMP_FILE_PATH "crystal_md.out"
 #define ORIGIN_OUTPUT_DUMP_FILE_PATH "origin_crystal_md.out"
 
-typedef short _type_out_mode;
 typedef short _type_logs_mode;
 
 struct Output {
     // output section
-    _type_out_mode atomsDumpMode;
+    OutputMode atomsDumpMode;
     unsigned long atomsDumpInterval;
     // output atoms by frame if true.
     bool outByFrame;
@@ -36,7 +38,7 @@ struct Output {
     _type_logs_mode logs_mode;
     std::string logs_filename;
 
-    Output() : atomsDumpMode(OUTPUT_COPY_MODE), atomsDumpInterval(1),
+    Output() : atomsDumpMode(OutputMode::COPY), atomsDumpInterval(1),
                outByFrame(false), originDumpPath(ORIGIN_OUTPUT_DUMP_FILE_PATH),
                atomsDumpFilePath(DEFAULT_OUTPUT_DUMP_FILE_PATH),
                logs_mode(LOGS_MODE_CONSOLE), logs_filename("") {}

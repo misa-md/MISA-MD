@@ -143,9 +143,9 @@ void ConfigParser::resolveConfigOutput(std::shared_ptr<cpptoml::table> table) {
     auto tomlAtomsDumpMode = table->get_as<std::string>("atoms_dump_mode");
     if (tomlAtomsDumpMode) {
         if ("copy" == *tomlAtomsDumpMode) { // todo equal?
-            configValues.output.atomsDumpMode = OUTPUT_COPY_MODE;
+            configValues.output.atomsDumpMode = OutputMode::COPY;
         } else {
-            configValues.output.atomsDumpMode = OUTPUT_DIRECT_MODE;
+            configValues.output.atomsDumpMode = OutputMode::DEBUG;
         }
     }
     configValues.output.atomsDumpInterval = table->get_as<uint64_t>("atoms_dump_interval").value_or(ULONG_MAX);
