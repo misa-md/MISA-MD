@@ -31,6 +31,13 @@ public:
     void onForceSolved(const unsigned long step) override;
 
 private:
+     /**
+     * start to dump atoms to file.
+     * @param time_step current time step
+     * @param before_collision true for dumping atoms before collision
+     */
+    void output(size_t time_step, bool before_collision = false);
+
     /**
      * log force of all atoms in simulation system.
      * @param filename filename to save atoms' force
