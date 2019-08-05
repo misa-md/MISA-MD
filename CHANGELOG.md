@@ -2,10 +2,30 @@
 ## [Unreleased]
 
 
+<a name="v0.3.4"></a>
+## [v0.3.4] - 2019-08-05
+### Docs
+- **changelog:** add changelog for version 0.3.4.
+
+### Fix
+- **output:** fix bug of NaN of atom position by setting block size and buffer size the same.
+
+### Refactor
+- **config:** move output configuration to struct Output, and set it as a member of class Config
+- **output:** use a enum type OutputMode as output mode type.
+- **output:** split debug dump and copy dump mode.
+- **output:** move code of md outputting to frontend/io directory.
+- **output:** move MDSimulation::output to output interface.
+- **output:** move outputting simulation results to frontend.
+
+
 <a name="v0.3.3"></a>
 ## [v0.3.3] - 2019-07-15
 ### Ci
 - **gitlab-ci:** add gitlab-ci config file to build code.
+
+### Docs
+- **changelog:** add changelog for version 0.3.3.
 
 ### Feat
 - **libcomm:** upgrade libcomm version to 0.2.0.
@@ -26,7 +46,7 @@
 
 
 <a name="v0.3.2"></a>
-## [v0.3.2] - 2019-06-03
+## [v0.3.2] - 2019-07-15
 ### Docs
 - **changelog:** add changelog for version 0.3.2.
 
@@ -254,7 +274,8 @@ config Term collision_v have been removed.
 <a name="v0.1.0"></a>
 ## v0.1.0 - 2017-11-17
 
-[Unreleased]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.3...HEAD
+[Unreleased]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.4...HEAD
+[v0.3.4]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.3...v0.3.4
 [v0.3.3]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.2...v0.3.3
 [v0.3.2]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.1...v0.3.2
 [v0.3.1]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.0...v0.3.1
