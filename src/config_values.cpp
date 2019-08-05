@@ -12,9 +12,8 @@ ConfigValues::ConfigValues() :
         createPhaseMode(true), createTSet(0.0), createSeed(1024), readPhaseFilename(""),
         alloyCreateSeed(1024), alloyRatio{1, 0, 0},
         collisionStep(0), collisionLat{0, 0, 0, 0}, pkaEnergy(0), direction{1.0, 1.0, 1.0},
-        // todo potential type and filename initialize.
-        atomsDumpMode(OUTPUT_COPY_MODE), atomsDumpFilePath(DEFAULT_OUTPUT_DUMP_FILE_PATH),
-        logs_mode(LOGS_MODE_CONSOLE), logs_filename("") {}
+        output() {}
+// todo potential type and filename initialize.
 
 void ConfigValues::packdata(kiwi::Bundle &bundle) {
     // append data into buffer.
@@ -41,15 +40,15 @@ void ConfigValues::packdata(kiwi::Bundle &bundle) {
     bundle.put(potentialFileType);
     bundle.put(potentialFilename);
 
-    // out section
-    bundle.put(atomsDumpMode);
-    bundle.put(atomsDumpFilePath);
-    bundle.put(originDumpPath);
-    bundle.put(atomsDumpInterval);
-    bundle.put(outByFrame);
+    // output section
+    bundle.put(output.atomsDumpMode);
+    bundle.put(output.atomsDumpFilePath);
+    bundle.put(output.originDumpPath);
+    bundle.put(output.atomsDumpInterval);
+    bundle.put(output.outByFrame);
     // logs subsection in output section.
-    bundle.put(logs_mode);
-    bundle.put(logs_filename);
+    bundle.put(output.logs_mode);
+    bundle.put(output.logs_filename);
 }
 
 void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
@@ -80,15 +79,15 @@ void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
     bundle.get(cursor, potentialFilename);
 
     // output section.
-    bundle.get(cursor, atomsDumpMode);
-    bundle.get(cursor, atomsDumpFilePath);
-    bundle.get(cursor, originDumpPath);
-    bundle.get(cursor, atomsDumpInterval);
-    bundle.get(cursor, outByFrame);
+    bundle.get(cursor, output.atomsDumpMode);
+    bundle.get(cursor, output.atomsDumpFilePath);
+    bundle.get(cursor, output.originDumpPath);
+    bundle.get(cursor, output.atomsDumpInterval);
+    bundle.get(cursor, output.outByFrame);
 
     // logs subsection in output section.
-    bundle.get(cursor, logs_mode);
-    bundle.get(cursor, logs_filename);
+    bundle.get(cursor, output.logs_mode);
+    bundle.get(cursor, output.logs_filename);
 }
 
 std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
@@ -113,7 +112,7 @@ std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
     os << "simulation.collision.collision_step:" << cv.collisionStep << std::endl;
     os << "simulation.collision.lat:" << cv.collisionLat[0] << "," << cv.collisionLat[1] << ","
        << cv.collisionLat[2] << "," << cv.collisionLat[3] << std::endl;
-    os << "pka:" << cv.pkaEnergy << "," ;
+    os << "pka:" << cv.pkaEnergy << ",";
     os << "simulation.collision.direction:" << cv.direction[0] << "," << cv.direction[1] << ","
        << cv.direction[2] << std::endl;
 
@@ -121,13 +120,15 @@ std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
     os << "simulation.potential_file.filename:" << cv.potentialFilename << std::endl;
 
     // output section
-    os << "output.mode(copy:0,direct:1):" << cv.atomsDumpMode << std::endl;
-    os << "output.dump_interval" << cv.atomsDumpInterval << std::endl;
-    os << "output.dump_file_path:" << cv.atomsDumpFilePath << std::endl;
-    os << "output.origin_dump_path:" << cv.originDumpPath << std::endl;
-    os << "output.logs.mode: " << (cv.logs_mode == LOGS_MODE_CONSOLE ? LOGS_MODE_CONSOLE_STRING : LOGS_MODE_FILE_STRING)
-       << "output.logs.by-frame:" << cv.outByFrame << std::endl;
-    os << "output.dump_filename:" << cv.logs_filename << std::endl;
+    // output section
+    os << "output.mode(copy:0,direct:1):" << cv.output.atomsDumpMode << std::endl;
+    os << "output.dump_interval" << cv.output.atomsDumpInterval << std::endl;
+    os << "output.dump_file_path:" << cv.output.atomsDumpFilePath << std::endl;
+    os << "output.origin_dump_path:" << cv.output.originDumpPath << std::endl;
+    os << "output.logs.mode: "
+       << (cv.output.logs_mode == LOGS_MODE_CONSOLE ? LOGS_MODE_CONSOLE_STRING : LOGS_MODE_FILE_STRING)
+       << "output.logs.by-frame:" << cv.output.outByFrame << std::endl;
+    os << "output.dump_filename:" << cv.output.logs_filename << std::endl;
     os << "============================================" << std::endl << std::endl;
     return os;
 }

@@ -4,17 +4,46 @@
 
 #include <system_configuration.h>
 #include <logs/logs.h>
+#include <iostream>
+#include <utils/mpi_domain.h>
 #include "md_simulation.h"
+#include "io/output_dump.h"
+#include "io/output_copy.h"
 
 MDSimulation::MDSimulation(ConfigValues *p_config_values) : simulation(p_config_values) {}
+
+void MDSimulation::onSimulationStarted() {
+    switch (pConfigVal->output.atomsDumpMode) {
+        case OutputMode::DEBUG:
+            out = new OutputDump(pConfigVal->output, *_p_domain);
+            break;
+        case OutputMode::COPY:
+            out = new OutputCopy(pConfigVal->output, *_p_domain);
+            break;
+    }
+}
+
+void MDSimulation::onSimulationDone(const unsigned long step) {
+    out->onAllOut(step);
+    delete out;
+}
 
 void MDSimulation::beforeStep(const unsigned long step) {
     kiwi::logs::s(MASTER_PROCESSOR, "simulation", "simulating steps: {}/{}\r",
                   _simulation_time_step + 1, pConfigVal->timeSteps);
 
+    if (step == pConfigVal->collisionStep && !pConfigVal->output.originDumpPath.empty()) {
+        // output atoms in system before collision.
+        // step not plus 1 because it just start time step (step+1).
+        out->beforeCollision(step, _atom->getAtomList(), _atom->getInterList());
+    }
 }
 
 void MDSimulation::postStep(const unsigned long step) {
+    // output atoms information if it is dumping step
+    if ((step + 1) % pConfigVal->output.atomsDumpInterval == 0) {
+        out->onOutputStep(step + 1, _atom->getAtomList(), _atom->getInterList());
+    }
 #ifdef MD_DEV_MODE
     {
         const double e = configuration::kineticEnergy(_atom->getAtomList(), _atom->getInterList(),
@@ -91,4 +120,4 @@ void MDSimulation::forceChecking() {
     }
 }
 
-#endif
+#endif //MD_DEV_MODE

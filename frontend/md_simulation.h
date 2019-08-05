@@ -7,10 +7,21 @@
 
 
 #include <simulation.h>
+#include "io/output_base_interface.h"
 
 class MDSimulation : public simulation {
 public:
     explicit MDSimulation(ConfigValues *p_config_values);
+
+    /**
+    * this function will be called before simulation loop.
+    */
+    void onSimulationStarted() override;
+
+    /**
+     * this function will be called after simulation loop finished.
+     */
+    void onSimulationDone(const unsigned long step) override;
 
     /**
      * this callback function will be called before a simulation step.
@@ -31,6 +42,8 @@ public:
     void onForceSolved(const unsigned long step) override;
 
 private:
+    OutputBaseInterface *out = nullptr;
+
     /**
      * log force of all atoms in simulation system.
      * @param filename filename to save atoms' force
