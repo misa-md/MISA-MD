@@ -8,7 +8,7 @@
 #include <domain/bcc_domain.h>
 #include "atom/atom_list.h"
 #include "atom/inter_atom_list.h"
-#include "config_values.h"
+#include "../config_values.h"
 
 /**
  * @brief abstract class of output atoms in simulation step.

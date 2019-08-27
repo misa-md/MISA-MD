@@ -38,7 +38,7 @@ WorldBuilder &WorldBuilder::setLatticeConst(double lattice_const) {
     return *this;
 }
 
-WorldBuilder &WorldBuilder::setAlloyRatio(int ratio[atom_type::num_atom_types]) {
+WorldBuilder &WorldBuilder::setAlloyRatio(const int ratio[atom_type::num_atom_types]) {
     for (int i = 0; i < atom_type::num_atom_types; i++) {
         _atoms_ratio[i] = ratio[i];
     }

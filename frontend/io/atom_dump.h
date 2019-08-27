@@ -7,7 +7,7 @@
 
 #include <io/local_storage.h>
 #include "atom.h"
-#include "config_values.h"
+#include "../config_values.h"
 #include "buffered_io.h"
 
 /**

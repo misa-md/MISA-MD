@@ -10,8 +10,11 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 add_executable(
         ${EXECUTE_BIN_NAME}
+        config_values.h
+        config_values.cpp
         crystal_md.h
         crystal_md.cpp
+        def_config_values.h
         toml_config.h
         toml_config.cpp
         main.cpp

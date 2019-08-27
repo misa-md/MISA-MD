@@ -11,8 +11,6 @@ configure_file(
 set(HEADER_FILES
         arch_env.hpp
         atom.h
-        config_values.h
-        def_config_values.h
         hardware_accelerate.hpp
         input.h
         newton_motion.h
@@ -45,7 +43,6 @@ set(HEADER_FILES
 
 set(SOURCE_FILES
         atom.cpp
-        config_values.cpp
         input.cpp
         newton_motion.cpp
         simulation.cpp
