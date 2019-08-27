@@ -42,6 +42,11 @@ public:
     void onForceSolved(const unsigned long step) override;
 
 private:
+    /**
+     * pointer to config data.
+     */
+    ConfigValues *pConfigVal;
+
     OutputBaseInterface *out = nullptr;
 
     /**

@@ -43,8 +43,7 @@ public :
      * @param direction the vector of velocity to be set.
      * @param energy the energy of PKA.
      */
-    void setv(int lat[4], double direction[3], double energy);
-
+    void setv(const _type_lattice_coord lat[4], const double direction[3], const double energy);
 
 
 private:

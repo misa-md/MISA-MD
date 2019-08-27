@@ -11,8 +11,8 @@
 #include "hardware_accelerate.hpp"
 #include "world_builder.h"
 
-simulation::simulation(ConfigValues *p_config) :
-        pConfigVal(p_config), _p_domain(nullptr), _atom(nullptr),
+simulation::simulation() :
+        _p_domain(nullptr), _atom(nullptr),
         _newton_motion(nullptr), _input(nullptr), _pot(nullptr) {
 //    createDomainDecomposition();
 //    collision_step = -1;
@@ -26,7 +26,8 @@ simulation::~simulation() {
     delete _input; // delete null pointer has no effect.
 }
 
-void simulation::createDomainDecomposition() {
+void simulation::createDomain(const int64_t phase_space[DIMENSION],
+                              const double lattice_const, const double cutoff_radius_factor) {
 
     //进行区域分解
     kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initializing GlobalDomain decomposition.\n");
@@ -36,13 +37,13 @@ void simulation::createDomainDecomposition() {
             MPIDomain::sim_processor.all_ranks,
             MPIDomain::sim_processor.comm,
     };
-    // In doamin creation, we set ghost size as (cut_lattice +1) to avoid neighbor index overflowing.
+    // In domain creation, we set ghost size as (cut_lattice +1) to avoid neighbor index overflowing.
     _p_domain = comm::BccDomain::Builder()
             .setComm(pro, &new_comm)
-            .setPhaseSpace(pConfigVal->phaseSpace)
-            .setCutoffRadius(pConfigVal->cutoffRadiusFactor)
-            .setLatticeConst(pConfigVal->latticeConst)
-            .setGhostSize(static_cast<int>(ceil(pConfigVal->cutoffRadiusFactor)) + 1)
+            .setPhaseSpace(phase_space)
+            .setCutoffRadius(cutoff_radius_factor)
+            .setLatticeConst(lattice_const)
+            .setGhostSize(static_cast<int>(ceil(cutoff_radius_factor)) + 1)
             .build();
     kiwi::mpiUtils::onGlobalCommChanged(new_comm); // set new domain.
     MPIDomain::sim_processor = kiwi::mpiUtils::global_process;
@@ -50,29 +51,32 @@ void simulation::createDomainDecomposition() {
     kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initialization done.\n");
 }
 
-void simulation::createAtoms() {
+void simulation::createAtoms(const int64_t phase_space[DIMENSION], const double lattice_const,
+                             const double init_step_len,
+                             const bool create_mode, const unsigned long create_seed, const double t_set,
+                             const int alloy_ratio[atom_type::num_atom_types]) {
     _atom = new atom(_p_domain);
     // establish index offset for neighbour.
     _atom->calcNeighbourIndices(_p_domain->cutoff_radius_factor, _p_domain->cut_lattice);
 
-    if (pConfigVal->createPhaseMode) {  //创建原子坐标、速度信息
+    if (create_mode) {  //创建原子坐标、速度信息
         WorldBuilder mWorldBuilder;
         mWorldBuilder.setDomain(_p_domain)
                 .setAtomsContainer(_atom)
-                .setBoxSize(pConfigVal->phaseSpace[0], pConfigVal->phaseSpace[1], pConfigVal->phaseSpace[2])
-                .setRandomSeed(pConfigVal->createSeed)
-                .setLatticeConst(pConfigVal->latticeConst)
-                .setTset(pConfigVal->createTSet)
-                .setAlloyRatio(pConfigVal->alloyRatio)
+                .setBoxSize(phase_space[0], phase_space[1], phase_space[2])
+                .setRandomSeed(create_seed)
+                .setLatticeConst(lattice_const)
+                .setTset(t_set)
+                .setAlloyRatio(alloy_ratio)
                 .build();
     } else { //读取原子坐标、速度信息
         _input = new input();
         _input->readPhaseSpace(_atom, _p_domain);
     }
-    _newton_motion = new NewtonMotion(pConfigVal->timeStepLength); // time step length.
+    _newton_motion = new NewtonMotion(init_step_len); // time step length.
 }
 
-void simulation::prepareForStart() {
+void simulation::prepareForStart(const std::string pot_file_path) {
     double starttime, stoptime;
     double commtime, computetime, comm;
 
@@ -81,16 +85,16 @@ void simulation::prepareForStart() {
     //atom_type::_type_atom_types eles = 0;
     if (MPIDomain::sim_processor.own_rank == MASTER_PROCESSOR) {
         char tmp[4096];
-        sprintf(tmp, "%s", pConfigVal->potentialFilename.c_str());
+        sprintf(tmp, "%s", pot_file_path.c_str());
 
         FILE *pot_file = fopen(tmp, "r");
         if (pot_file == nullptr) { // todo open too many in md.
-            kiwi::logs::e("pot", "open potential file {} failed.\n", pConfigVal->potentialFilename);
+            kiwi::logs::e("pot", "open potential file {} failed.\n", pot_file_path);
             MPI_Abort(MPI_COMM_WORLD, 1);
             return;
         }
         // new parser
-        SetflParser *parser = new SetflParser(pConfigVal->potentialFilename); // todo delete (vector)
+        SetflParser *parser = new SetflParser(pot_file_path); // todo delete (vector)
         parser->parseHeader(); // elements count got. // todo parsing error.
         // eles = parser->getEles(); // elements values on non-root processors are 0.
         _pot = eam::newInstance(parser->getEles(),
@@ -140,7 +144,9 @@ void simulation::prepareForStart() {
     kiwi::logs::i(MASTER_PROCESSOR, "sim", "first step compute time: {}\n", computetime);
 }
 
-void simulation::simulate() {
+void simulation::simulate(const unsigned long steps, unsigned long coll_step,
+                          const _type_lattice_coord coll_lat[DIMENSION + 1],
+                          const double coll_dir[DIMENSION], const double coll_pka_energy) {
     // start do simulation.
     double starttime, stoptime;
     double commtime = 0, computetime = 0, comm;
@@ -149,11 +155,11 @@ void simulation::simulate() {
     allstart = MPI_Wtime();
     onSimulationStarted();
 
-    for (_simulation_time_step = 0; _simulation_time_step < pConfigVal->timeSteps; _simulation_time_step++) {
+    for (_simulation_time_step = 0; _simulation_time_step < steps; _simulation_time_step++) {
         beforeStep(_simulation_time_step);
 
-        if (_simulation_time_step == pConfigVal->collisionStep) {
-            _atom->setv(pConfigVal->collisionLat, pConfigVal->direction, pConfigVal->pkaEnergy);
+        if (_simulation_time_step == coll_step) {
+            _atom->setv(coll_lat, coll_dir, coll_pka_energy);
             _atom->getInterList()->exchangeInter(_p_domain);
             _atom->getInterList()->borderInter(_p_domain);
             _atom->getAtomList()->exchangeAtom(_p_domain);

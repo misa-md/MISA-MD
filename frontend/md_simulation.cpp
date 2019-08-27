@@ -10,7 +10,7 @@
 #include "io/output_dump.h"
 #include "io/output_copy.h"
 
-MDSimulation::MDSimulation(ConfigValues *p_config_values) : simulation(p_config_values) {}
+MDSimulation::MDSimulation(ConfigValues *p_config_values) : simulation(), pConfigVal(p_config_values) {}
 
 void MDSimulation::onSimulationStarted() {
     switch (pConfigVal->output.atomsDumpMode) {

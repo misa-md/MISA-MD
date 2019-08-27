@@ -10,6 +10,7 @@
 
 #include "toml_config.h"
 #include "utils/rpcc.hpp"
+#include "def_config_values.h"
 
 
 ConfigParser *ConfigParser::m_pInstance = nullptr;
@@ -90,13 +91,13 @@ void ConfigParser::resolveConfigSimulation(std::shared_ptr<cpptoml::table> table
     if (tomlTimeSteps) {
         configValues.timeSteps = *tomlTimeSteps;
     }
-    configValues.timeStepLength = table->get_as<double>("timesteps_length").value_or(const_default_time_length);
+    configValues.timeStepLength = table->get_as<double>("timesteps_length").value_or(default_time_length);
 
     //resolve simulation.createphase
     auto tableCreatephase = table->get_table("createphase");
 
     configValues.createPhaseMode = tableCreatephase->get_as<bool>("create_phase")
-            .value_or(const_default_create_phase); // default value is true
+            .value_or(default_create_phase); // default value is true
     if (configValues.createPhaseMode) { //create mode
         auto tomlTSet = tableCreatephase->get_as<double>("create_t_set");
         if (tomlTSet) {
@@ -105,7 +106,7 @@ void ConfigParser::resolveConfigSimulation(std::shared_ptr<cpptoml::table> table
             setError("creation t_set must be specified.");
             return;
         }
-        configValues.createSeed = tableCreatephase->get_as<int>("create_seed").value_or(const_default_random_seek);
+        configValues.createSeed = tableCreatephase->get_as<int>("create_seed").value_or(default_random_seek);
     } else {  // read mode.
         auto tomlTSet = tableCreatephase->get_as<std::string>("read_phase_filename");
         if (tomlTSet) {
@@ -179,7 +180,7 @@ void ConfigParser::resolveConfigOutput(std::shared_ptr<cpptoml::table> table) {
 }
 
 void ConfigParser::resolveConfigAlloy(std::shared_ptr<cpptoml::table> table) {
-    configValues.alloyCreateSeed = table->get_as<int>("create_seed").value_or(const_default_random_seek);
+    configValues.alloyCreateSeed = table->get_as<int>("create_seed").value_or(default_random_seek);
     auto tomlAlloyRatioFe = table->get_qualified_as<int>("ratio.Fe");
     if (tomlAlloyRatioFe) {
         configValues.alloyRatio[atom_type::Fe] = *tomlAlloyRatioFe;
