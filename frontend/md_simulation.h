@@ -45,7 +45,7 @@ private:
     /**
      * pointer to config data.
      */
-    ConfigValues *pConfigVal;
+    ConfigValues *pConfigVal = nullptr;
 
     OutputBaseInterface *out = nullptr;
 
