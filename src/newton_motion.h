@@ -22,7 +22,7 @@ public:
 
     void secondstep(AtomList *atom_list, InterAtomList *inter_atom_list);
 
-    inline void setTimestepLength(double dt);
+    void setTimestepLength(const double dt);
 
 private:
     double _timestepLength;

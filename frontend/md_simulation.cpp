@@ -10,7 +10,8 @@
 #include "io/output_dump.h"
 #include "io/output_copy.h"
 
-MDSimulation::MDSimulation(ConfigValues *p_config_values) : simulation(), pConfigVal(p_config_values) {}
+MDSimulation::MDSimulation(ConfigValues *p_config_values)
+        : simulation(), pConfigVal(p_config_values), cur_step_length(p_config_values->timeStepLength) {}
 
 void MDSimulation::onSimulationStarted() {
     switch (pConfigVal->output.atomsDumpMode) {
@@ -29,8 +30,15 @@ void MDSimulation::onSimulationDone(const unsigned long step) {
 }
 
 void MDSimulation::beforeStep(const unsigned long step) {
+    for (size_t i = 0; i < pConfigVal->vsl_size; i++) {
+        if (step == pConfigVal->vsl_break_points[i]) {
+            _newton_motion->setTimestepLength(pConfigVal->vsl_lengths[i]);
+            cur_step_length = pConfigVal->vsl_lengths[i];
+        }
+    }
+
     kiwi::logs::s(MASTER_PROCESSOR, "simulation", "simulating steps: {}/{}\r",
-                  _simulation_time_step + 1, pConfigVal->timeSteps);
+                  step + 1, pConfigVal->timeSteps);
 
     if (step == pConfigVal->collisionStep && !pConfigVal->output.originDumpPath.empty()) {
         // output atoms in system before collision.
@@ -40,6 +48,9 @@ void MDSimulation::beforeStep(const unsigned long step) {
 }
 
 void MDSimulation::postStep(const unsigned long step) {
+    phy_time += cur_step_length; // the physical time when this iteration is finished.
+    kiwi::logs::i(MASTER_PROCESSOR, "simulation", "simulated physical time: {} ps.\n", phy_time);
+
     // output atoms information if it is dumping step
     if ((step + 1) % pConfigVal->output.atomsDumpInterval == 0) {
         out->onOutputStep(step + 1, _atom->getAtomList(), _atom->getInterList());
@@ -52,7 +63,6 @@ void MDSimulation::postStep(const unsigned long step) {
                                    pConfigVal->phaseSpace[1] * pConfigVal->phaseSpace[2];
         const double T = configuration::temperature(e, n);
         kiwi::logs::d(MASTER_PROCESSOR, "energy", "e = {}, T = {}.\n", e, T);
-
     }
 #endif
 
