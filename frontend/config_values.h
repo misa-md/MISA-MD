@@ -55,10 +55,11 @@ public:
     double cutoffRadiusFactor;
     double latticeConst;
     unsigned long timeSteps;
+
     double timeStepLength;
     size_t vsl_size = 0; // array size of variable time step length.
-    unsigned long *vsl_break_points = nullptr;
-    double *vsl_lengths = nullptr;
+    std::vector<unsigned long> vsl_break_points;
+    std::vector<double> vsl_lengths;
 
     bool createPhaseMode;
     double createTSet;
@@ -84,10 +85,14 @@ public:
 
     ConfigValues();
 
-    ~ ConfigValues();
-
     void setVarStepLengths(const unsigned long *break_points, const double *lengths, const unsigned long size);
 
+    /**
+     * set variable time step length config.
+     * @param break_points break points of step
+     * @param lengths time step length after each break pointer step.
+     * @param size size of array @param break_points and @param lengths.
+     */
     void setVarStepLengths(const std::vector<unsigned long> break_points, const std::vector<double> lengths,
                            const unsigned long size);
 

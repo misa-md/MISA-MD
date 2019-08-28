@@ -154,7 +154,6 @@ void ConfigParser::resolveVariableStepLen(std::shared_ptr<cpptoml::table> table)
     }
     const unsigned long _size = break_steps_i64->size();
     std::vector<unsigned long> break_steps;
-    configValues.vsl_size = _size; // set size
     for (const int64_t &val : *break_steps_i64) { // type conversion from int64 to unsigned long.
         break_steps.push_back(val);
     }

@@ -2,23 +2,20 @@
 // Created by genshen(genshenchu@gmail.com) on 2018-3-9.
 //
 
-#include <mpi.h>
 #include <iostream>
+#include <cassert>
+#include <mpi.h>
 #include <utils/bundle.h>
 #include "config_values.h"
 
 ConfigValues::ConfigValues() :
-        phaseSpace{0, 0, 0}, cutoffRadiusFactor(0.0), latticeConst(0.0), timeSteps(10),
+        phaseSpace{0, 0, 0}, cutoffRadiusFactor(0.0), latticeConst(0.0),
+        timeSteps(10), vsl_size(0), vsl_break_points(), vsl_lengths(),
         createPhaseMode(true), createTSet(0.0), createSeed(1024), readPhaseFilename(""),
         alloyCreateSeed(1024), alloyRatio{1, 0, 0},
         collisionStep(0), collisionLat{0, 0, 0, 0}, pkaEnergy(0), direction{1.0, 1.0, 1.0},
         output() {}
 // todo potential type and filename initialize.
-
-ConfigValues::~ConfigValues() {
-    delete[] vsl_break_points;
-    delete[] vsl_lengths;
-}
 
 void ConfigValues::packdata(kiwi::Bundle &bundle) {
     // append data into buffer.
@@ -30,8 +27,8 @@ void ConfigValues::packdata(kiwi::Bundle &bundle) {
     bundle.put(timeSteps);
     bundle.put(timeStepLength);
     bundle.put(vsl_size);
-    bundle.put(vsl_size, vsl_break_points);
-    bundle.put(vsl_size, vsl_lengths);
+    bundle.put(vsl_size, vsl_break_points.data());
+    bundle.put(vsl_size, vsl_lengths.data());
 
     bundle.put(createPhaseMode);
     bundle.put(createTSet);
@@ -65,8 +62,6 @@ void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
     // fetch data from buffer.
 //    if (getPackedData() != nullptr) { // buffer != null
     int cursor = 0;
-    unsigned long *temp_vsl_break_points = nullptr;
-    double *temp_vsl_lengths = nullptr;
 
     bundle.get(cursor, DIMENSION, phaseSpace);
     bundle.get(cursor, cutoffRadiusFactor);
@@ -75,12 +70,11 @@ void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
     // step and step length
     bundle.get(cursor, timeSteps);
     bundle.get(cursor, timeStepLength);
-    bundle.get(cursor, vsl_size);
-    temp_vsl_break_points = new unsigned long[vsl_size]; // can be zero-length array
-    temp_vsl_lengths = new double[vsl_size];
-    bundle.get(cursor, vsl_size, temp_vsl_break_points);
-    bundle.get(cursor, vsl_size, temp_vsl_lengths);
-    setVarStepLengths(temp_vsl_break_points, temp_vsl_lengths, vsl_size);
+    bundle.get(cursor, vsl_size); // get size,
+    vsl_break_points.resize(vsl_size); // then, resize
+    vsl_lengths.resize(vsl_size);
+    bundle.get(cursor, vsl_size, vsl_break_points.data()); // put data to vector.
+    bundle.get(cursor, vsl_size, vsl_lengths.data());
 
     bundle.get(cursor, createPhaseMode);
     bundle.get(cursor, createTSet);
@@ -113,22 +107,22 @@ void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
 
 void ConfigValues::setVarStepLengths(const unsigned long *break_points, const double *lengths,
                                      const unsigned long size) {
-    vsl_break_points = new unsigned long[size];
-    vsl_lengths = new double[size];
+    vsl_break_points.clear();
+    vsl_lengths.clear();
+    vsl_size = size;
     for (size_t i = 0; i < size; i++) {
-        vsl_lengths[i] = lengths[i];
-        vsl_break_points[i] = break_points[i];
+        vsl_lengths.push_back(lengths[i]);
+        vsl_break_points.push_back(break_points[i]);
     }
 }
 
 void ConfigValues::setVarStepLengths(std::vector<unsigned long> break_points, std::vector<double> lengths,
                                      const unsigned long size) {
-    vsl_break_points = new unsigned long[size];
-    vsl_lengths = new double[size];
-    for (size_t i = 0; i < size; i++) {
-        vsl_lengths[i] = lengths.at(i);
-        vsl_break_points[i] = break_points.at(i);
-    }
+    assert(break_points.size() == size);
+    assert(lengths.size() == size);
+    vsl_size = size;
+    vsl_break_points = break_points;
+    vsl_lengths = lengths;
 }
 
 std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
