@@ -54,7 +54,7 @@ private:
     /**
      * pointer to config data.
      */
-    ConfigValues *pConfigVal = nullptr;
+    const ConfigValues *pConfigVal = nullptr;
 
     OutputBaseInterface *out = nullptr;
 
