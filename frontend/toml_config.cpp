@@ -96,6 +96,10 @@ void ConfigParser::resolveConfigSimulation(std::shared_ptr<cpptoml::table> table
 
     //resolve simulation.createphase
     auto tableCreatephase = table->get_table("createphase");
+    if (!tableCreatephase) {
+        setError("createphase is not set in config.");
+        return;
+    }
 
     configValues.createPhaseMode = tableCreatephase->get_as<bool>("create_phase")
             .value_or(default_create_phase); // default value is true
@@ -161,6 +165,10 @@ void ConfigParser::resolveVariableStepLen(std::shared_ptr<cpptoml::table> table)
 }
 
 void ConfigParser::resolveConfigOutput(std::shared_ptr<cpptoml::table> table) {
+    if (!table) {
+        setError("output section in config file is not specified.");
+        return;
+    }
     auto tomlAtomsDumpMode = table->get_as<std::string>("atoms_dump_mode");
     if (tomlAtomsDumpMode) {
         if ("copy" == *tomlAtomsDumpMode) { // todo equal?
@@ -200,6 +208,10 @@ void ConfigParser::resolveConfigOutput(std::shared_ptr<cpptoml::table> table) {
 }
 
 void ConfigParser::resolveConfigAlloy(std::shared_ptr<cpptoml::table> table) {
+    if (!table) {
+        setError("alloy config is not specified in.");
+        return;
+    }
     configValues.alloyCreateSeed = table->get_as<int>("create_seed").value_or(default_random_seek);
     auto tomlAlloyRatioFe = table->get_qualified_as<int>("ratio.Fe");
     if (tomlAlloyRatioFe) {
@@ -216,6 +228,10 @@ void ConfigParser::resolveConfigAlloy(std::shared_ptr<cpptoml::table> table) {
 }
 
 void ConfigParser::resolveConfigCollision(std::shared_ptr<cpptoml::table> table) {
+    if (!table) {
+        setError("collision config is not set.");
+        return;
+    }
     auto tomlCollisionStep = table->get_as<unsigned long>("collision_step");
     if (tomlCollisionStep) {
         configValues.collisionStep = *tomlCollisionStep;
