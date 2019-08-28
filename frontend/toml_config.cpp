@@ -91,7 +91,8 @@ void ConfigParser::resolveConfigSimulation(std::shared_ptr<cpptoml::table> table
     if (tomlTimeSteps) {
         configValues.timeSteps = *tomlTimeSteps;
     }
-    configValues.timeStepLength = table->get_as<double>("timesteps_length").value_or(default_time_length);
+    configValues.timeStepLength = table->get_as<double>("def_timesteps_length").value_or(default_time_length);
+    resolveVariableStepLen(table);
 
     //resolve simulation.createphase
     auto tableCreatephase = table->get_table("createphase");
@@ -138,6 +139,26 @@ void ConfigParser::resolveConfigSimulation(std::shared_ptr<cpptoml::table> table
         setError("potential filename must be specified.");
         return;
     }
+}
+
+void ConfigParser::resolveVariableStepLen(std::shared_ptr<cpptoml::table> table) {
+    auto nested = table->get_array_of<cpptoml::array>("variable_step_length");
+    if (!nested) { // if it is not set.
+        return;
+    }
+    cpptoml::option<std::vector<int64_t>> break_steps_i64 = (*nested)[0]->get_array_of<int64_t>();
+    cpptoml::option<std::vector<double>> step_lens = (*nested)[1]->get_array_of<double>();
+    if (break_steps_i64->size() != step_lens->size()) {
+        setError("size of break points and step length is not equal in variable timestep length configuration.");
+        return;
+    }
+    const unsigned long _size = break_steps_i64->size();
+    std::vector<unsigned long> break_steps;
+    configValues.vsl_size = _size; // set size
+    for (const int64_t &val : *break_steps_i64) { // type conversion from int64 to unsigned long.
+        break_steps.push_back(val);
+    }
+    configValues.setVarStepLengths(break_steps, *step_lens, _size); // set variable length array.
 }
 
 void ConfigParser::resolveConfigOutput(std::shared_ptr<cpptoml::table> table) {

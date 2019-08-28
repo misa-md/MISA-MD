@@ -6,6 +6,7 @@
 #define CRYSTAL_MD_CONFIG_VALUES_H
 
 #include <string>
+#include <vector>
 #include <utils/bundle.h>
 #include "types/pre_define.h"
 #include "types/atom_types.h"
@@ -55,6 +56,9 @@ public:
     double latticeConst;
     unsigned long timeSteps;
     double timeStepLength;
+    size_t vsl_size = 0; // array size of variable time step length.
+    unsigned long *vsl_break_points = nullptr;
+    double *vsl_lengths = nullptr;
 
     bool createPhaseMode;
     double createTSet;
@@ -79,6 +83,13 @@ public:
     // config values ends
 
     ConfigValues();
+
+    ~ ConfigValues();
+
+    void setVarStepLengths(const unsigned long *break_points, const double *lengths, const unsigned long size);
+
+    void setVarStepLengths(const std::vector<unsigned long> break_points, const std::vector<double> lengths,
+                           const unsigned long size);
 
     void packdata(kiwi::Bundle &bundle);  // todo override
 

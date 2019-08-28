@@ -15,13 +15,23 @@ ConfigValues::ConfigValues() :
         output() {}
 // todo potential type and filename initialize.
 
+ConfigValues::~ConfigValues() {
+    delete[] vsl_break_points;
+    delete[] vsl_lengths;
+}
+
 void ConfigValues::packdata(kiwi::Bundle &bundle) {
     // append data into buffer.
     bundle.put(DIMENSION, phaseSpace); // todo remove MPI_COMM_WORLD to initial method.
     bundle.put(cutoffRadiusFactor);
     bundle.put(latticeConst);
+
+    // step and step length
     bundle.put(timeSteps);
     bundle.put(timeStepLength);
+    bundle.put(vsl_size);
+    bundle.put(vsl_size, vsl_break_points);
+    bundle.put(vsl_size, vsl_lengths);
 
     bundle.put(createPhaseMode);
     bundle.put(createTSet);
@@ -55,11 +65,22 @@ void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
     // fetch data from buffer.
 //    if (getPackedData() != nullptr) { // buffer != null
     int cursor = 0;
+    unsigned long *temp_vsl_break_points = nullptr;
+    double *temp_vsl_lengths = nullptr;
+
     bundle.get(cursor, DIMENSION, phaseSpace);
     bundle.get(cursor, cutoffRadiusFactor);
     bundle.get(cursor, latticeConst);
+
+    // step and step length
     bundle.get(cursor, timeSteps);
     bundle.get(cursor, timeStepLength);
+    bundle.get(cursor, vsl_size);
+    temp_vsl_break_points = new unsigned long[vsl_size]; // can be zero-length array
+    temp_vsl_lengths = new double[vsl_size];
+    bundle.get(cursor, vsl_size, temp_vsl_break_points);
+    bundle.get(cursor, vsl_size, temp_vsl_lengths);
+    setVarStepLengths(temp_vsl_break_points, temp_vsl_lengths, vsl_size);
 
     bundle.get(cursor, createPhaseMode);
     bundle.get(cursor, createTSet);
@@ -88,6 +109,26 @@ void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
     // logs subsection in output section.
     bundle.get(cursor, output.logs_mode);
     bundle.get(cursor, output.logs_filename);
+}
+
+void ConfigValues::setVarStepLengths(const unsigned long *break_points, const double *lengths,
+                                     const unsigned long size) {
+    vsl_break_points = new unsigned long[size];
+    vsl_lengths = new double[size];
+    for (size_t i = 0; i < size; i++) {
+        vsl_lengths[i] = lengths[i];
+        vsl_break_points[i] = break_points[i];
+    }
+}
+
+void ConfigValues::setVarStepLengths(std::vector<unsigned long> break_points, std::vector<double> lengths,
+                                     const unsigned long size) {
+    vsl_break_points = new unsigned long[size];
+    vsl_lengths = new double[size];
+    for (size_t i = 0; i < size; i++) {
+        vsl_lengths[i] = lengths.at(i);
+        vsl_break_points[i] = break_points.at(i);
+    }
 }
 
 std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
