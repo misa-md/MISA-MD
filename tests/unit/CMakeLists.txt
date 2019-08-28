@@ -1,5 +1,6 @@
 
 # configure a header file to pass some of the CMake settings to the source code
+set(TEST_TEMP_FILES_DIR ${CMAKE_CURRENT_BINARY_DIR})
 configure_file(
         "${CMAKE_CURRENT_SOURCE_DIR}/test_config.h.in"
         "${CMAKE_CURRENT_SOURCE_DIR}/test_config.h"
@@ -18,7 +19,7 @@ set(TEST_SOURCE_FILES
         lattice/ws_utils_test.cpp
         world_builder_test.cpp
         domain_test_utils.cpp
-        neighbour_index_test.cpp 
+        neighbour_index_test.cpp
         neighbour_index_iterator_test.cpp
         particledata_test.cpp
         )
@@ -31,7 +32,7 @@ add_executable(${MD_TEST_NAME} ${TEST_SOURCE_FILES})
 
 # add crystldmd lib and gtest, mpi lib.
 target_link_libraries(${MD_TEST_NAME}
-        PRIVATE GTest::gtest GTest::gtest_main ${MD_LIB_NAME} ${EXTRA_LIBS}
+        PRIVATE GTest::gtest GTest::gtest_main ${MD_LIB_NAME} ${MD_FRONTEND_LIB_NAME} ${EXTRA_LIBS}
         )
 
 # This is so you can do 'make test' to see all your tests run, instead of
