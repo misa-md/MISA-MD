@@ -96,7 +96,7 @@ bool crystalMD::prepare() {
 
     mpi_types::setInterMPIType();
     ConfigValues config = ConfigParser::getInstance()->configValues;
-    pSimulation = new MDSimulation(&config);
+    pSimulation = new MDSimulation(&ConfigParser::getInstance()->configValues);
     pSimulation->createDomain(config.phaseSpace, config.latticeConst, config.cutoffRadiusFactor); // 区域分解
     // todo alloy ratio seed is not used.
     pSimulation->createAtoms(config.phaseSpace, config.latticeConst, config.timeStepLength,
