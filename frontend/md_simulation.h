@@ -42,6 +42,20 @@ public:
     void onForceSolved(const unsigned long step) override;
 
 private:
+    /**
+     * current time step length.
+     */
+    double cur_step_length;
+
+    /**
+     * physical time
+     */
+    double phy_time = 0.0;
+    /**
+     * pointer to config data.
+     */
+    const ConfigValues *pConfigVal = nullptr;
+
     OutputBaseInterface *out = nullptr;
 
     /**

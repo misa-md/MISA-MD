@@ -6,6 +6,7 @@
 #define CRYSTAL_MD_CONFIG_VALUES_H
 
 #include <string>
+#include <vector>
 #include <utils/bundle.h>
 #include "types/pre_define.h"
 #include "types/atom_types.h"
@@ -54,7 +55,11 @@ public:
     double cutoffRadiusFactor;
     double latticeConst;
     unsigned long timeSteps;
+
     double timeStepLength;
+    size_t vsl_size = 0; // array size of variable time step length.
+    std::vector<unsigned long> vsl_break_points;
+    std::vector<double> vsl_lengths;
 
     bool createPhaseMode;
     double createTSet;
@@ -79,6 +84,17 @@ public:
     // config values ends
 
     ConfigValues();
+
+    void setVarStepLengths(const unsigned long *break_points, const double *lengths, const unsigned long size);
+
+    /**
+     * set variable time step length config.
+     * @param break_points break points of step
+     * @param lengths time step length after each break pointer step.
+     * @param size size of array @param break_points and @param lengths.
+     */
+    void setVarStepLengths(const std::vector<unsigned long> break_points, const std::vector<double> lengths,
+                           const unsigned long size);
 
     void packdata(kiwi::Bundle &bundle);  // todo override
 

@@ -37,7 +37,7 @@ public:
      * @param mass
      * @return
      */
-    WorldBuilder &setAlloyRatio(int ratio[atom_type::num_atom_types]);
+    WorldBuilder &setAlloyRatio(const int ratio[atom_type::num_atom_types]);
 
     WorldBuilder &setBoxSize(int64_t box_x, int64_t box_y, int64_t box_z);
 

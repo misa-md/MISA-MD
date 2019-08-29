@@ -7,7 +7,7 @@
 
 #include "atom/atom_list.h"
 #include "atom/inter_atom_list.h"
-#include "config_values.h"
+#include "../config_values.h"
 #include "output_base_interface.h"
 
 /**

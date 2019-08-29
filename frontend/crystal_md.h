@@ -48,7 +48,6 @@ private:
     char **argv;
 
     std::string configFilePath = "config.toml"; // configure file path default value.
-    ConfigParser *pConfig;
     simulation *pSimulation;
 
 };

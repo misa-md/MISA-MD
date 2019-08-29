@@ -95,16 +95,21 @@ bool crystalMD::prepare() {
     kiwi::logs::d(MASTER_PROCESSOR, "domain", "ranks {}\n", MPIDomain::sim_processor.all_ranks);
 
     mpi_types::setInterMPIType();
-    pSimulation = new MDSimulation(&(ConfigParser::getInstance()->configValues));
-    pSimulation->createDomainDecomposition(); // 区域分解
-    pSimulation->createAtoms();
+    pSimulation = new MDSimulation(&ConfigParser::getInstance()->configValues);
+    const ConfigValues config = ConfigParser::getInstance()->configValues;
+    pSimulation->createDomain(config.phaseSpace, config.latticeConst, config.cutoffRadiusFactor); // 区域分解
+    // todo alloy ratio seed is not used.
+    pSimulation->createAtoms(config.phaseSpace, config.latticeConst, config.timeStepLength,
+                             config.createPhaseMode, config.createSeed, config.createTSet, config.alloyRatio);
     return true;
 }
 
 void crystalMD::onStart() {
-    pSimulation->prepareForStart();
+    ConfigValues config = ConfigParser::getInstance()->configValues;
+    pSimulation->prepareForStart(config.potentialFilename);
     kiwi::logs::v(MASTER_PROCESSOR, "simulation", "Start simulation.\n");
-    pSimulation->simulate(); // start simulation.
+    pSimulation->simulate(config.timeSteps, config.collisionStep,
+                          config.collisionLat, config.direction, config.pkaEnergy); // start simulation.
 }
 
 void crystalMD::onFinish() {

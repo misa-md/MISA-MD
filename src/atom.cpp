@@ -572,7 +572,7 @@ void atom::interForce(eam *pot) {
     }
 }
 
-void atom::setv(int lat[4], double direction[3], double energy) {
+void atom::setv(const _type_lattice_coord lat[4], const double direction[3], const double energy) {
     long kk;
     if ((lat[0] * 2) >= p_domain->dbx_lattice_coord_sub_box_region.x_low &&
         (lat[0] * 2) < (p_domain->dbx_lattice_coord_sub_box_region.x_low + p_domain->dbx_lattice_size_sub_box[0])
