@@ -29,6 +29,7 @@ endif ()
 # all variables here start with "MD_"
 set(EXECUTE_BIN_NAME CrystalMD)
 set(MD_LIB_NAME md) # use PARENT_SCOPE to modify globle variable.
+set(MD_FRONTEND_LIB_NAME frontend)
 
 # test
 set(MD_TEST_NAME "md-test")

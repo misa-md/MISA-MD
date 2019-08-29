@@ -2,13 +2,15 @@
 // Created by genshen(genshenchu@gmail.com) on 2018-3-9.
 //
 
-#include <mpi.h>
 #include <iostream>
+#include <cassert>
+#include <mpi.h>
 #include <utils/bundle.h>
 #include "config_values.h"
 
 ConfigValues::ConfigValues() :
-        phaseSpace{0, 0, 0}, cutoffRadiusFactor(0.0), latticeConst(0.0), timeSteps(10),
+        phaseSpace{0, 0, 0}, cutoffRadiusFactor(0.0), latticeConst(0.0),
+        timeSteps(10), vsl_size(0), vsl_break_points(), vsl_lengths(),
         createPhaseMode(true), createTSet(0.0), createSeed(1024), readPhaseFilename(""),
         alloyCreateSeed(1024), alloyRatio{1, 0, 0},
         collisionStep(0), collisionLat{0, 0, 0, 0}, pkaEnergy(0), direction{1.0, 1.0, 1.0},
@@ -20,8 +22,13 @@ void ConfigValues::packdata(kiwi::Bundle &bundle) {
     bundle.put(DIMENSION, phaseSpace); // todo remove MPI_COMM_WORLD to initial method.
     bundle.put(cutoffRadiusFactor);
     bundle.put(latticeConst);
+
+    // step and step length
     bundle.put(timeSteps);
     bundle.put(timeStepLength);
+    bundle.put(vsl_size);
+    bundle.put(vsl_size, vsl_break_points.data());
+    bundle.put(vsl_size, vsl_lengths.data());
 
     bundle.put(createPhaseMode);
     bundle.put(createTSet);
@@ -55,11 +62,19 @@ void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
     // fetch data from buffer.
 //    if (getPackedData() != nullptr) { // buffer != null
     int cursor = 0;
+
     bundle.get(cursor, DIMENSION, phaseSpace);
     bundle.get(cursor, cutoffRadiusFactor);
     bundle.get(cursor, latticeConst);
+
+    // step and step length
     bundle.get(cursor, timeSteps);
     bundle.get(cursor, timeStepLength);
+    bundle.get(cursor, vsl_size); // get size,
+    vsl_break_points.resize(vsl_size); // then, resize
+    vsl_lengths.resize(vsl_size);
+    bundle.get(cursor, vsl_size, vsl_break_points.data()); // put data to vector.
+    bundle.get(cursor, vsl_size, vsl_lengths.data());
 
     bundle.get(cursor, createPhaseMode);
     bundle.get(cursor, createTSet);
@@ -88,6 +103,26 @@ void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
     // logs subsection in output section.
     bundle.get(cursor, output.logs_mode);
     bundle.get(cursor, output.logs_filename);
+}
+
+void ConfigValues::setVarStepLengths(const unsigned long *break_points, const double *lengths,
+                                     const unsigned long size) {
+    vsl_break_points.clear();
+    vsl_lengths.clear();
+    vsl_size = size;
+    for (size_t i = 0; i < size; i++) {
+        vsl_lengths.push_back(lengths[i]);
+        vsl_break_points.push_back(break_points[i]);
+    }
+}
+
+void ConfigValues::setVarStepLengths(std::vector<unsigned long> break_points, std::vector<double> lengths,
+                                     const unsigned long size) {
+    assert(break_points.size() == size);
+    assert(lengths.size() == size);
+    vsl_size = size;
+    vsl_break_points = break_points;
+    vsl_lengths = lengths;
 }
 
 std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {

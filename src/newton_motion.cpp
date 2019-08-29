@@ -10,7 +10,7 @@ NewtonMotion::NewtonMotion(double timestepLength) : _timestepLength(timestepLeng
 
 NewtonMotion::~NewtonMotion() = default;
 
-void NewtonMotion::setTimestepLength(double dt) {
+void NewtonMotion::setTimestepLength(const double dt) {
     _timestepLength = dt;
     // refresh dtInv2m.
     preComputeDtInv2m();

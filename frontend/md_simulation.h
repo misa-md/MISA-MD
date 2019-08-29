@@ -43,9 +43,18 @@ public:
 
 private:
     /**
+     * current time step length.
+     */
+    double cur_step_length;
+
+    /**
+     * physical time
+     */
+    double phy_time = 0.0;
+    /**
      * pointer to config data.
      */
-    ConfigValues *pConfigVal = nullptr;
+    const ConfigValues *pConfigVal = nullptr;
 
     OutputBaseInterface *out = nullptr;
 

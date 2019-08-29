@@ -91,10 +91,15 @@ void ConfigParser::resolveConfigSimulation(std::shared_ptr<cpptoml::table> table
     if (tomlTimeSteps) {
         configValues.timeSteps = *tomlTimeSteps;
     }
-    configValues.timeStepLength = table->get_as<double>("timesteps_length").value_or(default_time_length);
+    configValues.timeStepLength = table->get_as<double>("def_timesteps_length").value_or(default_time_length);
+    resolveVariableStepLen(table);
 
     //resolve simulation.createphase
     auto tableCreatephase = table->get_table("createphase");
+    if (!tableCreatephase) {
+        setError("createphase is not set in config.");
+        return;
+    }
 
     configValues.createPhaseMode = tableCreatephase->get_as<bool>("create_phase")
             .value_or(default_create_phase); // default value is true
@@ -140,7 +145,30 @@ void ConfigParser::resolveConfigSimulation(std::shared_ptr<cpptoml::table> table
     }
 }
 
+void ConfigParser::resolveVariableStepLen(std::shared_ptr<cpptoml::table> table) {
+    auto nested = table->get_array_of<cpptoml::array>("variable_step_length");
+    if (!nested) { // if it is not set.
+        return;
+    }
+    cpptoml::option<std::vector<int64_t>> break_steps_i64 = (*nested)[0]->get_array_of<int64_t>();
+    cpptoml::option<std::vector<double>> step_lens = (*nested)[1]->get_array_of<double>();
+    if (break_steps_i64->size() != step_lens->size()) {
+        setError("size of break points and step length is not equal in variable timestep length configuration.");
+        return;
+    }
+    const unsigned long _size = break_steps_i64->size();
+    std::vector<unsigned long> break_steps;
+    for (const int64_t &val : *break_steps_i64) { // type conversion from int64 to unsigned long.
+        break_steps.push_back(val);
+    }
+    configValues.setVarStepLengths(break_steps, *step_lens, _size); // set variable length array.
+}
+
 void ConfigParser::resolveConfigOutput(std::shared_ptr<cpptoml::table> table) {
+    if (!table) {
+        setError("output section in config file is not specified.");
+        return;
+    }
     auto tomlAtomsDumpMode = table->get_as<std::string>("atoms_dump_mode");
     if (tomlAtomsDumpMode) {
         if ("copy" == *tomlAtomsDumpMode) { // todo equal?
@@ -180,6 +208,10 @@ void ConfigParser::resolveConfigOutput(std::shared_ptr<cpptoml::table> table) {
 }
 
 void ConfigParser::resolveConfigAlloy(std::shared_ptr<cpptoml::table> table) {
+    if (!table) {
+        setError("alloy config is not specified in.");
+        return;
+    }
     configValues.alloyCreateSeed = table->get_as<int>("create_seed").value_or(default_random_seek);
     auto tomlAlloyRatioFe = table->get_qualified_as<int>("ratio.Fe");
     if (tomlAlloyRatioFe) {
@@ -196,6 +228,10 @@ void ConfigParser::resolveConfigAlloy(std::shared_ptr<cpptoml::table> table) {
 }
 
 void ConfigParser::resolveConfigCollision(std::shared_ptr<cpptoml::table> table) {
+    if (!table) {
+        setError("collision config is not set.");
+        return;
+    }
     auto tomlCollisionStep = table->get_as<unsigned long>("collision_step");
     if (tomlCollisionStep) {
         configValues.collisionStep = *tomlCollisionStep;

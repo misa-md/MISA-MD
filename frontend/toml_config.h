@@ -72,6 +72,12 @@ private:
      * @param bundle
      */
     void getConfigData(kiwi::Bundle &bundle) override;
+
+    /**
+     * parse variable time step length if it is set.
+     * @param table parent toml table.
+     */
+    void resolveVariableStepLen(std::shared_ptr<cpptoml::table> table);
 };
 
 
