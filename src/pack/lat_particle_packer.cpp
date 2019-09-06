@@ -88,7 +88,10 @@ void LatPackerFirst::onReceive(LatParticleData *buffer, const unsigned long rece
             }
         }
         if (receive_len != receive_list[recv_idnex].size()) { // todo error handling in dataReuse feature.
-            kiwi::logs::e("unpack_recvfirst", "received data size does not match the Mpi_Proble size.\n");
+            kiwi::logs::e("unpack_recvfirst",
+                          "received data size does not match the MPI_Proble size，expected {}, but got {}.\n",
+                          receive_len,
+                          receive_list[recv_idnex].size());
         }
 
     } else if (dimension == 1) {
@@ -117,7 +120,10 @@ void LatPackerFirst::onReceive(LatParticleData *buffer, const unsigned long rece
             }
         }
         if (receive_len != receive_list[recv_idnex].size()) { // todo error handling in dataReuse feature.
-            kiwi::logs::e("unpack_recvfirst", "received data size does not match the Mpi_Proble size.\n");
+            kiwi::logs::e("unpack_recvfirst",
+                          "received data size does not match the MPI_Proble size，expected {}, but got {}.\n",
+                          receive_len,
+                          receive_list[recv_idnex].size());
         }
     } else {
         if (direction == 0) {
@@ -145,7 +151,10 @@ void LatPackerFirst::onReceive(LatParticleData *buffer, const unsigned long rece
             }
         }
         if (receive_len != receive_list[recv_idnex].size()) { // todo error handling in dataReuse feature.
-            kiwi::logs::e("unpack_recvfirst", "received data size does not match the Mpi_Proble size.\n");
+            kiwi::logs::e("unpack_recvfirst",
+                          "received data size does not match the MPI_Proble size，expected {}, but got {}.\n",
+                          receive_len,
+                          receive_list[recv_idnex].size());
         }
     }
 }
