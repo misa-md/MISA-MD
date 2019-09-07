@@ -34,6 +34,8 @@ public:
                      domain.dbx_lattice_size_sub_box[2];
     }
 
+    virtual ~OutputBaseInterface() {};
+
     virtual void prepareOutput(const comm::BccDomain p_domain) = 0;
 
     /**

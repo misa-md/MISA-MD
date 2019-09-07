@@ -124,4 +124,6 @@ void crystalMD::beforeDestroy() {
     archEnvFinalize(); // clean architectures environment.
 }
 
-void crystalMD::onDestroy() {}
+void crystalMD::onDestroy() {
+    delete pSimulation;
+}
