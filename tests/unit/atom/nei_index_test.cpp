@@ -79,12 +79,12 @@ TEST(atom_cutoff_radius_included_test, lattice_included_test) {
             .setGhostSize(static_cast<_type_atom_index>(ceil(cutoff_radius_factor)) + 1)
             .setLatticeConst(lattice_const)
             .localBuild(grid_size, grid_coord);
-    AtomList atom_list(p_domain->lattice_size_ghost_extended[0] * 2,
-                       p_domain->lattice_size_ghost_extended[1],
-                       p_domain->lattice_size_ghost_extended[2],
-                       p_domain->lattice_size_sub_box[0] * 2,
-                       p_domain->lattice_size_sub_box[1],
-                       p_domain->lattice_size_sub_box[2],
+    AtomList atom_list(p_domain->ghost_extended_lattice_size[0] * 2,
+                       p_domain->ghost_extended_lattice_size[1],
+                       p_domain->ghost_extended_lattice_size[2],
+                       p_domain->sub_box_lattice_size[0] * 2,
+                       p_domain->sub_box_lattice_size[1],
+                       p_domain->sub_box_lattice_size[2],
                        p_domain->lattice_size_ghost[0] * 2,
                        p_domain->lattice_size_ghost[1],
                        p_domain->lattice_size_ghost[2]);

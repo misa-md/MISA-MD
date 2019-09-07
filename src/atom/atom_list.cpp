@@ -5,7 +5,7 @@
 #include <utils/mpi_domain.h>
 #include <pack/lat_particle_packer.h>
 #include <comm.hpp>
-#include <comm_forwarding_region.h>
+#include <preset/comm_forwarding_region.h>
 #include "atom_list.h"
 #include "../utils/mpi_data_types.h"
 
@@ -73,12 +73,12 @@ bool AtomList::isBadList(comm::Domain domain) {
     for (long z = lattice.purge_ghost_count_z; z < lattice._size_sub_box_z + lattice.purge_ghost_count_z; z++) {
         for (long y = lattice.purge_ghost_count_y; y < lattice._size_sub_box_y + lattice.purge_ghost_count_y; y++) {
             for (long x = lattice.purge_ghost_count_x; x < lattice._size_sub_box_x + lattice.purge_ghost_count_x; x++) {
-                if (_atoms[z][y][x].x[0] < domain.meas_global_box_coord_region.x_low - delta ||
-                    _atoms[z][y][x].x[1] < domain.meas_global_box_coord_region.y_low - delta ||
-                    _atoms[z][y][x].x[2] < domain.meas_global_box_coord_region.z_low - delta ||
-                    _atoms[z][y][x].x[0] > domain.meas_global_box_coord_region.x_high + delta ||
-                    _atoms[z][y][x].x[1] > domain.meas_global_box_coord_region.y_high + delta ||
-                    _atoms[z][y][x].x[2] > domain.meas_global_box_coord_region.z_high + delta) {
+                if (_atoms[z][y][x].x[0] < domain.meas_global_region.x_low - delta ||
+                    _atoms[z][y][x].x[1] < domain.meas_global_region.y_low - delta ||
+                    _atoms[z][y][x].x[2] < domain.meas_global_region.z_low - delta ||
+                    _atoms[z][y][x].x[0] > domain.meas_global_region.x_high + delta ||
+                    _atoms[z][y][x].x[1] > domain.meas_global_region.y_high + delta ||
+                    _atoms[z][y][x].x[2] > domain.meas_global_region.z_high + delta) {
                     return true;
                 }
             }

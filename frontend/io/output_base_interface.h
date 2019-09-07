@@ -23,15 +23,15 @@ public:
     explicit OutputBaseInterface(const Output config, const comm::BccDomain domain)
             : output_config(config) {
         // atom boundary in array.
-        begin[0] = domain.dbx_lattice_coord_sub_box_region.x_low - domain.dbx_lattice_coord_ghost_region.x_low;
-        begin[1] = domain.dbx_lattice_coord_sub_box_region.y_low - domain.dbx_lattice_coord_ghost_region.y_low;
-        begin[2] = domain.dbx_lattice_coord_sub_box_region.z_low - domain.dbx_lattice_coord_ghost_region.z_low;
-        end[0] = begin[0] + domain.dbx_lattice_size_sub_box[0];
-        end[1] = begin[1] + domain.dbx_lattice_size_sub_box[1];
-        end[2] = begin[2] + domain.dbx_lattice_size_sub_box[2];
-        atoms_size = domain.dbx_lattice_size_sub_box[0] *
-                     domain.dbx_lattice_size_sub_box[1] *
-                     domain.dbx_lattice_size_sub_box[2];
+        begin[0] = domain.dbx_sub_box_lattice_region.x_low - domain.dbx_ghost_ext_lattice_region.x_low;
+        begin[1] = domain.dbx_sub_box_lattice_region.y_low - domain.dbx_ghost_ext_lattice_region.y_low;
+        begin[2] = domain.dbx_sub_box_lattice_region.z_low - domain.dbx_ghost_ext_lattice_region.z_low;
+        end[0] = begin[0] + domain.dbx_sub_box_lattice_size[0];
+        end[1] = begin[1] + domain.dbx_sub_box_lattice_size[1];
+        end[2] = begin[2] + domain.dbx_sub_box_lattice_size[2];
+        atoms_size = domain.dbx_sub_box_lattice_size[0] *
+                     domain.dbx_sub_box_lattice_size[1] *
+                     domain.dbx_sub_box_lattice_size[2];
     }
 
     virtual ~OutputBaseInterface() {};
