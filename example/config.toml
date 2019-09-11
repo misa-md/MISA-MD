@@ -48,6 +48,9 @@ variable_step_length = [ [1, 4, 8], [0.0001, 0.0005, 0.001] ] # change timestep 
     atoms_dump_interval = 10
     by_frame=true # bool type, used in copy mode, dump to mulpile file, one file for each frame.
 
+    [output.thermo]
+    interval = 0 # unsigned integer type, default is 0, no output
+
     [output.logs]
     logs_mode = "console" # logs mode, string; valuse: "console" output will be printed on console/terminal, "file" logs will be saved in files.
     logs_filename = "" # filename of log file, string; if leaving empty, program will generate an unique log filename. (And by default, output will append the end of log file.).

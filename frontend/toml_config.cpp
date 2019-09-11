@@ -194,6 +194,14 @@ void ConfigParser::resolveConfigOutput(std::shared_ptr<cpptoml::table> table) {
         setError("error format of dump file path");
     }
 
+    // resole thermodynamics config
+    std::shared_ptr<cpptoml::table> thermo_table = table->get_table("thermo");
+    if (!dump_table) {
+        setError("thermodynamics output section in config file is not specified.");
+        return;
+    }
+    configValues.output.thermo_interval = thermo_table->get_as<uint64_t>("interval").value_or(0);
+
     // resolve logs.
     std::shared_ptr<cpptoml::table> logs_table = table->get_table("logs");
     if (!logs_table) {
