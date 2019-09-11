@@ -105,7 +105,7 @@ bool crystalMD::prepare() {
 }
 
 void crystalMD::onStart() {
-    ConfigValues config = ConfigParser::getInstance()->configValues;
+    const ConfigValues config = ConfigParser::getInstance()->configValues;
     pSimulation->prepareForStart(config.potentialFilename);
     kiwi::logs::v(MASTER_PROCESSOR, "simulation", "Start simulation.\n");
     pSimulation->simulate(config.timeSteps, config.collisionStep,
