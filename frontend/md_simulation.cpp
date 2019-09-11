@@ -55,16 +55,16 @@ void MDSimulation::postStep(const unsigned long step) {
     if ((step + 1) % pConfigVal->output.atomsDumpInterval == 0) {
         out->onOutputStep(step + 1, _atom->getAtomList(), _atom->getInterList());
     }
-#ifdef MD_DEV_MODE
-    {
+
+    // output thermodynamics information if it it the step
+    if (pConfigVal->output.thermo_interval && (step + 1) % pConfigVal->output.thermo_interval == 0) {
         const double e = configuration::kineticEnergy(_atom->getAtomList(), _atom->getInterList(),
-                                                      configuration::ReturnMod::All, 0);
+                                                      configuration::ReturnMod::Root, MASTER_PROCESSOR);
         const _type_atom_count n = 2 * pConfigVal->phaseSpace[0] *
                                    pConfigVal->phaseSpace[1] * pConfigVal->phaseSpace[2];
         const double T = configuration::temperature(e, n);
-        kiwi::logs::d(MASTER_PROCESSOR, "energy", "e = {}, T = {}.\n", e, T);
+        kiwi::logs::i(MASTER_PROCESSOR, "energy", "kinetic energy = {}, T = {}.\n", e, T);
     }
-#endif
 
 #ifdef MD_DEV_MODE
     {
