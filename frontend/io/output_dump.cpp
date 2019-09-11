@@ -29,7 +29,7 @@ void OutputDump::beforeCollision(const unsigned long time_step, AtomList *atom_l
 }
 
 void OutputDump::onAllOut(const unsigned long time_step) {
-    kiwi::logs::i(MASTER_PROCESSOR, "dump", "time of dumping atoms in direct mode:{}.\n", total_dump_time);
+    kiwi::logs::i(MASTER_PROCESSOR, "dump", "time of dumping atoms in direct mode: {}.\n", total_dump_time);
 }
 
 void OutputDump::dump(const unsigned long time_step, AtomList *atom_list, InterAtomList *inter_atom_list) {

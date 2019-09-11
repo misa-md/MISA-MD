@@ -75,8 +75,8 @@ void MDSimulation::postStep(const unsigned long step) {
         unsigned long &real_atoms = global_count[0], &inter_atoms = global_count[1];
         MPI_Reduce(count, global_count, 2, MPI_UNSIGNED_LONG, MPI_SUM, MASTER_PROCESSOR, MPI_COMM_WORLD);
 
-        kiwi::logs::d("count", "real:{}--inter:{}\n", count[0], count[1]);
-        kiwi::logs::d(MASTER_PROCESSOR, "count", "global_real:{}--global_inter:{}\n", real_atoms, inter_atoms);
+        kiwi::logs::d("count", "real:{}--inter: {}\n", count[0], count[1]);
+        kiwi::logs::d(MASTER_PROCESSOR, "count", "global_real:{}--global_inter: {}\n", real_atoms, inter_atoms);
     }
 #endif
 }

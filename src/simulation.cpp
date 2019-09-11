@@ -204,7 +204,7 @@ void simulation::simulate(const unsigned long steps, unsigned long coll_step,
     allstop = MPI_Wtime();
     alltime = allstop - allstart;
     if (MPIDomain::sim_processor.own_rank == MASTER_PROCESSOR) {
-        kiwi::logs::i("simulation", "total time:{}.\n", alltime);
+        kiwi::logs::i("simulation", "total time: {}.\n", alltime);
     }
 }
 

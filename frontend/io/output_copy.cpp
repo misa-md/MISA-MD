@@ -54,5 +54,5 @@ void OutputCopy::onAllOut(const unsigned long time_step) {
         delete dumpInstance;
     }
     // log dumping time.
-    kiwi::logs::i(MASTER_PROCESSOR, "dump", "time of dumping atoms in copy mode:{}.\n", totalDumpTime);
+    kiwi::logs::i(MASTER_PROCESSOR, "dump", "time of dumping atoms in copy mode: {}.\n", totalDumpTime);
 }
