@@ -3,6 +3,7 @@
 //
 
 #include <utils/mpi_domain.h>
+#include <logs/logs.h>
 #include "output_copy.h"
 
 OutputCopy::OutputCopy(const Output output, const comm::BccDomain p_domain)

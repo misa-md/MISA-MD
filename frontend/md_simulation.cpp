@@ -2,11 +2,12 @@
 // Created by genshen on 2019-06-10.
 //
 
-#include <system_configuration.h>
 #include <logs/logs.h>
 #include <iostream>
 #include <utils/mpi_domain.h>
+
 #include "md_simulation.h"
+#include "system_configuration.h"
 #include "io/output_dump.h"
 #include "io/output_copy.h"
 
