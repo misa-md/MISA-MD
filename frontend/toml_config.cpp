@@ -30,7 +30,14 @@ ConfigParser *ConfigParser::getInstance() {
 ConfigParser *ConfigParser::newInstance(const std::string &configureFilePath) {
     if (m_pInstance == nullptr) {
         m_pInstance = new ConfigParser();  // todo delete
-        m_pInstance->resolve(configureFilePath);
+        std::ifstream ifs(configureFilePath);
+        if (!ifs.good()) { // todo fixme important, if file not exist, this branch would not enter.
+            m_pInstance->setError("can not access the configure file: " + configureFilePath);
+            return m_pInstance;
+        }
+        auto conf = cpptoml::parse_file(configureFilePath); // todo exception
+        m_pInstance->resolveConfig(conf);
+        ifs.close();
     }
     return m_pInstance;
 }

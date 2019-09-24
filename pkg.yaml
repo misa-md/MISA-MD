@@ -20,7 +20,7 @@ packages:
       tag: v0.1.0-beta
     kiwi:
       path: https://git.hpcer.dev/genshen/kiwi.git
-      tag: v0.2.0-beta
+      tag: v0.2.0
     libcomm:
       path: https://git.hpcer.dev/HPCer/CrystalMD/libcomm.git
       tag: v0.3.0
@@ -32,3 +32,9 @@ packages:
         args.hxx: args.hpp
       build:
         - CP args.hpp {{.INCLUDE}}/args.hpp
+    cpptoml:
+      path: https://raw.githubusercontent.com/skystrife/cpptoml/v0.1.1/include
+      files:
+        cpptoml.h: toml.hpp
+      build:
+        - CP toml.hpp {{.INCLUDE}}/toml.hpp

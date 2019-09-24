@@ -46,7 +46,7 @@ private:
      * visit the url above to get more information.
      * @param table
      */
-    void resolveConfig(std::shared_ptr<cpptoml::table> table) override;
+    void resolveConfig(std::shared_ptr<cpptoml::table> table);
 
     // resolve "simulation" section in toml config file.
     void resolveConfigSimulation(std::shared_ptr<cpptoml::table> table);
