@@ -1,1 +1,1 @@
-set(MD_VERSION "0.3.4")
+set(MD_VERSION "0.4.0-beta")
