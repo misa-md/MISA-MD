@@ -11,6 +11,7 @@ configure_file(
 #########################
 set(TEST_SOURCE_FILES
         frontend/config_parsing_vsl.cpp
+        atom/nei_index_test.cpp
         test_config.h
         domain_test_utils.h
         main.cpp

@@ -4,7 +4,7 @@
 
 #include <cstring>
 #include <logs/logs.h>
-#include <comm_forwarding_region.h>
+#include <preset/comm_forwarding_region.h>
 #include <lattice/ws_utils.h>
 #include "inter_border_packer.h"
 
@@ -45,10 +45,10 @@ void InterBorderPacker::onSend(LatParticleData buffer[],
                                const int dimension,
                                const int direction) {
     double shift = 0.0;
-    if (domain.grid_coord_sub_box[dimension] == 0 && direction == comm::DIR_LOWER) {
+    if (domain.grid_coord[dimension] == 0 && direction == comm::DIR_LOWER) {
         shift = domain.meas_global_length[dimension];
     }
-    if (domain.grid_coord_sub_box[dimension] == domain.grid_size[dimension] - 1 && direction == comm::DIR_HIGHER) {
+    if (domain.grid_coord[dimension] == domain.grid_size[dimension] - 1 && direction == comm::DIR_HIGHER) {
         shift = -((domain.meas_global_length[dimension]));
     }
 

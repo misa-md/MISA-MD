@@ -73,10 +73,10 @@ void InterParticlePacker::onSend(particledata *buffer, const unsigned long send_
 
     double offset[DIMENSION] = {0.0};
     // periodic boundary
-    if (domain.grid_coord_sub_box[dimension] == 0 && direction == comm::DIR_LOWER) {
+    if (domain.grid_coord[dimension] == 0 && direction == comm::DIR_LOWER) {
         offset[dimension] = domain.meas_global_length[dimension];
     }
-    if (domain.grid_coord_sub_box[dimension] == domain.grid_size[dimension] - 1 && direction == comm::DIR_HIGHER) {
+    if (domain.grid_coord[dimension] == domain.grid_size[dimension] - 1 && direction == comm::DIR_HIGHER) {
         offset[dimension] = -((domain.meas_global_length[dimension]));
     }
 

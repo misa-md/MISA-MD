@@ -2,11 +2,12 @@
 // Created by genshen on 2019-06-10.
 //
 
-#include <system_configuration.h>
 #include <logs/logs.h>
 #include <iostream>
 #include <utils/mpi_domain.h>
+
 #include "md_simulation.h"
+#include "system_configuration.h"
 #include "io/output_dump.h"
 #include "io/output_copy.h"
 
@@ -55,16 +56,16 @@ void MDSimulation::postStep(const unsigned long step) {
     if ((step + 1) % pConfigVal->output.atomsDumpInterval == 0) {
         out->onOutputStep(step + 1, _atom->getAtomList(), _atom->getInterList());
     }
-#ifdef MD_DEV_MODE
-    {
+
+    // output thermodynamics information if it it the step
+    if (pConfigVal->output.thermo_interval && (step + 1) % pConfigVal->output.thermo_interval == 0) {
         const double e = configuration::kineticEnergy(_atom->getAtomList(), _atom->getInterList(),
-                                                      configuration::ReturnMod::All, 0);
+                                                      configuration::ReturnMod::Root, MASTER_PROCESSOR);
         const _type_atom_count n = 2 * pConfigVal->phaseSpace[0] *
                                    pConfigVal->phaseSpace[1] * pConfigVal->phaseSpace[2];
         const double T = configuration::temperature(e, n);
-        kiwi::logs::d(MASTER_PROCESSOR, "energy", "e = {}, T = {}.\n", e, T);
+        kiwi::logs::i(MASTER_PROCESSOR, "energy", "kinetic energy = {}, T = {}.\n", e, T);
     }
-#endif
 
 #ifdef MD_DEV_MODE
     {
@@ -75,8 +76,8 @@ void MDSimulation::postStep(const unsigned long step) {
         unsigned long &real_atoms = global_count[0], &inter_atoms = global_count[1];
         MPI_Reduce(count, global_count, 2, MPI_UNSIGNED_LONG, MPI_SUM, MASTER_PROCESSOR, MPI_COMM_WORLD);
 
-        kiwi::logs::d("count", "real:{}--inter:{}\n", count[0], count[1]);
-        kiwi::logs::d(MASTER_PROCESSOR, "count", "global_real:{}--global_inter:{}\n", real_atoms, inter_atoms);
+        kiwi::logs::d("count", "real:{}--inter: {}\n", count[0], count[1]);
+        kiwi::logs::d(MASTER_PROCESSOR, "count", "global_real:{}--global_inter: {}\n", real_atoms, inter_atoms);
     }
 #endif
 }

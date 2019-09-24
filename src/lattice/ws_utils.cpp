@@ -91,24 +91,24 @@ if (normal_vector[flag_][0] * delta_x +          \
 const box::_type_flag_32 ws::isOutBox(const AtomElement &src_atom, const comm::Domain *p_domain) {
     VORONOY(src_atom.x[0], src_atom.x[1], src_atom.x[2], p_domain->lattice_const)
 
-    lat_coord_x -= 2 * p_domain->lattice_coord_sub_box_region.x_low;
-    lat_coord_y -= p_domain->lattice_coord_sub_box_region.y_low;
-    lat_coord_z -= p_domain->lattice_coord_sub_box_region.z_low;
+    lat_coord_x -= 2 * p_domain->sub_box_lattice_region.x_low;
+    lat_coord_y -= p_domain->sub_box_lattice_region.y_low;
+    lat_coord_z -= p_domain->sub_box_lattice_region.z_low;
 
     box::_type_flag_32 flag = box::IN_BOX;
     if (lat_coord_x < 0) {
         flag |= box::OUT_BOX_X_LITTER;
-    } else if (lat_coord_x >= 2 * p_domain->lattice_size_sub_box[0]) {
+    } else if (lat_coord_x >= 2 * p_domain->sub_box_lattice_size[0]) {
         flag |= box::OUT_BOX_X_BIG;
     }
     if (lat_coord_y < 0) {
         flag |= box::OUT_BOX_Y_LITTER;
-    } else if (lat_coord_y >= p_domain->lattice_size_sub_box[1]) {
+    } else if (lat_coord_y >= p_domain->sub_box_lattice_size[1]) {
         flag |= box::OUT_BOX_Y_BIG;
     }
     if (lat_coord_z < 0) {
         flag |= box::OUT_BOX_Z_LITTER;
-    } else if (lat_coord_z >= p_domain->lattice_size_sub_box[2]) {
+    } else if (lat_coord_z >= p_domain->sub_box_lattice_size[2]) {
         flag |= box::OUT_BOX_Z_BIG;
     }
     return flag;
@@ -141,9 +141,9 @@ _type_atom_index ws::findNearLatIndexInSubBox(AtomList *atom_list, const AtomEle
 
     // if nearest atom is out of box.
     if (j < 0 || k < 0 || l < 0 ||
-        j >= 2 * p_domain->lattice_size_sub_box[0] ||
-        k >= p_domain->lattice_size_sub_box[1] ||
-        l >= p_domain->lattice_size_sub_box[2]) {
+        j >= 2 * p_domain->sub_box_lattice_size[0] ||
+        k >= p_domain->sub_box_lattice_size[1] ||
+        l >= p_domain->sub_box_lattice_size[2]) {
         return box::IndexNotExists;
     }
     // calculate atom index in ghost included sub-box
@@ -157,9 +157,9 @@ void ws::getNearLatCoord(const AtomElement &src_atom, const comm::Domain *p_doma
                          _type_atom_index coords[DIMENSION]) {
     VORONOY(src_atom.x[0], src_atom.x[1], src_atom.x[2], p_domain->lattice_const)
 
-    coords[0] = lat_coord_x - 2 * p_domain->lattice_coord_ghost_region.x_low;
-    coords[1] = lat_coord_y - p_domain->lattice_coord_ghost_region.y_low;
-    coords[2] = lat_coord_z - p_domain->lattice_coord_ghost_region.z_low;
+    coords[0] = lat_coord_x - 2 * p_domain->ghost_ext_lattice_region.x_low;
+    coords[1] = lat_coord_y - p_domain->ghost_ext_lattice_region.y_low;
+    coords[2] = lat_coord_z - p_domain->ghost_ext_lattice_region.z_low;
 }
 
 /**
@@ -183,19 +183,19 @@ void ws::getNearLatSubBoxCoord(const AtomElement &src_atom, const comm::Domain *
     VORONOY(src_atom.x[0], src_atom.x[1], src_atom.x[2], p_domain->lattice_const)
 
     // get relative coords
-    coords[0] = lat_coord_x - 2 * p_domain->lattice_coord_sub_box_region.x_low;
-    coords[1] = lat_coord_y - p_domain->lattice_coord_sub_box_region.y_low;
-    coords[2] = lat_coord_z - p_domain->lattice_coord_sub_box_region.z_low;
+    coords[0] = lat_coord_x - 2 * p_domain->sub_box_lattice_region.x_low;
+    coords[1] = lat_coord_y - p_domain->sub_box_lattice_region.y_low;
+    coords[2] = lat_coord_z - p_domain->sub_box_lattice_region.z_low;
 }
 
 bool ws::isInBox(const AtomElement &src_atom, const comm::Domain *p_domain) {
     VORONOY(src_atom.x[0], src_atom.x[1], src_atom.x[2], p_domain->lattice_const)
 
-    lat_coord_x -= 2 * p_domain->lattice_coord_sub_box_region.x_low;
-    lat_coord_y -= p_domain->lattice_coord_sub_box_region.y_low;
-    lat_coord_z -= p_domain->lattice_coord_sub_box_region.z_low;
+    lat_coord_x -= 2 * p_domain->sub_box_lattice_region.x_low;
+    lat_coord_y -= p_domain->sub_box_lattice_region.y_low;
+    lat_coord_z -= p_domain->sub_box_lattice_region.z_low;
     return (lat_coord_x >= 0 && lat_coord_y >= 0 && lat_coord_z >= 0 &&
-            lat_coord_x < p_domain->lattice_size_sub_box[0] &&
-            lat_coord_y < p_domain->lattice_size_sub_box[1] &&
-            lat_coord_z < p_domain->lattice_size_sub_box[2]);
+            lat_coord_x < p_domain->sub_box_lattice_size[0] &&
+            lat_coord_y < p_domain->sub_box_lattice_size[1] &&
+            lat_coord_z < p_domain->sub_box_lattice_size[2]);
 }

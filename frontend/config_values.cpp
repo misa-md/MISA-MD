@@ -53,6 +53,8 @@ void ConfigValues::packdata(kiwi::Bundle &bundle) {
     bundle.put(output.originDumpPath);
     bundle.put(output.atomsDumpInterval);
     bundle.put(output.outByFrame);
+
+    bundle.put(output.thermo_interval);
     // logs subsection in output section.
     bundle.put(output.logs_mode);
     bundle.put(output.logs_filename);
@@ -99,6 +101,8 @@ void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
     bundle.get(cursor, output.originDumpPath);
     bundle.get(cursor, output.atomsDumpInterval);
     bundle.get(cursor, output.outByFrame);
+
+    bundle.get(cursor, output.thermo_interval);
 
     // logs subsection in output section.
     bundle.get(cursor, output.logs_mode);
@@ -155,11 +159,11 @@ std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
     os << "simulation.potential_file.filename:" << cv.potentialFilename << std::endl;
 
     // output section
-    // output section
     os << "output.mode(copy:0,direct:1):" << cv.output.atomsDumpMode << std::endl;
     os << "output.dump_interval" << cv.output.atomsDumpInterval << std::endl;
     os << "output.dump_file_path:" << cv.output.atomsDumpFilePath << std::endl;
     os << "output.origin_dump_path:" << cv.output.originDumpPath << std::endl;
+    os << "output.thermo.interval:" << cv.output.thermo_interval << std::endl;
     os << "output.logs.mode: "
        << (cv.output.logs_mode == LOGS_MODE_CONSOLE ? LOGS_MODE_CONSOLE_STRING : LOGS_MODE_FILE_STRING)
        << "output.logs.by-frame:" << cv.output.outByFrame << std::endl;

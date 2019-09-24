@@ -18,7 +18,7 @@ public:
 
     simulation();
 
-    ~simulation();
+    virtual ~simulation();
 
     /**
      * Denote N as the count of all processors.

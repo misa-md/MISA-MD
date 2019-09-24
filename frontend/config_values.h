@@ -35,13 +35,15 @@ struct Output {
     std::string atomsDumpFilePath;
     // path of dumped origin atoms before collision
     std::string originDumpPath;
+    // interval to output thermodynamics information.
+    unsigned long thermo_interval;
     // logs in output section
     _type_logs_mode logs_mode;
     std::string logs_filename;
 
     Output() : atomsDumpMode(OutputMode::COPY), atomsDumpInterval(1),
                outByFrame(false), originDumpPath(ORIGIN_OUTPUT_DUMP_FILE_PATH),
-               atomsDumpFilePath(DEFAULT_OUTPUT_DUMP_FILE_PATH),
+               atomsDumpFilePath(DEFAULT_OUTPUT_DUMP_FILE_PATH), thermo_interval(0),
                logs_mode(LOGS_MODE_CONSOLE), logs_filename("") {}
 };
 

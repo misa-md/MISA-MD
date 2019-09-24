@@ -3,6 +3,7 @@
 //
 
 #include <utils/mpi_domain.h>
+#include <logs/logs.h>
 #include "output_copy.h"
 
 OutputCopy::OutputCopy(const Output output, const comm::BccDomain p_domain)
@@ -10,9 +11,9 @@ OutputCopy::OutputCopy(const Output output, const comm::BccDomain p_domain)
 
 void OutputCopy::prepareOutput(const comm::BccDomain domain) {
     // atom boundary in array.
-    atoms_size = domain.dbx_lattice_size_sub_box[0] *
-                 domain.dbx_lattice_size_sub_box[1] *
-                 domain.dbx_lattice_size_sub_box[2];
+    atoms_size = domain.dbx_sub_box_lattice_size[0] *
+                 domain.dbx_sub_box_lattice_size[1] *
+                 domain.dbx_sub_box_lattice_size[2];
 }
 
 void OutputCopy::onOutputStep(const unsigned long time_step, AtomList *atom_list,
@@ -54,5 +55,5 @@ void OutputCopy::onAllOut(const unsigned long time_step) {
         delete dumpInstance;
     }
     // log dumping time.
-    kiwi::logs::i(MASTER_PROCESSOR, "dump", "time of dumping atoms in copy mode:{}.\n", totalDumpTime);
+    kiwi::logs::i(MASTER_PROCESSOR, "dump", "time of dumping atoms in copy mode: {}.\n", totalDumpTime);
 }

@@ -56,11 +56,11 @@ AtomSet::addAtom(comm::BccDomain *p_domain, _type_atom_id id,
         lattice[2] = rz * 2 / p_domain->lattice_const + 0.5;
         lattice[1] = lattice[1] / 2;
         lattice[2] = lattice[2] / 2;
-        lattice[0] -= p_domain->dbx_lattice_coord_ghost_region.x_low;
-        lattice[1] -= p_domain->dbx_lattice_coord_ghost_region.y_low;
-        lattice[2] -= p_domain->dbx_lattice_coord_ghost_region.z_low;
-        i = (((p_domain->dbx_lattice_size_ghost_extended[1])) * lattice[2] + lattice[1]) *
-            ((p_domain->dbx_lattice_size_ghost_extended[0])) + lattice[0];
+        lattice[0] -= p_domain->dbx_ghost_ext_lattice_region.x_low;
+        lattice[1] -= p_domain->dbx_ghost_ext_lattice_region.y_low;
+        lattice[2] -= p_domain->dbx_ghost_ext_lattice_region.z_low;
+        i = (((p_domain->dbx_ghost_extended_lattice_size[1])) * lattice[2] + lattice[1]) *
+            ((p_domain->dbx_ghost_extended_lattice_size[0])) + lattice[0];
         AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(i);
         atom_.id = id;
         atom_.x[0] = rx;
@@ -73,8 +73,8 @@ AtomSet::addAtom(comm::BccDomain *p_domain, _type_atom_id id,
 }
 
 _type_atom_count AtomSet::getnlocalatom(comm::Domain *p_domain) {
-    return (p_domain->lattice_size_sub_box[0] * p_domain->lattice_size_sub_box[1] *
-            p_domain->lattice_size_sub_box[2]);
+    return (p_domain->sub_box_lattice_size[0] * p_domain->sub_box_lattice_size[1] *
+            p_domain->sub_box_lattice_size[2]);
 }
 
 #ifdef MD_DEV_MODE

@@ -104,31 +104,31 @@ void WorldBuilder::build() {
 }
 
 void WorldBuilder::createPhaseSpace() {
-    unsigned long id_pre = (unsigned long) box_x * box_y * _p_domain->dbx_lattice_coord_sub_box_region.z_low * 2
-                           + (unsigned long) _p_domain->dbx_lattice_coord_sub_box_region.y_low *
-                             box_x * _p_domain->dbx_lattice_size_sub_box[2] * 2
-                           + (unsigned long) _p_domain->dbx_lattice_coord_sub_box_region.x_low *
-                             _p_domain->dbx_lattice_size_sub_box[1] *
-                             _p_domain->dbx_lattice_size_sub_box[2];
+    unsigned long id_pre = (unsigned long) box_x * box_y * _p_domain->dbx_sub_box_lattice_region.z_low * 2
+                           + (unsigned long) _p_domain->dbx_sub_box_lattice_region.y_low *
+                             box_x * _p_domain->dbx_sub_box_lattice_size[2] * 2
+                           + (unsigned long) _p_domain->dbx_sub_box_lattice_region.x_low *
+                             _p_domain->dbx_sub_box_lattice_size[1] *
+                             _p_domain->dbx_sub_box_lattice_size[2];
     /*for(int i = 0; i < id_pre; i++){
         uniform();
         uniform();
         uniform();
     }*/
     _type_atom_mass mass = 0;
-    for (int k = 0; k < _p_domain->dbx_lattice_size_sub_box[2]; k++) {
-        for (int j = 0; j < _p_domain->dbx_lattice_size_sub_box[1]; j++) {
-            for (int i = 0; i < _p_domain->dbx_lattice_size_sub_box[0]; i++) {
+    for (int k = 0; k < _p_domain->dbx_sub_box_lattice_size[2]; k++) {
+        for (int j = 0; j < _p_domain->dbx_sub_box_lattice_size[1]; j++) {
+            for (int i = 0; i < _p_domain->dbx_sub_box_lattice_size[0]; i++) {
                 AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
 //                kk = _p_atom->IndexOf3DIndex(i, j, k); // todo
                 atom_.id = ++id_pre;
                 atom_.type = randomAtomsType(); // set random atom type.
                 mass = atom_type::getAtomMass(atom_.type); // get atom mass of this kind of atom.
                 // atoms[kk].x[0] = (_p_domain->getGlobalSubBoxLatticeCoordLower(0) + (i - xstart)) * (_lattice_const / 2);
-                atom_.x[0] = (_p_domain->dbx_lattice_coord_sub_box_region.x_low + i) * 0.5 * (_lattice_const);
-                atom_.x[1] = (_p_domain->dbx_lattice_coord_sub_box_region.y_low + j) * _lattice_const +
+                atom_.x[0] = (_p_domain->dbx_sub_box_lattice_region.x_low + i) * 0.5 * (_lattice_const);
+                atom_.x[1] = (_p_domain->dbx_sub_box_lattice_region.y_low + j) * _lattice_const +
                              (i % 2) * (_lattice_const / 2);
-                atom_.x[2] = (_p_domain->dbx_lattice_coord_sub_box_region.z_low + k) * _lattice_const +
+                atom_.x[2] = (_p_domain->dbx_sub_box_lattice_region.z_low + k) * _lattice_const +
                              (i % 2) * (_lattice_const / 2);
                 atom_.v[0] = (uniform() - 0.5) / mass;
                 atom_.v[1] = (uniform() - 0.5) / mass;
@@ -151,9 +151,9 @@ void WorldBuilder::createPhaseSpace() {
 void WorldBuilder::zeroMomentum(double *vcm) {
 //    long kk; // todo unsigned
     _type_atom_mass mass;
-    for (int k = 0; k < _p_domain->dbx_lattice_size_sub_box[2]; k++) {
-        for (int j = 0; j < _p_domain->dbx_lattice_size_sub_box[1]; j++) {
-            for (int i = 0; i < _p_domain->dbx_lattice_size_sub_box[0]; i++) {
+    for (int k = 0; k < _p_domain->dbx_sub_box_lattice_size[2]; k++) {
+        for (int j = 0; j < _p_domain->dbx_sub_box_lattice_size[1]; j++) {
+            for (int i = 0; i < _p_domain->dbx_sub_box_lattice_size[0]; i++) {
                 AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
 //                kk = _p_atom->IndexOf3DIndex(i, j, k);
                 mass = atom_type::getAtomMass(atom_.type);
@@ -168,9 +168,9 @@ void WorldBuilder::zeroMomentum(double *vcm) {
 double WorldBuilder::computeScalar(_type_atom_count n_atoms) {
     double t = 0.0;
 //    long kk; // todo unsigned
-    for (_type_lattice_size k = 0; k < _p_domain->dbx_lattice_size_sub_box[2]; k++) {
-        for (_type_lattice_size j = 0; j < _p_domain->dbx_lattice_size_sub_box[1]; j++) {
-            for (_type_lattice_size i = 0; i < _p_domain->dbx_lattice_size_sub_box[0]; i++) {
+    for (_type_lattice_size k = 0; k < _p_domain->dbx_sub_box_lattice_size[2]; k++) {
+        for (_type_lattice_size j = 0; j < _p_domain->dbx_sub_box_lattice_size[1]; j++) {
+            for (_type_lattice_size i = 0; i < _p_domain->dbx_sub_box_lattice_size[0]; i++) {
                 AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
 //                kk = _p_atom->IndexOf3DIndex(i, j, k);
                 t += (atom_.v[0] * atom_.v[0] +
@@ -189,9 +189,9 @@ double WorldBuilder::computeScalar(_type_atom_count n_atoms) {
 
 void WorldBuilder::rescale(double rescale_factor) {
 //    long kk;
-    for (int k = 0; k < _p_domain->dbx_lattice_size_sub_box[2]; k++) {
-        for (int j = 0; j < _p_domain->dbx_lattice_size_sub_box[1]; j++) {
-            for (int i = 0; i < _p_domain->dbx_lattice_size_sub_box[0]; i++) {
+    for (int k = 0; k < _p_domain->dbx_sub_box_lattice_size[2]; k++) {
+        for (int j = 0; j < _p_domain->dbx_sub_box_lattice_size[1]; j++) {
+            for (int i = 0; i < _p_domain->dbx_sub_box_lattice_size[0]; i++) {
                 AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
 //                kk = _p_atom->IndexOf3DIndex(i, j, k);
                 atom_.v[0] *= rescale_factor;
@@ -228,9 +228,9 @@ void WorldBuilder::vcm(double p[DIMENSION + 1]) {
     p[DIMENSION] = 0;
 
 //    long kk = 0;
-    for (int k = 0; k < _p_domain->dbx_lattice_size_sub_box[2]; k++) {
-        for (int j = 0; j < _p_domain->dbx_lattice_size_sub_box[1]; j++) {
-            for (int i = 0; i < _p_domain->dbx_lattice_size_sub_box[0]; i++) {
+    for (int k = 0; k < _p_domain->dbx_sub_box_lattice_size[2]; k++) {
+        for (int j = 0; j < _p_domain->dbx_sub_box_lattice_size[1]; j++) {
+            for (int i = 0; i < _p_domain->dbx_sub_box_lattice_size[0]; i++) {
                 AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
 //                kk = _p_atom->IndexOf3DIndex(i, j, k);
                 mass_one = atom_type::getAtomMass(atom_.type);

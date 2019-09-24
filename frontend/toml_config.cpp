@@ -169,7 +169,13 @@ void ConfigParser::resolveConfigOutput(std::shared_ptr<cpptoml::table> table) {
         setError("output section in config file is not specified.");
         return;
     }
-    auto tomlAtomsDumpMode = table->get_as<std::string>("atoms_dump_mode");
+    // resole dump config.
+    std::shared_ptr<cpptoml::table> dump_table = table->get_table("dump");
+    if (!dump_table) {
+        setError("dumping output section in config file is not specified.");
+        return;
+    }
+    auto tomlAtomsDumpMode = dump_table->get_as<std::string>("atoms_dump_mode");
     if (tomlAtomsDumpMode) {
         if ("copy" == *tomlAtomsDumpMode) { // todo equal?
             configValues.output.atomsDumpMode = OutputMode::COPY;
@@ -177,19 +183,31 @@ void ConfigParser::resolveConfigOutput(std::shared_ptr<cpptoml::table> table) {
             configValues.output.atomsDumpMode = OutputMode::DEBUG;
         }
     }
-    configValues.output.atomsDumpInterval = table->get_as<uint64_t>("atoms_dump_interval").value_or(ULONG_MAX);
-    configValues.output.outByFrame = table->get_as<bool>("by_frame").value_or(false);
+    configValues.output.atomsDumpInterval = dump_table->get_as<uint64_t>("atoms_dump_interval").value_or(ULONG_MAX);
+    configValues.output.outByFrame = dump_table->get_as<bool>("by_frame").value_or(false);
 
-    configValues.output.atomsDumpFilePath = table->get_as<std::string>("atoms_dump_file_path")
+    configValues.output.atomsDumpFilePath = dump_table->get_as<std::string>("atoms_dump_file_path")
             .value_or(DEFAULT_OUTPUT_DUMP_FILE_PATH);
-    configValues.output.originDumpPath = table->get_as<std::string>("origin_dump_path").value_or("");
+    configValues.output.originDumpPath = dump_table->get_as<std::string>("origin_dump_path").value_or("");
     // todo check if it is a real path.
     if (configValues.output.outByFrame && configValues.output.atomsDumpFilePath.find("{}") == std::string::npos) {
         setError("error format of dump file path");
     }
 
+    // resole thermodynamics config
+    std::shared_ptr<cpptoml::table> thermo_table = table->get_table("thermo");
+    if (!dump_table) {
+        setError("thermodynamics output section in config file is not specified.");
+        return;
+    }
+    configValues.output.thermo_interval = thermo_table->get_as<uint64_t>("interval").value_or(0);
+
     // resolve logs.
     std::shared_ptr<cpptoml::table> logs_table = table->get_table("logs");
+    if (!logs_table) {
+        setError("output logs in config file is not specified.");
+        return;
+    }
     auto logsModeString = logs_table->get_as<std::string>("logs_mode").value_or(DEFAULT_LOGS_MODE_CONSOLE_STRING);
     if (LOGS_MODE_CONSOLE_STRING == logsModeString) {
         configValues.output.logs_mode = LOGS_MODE_CONSOLE;
