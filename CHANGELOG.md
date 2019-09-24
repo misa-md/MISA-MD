@@ -2,6 +2,47 @@
 ## [Unreleased]
 
 
+<a name="v0.4.0-beta"></a>
+## [v0.4.0-beta] - 2019-09-24
+### Ci
+- **gitlab-ci:** update cache key in .gitlab-ci.yml file to match libcomm version change.
+
+### Docs
+- **changelog:** add changelog for version 0.4.0-beta.
+
+### Feat
+- **config:** add config term for outputting thermodynamic information(like temperature).
+- **config:** raise error during config parsing if some required terms are not set.
+- **config:** add config parsing for variable step length.
+- **simulation:** set variable step length during simulation and log physical time.
+- **thermodynamics:** output thermodynamic information in release mode which is controlled by config file.
+
+### Fix
+- **$compile:** fix compiling error "error: ‘memcpy’ is not a member of ‘std’" in gcc-7.2.
+- **config:** fix wrong reference of config value passed to MDSimulation class.
+- **logs:** add a space between colon and execution time in logs.
+- **mem-leak:** fix warning of "deleting object that has virtual functions but non-virtual destructor
+
+### Refactor
+- **config:** move atoms dumping config to [output.dump] section in config file.
+- **config:** use vector not pointer as type of members vsl_break_points and vsl_lengths in ConfigValues.
+- **config:** move ConfigValues to frontend.
+- **packer:** better log for unpacking received data in pack/LatPackerFirst class if size does n
+
+### Test
+- **config:** add tests for config parsing of variable step length.
+- **neighbour:** add neighbor offset test to test indexing of neighbor atoms.
+
+### BREAKING CHANGE
+
+config file changed: new config term [output.thermo] must be specified in config file.
+
+config file changed: atoms dumping config are moved to [output.dump] section.
+
+config file changed: rename timesteps_length to def_timesteps_length, add
+variable_step_length array.
+
+
 <a name="v0.3.4"></a>
 ## [v0.3.4] - 2019-08-05
 ### Docs
@@ -274,7 +315,8 @@ config Term collision_v have been removed.
 <a name="v0.1.0"></a>
 ## v0.1.0 - 2017-11-17
 
-[Unreleased]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.4...HEAD
+[Unreleased]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0-beta...HEAD
+[v0.4.0-beta]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.4...v0.4.0-beta
 [v0.3.4]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.3...v0.3.4
 [v0.3.3]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.2...v0.3.3
 [v0.3.2]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.1...v0.3.2
