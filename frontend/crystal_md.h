@@ -47,7 +47,7 @@ private:
     int argc = 0;
     char **argv;
 
-    std::string configFilePath = "config.toml"; // configure file path default value.
+    std::string configFilePath = "config.yaml"; // configure file path default value.
     simulation *pSimulation;
 
 };
