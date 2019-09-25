@@ -12,7 +12,14 @@
 #include "io/output_copy.h"
 
 MDSimulation::MDSimulation(ConfigValues *p_config_values)
-        : simulation(), pConfigVal(p_config_values), cur_step_length(p_config_values->timeStepLength) {}
+        : simulation(), cur_stage_steps(0), pConfigVal(p_config_values) {
+    // initialize stage, we make a stage with zero steps.
+    // then, in first time step simulation, it will move to next stage.
+    Stage s;
+    s.steps = 0;
+    current_stage = s;
+    next_stage_index = 0;
+}
 
 void MDSimulation::onSimulationStarted() {
     switch (pConfigVal->output.atomsDumpMode) {
@@ -31,25 +38,41 @@ void MDSimulation::onSimulationDone(const unsigned long step) {
 }
 
 void MDSimulation::beforeStep(const unsigned long step) {
-    for (size_t i = 0; i < pConfigVal->vsl_size; i++) {
-        if (step == pConfigVal->vsl_break_points[i]) {
-            _newton_motion->setTimestepLength(pConfigVal->vsl_lengths[i]);
-            cur_step_length = pConfigVal->vsl_lengths[i];
+    // set new stage
+    if (cur_stage_steps >= current_stage.steps) {
+        // if we are out of stage steps, then we can move to next stage.
+        if (next_stage_index < pConfigVal->stages.size()) {
+            // move to next stage.
+            current_stage = pConfigVal->stages[next_stage_index];
+            if (current_stage.step_length == 0.0) { // if it is 0, set a default value.
+                current_stage.step_length = pConfigVal->timeStepLength;
+            }
+            cur_stage_steps = 0; // clear stage step
+            next_stage_index++;
+            // reset time steps length
+            _newton_motion->setTimestepLength(current_stage.step_length);
+        } else {
+            kiwi::logs::e("simulation", "no more stages.\n");
+            abort(1);
         }
     }
 
     kiwi::logs::s(MASTER_PROCESSOR, "simulation", "simulating steps: {}/{}\r",
                   step + 1, pConfigVal->timeSteps);
 
-    if (step == pConfigVal->collisionStep && !pConfigVal->output.originDumpPath.empty()) {
+    if (current_stage.collision_set && cur_stage_steps + 1 == current_stage.collisionStep &&
+        !pConfigVal->output.originDumpPath.empty()) {
         // output atoms in system before collision.
-        // step not plus 1 because it just start time step (step+1).
+        // step not plus 1 because it just start time step.
+        // just output atoms in preview step of the collision step.
         out->beforeCollision(step, _atom->getAtomList(), _atom->getInterList());
+        collisionStep(step, current_stage.collisionLat, current_stage.direction, current_stage.pkaEnergy);
     }
 }
 
 void MDSimulation::postStep(const unsigned long step) {
-    phy_time += cur_step_length; // the physical time when this iteration is finished.
+    phy_time += current_stage.step_length; // the physical time when this iteration is finished.
+    cur_stage_steps++; // add current stage steps.
     kiwi::logs::i(MASTER_PROCESSOR, "simulation", "simulated physical time: {} ps.\n", phy_time);
 
     // output atoms information if it is dumping step
