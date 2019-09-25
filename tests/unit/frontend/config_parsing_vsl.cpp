@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 #include <utils/mpi_utils.h>
-#include "toml_config.h"
+#include "config_parser.h"
 #include "../test_config.h"
 
 const std::string vsl_test_config_header = R"(

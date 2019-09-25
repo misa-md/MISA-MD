@@ -12,7 +12,7 @@ set(HEADER_FILES
         config_values.h
         crystal_md.h
         def_config_values.h
-        toml_config.h
+        config_parser.h
         device.h
         md_simulation.h
         io/atom_dump.h
@@ -26,7 +26,7 @@ set(HEADER_FILES
 set(SOURCE_FILES
         config_values.cpp
         crystal_md.cpp
-        toml_config.cpp
+        config_parser.cpp
         main.cpp
         md_simulation.cpp
         io/atom_dump.cpp
@@ -44,6 +44,7 @@ target_include_directories(
 target_link_libraries(
         ${MD_FRONTEND_LIB_NAME}
         PUBLIC
+        yaml-cpp
         ${MD_LIB_NAME}
 )
 

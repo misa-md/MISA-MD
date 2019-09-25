@@ -8,7 +8,7 @@
 #include <kiwi_app.h>
 
 #include "simulation.h"
-#include "toml_config.h"
+#include "config_parser.h"
 
 class crystalMD : public kiwi::kiwiApp {
 

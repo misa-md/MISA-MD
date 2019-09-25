@@ -40,9 +40,3 @@ packages:
         args.hxx: args.hpp
       build:
         - CP args.hpp {{.INCLUDE}}/args.hpp
-    cpptoml:
-      path: https://raw.githubusercontent.com/skystrife/cpptoml/v0.1.1/include
-      files:
-        cpptoml.h: toml.hpp
-      build:
-        - CP toml.hpp {{.INCLUDE}}/toml.hpp
