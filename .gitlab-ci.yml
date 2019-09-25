@@ -1,7 +1,7 @@
 image: hpcer/hpcdev:pkg-0.3.0-alpha
 
 cache:
-  key: vendor_version_2   # change this key if vendor changed.
+  key: vendor_version_3   # change this key if vendor changed.
   paths:
     - vendor/
 
