@@ -53,16 +53,20 @@ public:
     void prepareForStart(const std::string pot_file_path);
 
     /**
-     *
-     * @param steps total simulation steps.
+     * set collision energy.
      * @param coll_step step to perform collision.
      * @param coll_lat lattice position of PKA.
      * @param coll_dir direction of collision.
      * @param coll_pka_energy pka energy, unit eV.
      */
-    void simulate(const unsigned long steps, unsigned long coll_step,
-                  const _type_lattice_coord coll_lat[DIMENSION + 1], const double coll_dir[DIMENSION],
-                  const double coll_pka_energy);
+    void collisionStep(unsigned long coll_step, const _type_lattice_coord coll_lat[DIMENSION + 1],
+                  const double coll_dir[DIMENSION], const double coll_pka_energy);
+
+    /**
+     * do time steps loop simulation.
+     * @param steps total simulation steps.
+     */
+    void simulate(const unsigned long steps);
 
     void finalize();
 

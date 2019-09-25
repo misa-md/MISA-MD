@@ -43,9 +43,15 @@ public:
 
 private:
     /**
-     * current time step length.
+     * pointer to current stage in config.
      */
-    double cur_step_length;
+    Stage current_stage;
+    std::size_t next_stage_index;
+
+    /**
+     * steps in current stage.
+     */
+    unsigned long cur_stage_steps;
 
     /**
      * physical time
