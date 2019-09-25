@@ -7,6 +7,7 @@
 #include <utils/mpi_utils.h>
 #include <utils/bundle.h>
 #include <climits>
+#include <cassert>
 
 #include "config_parser.h"
 #include "utils/rpcc.hpp"
@@ -68,6 +69,11 @@ void ConfigParser::parseConfig(const std::string config_file) {
 
     // parse output
     if (!parseConfigOutput(config["output"])) {
+        return;
+    }
+
+    // parse stages
+    if (!parseStages(config["stages"])) {
         return;
     }
 }
@@ -233,6 +239,7 @@ bool ConfigParser::parseConfigOutput(const YAML::Node &yaml_output) {
             configValues.output.logs_filename = str_stream.str();
         }
     }
+    return true;
 }
 
 bool ConfigParser::parseConfigAlloy(const YAML::Node &yaml_alloy) {
@@ -254,33 +261,61 @@ bool ConfigParser::parseConfigAlloy(const YAML::Node &yaml_alloy) {
     return true;
 }
 
-bool ConfigParser::resolveConfigCollision(const YAML::Node &yaml_collision) {
+bool ConfigParser::resolveConfigCollision(Stage *stage, const YAML::Node &yaml_collision) {
     if (!yaml_collision) {
         setError("collision config is not set.");
         return false;
     }
-    configValues.collisionStep = yaml_collision["collision_step"].as<unsigned long>(0); // todo default 0.
+    stage->collisionStep = yaml_collision["collision_step"].as<unsigned long>(0); // todo default 0.
 
     const YAML::Node yaml_lat = yaml_collision["lat"];
     if (yaml_lat.IsSequence() && yaml_lat.size() == 4) {
         for (std::size_t i = 0; i < 4; i++) {
-            configValues.collisionLat[i] = yaml_lat[i].as<int64_t>();  // todo conversion.
+            stage->collisionLat[i] = yaml_lat[i].as<int64_t>();  // todo conversion.
         }
     } else { //the array length must be 4.
         setError("array length of value \"collision.lat\" must be 4.");
         return false;
     }
-    configValues.pkaEnergy = yaml_collision["pka"].as<double>(0.0);
+    stage->pkaEnergy = yaml_collision["energy"].as<double>(0.0);
 
 
     const YAML::Node yaml_dir = yaml_collision["direction"];
     if (yaml_dir.IsSequence() && yaml_dir.size() == DIMENSION) {
         for (std::size_t i = 0; i < DIMENSION; i++) {
-            configValues.direction[i] = yaml_dir[i].as<double>(0.0);  // todo conversion.
+            stage->direction[i] = yaml_dir[i].as<double>(0.0);  // todo conversion.
         }
     } else { //the array length must be 3.
         setError("array length of value \"simulation.collision.collision_v\" must be 3.");
         return false;
+    }
+    return true;
+}
+
+bool ConfigParser::parseStages(const YAML::Node &yaml_stages) {
+    if (!yaml_stages && yaml_stages.IsSequence()) {
+        setError("stages is not correctly set in config file.");
+        return false;
+    }
+
+    //resolve simulation.collision
+//    resolveConfigCollision(table->get_table("collision"));
+    std::vector<unsigned long> vsl_break_points;
+    std::vector<double> vsl_lengths;
+    const std::size_t stages_size = yaml_stages.size();
+    for (std::size_t i = 0; i < stages_size; i++) {
+        const YAML::Node yaml_stage = yaml_stages[i];
+        Stage stage;
+        stage.steps = yaml_stage["steps"].as<unsigned long>(0);
+        stage.step_length = yaml_stage["step_length"].as<double>(0.0);
+        if (yaml_stage["set_v"]) {
+            stage.collision_set = true;
+            resolveConfigCollision(&stage, yaml_stage["set_v"]);
+        } else {
+            stage.collision_set = false;
+        }
+        configValues.stages.emplace_back(stage);
+        configValues.timeSteps += stage.steps; // calculate total steps.
     }
     return true;
 }

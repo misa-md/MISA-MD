@@ -62,16 +62,13 @@ private:
     bool parseConfigAlloy(const YAML::Node &yaml_alloy);
 
     // resolve "simulation.collision" section in yaml config file.
-    bool resolveConfigCollision(const YAML::Node &yaml_collision);
+    bool resolveConfigCollision(Stage *stage, const YAML::Node &yaml_collision);
 
     // resolve "output" section in yaml config file.
     bool parseConfigOutput(const YAML::Node &yaml_output);
 
-    /**
-     * parse variable time step length if it is set.
-     * @param table parent yaml node.
-     */
-    bool resolveVariableStepLen(const YAML::Node &v_len);
+    // resolve "stages" section in yaml config file.
+    bool parseStages(const YAML::Node &yaml_stages);
 
     /**
      * [master] put data into bundle, in which bundle is used to buffer config data.
