@@ -3,8 +3,10 @@
 A molecular dynamics (MD) simulation program.
 Developers:[Baihe](mailto:baihe_ustb@163.com) and [Chugenshen](mailto:genshenchu@gmail.com)
 
-### Build
-#### Build from CMake (recommend)  
+![https://hpcer.pages.hpcer.dev/CrystalMD/MDoc/](https://img.shields.io/badge/document-online-ff69b4)
+
+## Build
+### Build from CMake (recommend)  
 dependency:
 1. cmake CMake 3.6 or higher is required;
 2. c++ 11 feature required(check your gcc version);
@@ -20,34 +22,14 @@ $ pkg install
 
 To build or install CrystalMD, run:
 ```bash
-$ mkdir build
-$ cd build
-$ cmake ../
-$ make
+$ cmake -DCMAKE_BUILD_TYPE=Release -H. -Bbuild/
+$ cmake --build build
 
 # to install to path {install_prefix}, use -DCMAKE_INSTALL_PREFIX={install_prefix} to change to another location.
-$ make install # optional
-$ cp ./bin/CrystalMD ../example/  # copy executable file to example directory.
+$ cmake --build build --target install
 ```
 
-#### Build for Sunway TaihuLight system (todo: documents)
-```bash
-$ mkdir build
-$ cd build
-$ cmake ../ -DARCH_SW=ON
-$ make
-$ make install # optional.
-$ cp ./bin/CrystalMD ../example/  # copy executable file to example directory.
-```
-
-#### Build from Makefile
-```bash
-$ mkdir build
-$ make
-$ cp ./CrystalMD ../example/  # copy executable file to example directory.
-```
-
-### Run
+## Run
 NOtice: befor running, you should have [FeCuNi.eam.alloy](https://www.ctcms.nist.gov/potentials/Download/Fe-Cu-Ni-GB/FeCuNi.eam.alloy) file,then specific the file path in config.toml file.  
 see [here](https://www.ctcms.nist.gov/potentials/Fe-Cu-Ni.html) for more details.
 For example, you can get the file by running following command to download the file:
@@ -58,10 +40,13 @@ $ wget https://www.ctcms.nist.gov/potentials/Download/Fe-Cu-Ni-GB/FeCuNi.eam.all
 run simulation:
 ```bash
 $ cd  example
-$ ./CrystalMD  --help # run for showing help.
-$ mpiexec -n 64 ./CrystalMD -c config.toml  # run MD simulation
+$ ../build/bin/CrystalMD  --help # run for showing help.
+$ mpiexec -n 64 ../build/bin/CrystalMD -c config.yaml  # run MD simulation
 ```
 
-### Contributing
+## Document
+For details on how to build, configure and run, check out our [document](https://hpcer.pages.hpcer.dev/CrystalMD/MDoc/).
+
+## Contributing
 It is meaningful to make commit messages formatted, so we use use [AngularJS's commit message convention](https://github.com/angular/angular/blob/master/CONTRIBUTING.md#-commit-message-guidelines) also known as conventional-changelog.  
 You can also use [commitizen tool](https://github.com/commitizen/cz-cli) to generate AngularJS style commit messages.
