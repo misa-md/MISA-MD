@@ -23,6 +23,13 @@ class AtomSet {
 public:
     typedef NeighbourIndex<AtomElement> AtomNei;
 public:
+    /**
+     * create atoms list(include lattice atoms list and inter atoms list) and neighbour relative index.
+     * @param cutoff_radius cutoff radius.
+     * @param extended_lattice_size lattice size with ghost extended.
+     * @param sub_box_lattice_size lattice size of current sub box.
+     * @param ghost_lattice_size ghost lattice size in each dimension.
+     */
     AtomSet(const double cutoff_radius,
             const _type_lattice_size extended_lattice_size[DIMENSION],
             const _type_lattice_size sub_box_lattice_size[DIMENSION],

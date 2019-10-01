@@ -10,6 +10,7 @@
 
 class BccLattice {
 public:
+    // the total lattice count.
     const _type_atom_count _size;
     // note: _size_x is twice times than the lattice size in x dimension.
     const _type_atom_count _size_x, _size_y, _size_z;

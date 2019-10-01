@@ -104,7 +104,7 @@ int atom::decide() {
 }
 
 void atom::clearForce() {
-    for (_type_atom_index i = 0; i < atom_list->size(); i++) {
+    for (_type_atom_index i = 0; i < atom_list->cap(); i++) {
         AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(i);
         atom_.f[0] = 0;
         atom_.f[1] = 0;
@@ -467,6 +467,7 @@ void atom::interForce(eam *pot) {
          inter_it != inter_atom_list->inter_list.end(); inter_it++) {
         _atom_near_index = ws::findNearLatIndexInSubBox(atom_list, *inter_it, p_domain);
         if (_atom_near_index == box::IndexNotExists) {
+            assert(false);
             continue; // make sure the inter atoms is in sub box.
             // todo find a good way to filter out-of-box atoms while exchanging inter atoms.
         }
