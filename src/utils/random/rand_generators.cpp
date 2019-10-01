@@ -26,7 +26,7 @@ void md_rand::seed(const uint32_t seed){
 }
 
 uint32_t md_rand::rand32(){
-     return rng();
+    return rng();
 }
 
 #endif
@@ -58,7 +58,7 @@ uint32_t md_rand::rand32(){
 #endif
 
 #ifdef RAND_LEGACY
-md_rand::LegacyRand rng;
+md_rand::LegacyRand md_rand::rng;
 
 /**
  * set seed for legacy random.
@@ -68,7 +68,7 @@ void md_rand::seed(const uint32_t seed) {
 }
 
 uint32_t md_rand::rand32() {
-    return rng.rand();
+    return rng();
 }
 
 #endif

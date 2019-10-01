@@ -24,6 +24,7 @@ set(TEST_SOURCE_FILES
         neighbour_index_test.cpp
         neighbour_index_iterator_test.cpp
         particledata_test.cpp
+        utils/random/legacy_random_test.cpp
         )
 
 # set binary path and lib storage path wile compiling process.
