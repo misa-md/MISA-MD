@@ -5,6 +5,7 @@
 #include <cmath>
 #include <iostream>
 #include <logs/logs.h>
+#include <random>
 #include "utils/random/random.h"
 #include "world_builder.h"
 
@@ -24,7 +25,14 @@ WorldBuilder &WorldBuilder::setAtomsContainer(AtomSet *p_atom) {
 }
 
 WorldBuilder &WorldBuilder::setRandomSeed(int seed) {
-    md_rand::initSeed(seed);
+    if (seed == md_rand::seed_auto) {
+        std::random_device rd;
+        uint32_t auto_seed = rd();
+        kiwi::logs::v("random", "random seed was set to {} in auto mode.\n", auto_seed);
+        md_rand::initSeed(auto_seed);
+    } else {
+        md_rand::initSeed(seed);
+    }
     return *this;
 }
 

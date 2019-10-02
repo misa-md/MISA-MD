@@ -12,13 +12,8 @@
 #endif
 
 void md_rand::initSeed(const uint32_t seed) {
-#ifndef MD_DEV_MODE
-    if (seed == seed_auto) {
-        std::random_device rd;
-        md_rand::seed(rd());
-    } else {
-        md_rand::seed(seed);
-    }
+#ifdef MD_DEV_MODE
+    srand(seed);
 #else
     md_rand::seed(seed);
 #endif
