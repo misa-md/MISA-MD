@@ -37,6 +37,11 @@ struct Stage {
     double pkaEnergy;
     double direction[DIMENSION];
 
+    // rescale
+    bool rescales_set;
+    double rescale_t; // rescale to a temperature.
+    unsigned long rescale_every; // step to do rescale
+
     Stage();
 
     void packdata(kiwi::Bundle &bundle);

@@ -11,7 +11,8 @@
 
 Stage::Stage() : steps(0), step_length(default_time_length),
                  collisionStep(0), collisionLat{0, 0, 0, 0},
-                 pkaEnergy(0), direction{1.0, 1.0, 1.0} {}
+                 pkaEnergy(0), direction{1.0, 1.0, 1.0},
+                 rescales_set(false), rescale_t(0), rescale_every(1) {}
 
 void Stage::packdata(kiwi::Bundle &bundle) {
     bundle.put(steps);
@@ -22,6 +23,10 @@ void Stage::packdata(kiwi::Bundle &bundle) {
     bundle.put(4, collisionLat);
     bundle.put(pkaEnergy);
     bundle.put(DIMENSION, direction);
+    // rescale
+    bundle.put(rescales_set);
+    bundle.put(rescale_t);
+    bundle.put(rescale_every);
 }
 
 void Stage::unnpackdata(int &cursor, kiwi::Bundle &bundle) {
@@ -33,6 +38,10 @@ void Stage::unnpackdata(int &cursor, kiwi::Bundle &bundle) {
     bundle.get(cursor, 4, collisionLat);
     bundle.get(cursor, pkaEnergy);
     bundle.get(cursor, DIMENSION, direction);
+    // rescale
+    bundle.get(cursor, rescales_set);
+    bundle.get(cursor, rescale_t);
+    bundle.get(cursor, rescale_every);
 }
 
 ConfigValues::ConfigValues() :
@@ -176,6 +185,9 @@ std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
             os << "pka:" << stage.pkaEnergy << ",";
             os << "direction:" << stage.direction[0] << "," << stage.direction[1] << ","
                << stage.direction[2] << std::endl;
+        }
+        if (stage.rescales_set) {
+            os << "rescale to T:" << stage.rescale_t << " every " << stage.rescale_every << " step(s)" << std::endl;
         }
     }
     os << "============================================" << std::endl << std::endl;

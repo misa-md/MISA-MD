@@ -61,11 +61,14 @@ private:
     // resolve "creation.alloy" section in yaml config file.
     bool parseConfigAlloy(const YAML::Node &yaml_alloy);
 
-    // resolve "simulation.collision" section in yaml config file.
+    // resolve "collision" in stages section in yaml config file.
     bool resolveConfigCollision(Stage *stage, const YAML::Node &yaml_collision);
 
     // resolve "output" section in yaml config file.
     bool parseConfigOutput(const YAML::Node &yaml_output);
+
+    // resolve "rescale" in stages section in yaml config file.
+    bool resolveConfigRescale(Stage *stage, const YAML::Node &yaml_rescale);
 
     // resolve "stages" section in yaml config file.
     bool parseStages(const YAML::Node &yaml_stages);

@@ -292,6 +292,16 @@ bool ConfigParser::resolveConfigCollision(Stage *stage, const YAML::Node &yaml_c
     return true;
 }
 
+bool ConfigParser::resolveConfigRescale(Stage *stage, const YAML::Node &yaml_rescale) {
+    if (!yaml_rescale) {
+        setError("rescale config is not set.");
+        return false;
+    }
+    stage->rescale_t = yaml_rescale["t"].as<double>(0.0);
+    stage->rescale_every = yaml_rescale["every_steps"].as<unsigned long>(0);
+    return true;
+}
+
 bool ConfigParser::parseStages(const YAML::Node &yaml_stages) {
     if (!yaml_stages && yaml_stages.IsSequence()) {
         setError("stages is not correctly set in config file.");
@@ -308,11 +318,23 @@ bool ConfigParser::parseStages(const YAML::Node &yaml_stages) {
         Stage stage;
         stage.steps = yaml_stage["steps"].as<unsigned long>(0);
         stage.step_length = yaml_stage["step_length"].as<double>(0.0);
+        // collision
         if (yaml_stage["set_v"]) {
             stage.collision_set = true;
-            resolveConfigCollision(&stage, yaml_stage["set_v"]);
+            if (!resolveConfigCollision(&stage, yaml_stage["set_v"])) {
+                return false;
+            }
         } else {
             stage.collision_set = false;
+        }
+        // rescale
+        if (yaml_stage["rescale"]) {
+            stage.rescales_set = true;
+            if (!resolveConfigRescale(&stage, yaml_stage["rescale"])) {
+                return false;
+            }
+        } else {
+            stage.rescales_set = false;
         }
         configValues.stages.emplace_back(stage);
         configValues.timeSteps += stage.steps; // calculate total steps.
