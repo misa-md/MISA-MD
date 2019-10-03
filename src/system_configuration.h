@@ -71,7 +71,21 @@ namespace configuration {
      * @return temperature of system.
      */
     double temperature(const double ke, const _type_lattice_size n);
-};
+
+    /**
+     *  due to: (1/2)* mv^2 = (3/2)* kT. In which, k is boltzmann constant.
+     *  =>  T = sum{mv^2} /(3* n* k),
+     *  @return T is the return value of this function (n is the count of atoms).
+     */
+    double temperature(const _type_atom_count n_atoms, AtomList *atom_list, InterAtomList *inter_atom_list);
+
+    /**
+     * rescale velocity of all atoms in global simulation box.
+     * @param T
+     */
+    void rescale(const double T, const _type_atom_count n_atoms_global,
+                 AtomList *atom_list, InterAtomList *inter_atom_list);
+}
 
 
 #endif //CRYSTALMD_SYSTEM_CONFIGURATION_H

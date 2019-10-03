@@ -85,3 +85,57 @@ double configuration::temperature(const double ke, const _type_lattice_size n) {
     const double to_T = mvv2e / ((3 * n - 3) * BOLTZ); // 2 * ke * mvv2e / ((3 * n - 3) * BOLTZ); /
     return 2 * ke * to_T; // todo better times order for precision.
 }
+
+double configuration::temperature(const _type_atom_count n_atoms,
+                                  AtomList *atom_list, InterAtomList *inter_atom_list) {
+    double energy = 0.0;
+    atom_list->foreachSubBoxAtom([&energy](AtomElement &_atom_ref) {
+        if (_atom_ref.type != atom_type::INVALID) {
+            energy += (_atom_ref.v[0] * _atom_ref.v[0] +
+                       _atom_ref.v[1] * _atom_ref.v[1] +
+                       _atom_ref.v[2] * _atom_ref.v[2]) *
+                      atom_type::getAtomMass(_atom_ref.type);
+        }
+    });
+    for (_type_inter_list::iterator itl = inter_atom_list->inter_list.begin();
+         itl != inter_atom_list->inter_list.end(); ++itl) {
+        AtomElement &_atom_ref = *itl;
+        energy += (_atom_ref.v[0] * _atom_ref.v[0] +
+                   _atom_ref.v[1] * _atom_ref.v[1] +
+                   _atom_ref.v[2] * _atom_ref.v[2]) *
+                  atom_type::getAtomMass(_atom_ref.type);
+    }
+
+    double t_global;
+    MPI_Allreduce(&energy, &t_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    // The factor 3(n-1) appears because the center of mass (COM) is fixed in space.
+    const _type_atom_count dof = 3 * n_atoms - 3;
+    return t_global * mvv2e / (dof * BOLTZ);
+}
+
+void configuration::rescale(const double T, const _type_atom_count n_atoms_global,
+                            AtomList *atom_list, InterAtomList *inter_atom_list) {
+    const double scalar = temperature(n_atoms_global, atom_list, inter_atom_list);
+
+    /**
+     * \sum { m_i(v_i)^2 }= 3*nkT  => scale = T = \sum { m_i(v_i)^2 / 3nk }
+     * thus: T / T_set =  \sum { m_i(v_i)^2 } / \sum { m_i(v'_i)^2 }
+     * then: \sum { m_i(v'_i)^2 } = \sum{ m_i(v_i)^2 }* (T_set / T) = \sum{ m_i(v_i * rescale_factor)^2 }
+     * so, v'_i = v_i * rescale_factor
+     */
+    const double rescale_factor = sqrt(T / scalar);
+
+    // perform resale
+    atom_list->foreachSubBoxAtom([rescale_factor](AtomElement &_atom_ref) {
+        _atom_ref.v[0] *= rescale_factor;
+        _atom_ref.v[1] *= rescale_factor;
+        _atom_ref.v[2] *= rescale_factor;
+    });
+    for (_type_inter_list::iterator itl = inter_atom_list->inter_list.begin();
+         itl != inter_atom_list->inter_list.end(); ++itl) {
+        AtomElement &_atom_ref = *itl;
+        _atom_ref.v[0] *= rescale_factor;
+        _atom_ref.v[1] *= rescale_factor;
+        _atom_ref.v[2] *= rescale_factor;
+    }
+}

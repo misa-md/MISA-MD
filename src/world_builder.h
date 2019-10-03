@@ -41,6 +41,9 @@ public:
 
     WorldBuilder &setBoxSize(int64_t box_x, int64_t box_y, int64_t box_z);
 
+    /**
+     * set position and random velocity of all atoms in zero-momentum condition
+     */
     void build();
 
     /**
@@ -49,12 +52,6 @@ public:
      *          p[DIMENSION] is the total mass of atoms in this box.
      */
     void vcm(double p[DIMENSION + 1]);
-
-    /**
-    *  due to: (1/2)* mv^2 = (3/2)* kT. In which, k is boltzmann constant.
-    *  =>  T = sum{mv^2} /(3* n* k), T is the return value of this function (n is the count of atoms).
-    */
-    double computeScalar(_type_atom_count n_atoms);
 
 protected:
     atom_type::atom_type randomAtomsType();
@@ -78,7 +75,6 @@ private:
      */
     void zeroMomentum(double *vcm);
 
-    void rescale(double rescale_factor);
 };
 
 
