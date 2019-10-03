@@ -9,7 +9,7 @@
 #include "utils/random/random.h"
 #include "world_builder.h"
 
-WorldBuilder::WorldBuilder() : box_x(0), box_y(0), box_z(0), tset(0) {
+WorldBuilder::WorldBuilder() : box_x(0), box_y(0), box_z(0) {
     _p_domain = nullptr;
     _p_atom = nullptr;
 }
@@ -33,11 +33,6 @@ WorldBuilder &WorldBuilder::setRandomSeed(int seed) {
     } else {
         md_rand::initSeed(seed);
     }
-    return *this;
-}
-
-WorldBuilder &WorldBuilder::setTset(double tset) {
-    this->tset = tset;
     return *this;
 }
 

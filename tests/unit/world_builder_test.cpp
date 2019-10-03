@@ -25,7 +25,6 @@ TEST(zero_momentum_test, world_builder_test) {
             .setBoxSize(space[0], space[1], space[2])
             .setRandomSeed(rand_seek)
             .setLatticeConst(lattice_const)
-            .setTset(600)
             .setAlloyRatio(ra)
             .build();
 

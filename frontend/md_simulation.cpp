@@ -60,6 +60,7 @@ void MDSimulation::beforeStep(const unsigned long step) {
     kiwi::logs::s(MASTER_PROCESSOR, "simulation", "simulating steps: {}/{}\r",
                   step + 1, pConfigVal->timeSteps);
 
+    // perform collision.
     if (current_stage.collision_set && cur_stage_steps + 1 == current_stage.collisionStep &&
         !pConfigVal->output.originDumpPath.empty()) {
         // output atoms in system before collision.
@@ -67,6 +68,14 @@ void MDSimulation::beforeStep(const unsigned long step) {
         // just output atoms in preview step of the collision step.
         out->beforeCollision(step, _atom->getAtomList(), _atom->getInterList());
         collisionStep(step, current_stage.collisionLat, current_stage.direction, current_stage.pkaEnergy);
+    }
+
+    // perform rescale
+    if (current_stage.rescales_set && cur_stage_steps % current_stage.rescale_every == 0) {
+        const _type_atom_count n_global_atoms = 2 * _p_domain->phase_space[0] *
+                                                _p_domain->phase_space[1] *
+                                                _p_domain->phase_space[2];
+        configuration::rescale(current_stage.rescale_t, n_global_atoms, _atom->atom_list, _atom->inter_atom_list);
     }
 }
 

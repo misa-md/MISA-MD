@@ -66,7 +66,6 @@ void simulation::createAtoms(const int64_t phase_space[DIMENSION], const double 
                 .setBoxSize(phase_space[0], phase_space[1], phase_space[2])
                 .setRandomSeed(create_seed)
                 .setLatticeConst(lattice_const)
-                .setTset(t_set)
                 .setAlloyRatio(alloy_ratio)
                 .build();
     } else { //读取原子坐标、速度信息
