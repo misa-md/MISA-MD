@@ -5,10 +5,11 @@
 #include <cmath>
 #include <iostream>
 #include <logs/logs.h>
+#include <random>
+#include "utils/random/random.h"
 #include "world_builder.h"
 
-WorldBuilder::WorldBuilder() : _random_seed(1024), tset(0),
-                               box_x(0), box_y(0), box_z(0) {
+WorldBuilder::WorldBuilder() : box_x(0), box_y(0), box_z(0), tset(0) {
     _p_domain = nullptr;
     _p_atom = nullptr;
 }
@@ -24,7 +25,14 @@ WorldBuilder &WorldBuilder::setAtomsContainer(AtomSet *p_atom) {
 }
 
 WorldBuilder &WorldBuilder::setRandomSeed(int seed) {
-    this->_random_seed = seed;
+    if (seed == md_rand::seed_auto) {
+        std::random_device rd;
+        uint32_t auto_seed = rd();
+        kiwi::logs::v("random", "random seed was set to {} in auto mode.\n", auto_seed);
+        md_rand::initSeed(auto_seed);
+    } else {
+        md_rand::initSeed(seed);
+    }
     return *this;
 }
 
@@ -118,9 +126,9 @@ void WorldBuilder::createPhaseSpace() {
                              (i % 2) * (_lattice_const / 2);
                 atom_.x[2] = (_p_domain->dbx_sub_box_lattice_region.z_low + k) * _lattice_const +
                              (i % 2) * (_lattice_const / 2);
-                atom_.v[0] = (uniform() - 0.5) / mass;
-                atom_.v[1] = (uniform() - 0.5) / mass;
-                atom_.v[2] = (uniform() - 0.5) / mass;
+                atom_.v[0] = (md_rand::random() - 0.5) / mass;
+                atom_.v[1] = (md_rand::random() - 0.5) / mass;
+                atom_.v[2] = (md_rand::random() - 0.5) / mass;
             }
         }
     }
@@ -183,20 +191,6 @@ void WorldBuilder::rescale(double rescale_factor) {
             }
         }
     }
-}
-
-double WorldBuilder::uniform() {
-//#ifdef MD_DEV_MODE
-//    return 1;
-//#else
-    int k = _random_seed / IQ;
-    _random_seed = IA * (_random_seed - k * IQ) - IR * k;
-    if (_random_seed < 0) {
-        _random_seed += IM;
-    }
-    double ans = AM * _random_seed;
-    return ans;
-//#endif
 }
 
 void WorldBuilder::vcm(double p[DIMENSION + 1]) {

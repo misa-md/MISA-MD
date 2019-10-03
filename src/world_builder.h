@@ -11,12 +11,6 @@
 #include "atom.h"
 #include "types/atom_types.h"
 
-#define IA 16807
-#define IM 2147483647
-#define AM (1.0/IM)
-#define IQ 127773
-#define IR 2836
-
 // todo documents
 class WorldBuilder {
 public:
@@ -26,6 +20,12 @@ public:
 
     WorldBuilder &setAtomsContainer(AtomSet *p_atom);
 
+    /**
+     * initialize random seed
+     * (note: in md, random is only used to create atoms)
+     * @param seek random seed
+     * @return reference of builder.
+     */
     WorldBuilder &setRandomSeed(int seek);
 
     WorldBuilder &setTset(double tset);
@@ -57,15 +57,12 @@ public:
     double computeScalar(_type_atom_count n_atoms);
 
 protected:
-    virtual double uniform();
-
     atom_type::atom_type randomAtomsType();
 
 private:
     comm::BccDomain *_p_domain;
     AtomSet *_p_atom;
 
-    int _random_seed; // random seed for creating atoms.
     int64_t box_x = 0, box_y = 0, box_z = 0; // todo re type
     double tset;
     double _lattice_const;

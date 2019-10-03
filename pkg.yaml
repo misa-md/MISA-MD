@@ -32,6 +32,11 @@ packages:
     libcomm:
       path: https://git.hpcer.dev/HPCer/CrystalMD/libcomm.git
       tag: v0.3.0
+    xoshiro:
+      path: https://github.com/misa-kmc/xoshiro
+      branch: master
+      cmake_lib: |
+        find_package(xoshiro REQUIRED PATHS {{.CMAKE_VENDOR_PATH_PKG}})
 
   files:
     agrs:
