@@ -80,11 +80,28 @@ namespace configuration {
     double temperature(const _type_atom_count n_atoms, AtomList *atom_list, InterAtomList *inter_atom_list);
 
     /**
-     * rescale velocity of all atoms in global simulation box.
+     * calculate mv^2 of all atoms.
+     * @param atom_list pointer to lattice atoms list.
+     * @param inter_atom_list pointer to inter atom list.
+     * @return result of mv^2 of all atoms.
+     */
+    double mvv(AtomList *atom_list, InterAtomList *inter_atom_list);
+
+    /**
+     * rescale velocity of all atoms to a specific temperature in global simulation box.
      * @param T
      */
     void rescale(const double T, const _type_atom_count n_atoms_global,
                  AtomList *atom_list, InterAtomList *inter_atom_list);
+
+    /**
+     * return mvv/2 in different reduction mode.
+     * @param mvv mv^2 of all atoms in local box.
+     * @param mode reduction mode.
+     * @param root root processor for reduction
+     * @return mvv/2
+     */
+    double reduceEnergy(const double mvv, const ReturnMod mode, const kiwi::RID root);
 }
 
 
