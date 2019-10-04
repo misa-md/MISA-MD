@@ -255,8 +255,8 @@ bool ConfigParser::parseConfigAlloy(const YAML::Node &yaml_alloy) {
         return false;
     } else {
         configValues.alloyRatio[atom_type::Fe] = ratios["Fe"].as<int>(1);
-        configValues.alloyRatio[atom_type::Cu] = ratios["Cu"].as<int>(1);
-        configValues.alloyRatio[atom_type::Ni] = ratios["Nii"].as<int>(1);
+        configValues.alloyRatio[atom_type::Cu] = ratios["Cu"].as<int>(0);
+        configValues.alloyRatio[atom_type::Ni] = ratios["Ni"].as<int>(0);
     }
     return true;
 }
