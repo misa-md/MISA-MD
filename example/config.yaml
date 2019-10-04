@@ -48,9 +48,12 @@ output:
 #stage_template: # stage template may be a feature in next version
 # run stages one by one
 stages:
-  - name: init
+  - name: rescale
     step_length: 0.001
     steps: 4
+    rescale: # rescale to a temperature.
+      t: 600
+      every_steps: 2 # rescale every n steps
 
   - name: collision
     step_length: 0.0001

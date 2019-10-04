@@ -9,7 +9,7 @@
 #include "utils/random/random.h"
 #include "world_builder.h"
 
-WorldBuilder::WorldBuilder() : box_x(0), box_y(0), box_z(0), tset(0) {
+WorldBuilder::WorldBuilder() : box_x(0), box_y(0), box_z(0) {
     _p_domain = nullptr;
     _p_atom = nullptr;
 }
@@ -33,11 +33,6 @@ WorldBuilder &WorldBuilder::setRandomSeed(int seed) {
     } else {
         md_rand::initSeed(seed);
     }
-    return *this;
-}
-
-WorldBuilder &WorldBuilder::setTset(double tset) {
-    this->tset = tset;
     return *this;
 }
 
@@ -92,18 +87,6 @@ void WorldBuilder::build() {
     vcm(p);
     kiwi::logs::d("momentum", "momentum:{0} {1} {2}\n", p[0], p[1], p[2]);
 #endif
-
-    // double scalar, tfactor;
-    double scalar = computeScalar(n_atoms_global);
-
-    /**
-     * \sum { m_i(v_i)^2 }= 3*nkT  => scale = T = \sum { m_i(v_i)^2 / 3nk }
-     * thus: T / T_set =  \sum { m_i(v_i)^2 } / \sum { m_i(v'_i)^2 }
-     * then: \sum { m_i(v'_i)^2 } = \sum{ m_i(v_i)^2 }* (T_set / T) = \sum{ m_i(v_i * rescale_factor)^2 }
-     * so, v'_i = v_i * rescale_factor
-     */
-    double rescale_factor = sqrt(tset / scalar);
-    rescale(rescale_factor); // todo
 }
 
 void WorldBuilder::createPhaseSpace() {
@@ -154,40 +137,6 @@ void WorldBuilder::zeroMomentum(double *vcm) {
                 atom_.v[0] -= (vcm[0] / mass);
                 atom_.v[1] -= (vcm[1] / mass);
                 atom_.v[2] -= (vcm[2] / mass);
-            }
-        }
-    }
-}
-
-double WorldBuilder::computeScalar(_type_atom_count n_atoms) {
-    double t = 0.0;
-    for (_type_lattice_size k = 0; k < _p_domain->dbx_sub_box_lattice_size[2]; k++) {
-        for (_type_lattice_size j = 0; j < _p_domain->dbx_sub_box_lattice_size[1]; j++) {
-            for (_type_lattice_size i = 0; i < _p_domain->dbx_sub_box_lattice_size[0]; i++) {
-                AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
-                t += (atom_.v[0] * atom_.v[0] +
-                      atom_.v[1] * atom_.v[1] +
-                      atom_.v[2] * atom_.v[2]) * atom_type::getAtomMass(atom_.type); // fixme
-            }
-        }
-    }
-
-    double t_global;
-    MPI_Allreduce(&t, &t_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    // The factor 3(n-1) appears because the center of mass (COM) is fixed in space.
-    const _type_atom_count dof = 3 * n_atoms - 3;
-    t_global *= mvv2e / (dof * BOLTZ); // todo: math error and precision.
-    return t_global;
-}
-
-void WorldBuilder::rescale(double rescale_factor) {
-    for (int k = 0; k < _p_domain->dbx_sub_box_lattice_size[2]; k++) {
-        for (int j = 0; j < _p_domain->dbx_sub_box_lattice_size[1]; j++) {
-            for (int i = 0; i < _p_domain->dbx_sub_box_lattice_size[0]; i++) {
-                AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
-                atom_.v[0] *= rescale_factor;
-                atom_.v[1] *= rescale_factor;
-                atom_.v[2] *= rescale_factor;
             }
         }
     }
