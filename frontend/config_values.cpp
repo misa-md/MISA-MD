@@ -47,7 +47,7 @@ void Stage::unnpackdata(int &cursor, kiwi::Bundle &bundle) {
 ConfigValues::ConfigValues() :
         phaseSpace{0, 0, 0}, cutoffRadiusFactor(0.0), latticeConst(0.0),
         timeSteps(0),
-        createPhaseMode(true), createTSet(0.0), createSeed(1024), readPhaseFilename(""),
+        createPhaseMode(true), createSeed(1024), readPhaseFilename(""),
         alloyCreateSeed(1024), alloyRatio{1, 0, 0},
         output(), stages() {}
 // todo potential type and filename initialize.
@@ -63,7 +63,6 @@ void ConfigValues::packdata(kiwi::Bundle &bundle) {
     bundle.put(timeStepLength);
 
     bundle.put(createPhaseMode);
-    bundle.put(createTSet);
     bundle.put(createSeed);
     bundle.put(readPhaseFilename);
 
@@ -107,7 +106,6 @@ void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
     bundle.get(cursor, timeStepLength);
 
     bundle.get(cursor, createPhaseMode);
-    bundle.get(cursor, createTSet);
     bundle.get(cursor, createSeed);
     bundle.get(cursor, readPhaseFilename);
 
@@ -150,7 +148,6 @@ std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
     os << "simulation.timesteps:" << cv.timeSteps << std::endl;
 
     os << "simulation.createphase.createPhaseMode:" << (cv.createPhaseMode ? "true" : "false") << std::endl;
-    os << "simulation.createphase.tSet:" << cv.createTSet << std::endl;
     os << "simulation.createphase.seed:" << cv.createSeed << std::endl;
     os << "simulation.createphase.readPhaseFilename:" << cv.readPhaseFilename << std::endl;
 

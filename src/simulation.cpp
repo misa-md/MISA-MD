@@ -52,8 +52,7 @@ void simulation::createDomain(const int64_t phase_space[DIMENSION],
 }
 
 void simulation::createAtoms(const int64_t phase_space[DIMENSION], const double lattice_const,
-                             const double init_step_len,
-                             const bool create_mode, const unsigned long create_seed, const double t_set,
+                             const double init_step_len, const bool create_mode, const unsigned long create_seed,
                              const int alloy_ratio[atom_type::num_atom_types]) {
     _atom = new atom(_p_domain);
     // establish index offset for neighbour.

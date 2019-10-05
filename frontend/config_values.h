@@ -83,7 +83,6 @@ public:
     double timeStepLength; // default step length
 
     bool createPhaseMode;
-    double createTSet;
     int createSeed;
     std::string readPhaseFilename; // for read mode
 
