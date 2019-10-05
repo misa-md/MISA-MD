@@ -8,6 +8,14 @@ args:
 
 packages:
   git:
+    yaml-cpp:
+      path: https://github.com/jbeder/yaml-cpp.git
+      tag: yaml-cpp-0.6.2
+      build:
+        - RUN {{.CACHE}} cmake {{.SRC_DIR}} -DCMAKE_INSTALL_PREFIX={{.PKG_DIR}}; make -j {{.CORES}}; make install
+      cmake_lib: |
+        find_package(yaml-cpp PATHS {{.CMAKE_VENDOR_PATH_PKG}})
+        include_directories(${YAML_CPP_INCLUDE_DIR})
     googletest:
       path: https://github.com/google/googletest.git
       tag: release-1.8.1
@@ -20,10 +28,15 @@ packages:
       tag: v0.1.0-beta
     kiwi:
       path: https://git.hpcer.dev/genshen/kiwi.git
-      tag: v0.2.0-beta
+      tag: v0.2.0
     libcomm:
       path: https://git.hpcer.dev/HPCer/CrystalMD/libcomm.git
       tag: v0.3.0
+    xoshiro:
+      path: https://github.com/misa-kmc/xoshiro
+      branch: master
+      cmake_lib: |
+        find_package(xoshiro REQUIRED PATHS {{.CMAKE_VENDOR_PATH_PKG}})
 
   files:
     agrs:

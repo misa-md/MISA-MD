@@ -26,6 +26,29 @@ enum OutputMode {
 
 typedef short _type_logs_mode;
 
+struct Stage {
+    unsigned long steps;
+    double step_length;
+
+    // collision
+    bool collision_set;
+    unsigned long collisionStep;
+    int collisionLat[4];
+    double pkaEnergy;
+    double direction[DIMENSION];
+
+    // rescale
+    bool rescales_set;
+    double rescale_t; // rescale to a temperature.
+    unsigned long rescale_every; // step to do rescale
+
+    Stage();
+
+    void packdata(kiwi::Bundle &bundle);
+
+    void unnpackdata(int &cursor, kiwi::Bundle &bundle);
+};
+
 struct Output {
     // output section
     OutputMode atomsDumpMode;
@@ -56,12 +79,8 @@ public:
     int64_t phaseSpace[DIMENSION];
     double cutoffRadiusFactor;
     double latticeConst;
-    unsigned long timeSteps;
-
-    double timeStepLength;
-    size_t vsl_size = 0; // array size of variable time step length.
-    std::vector<unsigned long> vsl_break_points;
-    std::vector<double> vsl_lengths;
+    unsigned long timeSteps; // total steps is not set in config file, but compute from each stages.
+    double timeStepLength; // default step length
 
     bool createPhaseMode;
     double createTSet;
@@ -72,31 +91,16 @@ public:
     int alloyCreateSeed;
     int alloyRatio[atom_type::num_atom_types];
 
-    // collision
-    unsigned long collisionStep;
-    int collisionLat[4];
-    double pkaEnergy;
-    double direction[DIMENSION];
-
+    // potential config
     std::string potentialFileType;
     std::string potentialFilename;
     // simulation section ends
     // output section
     Output output;
     // config values ends
+    std::vector<Stage> stages;
 
     ConfigValues();
-
-    void setVarStepLengths(const unsigned long *break_points, const double *lengths, const unsigned long size);
-
-    /**
-     * set variable time step length config.
-     * @param break_points break points of step
-     * @param lengths time step length after each break pointer step.
-     * @param size size of array @param break_points and @param lengths.
-     */
-    void setVarStepLengths(const std::vector<unsigned long> break_points, const std::vector<double> lengths,
-                           const unsigned long size);
 
     void packdata(kiwi::Bundle &bundle);  // todo override
 

@@ -11,12 +11,6 @@
 #include "atom.h"
 #include "types/atom_types.h"
 
-#define IA 16807
-#define IM 2147483647
-#define AM (1.0/IM)
-#define IQ 127773
-#define IR 2836
-
 // todo documents
 class WorldBuilder {
 public:
@@ -26,9 +20,13 @@ public:
 
     WorldBuilder &setAtomsContainer(AtomSet *p_atom);
 
+    /**
+     * initialize random seed
+     * (note: in md, random is only used to create atoms)
+     * @param seek random seed
+     * @return reference of builder.
+     */
     WorldBuilder &setRandomSeed(int seek);
-
-    WorldBuilder &setTset(double tset);
 
     WorldBuilder &setLatticeConst(double lattice_const);
 
@@ -41,6 +39,9 @@ public:
 
     WorldBuilder &setBoxSize(int64_t box_x, int64_t box_y, int64_t box_z);
 
+    /**
+     * set position and random velocity of all atoms in zero-momentum condition
+     */
     void build();
 
     /**
@@ -50,24 +51,14 @@ public:
      */
     void vcm(double p[DIMENSION + 1]);
 
-    /**
-    *  due to: (1/2)* mv^2 = (3/2)* kT. In which, k is boltzmann constant.
-    *  =>  T = sum{mv^2} /(3* n* k), T is the return value of this function (n is the count of atoms).
-    */
-    double computeScalar(_type_atom_count n_atoms);
-
 protected:
-    virtual double uniform();
-
     atom_type::atom_type randomAtomsType();
 
 private:
     comm::BccDomain *_p_domain;
     AtomSet *_p_atom;
 
-    int _random_seed; // random seed for creating atoms.
     int64_t box_x = 0, box_y = 0, box_z = 0; // todo re type
-    double tset;
     double _lattice_const;
     int _atoms_ratio[atom_type::num_atom_types];
 //    fixme double _mass, _mass_factor;
@@ -81,7 +72,6 @@ private:
      */
     void zeroMomentum(double *vcm);
 
-    void rescale(double rescale_factor);
 };
 
 

@@ -1,7 +1,8 @@
 //
 // Created by genshen(genshenchu@gmail.com) on 2017/4/16.
 //
-#include <toml.hpp>
+
+#include <yaml-cpp/yaml.h>
 #include "config_values.h"
 #include "config/config.h"
 
@@ -42,23 +43,35 @@ private:
     static ConfigParser *m_pInstance; // stored in static area.
 
     /**
-     * resolve toml format config using lib: https://github.com/skystrife/cpptoml
+     * resolve toml format config using lib:  https://github.com/jbeder/yaml-cpp
      * visit the url above to get more information.
-     * @param table
+     * @param config_file the path of config file.
      */
-    void resolveConfig(std::shared_ptr<cpptoml::table> table) override;
+    void parseConfig(const std::string config_file);
 
-    // resolve "simulation" section in toml config file.
-    void resolveConfigSimulation(std::shared_ptr<cpptoml::table> table);
+    // resolve "simulation" section in yaml config file.
+    bool parseConfigSimulation(const YAML::Node &yaml_sim);
 
-    // resolve "simulation.alloy" section in toml config file.
-    void resolveConfigAlloy(std::shared_ptr<cpptoml::table> table);
+    // resolve "create" section in yaml config file.
+    bool parseConfigCreation(const YAML::Node &yaml_creation);
 
-    // resolve "simulation.collision" section in toml config file.
-    void resolveConfigCollision(std::shared_ptr<cpptoml::table> table);
+    // resolve "potential" section in yaml config file.
+    bool parseConfigPotential(const YAML::Node &yaml_pot);
 
-    // resolve "output" section in toml config file.
-    void resolveConfigOutput(std::shared_ptr<cpptoml::table> table);
+    // resolve "creation.alloy" section in yaml config file.
+    bool parseConfigAlloy(const YAML::Node &yaml_alloy);
+
+    // resolve "collision" in stages section in yaml config file.
+    bool resolveConfigCollision(Stage *stage, const YAML::Node &yaml_collision);
+
+    // resolve "output" section in yaml config file.
+    bool parseConfigOutput(const YAML::Node &yaml_output);
+
+    // resolve "rescale" in stages section in yaml config file.
+    bool resolveConfigRescale(Stage *stage, const YAML::Node &yaml_rescale);
+
+    // resolve "stages" section in yaml config file.
+    bool parseStages(const YAML::Node &yaml_stages);
 
     /**
      * [master] put data into bundle, in which bundle is used to buffer config data.
@@ -73,11 +86,6 @@ private:
      */
     void getConfigData(kiwi::Bundle &bundle) override;
 
-    /**
-     * parse variable time step length if it is set.
-     * @param table parent toml table.
-     */
-    void resolveVariableStepLen(std::shared_ptr<cpptoml::table> table);
 };
 
 

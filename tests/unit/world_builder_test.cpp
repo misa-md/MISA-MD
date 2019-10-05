@@ -4,10 +4,8 @@
 
 #include <gtest/gtest.h>
 #include <world_builder.h>
-#include <iostream>
 #include <system_configuration.h>
 #include <utils/mpi_utils.h>
-#include <logs/logs.h>
 
 #include "domain_test_utils.h"
 
@@ -27,19 +25,8 @@ TEST(zero_momentum_test, world_builder_test) {
             .setBoxSize(space[0], space[1], space[2])
             .setRandomSeed(rand_seek)
             .setLatticeConst(lattice_const)
-            .setTset(600)
             .setAlloyRatio(ra)
             .build();
-
-    // test temperature
-    const double T = mWorldBuilder.computeScalar(static_cast<_type_atom_count>(2 * space[0] * space[1] * space[2]));
-    EXPECT_FLOAT_EQ(T, 600);
-
-    // test configuration system temperature.
-    const double e = configuration::kineticEnergy(_atom->getAtomList(), _atom->getInterList(),
-                                                  configuration::ReturnMod::All, 0);
-    const double T2 = configuration::temperature(e, 2 * space[0] * space[1] * space[2]);
-    EXPECT_DOUBLE_EQ(T, T2);
 
     // test zero momentum.
     double p[4];

@@ -5,10 +5,16 @@
 #ifndef CRYSTAL_MD_PRE_DEFINE_H
 #define CRYSTAL_MD_PRE_DEFINE_H
 
-#include "pre_config.h"
+#include "../md_building_config.h"
 
 // constance
 #define BOLTZ 8.617343e-5 // Boltzmann constant, 8.617343e-5 EV/K; also equals to 1.3806505e-23 J/K.
+
+// x ev= x * 1.602176634×10−19 J = mvv/2
+// => v' = sqrt(x * 2*1.602176634×10−19/m)  note: the unit of m is kg, unit of v' is meter/s. we have m = M*1.66053886e-27 kg-1
+// => v' = sqrt(x * 2*C/M), where C = 1.602176634e-19/1.66053886e-27,
+// let v in 100m/s (also A/ps), v = v'/100 = sqrt(x * 2 * C / M/10000).
+// let C/10000 = 1/mvv2e, we can get: mvv2e = 10000/C = 0.000103642684
 #define mvv2e 1.0364269e-4
 #define ftm2v ( 1.0 / mvv2e)
 

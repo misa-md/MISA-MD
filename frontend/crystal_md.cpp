@@ -108,8 +108,7 @@ void crystalMD::onStart() {
     const ConfigValues config = ConfigParser::getInstance()->configValues;
     pSimulation->prepareForStart(config.potentialFilename);
     kiwi::logs::v(MASTER_PROCESSOR, "simulation", "Start simulation.\n");
-    pSimulation->simulate(config.timeSteps, config.collisionStep,
-                          config.collisionLat, config.direction, config.pkaEnergy); // start simulation.
+    pSimulation->simulate(config.timeSteps); // start simulation.
 }
 
 void crystalMD::onFinish() {

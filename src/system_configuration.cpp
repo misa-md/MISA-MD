@@ -25,63 +25,102 @@ std::array<_type_atom_force, DIMENSION> configuration::systemForce(
 
 double configuration::kineticEnergy(AtomList *atom_list, InterAtomList *inter_atom_list,
                                     ReturnMod mode, const kiwi::RID root) {
-    return kineticEnergy(atom_list, mode, root) + kineticEnergy(inter_atom_list, mode, root);
+    const double energy = mvv(atom_list, inter_atom_list);
+    // sum energy from all processes.
+    return reduceEnergy(energy, mode, root);
 }
 
 double configuration::kineticEnergy(AtomList *atom_list, ReturnMod mode, const kiwi::RID root) {
-    double energy = 0;
-    atom_list->foreachSubBoxAtom([&energy](AtomElement &_atom_ref) {
-        if (_atom_ref.type != atom_type::INVALID) {
-            // energy += v^2*m
+    const double energy = mvv(atom_list, nullptr);
+    // sum energy from all processes.
+    return reduceEnergy(energy, mode, root);
+}
+
+double configuration::kineticEnergy(InterAtomList *inter_atom_list, ReturnMod mode, const kiwi::RID root) {
+    const double energy = mvv(nullptr, inter_atom_list);
+    // sum energy from all processes.
+    return reduceEnergy(energy, mode, root);
+}
+
+double configuration::temperature(const double ke, const _type_lattice_size n) {
+    // ke = 3nkT/2
+    const double to_T = mvv2e / ((3 * n - 3) * BOLTZ); // 2 * ke * mvv2e / ((3 * n - 3) * BOLTZ); /
+    return 2 * ke * to_T; // todo better times order for precision.
+}
+
+double configuration::temperature(const _type_atom_count n_atoms,
+                                  AtomList *atom_list, InterAtomList *inter_atom_list) {
+    const double _mvv = mvv(atom_list, inter_atom_list);
+    double t_global;
+    MPI_Allreduce(&_mvv, &t_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    // The factor 3(n-1) appears because the center of mass (COM) is fixed in space.
+    const _type_atom_count dof = 3 * n_atoms - 3;
+    return t_global * mvv2e / (dof * BOLTZ);
+}
+
+double configuration::mvv(AtomList *atom_list, InterAtomList *inter_atom_list) {
+    double energy = 0.0;
+    if (atom_list) {
+        atom_list->foreachSubBoxAtom([&energy](AtomElement &_atom_ref) {
+            if (_atom_ref.type != atom_type::INVALID) {
+                energy += (_atom_ref.v[0] * _atom_ref.v[0] +
+                           _atom_ref.v[1] * _atom_ref.v[1] +
+                           _atom_ref.v[2] * _atom_ref.v[2]) *
+                          atom_type::getAtomMass(_atom_ref.type);
+            }
+        });
+    }
+    if (inter_atom_list) {
+        for (_type_inter_list::iterator itl = inter_atom_list->inter_list.begin();
+             itl != inter_atom_list->inter_list.end(); ++itl) {
+            AtomElement &_atom_ref = *itl;
             energy += (_atom_ref.v[0] * _atom_ref.v[0] +
                        _atom_ref.v[1] * _atom_ref.v[1] +
                        _atom_ref.v[2] * _atom_ref.v[2]) *
                       atom_type::getAtomMass(_atom_ref.type);
         }
-    });
-    // sum energy from all processes.
-    double e_global = 0;
-    switch (mode) {
-        case Local:
-            return energy / 2;
-        case Root:
-            MPI_Reduce(&energy, &e_global, 1, MPI_DOUBLE, MPI_SUM, root, MPI_COMM_WORLD);
-            break;
-        case All:
-            MPI_Allreduce(&energy, &e_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-            break;
     }
-    return e_global / 2;
+    return energy;
 }
 
-double configuration::kineticEnergy(InterAtomList *inter_atom_list, ReturnMod mode, const kiwi::RID root) {
-    double energy = 0;
+void configuration::rescale(const double T, const _type_atom_count n_atoms_global,
+                            AtomList *atom_list, InterAtomList *inter_atom_list) {
+    const double scalar = temperature(n_atoms_global, atom_list, inter_atom_list);
+
+    /**
+     * \sum { m_i(v_i)^2 }= 3*nkT  => scale = T = \sum { m_i(v_i)^2 / 3nk }
+     * thus: T / T_set =  \sum { m_i(v_i)^2 } / \sum { m_i(v'_i)^2 }
+     * then: \sum { m_i(v'_i)^2 } = \sum{ m_i(v_i)^2 }* (T_set / T) = \sum{ m_i(v_i * rescale_factor)^2 }
+     * so, v'_i = v_i * rescale_factor
+     */
+    const double rescale_factor = sqrt(T / scalar);
+
+    // perform resale
+    atom_list->foreachSubBoxAtom([rescale_factor](AtomElement &_atom_ref) {
+        _atom_ref.v[0] *= rescale_factor;
+        _atom_ref.v[1] *= rescale_factor;
+        _atom_ref.v[2] *= rescale_factor;
+    });
     for (_type_inter_list::iterator itl = inter_atom_list->inter_list.begin();
          itl != inter_atom_list->inter_list.end(); ++itl) {
         AtomElement &_atom_ref = *itl;
-        energy += (_atom_ref.v[0] * _atom_ref.v[0] +
-                   _atom_ref.v[1] * _atom_ref.v[1] +
-                   _atom_ref.v[2] * _atom_ref.v[2]) *
-                  atom_type::getAtomMass(_atom_ref.type);
+        _atom_ref.v[0] *= rescale_factor;
+        _atom_ref.v[1] *= rescale_factor;
+        _atom_ref.v[2] *= rescale_factor;
     }
-    // sum energy from all processes.
+}
+
+double configuration::reduceEnergy(const double mvv, const ReturnMod mode, const kiwi::RID root) {
     double e_global = 0;
     switch (mode) {
         case Local:
-            return energy / 2;
+            return mvv / 2;
         case Root:
-            MPI_Reduce(&energy, &e_global, 1, MPI_DOUBLE, MPI_SUM, root, MPI_COMM_WORLD);
+            MPI_Reduce(&mvv, &e_global, 1, MPI_DOUBLE, MPI_SUM, root, MPI_COMM_WORLD);
             break;
         case All:
-            MPI_Allreduce(&energy, &e_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+            MPI_Allreduce(&mvv, &e_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
             break;
     }
     return e_global / 2;
-}
-
-double configuration::temperature(const double ke, const _type_lattice_size n) {
-//    dof -= 3; // fixme, why?
-    // ke = 3nkT/2
-    const double to_T = mvv2e / ((3 * n - 3) * BOLTZ); // 2 * ke * mvv2e / ((3 * n - 3) * BOLTZ); /
-    return 2 * ke * to_T; // todo better times order for precision.
 }

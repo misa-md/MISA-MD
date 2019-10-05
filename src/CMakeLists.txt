@@ -1,12 +1,4 @@
-# configure a header file to pass some of the CMake settings to the source code
-if (SUNWAY_ARCH_ENABLE_FLAG)
-    set(ARCH_SUNWAY ON)
-endif ()
-
-configure_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/types/pre_config.h.in"
-        "${CMAKE_CURRENT_SOURCE_DIR}/types/pre_config.h"
-)
+include(configure.cmake)
 
 set(HEADER_FILES
         arch_env.hpp
@@ -26,7 +18,6 @@ set(HEADER_FILES
         lattice/lattice.h
         lattice/ws_utils.h
         types/atom_types.h
-        types/pre_config.h
         types/pre_define.h
         pack/df_embed_packer.h
         pack/force_packer.h
@@ -36,6 +27,8 @@ set(HEADER_FILES
         pack/lat_particle_packer.h
         pack/particledata.h
         pack/rho_packer.h
+        utils/random/random.h
+        utils/random/rand_generators.h
         utils/mpi_data_types.h
         utils/mpi_domain.h
         utils/rpcc.hpp
@@ -65,6 +58,9 @@ set(SOURCE_FILES
         pack/lat_particle_packer.cpp
         pack/particledata.cpp
         pack/rho_packer.cpp
+        utils/random/legacy_random.hpp
+        utils/random/random.cpp
+        utils/random/rand_generators.cpp
         utils/mpi_domain.cpp
         utils/mpi_data_types.cpp
         )
@@ -91,6 +87,7 @@ target_link_libraries(
         pot::pot
         comm::comm
         kiwi::kiwi
+        xoshiro::xoshiro
         ${ARCH_LIBS}
         # fmt is included in kiwi.
 )

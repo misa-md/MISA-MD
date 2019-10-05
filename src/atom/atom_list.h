@@ -156,10 +156,11 @@ public:
     void foreachSubBoxAtom(Callable callback);
 
     /**
-     * get the size of lattices in the box (including ghost lattice atoms).
+     * get the capacity of lattice atom in the box (including ghost lattice atoms).
+     * or the lattice count (including ghost lattices).
      * @return
      */
-    inline _type_lattice_size size() {
+    inline _type_lattice_size cap() const {
         return lattice._size;
     }
 

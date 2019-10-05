@@ -104,7 +104,7 @@ int atom::decide() {
 }
 
 void atom::clearForce() {
-    for (_type_atom_index i = 0; i < atom_list->size(); i++) {
+    for (_type_atom_index i = 0; i < atom_list->cap(); i++) {
         AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(i);
         atom_.f[0] = 0;
         atom_.f[1] = 0;
@@ -467,6 +467,7 @@ void atom::interForce(eam *pot) {
          inter_it != inter_atom_list->inter_list.end(); inter_it++) {
         _atom_near_index = ws::findNearLatIndexInSubBox(atom_list, *inter_it, p_domain);
         if (_atom_near_index == box::IndexNotExists) {
+            assert(false);
             continue; // make sure the inter atoms is in sub box.
             // todo find a good way to filter out-of-box atoms while exchanging inter atoms.
         }
@@ -585,10 +586,10 @@ void atom::setv(const _type_lattice_coord lat[4], const double direction[3], con
                                                 lat[2] - p_domain->dbx_ghost_ext_lattice_region.z_low) + lat[3]);
         // todo verify the position.
         AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
-        double v_ = sqrt(energy / atom_type::getAtomMass(atom_.type) / mvv2e); // the unit of v is 100m/s
-        double d_ = sqrt(direction[0] * direction[0] + direction[1] * direction[1] + direction[2] * direction[2]);
-        atom_.v[0] += v_ * direction[0] / sqrt(d_);
-        atom_.v[1] += v_ * direction[1] / sqrt(d_);
-        atom_.v[2] += v_ * direction[2] / sqrt(d_);
+        const double v_ = sqrt(2 * energy / atom_type::getAtomMass(atom_.type) / mvv2e); // the unit of v is A/ps (or 100m/s)
+        const double d_ = sqrt(direction[0] * direction[0] + direction[1] * direction[1] + direction[2] * direction[2]);
+        atom_.v[0] += v_ * direction[0] / d_;
+        atom_.v[1] += v_ * direction[1] / d_;
+        atom_.v[2] += v_ * direction[2] / d_;
     }
 }

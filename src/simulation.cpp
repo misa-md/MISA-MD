@@ -66,7 +66,6 @@ void simulation::createAtoms(const int64_t phase_space[DIMENSION], const double 
                 .setBoxSize(phase_space[0], phase_space[1], phase_space[2])
                 .setRandomSeed(create_seed)
                 .setLatticeConst(lattice_const)
-                .setTset(t_set)
                 .setAlloyRatio(alloy_ratio)
                 .build();
     } else { //读取原子坐标、速度信息
@@ -144,9 +143,7 @@ void simulation::prepareForStart(const std::string pot_file_path) {
     kiwi::logs::i(MASTER_PROCESSOR, "sim", "first step compute time: {}\n", computetime);
 }
 
-void simulation::simulate(const unsigned long steps, unsigned long coll_step,
-                          const _type_lattice_coord coll_lat[DIMENSION + 1],
-                          const double coll_dir[DIMENSION], const double coll_pka_energy) {
+void simulation::simulate(const unsigned long steps) {
     // start do simulation.
     double starttime, stoptime;
     double commtime = 0, computetime = 0, comm;
@@ -157,15 +154,6 @@ void simulation::simulate(const unsigned long steps, unsigned long coll_step,
 
     for (_simulation_time_step = 0; _simulation_time_step < steps; _simulation_time_step++) {
         beforeStep(_simulation_time_step);
-
-        if (_simulation_time_step == coll_step) {
-            _atom->setv(coll_lat, coll_dir, coll_pka_energy);
-            _atom->getInterList()->exchangeInter(_p_domain);
-            _atom->getInterList()->borderInter(_p_domain);
-            _atom->getAtomList()->exchangeAtom(_p_domain);
-            _atom->clearForce();
-            _atom->computeEam(_pot, comm);
-        }
         //先进行求解牛顿运动方程第一步
         _newton_motion->firststep(_atom->getAtomList(), _atom->getInterList());
 
@@ -206,6 +194,17 @@ void simulation::simulate(const unsigned long steps, unsigned long coll_step,
     if (MPIDomain::sim_processor.own_rank == MASTER_PROCESSOR) {
         kiwi::logs::i("simulation", "total time: {}.\n", alltime);
     }
+}
+
+void simulation::collisionStep(unsigned long coll_step, const _type_lattice_coord coll_lat[DIMENSION + 1],
+                               const double coll_dir[DIMENSION], const double coll_pka_energy) {
+    double comm = 0;
+    _atom->setv(coll_lat, coll_dir, coll_pka_energy);
+    _atom->getInterList()->exchangeInter(_p_domain);
+    _atom->getInterList()->borderInter(_p_domain);
+    _atom->getAtomList()->exchangeAtom(_p_domain);
+    _atom->clearForce();
+    _atom->computeEam(_pot, comm);
 }
 
 void simulation::finalize() {
