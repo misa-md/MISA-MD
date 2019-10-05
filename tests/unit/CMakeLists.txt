@@ -26,6 +26,7 @@ set(TEST_SOURCE_FILES
         particledata_test.cpp
         utils/random/legacy_random_test.cpp
         configuration_test.cpp
+        atom_test.cpp
         )
 
 # set binary path and lib storage path wile compiling process.
