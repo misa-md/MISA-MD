@@ -2,6 +2,42 @@
 ## [Unreleased]
 
 
+<a name="v0.4.0-beta.2"></a>
+## [v0.4.0-beta.2] - 2019-10-05
+### Docs
+- **changelog:** add changelog for version 0.4.0-beta.2.
+- **readme:** update building and running document in readme.
+
+### Feat
+- **config:** add stages parsing in yaml config file.
+- **config:** add config parsing for rescaling feature.
+- **config:** remove config.toml and use config.yaml as config file.
+- **config:** add a yaml formated config file: config.yaml.
+- **dependency:** update kiwi lib to version 0.2.0.
+- **random:** make LEGACY random a random number engines.
+- **random:** add more random number generators (lcg, mt, stc, xoshiro, legacy).
+- **random:** log random seed when using std::random_device to generate seed in auto mode.
+- **rescale:** rescale system temperature by config in config file.
+
+### Fix
+- **collision:** fix bug of setting atom velocity in collision (wrong sqrt).
+- **config:** fix config parsing of alloy ratio of Ni.
+
+### Refactor
+- **atom-list:** rename AtomList::size() to AtomList::cap().
+- **config:** use yaml as config file type and add yaml config parsing.
+- **configuration:** move common code in kinetic energy calculation to function mvv and function reduceEnergy.
+- **rescale:** move resacle implementation in class WorldBuilder to namespace configuration.
+- **simulation:** use stages to set variable-step-length and collision velocity.
+
+### Test
+- **collision:** add test for atom velocity setting in collision.
+
+### BREAKING CHANGE
+
+config file has been changed to yaml style.
+
+
 <a name="v0.4.0-beta"></a>
 ## [v0.4.0-beta] - 2019-09-24
 ### Ci
@@ -315,7 +351,8 @@ config Term collision_v have been removed.
 <a name="v0.1.0"></a>
 ## v0.1.0 - 2017-11-17
 
-[Unreleased]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0-beta...HEAD
+[Unreleased]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0-beta.2...HEAD
+[v0.4.0-beta.2]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0-beta...v0.4.0-beta.2
 [v0.4.0-beta]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.4...v0.4.0-beta
 [v0.3.4]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.3...v0.3.4
 [v0.3.3]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.2...v0.3.3
