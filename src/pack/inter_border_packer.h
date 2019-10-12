@@ -20,7 +20,7 @@
  * We call those atoms as "neighbour ghost intel atom".
  *
  */
-class InterBorderPacker : public Packer<LatParticleData> {
+class InterBorderPacker : public comm::Packer<LatParticleData> {
 public:
     explicit InterBorderPacker(const comm::BccDomain &domain, InterAtomList &inter_atom_list);
 

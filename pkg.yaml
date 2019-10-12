@@ -31,7 +31,7 @@ packages:
       tag: v0.2.0
     libcomm:
       path: https://git.hpcer.dev/HPCer/CrystalMD/libcomm.git
-      tag: v0.3.0
+      tag: v0.3.1
     xoshiro:
       path: https://github.com/misa-kmc/xoshiro
       branch: master

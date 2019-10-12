@@ -17,7 +17,7 @@ class InterAtomList;
 /**
  * InterParticlePacker
  */
-class InterParticlePacker : public Packer<particledata> {
+class InterParticlePacker : public comm::Packer<particledata> {
 public:
     explicit InterParticlePacker(const comm::Domain &domain, InterAtomList &inter_atom_list);
 

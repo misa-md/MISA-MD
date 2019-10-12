@@ -15,7 +15,7 @@
 /**
  * lattice particle packer for exchange lattice atoms with neighbours.
  */
-class LatParticlePacker : public Packer<LatParticleData> {
+class LatParticlePacker : public comm::Packer<LatParticleData> {
 public:
     LatParticlePacker(const comm::BccDomain &domain, AtomList &atom_list,
                       std::vector<std::vector<_type_atom_id>> &send_list,
