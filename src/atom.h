@@ -9,7 +9,7 @@
 #include <vector>
 #include <eam.h>
 
-#include <domain/bcc_domain.h>
+#include <comm/domain/bcc_domain.h>
 #include <logs/logs.h>
 
 #include "atom/atom_set.h"

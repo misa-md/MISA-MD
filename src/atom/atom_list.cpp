@@ -4,8 +4,8 @@
 
 #include <utils/mpi_domain.h>
 #include <pack/lat_particle_packer.h>
-#include <comm.hpp>
-#include <preset/comm_forwarding_region.h>
+#include <comm/comm.hpp>
+#include <comm/preset/comm_forwarding_region.h>
 #include "atom_list.h"
 #include "../utils/mpi_data_types.h"
 

@@ -3,8 +3,8 @@
 //
 
 #include <cmath>
-#include <domain/domain.h>
-#include <comm.hpp>
+#include <comm/domain/domain.h>
+#include <comm/comm.hpp>
 #include <pack/inter_border_packer.h>
 
 #include "pack/inter_particle_packer.h"

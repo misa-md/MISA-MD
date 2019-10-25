@@ -5,7 +5,7 @@
 #ifndef CRYSTALMD_WS_UTILS_H
 #define CRYSTALMD_WS_UTILS_H
 
-#include <domain/domain.h>
+#include <comm/domain/domain.h>
 #include "atom/atom_list.h"
 #include "atom/inter_atom_list.h"
 #include "box.h"

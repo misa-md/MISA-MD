@@ -8,7 +8,7 @@
 #include <vector>
 #include <list>
 #include <unordered_map>
-#include <domain/domain.h>
+#include <comm/domain/domain.h>
 
 #include "atom_list.h"
 #include "atom_element.h"

@@ -7,7 +7,7 @@
 #ifndef CRYSTALMD_WORLD_BUILDER_H
 #define CRYSTALMD_WORLD_BUILDER_H
 
-#include <domain/domain.h>
+#include <comm/domain/domain.h>
 #include "atom.h"
 #include "types/atom_types.h"
 

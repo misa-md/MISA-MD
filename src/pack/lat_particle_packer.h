@@ -6,8 +6,8 @@
 #define CRYSTALMD_LAT_PARTICLE_PACKER_H
 
 #include <vector>
-#include <packer.h>
-#include <domain/domain.h>
+#include <comm/packer.h>
+#include <comm/domain/domain.h>
 #include "atom/atom_list.h"
 #include "lat_particle_data.h"
 

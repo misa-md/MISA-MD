@@ -6,8 +6,8 @@
 #define CRYSTALMD_INTER_PARTICLE_PACKER_H
 
 #include <list>
-#include <packer.h>
-#include <domain/domain.h>
+#include <comm/packer.h>
+#include <comm/domain/domain.h>
 
 #include "atom/atom_element.h"
 #include "particledata.h"
