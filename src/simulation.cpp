@@ -4,7 +4,7 @@
 #include <logs/logs.h>
 #include <eam.h>
 #include <parser/setfl_parser.h>
-#include <domain/domain.h>
+#include <comm/domain/domain.h>
 
 #include "simulation.h"
 #include "utils/mpi_domain.h"

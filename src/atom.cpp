@@ -7,7 +7,7 @@
 #include <utils/mpi_domain.h>
 #include <logs/logs.h>
 #include <eam.h>
-#include <comm.hpp>
+#include <comm/comm.hpp>
 
 #include "atom.h"
 #include "lattice/ws_utils.h"

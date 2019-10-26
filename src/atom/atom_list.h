@@ -9,8 +9,8 @@
 #include <vector>
 #include <functional>
 
-#include <domain/domain.h>
-#include <domain/bcc_domain.h>
+#include <comm/domain/domain.h>
+#include <comm/domain/bcc_domain.h>
 
 #include "../types/pre_define.h"
 #include "atom_element.h"

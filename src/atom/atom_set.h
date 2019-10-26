@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#include <domain/domain.h>
+#include <comm/domain/domain.h>
 
 #include "atom/atom_element.h"
 #include "atom/atom_list.h"

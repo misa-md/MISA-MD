@@ -5,7 +5,7 @@
 #ifndef CRYSTAL_MD_RHO_PACKER_H
 #define CRYSTAL_MD_RHO_PACKER_H
 
-#include <packer.h>
+#include <comm/packer.h>
 #include "atom/atom_list.h"
 
 /**

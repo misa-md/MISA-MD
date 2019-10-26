@@ -7,7 +7,7 @@
 
 #include <vector>
 #include <mpi.h>
-#include <packer.h>
+#include <comm/packer.h>
 #include "atom/atom_list.h"
 
 /**

@@ -5,7 +5,7 @@
 #ifndef CRYSTAL_MD_NEIGHBOUR_INDEX_H
 #define CRYSTAL_MD_NEIGHBOUR_INDEX_H
 
-#include <domain/region.hpp>
+#include <comm/domain/region.hpp>
 #include "neighbour_iterator.h"
 #include "atom_list.h"
 

@@ -5,7 +5,7 @@
 #ifndef CRYSTAL_MD_OUTPUT_BASE_INTERFACE_H
 #define CRYSTAL_MD_OUTPUT_BASE_INTERFACE_H
 
-#include <domain/bcc_domain.h>
+#include <comm/domain/bcc_domain.h>
 #include "atom/atom_list.h"
 #include "atom/inter_atom_list.h"
 #include "../config_values.h"

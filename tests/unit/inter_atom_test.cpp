@@ -3,7 +3,7 @@
 //
 
 #include <gtest/gtest.h>
-#include <domain/domain.h>
+#include <comm/domain/domain.h>
 #include <atom/inter_atom_list.h>
 #include <lattice/ws_utils.h>
 
