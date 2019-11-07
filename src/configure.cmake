@@ -1,7 +1,4 @@
 # configure a header file to pass some of the CMake settings to the source code
-if (SUNWAY_ARCH_ENABLE_FLAG)
-    set(ARCH_SUNWAY ON)
-endif ()
 
 if (MD_RAND MATCHES "LCG")
     set(RAND_LCG ON)

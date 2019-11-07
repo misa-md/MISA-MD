@@ -6,11 +6,11 @@
 #define CRYSTAL_MD_ARCH_H
 
 #include <iostream>
-#include "types/pre_define.h"
+#include "arch_building_config.h"
 
 #ifdef ARCH_SUNWAY
 
-#include "arch/sunway/sunway_env.h"
+#include "sunway/sunway_env.h"
 
 #endif
 

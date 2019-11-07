@@ -1,9 +1,7 @@
 include(configure.cmake)
 
 set(HEADER_FILES
-        arch_env.hpp
         atom.h
-        hardware_accelerate.hpp
         input.h
         newton_motion.h
         simulation.h
@@ -65,18 +63,16 @@ set(SOURCE_FILES
         utils/mpi_data_types.cpp
         )
 
-add_subdirectory(arch)
-# link sunway lib to libmd
-if (SUNWAY_ARCH_ENABLE_FLAG)
-    set(ARCH_LIBS md_sunway)
-endif ()
+# set varibale ARCH_FILES for archiecture source files.
+# set varibale ARCH_LIBS to link if some archiecture is enabled.
+include(arch/arch_libs.cmake)
 
 # set binary path and lib storage path for compiling process.
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 # make crystal-md lib
-add_library(${MD_LIB_NAME} STATIC ${HEADER_FILES} ${SOURCE_FILES})
+add_library(${MD_LIB_NAME} STATIC ${HEADER_FILES} ${SOURCE_FILES} ${ARCH_FILES})
 target_include_directories(
         ${MD_LIB_NAME}
         PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
