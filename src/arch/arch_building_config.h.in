@@ -9,6 +9,10 @@
 #define CRYSTAL_MD_ARCH_BUILDING_CONFIG_H
 
 
+#cmakedefine ACCELERATE_ENABLE // is accelerate enabled.
+
 #cmakedefine ARCH_SUNWAY  // for Sunway SW26010.
+#cmakedefine ARCH_CUDA  // for CUDA env.
+#cmakedefine ARCH_HIP  // for hip env.
 
 #endif //CRYSTAL_MD_ARCH_BUILDING_CONFIG_H
