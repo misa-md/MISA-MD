@@ -9,7 +9,7 @@
 
 #include "crystal_md.h"
 #include "utils/mpi_domain.h"
-#include "arch_env.hpp"
+#include "arch/arch_env.hpp"
 #include "device.h"
 #include "frontend_config.h"
 #include "md_simulation.h"

@@ -7,11 +7,11 @@
 
 #include <eam.h>
 #include "atom/atom_list.h"
-#include "types/pre_define.h"
+#include "arch_building_config.h"
 
 #ifdef ARCH_SUNWAY
 
-#include "arch/sunway/athread_accelerate.h" // sunway athread
+#include "sunway/athread_accelerate.h" // sunway athread
 
 #endif
 

@@ -14,7 +14,7 @@
 #include "pack/rho_packer.h"
 #include "pack/force_packer.h"
 #include "pack/df_embed_packer.h"
-#include "hardware_accelerate.hpp" // use hardware(eg.GPU, MIC,Sunway slave cores.) to achieve calculate accelerating.
+#include "arch/hardware_accelerate.hpp" // use hardware(eg.GPU, MIC,Sunway slave cores.) to achieve calculate accelerating.
 
 atom::atom(comm::BccDomain *domain)
         : AtomSet(domain->lattice_const * domain->cutoff_radius_factor,
