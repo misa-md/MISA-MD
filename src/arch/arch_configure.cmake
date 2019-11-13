@@ -1,15 +1,18 @@
 # set arch relative macor and write to a header file 'arch_building_config.h'.
 
 # set arch flags, and source files dir.
-set(ACCELERATE_ENABLE OFF)
+set(ACCELERATE_ENABLED OFF)
 if (SUNWAY_ARCH_ENABLE_FLAG)
-    set(ACCELERATE_ENABLE ON)
+    set(ARCH_NAME sunway)
+    set(ACCELERATE_ENABLED ON)
     set(ARCH_SUNWAY ON)
 elseif (CUDA_ARCH_ENABLE_FLAG)
-    set(ACCELERATE_ENABLE ON)
+    set(ARCH_NAME cuda)
+    set(ACCELERATE_ENABLED ON)
     set(ARCH_CUDA ON)
 elseif (HIP_ARCH_ENABLE_FLAG)
-    set(ACCELERATE_ENABLE ON)
+    set(ARCH_NAME hip)
+    set(ACCELERATE_ENABLED ON)
     set(ARCH_HIP ON)
 endif ()
 
