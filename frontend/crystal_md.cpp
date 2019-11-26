@@ -9,7 +9,7 @@
 
 #include "crystal_md.h"
 #include "utils/mpi_domain.h"
-#include "arch_env.hpp"
+#include "arch/arch_env.hpp"
 #include "device.h"
 #include "frontend_config.h"
 #include "md_simulation.h"
@@ -100,7 +100,7 @@ bool crystalMD::prepare() {
     pSimulation->createDomain(config.phaseSpace, config.latticeConst, config.cutoffRadiusFactor); // 区域分解
     // todo alloy ratio seed is not used.
     pSimulation->createAtoms(config.phaseSpace, config.latticeConst, config.timeStepLength,
-                             config.createPhaseMode, config.createSeed, config.createTSet, config.alloyRatio);
+                             config.createPhaseMode, config.createSeed, config.alloyRatio);
     return true;
 }
 

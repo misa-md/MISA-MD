@@ -6,8 +6,8 @@
 #define CRYSTALMD_INTER_PARTICLE_PACKER_H
 
 #include <list>
-#include <packer.h>
-#include <domain/domain.h>
+#include <comm/packer.h>
+#include <comm/domain/domain.h>
 
 #include "atom/atom_element.h"
 #include "particledata.h"
@@ -17,7 +17,7 @@ class InterAtomList;
 /**
  * InterParticlePacker
  */
-class InterParticlePacker : public Packer<particledata> {
+class InterParticlePacker : public comm::Packer<particledata> {
 public:
     explicit InterParticlePacker(const comm::Domain &domain, InterAtomList &inter_atom_list);
 

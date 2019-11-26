@@ -7,13 +7,13 @@
 
 #include <vector>
 #include <mpi.h>
-#include <packer.h>
+#include <comm/packer.h>
 #include "atom/atom_list.h"
 
 /**
  * @brief force data packer for communicating with neighbour processes.
  */
-class ForcePacker : public Packer<double> {
+class ForcePacker : public comm::Packer<double> {
 public:
     ForcePacker(AtomList &atom_list,
                 std::vector<std::vector<_type_atom_id>> &send_list,

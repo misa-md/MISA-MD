@@ -131,12 +131,6 @@ bool ConfigParser::parseConfigCreation(const YAML::Node &yaml_creation) {
 
     configValues.createPhaseMode = yaml_creation["create_phase"].as<bool>(default_create_phase);// default value is true
     if (configValues.createPhaseMode) { //create mode
-        if (yaml_creation["create_t_set"]) {
-            configValues.createTSet = yaml_creation["create_t_set"].as<double>(0);
-        } else {
-            setError("creation t_set must be specified.");
-            return false;
-        }
         configValues.createSeed = yaml_creation["create_seed"].as<int>(default_random_seek);
     } else {  // read mode.
         auto yaml_read_file = yaml_creation["read_phase_filename"];

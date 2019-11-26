@@ -11,8 +11,13 @@ option(TEST_ENABLE_FLAG "Enable test" ON) # enable test
 option(TEST_MPI_ENABLE_FLAG "Enable MPI in test" ON) # enable mpi in test, its value depends on option MPI_ENABLE_FLAG.
 option(TOOLS_BUILD_ENABLE_FLAG "Enable tools building" ON) # enable tools building (in tools directory) binary.(tools example: convert simulation result binary file to text file)
 
-## architecture ralated values.
+## architecture ralated values (only used in src/arch dir).
 option(SUNWAY_ARCH_ENABLE_FLAG "Enable sunway athread" OFF) # enable sunway athread if its running on sunway system.
+option(CUDA_ARCH_ENABLE_FLAG "Enable GPU using CUDA" OFF) # enable GPU if its running on nvidia GPU.
+option(HIP_ARCH_ENABLE_FLAG "Enable DCU using HIP" OFF) # enable DCU if its running on sugon DCU.
+set(SUNWAY_ARCH_SRC_PATH "" CACHE PATH "Source files directory of sunway architecture") # source file directory of sunway arch code.
+set(CUDA_ARCH_SRC_PATH "" CACHE PATH "Source directory of CUDA architecture code") # source file directory of cuda arch code.
+set(HIP_ARCH_SRC_PATH "" CACHE PATH "Source directory of HIP architecture code") # source file directory of hip arch code.
 
 set(MD_RAND "MT" CACHE STRING "random number generating algorithm") # random number generating
 # options are:

@@ -6,24 +6,21 @@
 #define CRYSTAL_MD_ARCH_H
 
 #include <iostream>
-#include "types/pre_define.h"
+#include "arch_building_config.h"
 
-#ifdef ARCH_SUNWAY
+#include "arch_imp.h"
 
-#include "arch/sunway/sunway_env.h"
-
-#endif
 
 // initial of different platforms or different hardware architectures.
 void archEnvInit() {
-#ifdef ARCH_SUNWAY
-    sunwayAThreadInit();
+#ifdef ACCELERATE_ENABLED
+    ARCH_PREFIX(ARCH_NAME, env_init)();
 #endif
 }
 
 void archEnvFinalize() {
-#ifdef ARCH_SUNWAY
-    sunwayAThreadClean();
+#ifdef ACCELERATE_ENABLED
+    ARCH_PREFIX(ARCH_NAME, env_clean)();
 #endif
 }
 

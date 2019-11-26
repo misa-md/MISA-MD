@@ -5,13 +5,13 @@
 #ifndef CRYSTAL_MD_RHO_PACKER_H
 #define CRYSTAL_MD_RHO_PACKER_H
 
-#include <packer.h>
+#include <comm/packer.h>
 #include "atom/atom_list.h"
 
 /**
  * @brief rho data packer for communicating with neighbour processes.
  */
-class RhoPacker : public Packer<double> {
+class RhoPacker : public comm::Packer<double> {
 public:
     RhoPacker(AtomList &atom_list,
               std::vector<std::vector<_type_atom_id>> &send_list,

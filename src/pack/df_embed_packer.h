@@ -7,14 +7,14 @@
 
 
 #include <vector>
-#include <packer.h>
-#include <atom/inter_atom_list.h>
+#include <comm/packer.h>
+#include "atom/inter_atom_list.h"
 #include "atom/atom_list.h"
 
 /**
  * @brief df embed data packer for communicating with neighbour processes.
  */
-class DfEmbedPacker : public Packer<double> {
+class DfEmbedPacker : public comm::Packer<double> {
 public:
     DfEmbedPacker(AtomList &atom_list,InterAtomList &inter_atom_list,
                   std::vector<std::vector<_type_atom_id>> &send_list,
