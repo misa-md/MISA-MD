@@ -2,6 +2,24 @@
 ## [Unreleased]
 
 
+<a name="v0.4.0-beta.3"></a>
+## [v0.4.0-beta.3] - 2019-11-26
+### Ci
+- **gitlab-ci:** update gitlab ci cache key due to dependency changed
+
+### Docs
+- **changelog:** update changelog for v0.4.0-beta.3
+
+### Feat
+- **arch:** add arch_imp.h interface header file which can be used in different architectures
+- **arch:** change accelerate calculation interface to adapt newest code
+- **config:** remove creation.create_t_set term (system temperature) in config file, use rescale instead.
+
+### BREAKING CHANGE
+
+creation.create_t_set term (system temperature) was removed in config file.
+
+
 <a name="v0.4.0-beta.2"></a>
 ## [v0.4.0-beta.2] - 2019-10-05
 ### Docs
@@ -351,7 +369,8 @@ config Term collision_v have been removed.
 <a name="v0.1.0"></a>
 ## v0.1.0 - 2017-11-17
 
-[Unreleased]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0-beta.2...HEAD
+[Unreleased]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0-beta.3...HEAD
+[v0.4.0-beta.3]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0-beta.2...v0.4.0-beta.3
 [v0.4.0-beta.2]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0-beta...v0.4.0-beta.2
 [v0.4.0-beta]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.4...v0.4.0-beta
 [v0.3.4]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.3...v0.3.4
