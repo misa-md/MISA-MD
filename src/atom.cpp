@@ -225,8 +225,9 @@ void atom::latRho(eam *pot) {
 
     // 本地晶格点上的原子计算电子云密度
     if (isAccelerateSupport()) {
-//     fixme  accelerateEamRhoCalc(&(rho_spline->n), atom_list, &_cutoffRadius,
-//                             &(rho_spline->invDx), rho_spline->values); // fixme
+        InterpolationObject *rho_spline = pot->electron_density.getEamItemByType(26); // todo only Fe
+        accelerateEamRhoCalc(&(rho_spline->n), atom_list->_atoms, &_cutoffRadius,
+                             &(rho_spline->invDx), rho_spline->values); // fixme
     } else { // calculate electron density use cpu only.
         for (int k = zstart; k < p_domain->dbx_sub_box_lattice_size[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_sub_box_lattice_size[1] + ystart; j++) {
@@ -367,8 +368,9 @@ void atom::latDf(eam *pot) {
 
     //本地晶格点计算嵌入能导数
     if (isAccelerateSupport()) {
-//       fixme accelerateEamDfCalc(&(f_spline->n), atom_list, &_cutoffRadius,
-//                            &(f_spline->invDx), f_spline->values);
+        InterpolationObject *f_spline = pot->embedded.getEamItemByType(26);  // todo only Fe
+        accelerateEamDfCalc(&(f_spline->n), atom_list->_atoms, &_cutoffRadius,
+                            &(f_spline->invDx), f_spline->values);    // fixme
     } else {
         for (int k = zstart; k < p_domain->dbx_sub_box_lattice_size[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_sub_box_lattice_size[1] + ystart; j++) {
@@ -398,8 +400,10 @@ void atom::latForce(eam *pot) {
     int zstart = p_domain->dbx_lattice_size_ghost[2];
 
     if (isAccelerateSupport()) {
-//    fixme    accelerateEamForceCalc(nullptr, atom_list, &_cutoffRadius,
-//                               nullptr, nullptr, rho_spline->values);
+        InterpolationObject *phi_spline = pot->eam_phi.getPhiByEamPhiByType(26, 26);  // todo only Fe
+        InterpolationObject *rho_spline = pot->electron_density.getEamItemByType(26);
+        accelerateEamForceCalc(&(phi_spline->n), atom_list->_atoms, &_cutoffRadius,
+                               &(phi_spline->invDx), phi_spline->values, rho_spline->values);
     } else {
         /*sprintf(tmp, "f.atom");
         outfile.open(tmp);

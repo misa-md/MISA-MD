@@ -6,20 +6,16 @@
 #define CRYSTAL_MD_HARDWARE_ACCELERATE_H
 
 #include <eam.h>
-#include "atom/atom_list.h"
+#include "atom/atom_element.h"
 #include "arch_building_config.h"
 
-#ifdef ARCH_SUNWAY
-
-#include "sunway/athread_accelerate.h" // sunway athread
-
-#endif
+#include "arch_imp.h"
 
 // check whether it has accelerate hardware to be used, for example GPU, MIC(Xeon Phi), or sunway slave cores.
 inline bool isAccelerateSupport() {
-#ifdef ARCH_SUNWAY
-    return true; // sunway.
-#else // todo other hardware.
+#ifdef ACCELERATE_ENABLED
+    return true; // sunway and other hardware.
+#else
     return false;
 #endif
 }
@@ -30,32 +26,32 @@ inline void accelerateInit(const int lolocalx, const int lolocaly, const int lol
                            const int nlocalx, const int nlocaly, const int nlocalz,
                            const int loghostx, const int loghosty, const int loghostz,
                            const int nghostx, const int nghosty, const int nghostz) {
-#ifdef ARCH_SUNWAY
-    athreadAccelerateInit(lolocalx, lolocaly, lolocalz, nlocalx, nlocaly, nlocalz,
-                          loghostx, loghosty, loghostz, nghostx, nghosty, nghostz);
+#ifdef ACCELERATE_ENABLED
+    ARCH_PREFIX(ARCH_NAME, accelerate_init)(lolocalx, lolocaly, lolocalz, nlocalx, nlocaly, nlocalz,
+                                            loghostx, loghosty, loghostz, nghostx, nghosty, nghostz);
 #endif
 }
 
 // it runs after atom and boxes creation, but before simulation running.
 inline void beforeAccelerateRun(eam *_pot) {
-#ifdef ARCH_SUNWAY
-    initSpline(_pot->electron_density->spline, _pot->f->spline, _pot->phi->spline);
+#ifdef ACCELERATE_ENABLED
+    // ARCH_PREFIX(ARCH_NAME, pot_init)(_pot->electron_density->spline, _pot->f->spline, _pot->phi->spline);
 #endif
 }
 
 // accelerate for calculating electron_density in computing eam potential.
-inline void accelerateEamRhoCalc(int *rho_n, AtomList *atom_list, double *cutoffRadius,
+inline void accelerateEamRhoCalc(int *rho_n, AtomElement ***atoms, double *cutoffRadius,
                                  double *rhoInvDx, double *rhoSplineValues) {
-#ifdef ARCH_SUNWAY
-    athreadAccelerateEamRhoCalc(rho_n, x, electron_density, cutoffRadius, rhoInvDx, rhoSplineValues);
+#ifdef ACCELERATE_ENABLED
+    ARCH_PREFIX(ARCH_NAME, eam_rho_calc)(rho_n, atoms, cutoffRadius, rhoInvDx, rhoSplineValues);
 #endif
 }
 
 // accelerate for calculating df in computing eam potential.
-inline void accelerateEamDfCalc(int *df_n, AtomList *atom_list, double *cutoffRadius,
+inline void accelerateEamDfCalc(int *df_n, AtomElement ***atoms, double *cutoffRadius,
                                 double *dfSplineInvDx, double *dfSplineValues) {
-#ifdef ARCH_SUNWAY
-    athreadAccelerateEamDfCalc(df_n, electron_density, df, cutoffRadius, dfSplineInvDx, dfSplineValues);
+#ifdef ACCELERATE_ENABLED
+    ARCH_PREFIX(ARCH_NAME, eam_df_calc)(df_n, atoms, cutoffRadius, dfSplineInvDx, dfSplineValues);
 #endif
 }
 
@@ -63,11 +59,11 @@ inline void accelerateEamDfCalc(int *df_n, AtomList *atom_list, double *cutoffRa
  * accelerate for calculating force in computing eam potential.
  * // fixme many atom types.
  */
-inline void accelerateEamForceCalc(int *phi_n, AtomList *atom_list,
+inline void accelerateEamForceCalc(int *phi_n, AtomElement ***atoms,
                                    double *cutoffRadius, double *phiSplineInvDx,
                                    double *phiSplineValues, double *rhoSplineValues) {
-#ifdef ARCH_SUNWAY
-    athreadAccelerateEamForceCalc(phi_n, x, f, df, cutoffRadius, phiSplineInvDx, phiSplineValues, rhoSplineValues);
+#ifdef ACCELERATE_ENABLED
+    ARCH_PREFIX(ARCH_NAME, eam_force_calc)(phi_n, atoms, cutoffRadius, phiSplineInvDx, phiSplineValues, rhoSplineValues);
 #endif
 }
 
