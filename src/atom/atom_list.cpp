@@ -15,22 +15,10 @@ AtomList::AtomList(_type_atom_count size_x, _type_atom_count size_y, _type_atom_
         lattice(size_x, size_y, size_z, size_sub_box_x, size_sub_box_y, size_sub_box_z,
                 ghost_count_x, ghost_count_y, ghost_count_z) {
 
-    _atoms = new AtomElement **[size_z];
-    for (_type_atom_count z = 0; z < size_z; z++) {
-        _atoms[z] = new AtomElement *[size_y];
-        for (_type_atom_count y = 0; y < size_y; y++) {
-            _atoms[z][y] = new AtomElement[size_x];
-        }
-    }
+    _atoms = new AtomElement[size_z * size_x * size_y];
 }
 
 AtomList::~AtomList() {
-    for (_type_atom_count z = 0; z < lattice._size_z; z++) {
-        for (_type_atom_count y = 0; y < lattice._size_y; y++) {
-            delete[] _atoms[z][y];
-        }
-        delete[] _atoms[z];
-    }
     delete[] _atoms;
 }
 
@@ -73,12 +61,13 @@ bool AtomList::isBadList(comm::Domain domain) {
     for (long z = lattice.purge_ghost_count_z; z < lattice._size_sub_box_z + lattice.purge_ghost_count_z; z++) {
         for (long y = lattice.purge_ghost_count_y; y < lattice._size_sub_box_y + lattice.purge_ghost_count_y; y++) {
             for (long x = lattice.purge_ghost_count_x; x < lattice._size_sub_box_x + lattice.purge_ghost_count_x; x++) {
-                if (_atoms[z][y][x].x[0] < domain.meas_global_region.x_low - delta ||
-                    _atoms[z][y][x].x[1] < domain.meas_global_region.y_low - delta ||
-                    _atoms[z][y][x].x[2] < domain.meas_global_region.z_low - delta ||
-                    _atoms[z][y][x].x[0] > domain.meas_global_region.x_high + delta ||
-                    _atoms[z][y][x].x[1] > domain.meas_global_region.y_high + delta ||
-                    _atoms[z][y][x].x[2] > domain.meas_global_region.z_high + delta) {
+                AtomElement &_atom = getAtomEleByGhostIndex(x, y, z);
+                if (_atom.x[0] < domain.meas_global_region.x_low - delta ||
+                    _atom.x[1] < domain.meas_global_region.y_low - delta ||
+                    _atom.x[2] < domain.meas_global_region.z_low - delta ||
+                    _atom.x[0] > domain.meas_global_region.x_high + delta ||
+                    _atom.x[1] > domain.meas_global_region.y_high + delta ||
+                    _atom.x[2] > domain.meas_global_region.z_high + delta) {
                     return true;
                 }
             }

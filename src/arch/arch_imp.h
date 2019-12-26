@@ -23,13 +23,13 @@ void ARCH_PREFIX(ARCH_NAME, accelerate_init)(const int lolocalx, const int loloc
                                              const int loghostx, const int loghosty, const int loghostz,
                                              const int nghostx, const int nghosty, const int nghostz);
 
-void ARCH_PREFIX(ARCH_NAME, eam_rho_calc)(int *rho_n, AtomElement ***atoms, double *cutoffRadius,
+void ARCH_PREFIX(ARCH_NAME, eam_rho_calc)(int *rho_n, AtomElement *atoms, double *cutoffRadius,
                                           double *rhoInvDx, double *rhoSplineValues);
 
-void ARCH_PREFIX(ARCH_NAME, eam_df_calc)(int *df_n, AtomElement ***atoms, double *cutoffRadius,
+void ARCH_PREFIX(ARCH_NAME, eam_df_calc)(int *df_n, AtomElement *atoms, double *cutoffRadius,
                                          double *dfSplineInvDx, double *dfSplineValues);
 
-void ARCH_PREFIX(ARCH_NAME, eam_force_calc)(int *phi_n, AtomElement ***atoms,
+void ARCH_PREFIX(ARCH_NAME, eam_force_calc)(int *phi_n, AtomElement *atoms,
                                             double *cutoffRadius, double *phiSplineInvDx,
                                             double *phiSplineValues, double *rhoSplineValues);
 
