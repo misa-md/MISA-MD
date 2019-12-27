@@ -336,9 +336,7 @@ void atom::interRho(eam *pot) {
         AtomNei::iterator nei_half_itl_end = neighbours->end(false, x, y, z);
         for (AtomNei::iterator nei_itl = neighbours->begin(false, x, y, z);
              nei_itl != nei_half_itl_end; ++nei_itl) {
-            const _type_atom_index inter_nei_id = atom_list->lattice.IndexOf3DIndex(
-                    nei_itl.cur_index_x, nei_itl.cur_index_y,
-                    nei_itl.cur_index_z); // get index of the neighbour lattice.
+            const _type_atom_index inter_nei_id = nei_itl.cur_index; // get index of the neighbour lattice.
             // get intel atoms on this neighbour lattice and calculate inter-rho.
             inter_map_range inter_map_range = inter_atom_list->inter_map.equal_range(inter_nei_id);
             for (inter_map_range_itl itl = inter_map_range.first; itl != inter_map_range.second; ++itl) {
@@ -547,9 +545,7 @@ void atom::interForce(eam *pot) {
         AtomNei::iterator nei_half_itl_end = neighbours->end(false, x, y, z);
         for (AtomNei::iterator nei_itl = neighbours->begin(false, x, y, z);
              nei_itl != nei_half_itl_end; ++nei_itl) {
-            const _type_atom_index inter_nei_id = atom_list->lattice.IndexOf3DIndex(
-                    nei_itl.cur_index_x, nei_itl.cur_index_y,
-                    nei_itl.cur_index_z); // get index of the neighbour lattice.
+            const _type_atom_index inter_nei_id = nei_itl.cur_index; // get index of the neighbour lattice.
             inter_map_range inter_map_range_up = inter_atom_list->inter_map.equal_range(inter_nei_id);
             for (inter_map_range_itl itl_up = inter_map_range_up.first;
                  itl_up != inter_map_range_up.second; ++itl_up) {

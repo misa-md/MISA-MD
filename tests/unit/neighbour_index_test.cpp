@@ -91,7 +91,8 @@ TEST(nei_index_test_index_case, nei_index_test) {
     NeighbourIndex<AtomElement>::iterator nei_itl_end = nei_index.end(true, 24, 16, 3);
     for (NeighbourIndex<AtomElement>::iterator nei_itl = nei_index.begin(true, 24, 16, 3);
          nei_itl != nei_itl_end; ++nei_itl) {
-        if (nei_itl.cur_index_x == 23 && nei_itl.cur_index_y == 17 && nei_itl.cur_index_z == 4) {
+        _type_atom_index ind = atom_list.getAtomIndex(23,17,4);
+        if (ind == nei_itl.cur_index) {
             exists = true;
         }
     }
