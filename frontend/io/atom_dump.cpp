@@ -60,12 +60,10 @@ void AtomDump::dump(AtomList *atom_list, InterAtomList *inter_list, size_t time_
         buffered_writer->write(&inter_ref, time_step);
     }
     // dumping normal atoms
-    _type_atom_index kk;
     for (int k = _begin[2]; k < _end[2]; k++) {
         for (int j = _begin[1]; j < _end[1]; j++) {
             for (int i = _begin[0]; i < _end[0]; i++) {
-                kk = atom_list->lattice.IndexOf3DIndex(i, j, k);
-                AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
+                AtomElement &atom_ = atom_list->getAtomEleByGhostIndex(i, j, k);
                 if (atom_.type == atom_type::INVALID) {
                     continue; // skip out of boxed atoms.
                 }

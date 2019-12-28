@@ -40,7 +40,7 @@ inline void beforeAccelerateRun(eam *_pot) {
 }
 
 // accelerate for calculating electron_density in computing eam potential.
-inline void accelerateEamRhoCalc(int *rho_n, AtomElement ***atoms, double *cutoffRadius,
+inline void accelerateEamRhoCalc(int *rho_n, AtomElement *atoms, double *cutoffRadius,
                                  double *rhoInvDx, double *rhoSplineValues) {
 #ifdef ACCELERATE_ENABLED
     ARCH_PREFIX(ARCH_NAME, eam_rho_calc)(rho_n, atoms, cutoffRadius, rhoInvDx, rhoSplineValues);
@@ -48,7 +48,7 @@ inline void accelerateEamRhoCalc(int *rho_n, AtomElement ***atoms, double *cutof
 }
 
 // accelerate for calculating df in computing eam potential.
-inline void accelerateEamDfCalc(int *df_n, AtomElement ***atoms, double *cutoffRadius,
+inline void accelerateEamDfCalc(int *df_n, AtomElement *atoms, double *cutoffRadius,
                                 double *dfSplineInvDx, double *dfSplineValues) {
 #ifdef ACCELERATE_ENABLED
     ARCH_PREFIX(ARCH_NAME, eam_df_calc)(df_n, atoms, cutoffRadius, dfSplineInvDx, dfSplineValues);
@@ -59,7 +59,7 @@ inline void accelerateEamDfCalc(int *df_n, AtomElement ***atoms, double *cutoffR
  * accelerate for calculating force in computing eam potential.
  * // fixme many atom types.
  */
-inline void accelerateEamForceCalc(int *phi_n, AtomElement ***atoms,
+inline void accelerateEamForceCalc(int *phi_n, AtomElement *atoms,
                                    double *cutoffRadius, double *phiSplineInvDx,
                                    double *phiSplineValues, double *rhoSplineValues) {
 #ifdef ACCELERATE_ENABLED

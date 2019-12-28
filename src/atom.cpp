@@ -219,9 +219,9 @@ void atom::latRho(eam *pot) {
     double delx, dely, delz;
     _type_atom_index kk;
     double dist2;
-    int xstart = p_domain->dbx_lattice_size_ghost[0];
-    int ystart = p_domain->dbx_lattice_size_ghost[1];
-    int zstart = p_domain->dbx_lattice_size_ghost[2];
+    const int xstart = p_domain->dbx_lattice_size_ghost[0];
+    const int ystart = p_domain->dbx_lattice_size_ghost[1];
+    const int zstart = p_domain->dbx_lattice_size_ghost[2];
 
     // 本地晶格点上的原子计算电子云密度
     if (isAccelerateSupport()) {
@@ -232,8 +232,7 @@ void atom::latRho(eam *pot) {
         for (int k = zstart; k < p_domain->dbx_sub_box_lattice_size[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_sub_box_lattice_size[1] + ystart; j++) {
                 for (int i = xstart; i < p_domain->dbx_sub_box_lattice_size[0] + xstart; i++) {
-                    kk = atom_list->lattice.IndexOf3DIndex(i, j, k);
-                    AtomElement &atom_central = atom_list->getAtomEleByLinearIndex(kk);
+                    AtomElement &atom_central = atom_list->getAtomEleByGhostIndex(i, j, k);
                     xtemp = atom_central.x[0];
                     ytemp = atom_central.x[1];
                     ztemp = atom_central.x[2];
@@ -337,9 +336,7 @@ void atom::interRho(eam *pot) {
         AtomNei::iterator nei_half_itl_end = neighbours->end(false, x, y, z);
         for (AtomNei::iterator nei_itl = neighbours->begin(false, x, y, z);
              nei_itl != nei_half_itl_end; ++nei_itl) {
-            const _type_atom_index inter_nei_id = atom_list->lattice.IndexOf3DIndex(
-                    nei_itl.cur_index_x, nei_itl.cur_index_y,
-                    nei_itl.cur_index_z); // get index of the neighbour lattice.
+            const _type_atom_index inter_nei_id = nei_itl.cur_index; // get index of the neighbour lattice.
             // get intel atoms on this neighbour lattice and calculate inter-rho.
             inter_map_range inter_map_range = inter_atom_list->inter_map.equal_range(inter_nei_id);
             for (inter_map_range_itl itl = inter_map_range.first; itl != inter_map_range.second; ++itl) {
@@ -361,10 +358,9 @@ void atom::interRho(eam *pot) {
 
 void atom::latDf(eam *pot) {
     double dfEmbed;
-    int xstart = p_domain->dbx_lattice_size_ghost[0];
-    int ystart = p_domain->dbx_lattice_size_ghost[1];
-    int zstart = p_domain->dbx_lattice_size_ghost[2];
-    _type_atom_index kk;
+    const int xstart = p_domain->dbx_lattice_size_ghost[0];
+    const int ystart = p_domain->dbx_lattice_size_ghost[1];
+    const int zstart = p_domain->dbx_lattice_size_ghost[2];
 
     //本地晶格点计算嵌入能导数
     if (isAccelerateSupport()) {
@@ -375,8 +371,7 @@ void atom::latDf(eam *pot) {
         for (int k = zstart; k < p_domain->dbx_sub_box_lattice_size[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_sub_box_lattice_size[1] + ystart; j++) {
                 for (int i = xstart; i < p_domain->dbx_sub_box_lattice_size[0] + xstart; i++) {
-                    kk = atom_list->lattice.IndexOf3DIndex(i, j, k);
-                    AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
+                    AtomElement &atom_ = atom_list->getAtomEleByGhostIndex(i, j, k);
                     if (atom_.isInterElement()) {
                         continue;
                     }
@@ -391,13 +386,12 @@ void atom::latDf(eam *pot) {
 void atom::latForce(eam *pot) {
     double xtemp, ytemp, ztemp;
     double delx, dely, delz;
-    _type_atom_index kk;
     double dist2;
     double fpair;
 
-    int xstart = p_domain->dbx_lattice_size_ghost[0];
-    int ystart = p_domain->dbx_lattice_size_ghost[1];
-    int zstart = p_domain->dbx_lattice_size_ghost[2];
+    const int xstart = p_domain->dbx_lattice_size_ghost[0];
+    const int ystart = p_domain->dbx_lattice_size_ghost[1];
+    const int zstart = p_domain->dbx_lattice_size_ghost[2];
 
     if (isAccelerateSupport()) {
         InterpolationObject *phi_spline = pot->eam_phi.getPhiByEamPhiByType(26, 26);  // todo only Fe
@@ -422,8 +416,7 @@ void atom::latForce(eam *pot) {
         for (int k = zstart; k < p_domain->dbx_sub_box_lattice_size[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_sub_box_lattice_size[1] + ystart; j++) {
                 for (int i = xstart; i < p_domain->dbx_sub_box_lattice_size[0] + xstart; i++) {
-                    kk = atom_list->lattice.IndexOf3DIndex(i, j, k);
-                    AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
+                    AtomElement &atom_ = atom_list->getAtomEleByGhostIndex(i, j, k);
                     xtemp = atom_.x[0];
                     ytemp = atom_.x[1];
                     ztemp = atom_.x[2];
@@ -552,9 +545,7 @@ void atom::interForce(eam *pot) {
         AtomNei::iterator nei_half_itl_end = neighbours->end(false, x, y, z);
         for (AtomNei::iterator nei_itl = neighbours->begin(false, x, y, z);
              nei_itl != nei_half_itl_end; ++nei_itl) {
-            const _type_atom_index inter_nei_id = atom_list->lattice.IndexOf3DIndex(
-                    nei_itl.cur_index_x, nei_itl.cur_index_y,
-                    nei_itl.cur_index_z); // get index of the neighbour lattice.
+            const _type_atom_index inter_nei_id = nei_itl.cur_index; // get index of the neighbour lattice.
             inter_map_range inter_map_range_up = inter_atom_list->inter_map.equal_range(inter_nei_id);
             for (inter_map_range_itl itl_up = inter_map_range_up.first;
                  itl_up != inter_map_range_up.second; ++itl_up) {

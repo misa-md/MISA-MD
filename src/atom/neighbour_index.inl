@@ -25,9 +25,11 @@ void NeighbourIndex<T>::make(const _type_lattice_size cut_lattice,
                     const double r = xIndex * xIndex + yIndex * yIndex + zIndex * zIndex;
                     // r > 0 means neighbour index can not be itself.
                     if (r < cutoff_lat_factor * cutoff_lat_factor && r > 0) {
-                        nei_even_offsets.push_back(NeiOffset{2 * xIndex, yIndex, zIndex});
+                        const _type_atom_index even_offset = atom_list.lattice.IndexOf3DIndex(
+                                2 * xIndex, yIndex, zIndex);
+                        nei_even_offsets.push_back(even_offset);
                         if (isPositiveIndex(xIndex, yIndex, zIndex)) {
-                            nei_half_even_offsets.push_back(NeiOffset{2 * xIndex, yIndex, zIndex});
+                            nei_half_even_offsets.push_back(even_offset);
                         }
                     }
                 }
@@ -37,9 +39,11 @@ void NeighbourIndex<T>::make(const _type_lattice_size cut_lattice,
                                      (yIndex + 0.5) * (yIndex + 0.5) +
                                      (zIndex + 0.5) * (zIndex + 0.5);
                     if (r < cutoff_lat_factor * cutoff_lat_factor && r > 0) { // in fact "r > 0" is not used.
-                        nei_even_offsets.push_back(NeiOffset{2 * xIndex + 1, yIndex, zIndex});
+                        const _type_atom_index even_offset = atom_list.lattice.IndexOf3DIndex(
+                                2 * xIndex + 1, yIndex, zIndex);
+                        nei_even_offsets.push_back(even_offset);
                         if (isPositiveIndex(xIndex + 0.5, yIndex + 0.5, zIndex + 0.5)) {
-                            nei_half_even_offsets.push_back(NeiOffset{2 * xIndex + 1, yIndex, zIndex});
+                            nei_half_even_offsets.push_back(even_offset);
                         }
                     }
                 }
@@ -55,9 +59,11 @@ void NeighbourIndex<T>::make(const _type_lattice_size cut_lattice,
                 {
                     const double r = xIndex * xIndex + yIndex * yIndex + zIndex * zIndex;
                     if (r < cutoff_lat_factor * cutoff_lat_factor && r > 0) {
-                        nei_odd_offsets.push_back(NeiOffset{2 * xIndex, yIndex, zIndex});
+                        const _type_atom_index odd_offset = atom_list.lattice.IndexOf3DIndex(
+                                2 * xIndex, yIndex, zIndex);
+                        nei_odd_offsets.push_back(odd_offset);
                         if (isPositiveIndex(xIndex, yIndex, zIndex)) {
-                            nei_half_odd_offsets.push_back(NeiOffset{2 * xIndex, yIndex, zIndex});
+                            nei_half_odd_offsets.push_back(odd_offset);
                         }
                     }
                 }
@@ -67,9 +73,11 @@ void NeighbourIndex<T>::make(const _type_lattice_size cut_lattice,
                                      (yIndex - 0.5) * (yIndex - 0.5) +
                                      (zIndex - 0.5) * (zIndex - 0.5);
                     if (r < cutoff_lat_factor * cutoff_lat_factor && r > 0) {
-                        nei_odd_offsets.push_back(NeiOffset{2 * xIndex - 1, yIndex, zIndex});
+                        const _type_atom_index odd_offset = atom_list.lattice.IndexOf3DIndex(
+                                2 * xIndex - 1, yIndex, zIndex);
+                        nei_odd_offsets.push_back(odd_offset);
                         if (isPositiveIndex(xIndex - 0.5, yIndex - 0.5, zIndex - 0.6)) {
-                            nei_half_odd_offsets.push_back(NeiOffset{2 * xIndex - 1, yIndex, zIndex});
+                            nei_half_odd_offsets.push_back(odd_offset);
                         }
                     }
                 }
@@ -103,7 +111,7 @@ template<class T>
 NeiIterator<T, T &, T *>
 NeighbourIndex<T>::begin(const bool half_itl, const _type_atom_index x,
                          const _type_atom_index y, const _type_atom_index z) {
-    const NeiOffset offset{x, y, z};
+    const NeiOffset offset = atom_list.lattice.IndexOf3DIndex(x, y, z);
     const int flag = (half_itl ? 2 : 0) | (x % 2 == 0 ? 1 : 0);
     switch (flag) {
         case 0: // 0b00
@@ -123,7 +131,7 @@ template<class T>
 NeiIterator<T, T &, T *>
 NeighbourIndex<T>::end(const bool half_itl, const _type_atom_index x,
                        const _type_atom_index y, const _type_atom_index z) {
-    const NeiOffset offset{x, y, z};
+    const NeiOffset offset = atom_list.lattice.IndexOf3DIndex(x, y, z);
     const int flag = (half_itl ? 2 : 0) | (x % 2 == 0 ? 1 : 0);
     switch (flag) {
         case 0: // 0b00
