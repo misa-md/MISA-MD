@@ -63,9 +63,9 @@ public:
      * @return true: equal, false: not equal.
      */
     bool operator==(const self &x) const {
-        return p_nei_index == x.p_nei_index &&
+        return current_nei_index == x.current_nei_index &&
+               p_nei_index == x.p_nei_index &&
                atom_list == x.atom_list &&
-               current_nei_index == x.current_nei_index &&
                src_index == x.src_index;
     }
 
@@ -87,9 +87,9 @@ public:
     _type_atom_index cur_index;
 
 protected:
-    link_type p_nei_index; // pointer of neighbour index vector todo make it const
+    const link_type p_nei_index; // pointer of neighbour index vector
     // source particle index for iterator, all offset of neighbour particles is based on this source particles index.
-    _type_atom_index src_index; // todo make in const
+    const _type_atom_index src_index;
     // current index for neighbour index.
     size_type current_nei_index;
     const AtomList *atom_list;
