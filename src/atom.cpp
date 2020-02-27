@@ -1,11 +1,6 @@
-#include <iostream>
-#include <iterator>
 #include <cmath>
-#include <fstream>
-#include <iomanip>
 
 #include <utils/mpi_domain.h>
-#include <logs/logs.h>
 #include <eam.h>
 #include <comm/comm.hpp>
 
@@ -125,24 +120,6 @@ void atom::computeEam(eam *pot, double &comm) {
 
     latRho(pot);
     interRho(pot);
-//    ofstream outfile;
-    /* char tmp[20];
-    sprintf(tmp, "electron_density.atom");
-    outfile.open(tmp);
-    int j, k, l;
-    for(int k =0; k < p_domain->getSubBoxLatticeSize(2) ; k++){
-            for(int j = 0; j < p_domain->getSubBoxLatticeSize(1); j++){
-                    for(int i =0; i < p_domain->getSubBoxLatticeSize(0) ; i++){
-                             AtomElement &atom_ = atom_list->getAtomEleBySubBoxIndex(i,j,k);
-                            if(!atom_.isInterElement())
-                                    outfile << atom_.electron_density << std::endl;
-                    }
-            }
-    }
-for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
-    outfile << rho_spline->spline[i][6] << std::endl;
-} // 1. todo remove end.
-    outfile.close();*/
 
     {
         // 发送电子云密度
@@ -155,30 +132,8 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
         comm = stoptime - starttime;
     }
 
-    /*sprintf(tmp, "rho2.atom");
-    outfile;
-    outfile.open(tmp);
-    int j, k, l;
-    for(int k =0; k < p_domain->getSubBoxLatticeSize(2) ; k++){
-            for(int j = 0; j < p_domain->getSubBoxLatticeSize(1); j++){
-                    for(int i =0; i < p_domain->getSubBoxLatticeSize(0) ; i++){
-                             AtomElement &atom_ = atom_list->getAtomEleBySubBoxIndex(i,j,k);
-                            if(!atom_.isInterElement())
-                                    outfile << atom_.electron_density << std::endl;
-                    }
-            }
-    }
-    outfile.close();*/
-
     //本地晶格点计算嵌入能导数
     latDf(pot);
-
-    /*sprintf(tmp, "df.atom");
-    outfile.open(tmp);
-    for(int i = 0; i < f_spline->n; i++){
-        outfile << i << " " << f_spline->spline[i][6] << std::endl;
-    }
-    outfile.close();*/
 
     {
         // 发送嵌入能导数
@@ -196,12 +151,6 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
     // force for local lattice.
     latForce(pot);
 
-    /*sprintf(tmp, "f.atom");  // 2.todo remove start.
-      outfile.open(tmp);
-      for(int i = 0; i < phi_spline->n; i++){
-         outfile << i << " " << phi_spline->spline[i][6] << std::endl;
-      }
-      outfile.close();*/ // 2.todo remove end.
     //间隙原子计算嵌入能和对势带来的力
     interForce(pot);
 
@@ -393,20 +342,6 @@ void atom::latForce(eam *pot) {
         accelerateEamForceCalc(&(phi_spline->n), atom_list->_atoms, &_cutoffRadius,
                                &(phi_spline->invDx), phi_spline->values, rho_spline->values);
     } else {
-        /*sprintf(tmp, "f.atom");
-        outfile.open(tmp);
-
-    for(int k =0; k < p_domain->getSubBoxLatticeSize(2) ; k++){
-            for(int j = 0; j < p_domain->getSubBoxLatticeSize(1); j++){
-                    for(int i =0; i < p_domain->getSubBoxLatticeSize(0) ; i++){
-                             AtomElement &atom_ = atom_list->getAtomEleBySubBoxIndex(i,j,k);
-                                if(!atom_.isInterElement())
-                                        outfile << f[kk*3] << std::endl;
-                        }
-                }
-        }
-        outfile.close();*/
-
         for (int k = zstart; k < p_domain->dbx_sub_box_lattice_size[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_sub_box_lattice_size[1] + ystart; j++) {
                 for (int i = xstart; i < p_domain->dbx_sub_box_lattice_size[0] + xstart; i++) {
