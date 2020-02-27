@@ -215,9 +215,7 @@ for(int i = 0; i < rho_spline->n; i++){ // 1.todo remove start.
 }
 
 void atom::latRho(eam *pot) {
-    double xtemp, ytemp, ztemp;
     double delx, dely, delz;
-    _type_atom_index kk;
     double dist2;
     const int xstart = p_domain->dbx_lattice_size_ghost[0];
     const int ystart = p_domain->dbx_lattice_size_ghost[1];
@@ -233,9 +231,6 @@ void atom::latRho(eam *pot) {
             for (int j = ystart; j < p_domain->dbx_sub_box_lattice_size[1] + ystart; j++) {
                 for (int i = xstart; i < p_domain->dbx_sub_box_lattice_size[0] + xstart; i++) {
                     AtomElement &atom_central = atom_list->getAtomEleByGhostIndex(i, j, k);
-                    xtemp = atom_central.x[0];
-                    ytemp = atom_central.x[1];
-                    ztemp = atom_central.x[2];
                     if (!atom_central.isInterElement()) {
                         //对晶格点邻居原子遍历
                         // only consider the atoms whose id is bigger than {@var atom_central}, just single side.
@@ -246,9 +241,9 @@ void atom::latRho(eam *pot) {
                             if (atom_neighbour.isInterElement()) {
                                 continue;
                             }
-                            delx = xtemp - atom_neighbour.x[0];
-                            dely = ytemp - atom_neighbour.x[1];
-                            delz = ztemp - atom_neighbour.x[2];
+                            delx = atom_central.x[0] - atom_neighbour.x[0];
+                            dely = atom_central.x[1] - atom_neighbour.x[1];
+                            delz = atom_central.x[2] - atom_neighbour.x[2];
                             dist2 = delx * delx + dely * dely + delz * delz;
                             if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                                 atom_central.rho += pot->chargeDensity(
@@ -384,7 +379,6 @@ void atom::latDf(eam *pot) {
 }
 
 void atom::latForce(eam *pot) {
-    double xtemp, ytemp, ztemp;
     double delx, dely, delz;
     double dist2;
     double fpair;
@@ -417,9 +411,6 @@ void atom::latForce(eam *pot) {
             for (int j = ystart; j < p_domain->dbx_sub_box_lattice_size[1] + ystart; j++) {
                 for (int i = xstart; i < p_domain->dbx_sub_box_lattice_size[0] + xstart; i++) {
                     AtomElement &atom_ = atom_list->getAtomEleByGhostIndex(i, j, k);
-                    xtemp = atom_.x[0];
-                    ytemp = atom_.x[1];
-                    ztemp = atom_.x[2];
                     if (atom_.isInterElement()) {
                         continue;
                     }
@@ -429,9 +420,9 @@ void atom::latForce(eam *pot) {
                     for (AtomNei::iterator nei_itl = neighbours->begin(true, i, j, k);
                          nei_itl != nei_itl_end; ++nei_itl) {
                         AtomElement &atom_n = *nei_itl;
-                        delx = xtemp - atom_n.x[0];
-                        dely = ytemp - atom_n.x[1];
-                        delz = ztemp - atom_n.x[2];
+                        delx = atom_.x[0] - atom_n.x[0];
+                        dely = atom_.x[1] - atom_n.x[1];
+                        delz = atom_.x[2] - atom_n.x[2];
                         dist2 = delx * delx + dely * dely + delz * delz;
                         if (dist2 < (_cutoffRadius * _cutoffRadius) && !atom_n.isInterElement()) {
                             fpair = pot->toForce(atom_type::getTypeIdByType(atom_.type),
