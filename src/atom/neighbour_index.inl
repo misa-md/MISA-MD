@@ -16,35 +16,25 @@ void NeighbourIndex<T>::make(const _type_lattice_size cut_lattice,
     for (_type_atom_index zIndex = -cut_lattice - 1;
          zIndex <= cut_lattice + 1; zIndex++) { // loop for (2*_cutlattice + 1) times.
         for (_type_atom_index yIndex = -cut_lattice - 1; yIndex <= cut_lattice + 1; yIndex++) {
-            for (_type_atom_index xIndex = -cut_lattice - 1; xIndex <= cut_lattice + 1; xIndex++) {
-//               uint z = (double) zIndex + (((double) (xIndex % 2)) / 2); // zIndex plus 1/2 (odd) or 0(even).
-//               uint y = (double) yIndex + (((double) (xIndex % 2)) / 2);
-//               uint x = (double) xIndex / 2;
+            for (_type_atom_index xIndex = -2 * cut_lattice - 2; xIndex <= 2 * cut_lattice + 2; xIndex++) {
                 // lattice neighbour points whose index is (2*Index,yIndex,zIndex).
-                {
-                    const double r = xIndex * xIndex + yIndex * yIndex + zIndex * zIndex;
-                    // r > 0 means neighbour index can not be itself.
-                    if (r < cutoff_lat_factor * cutoff_lat_factor && r > 0) {
-                        const _type_atom_index even_offset = atom_list.lattice.IndexOf3DIndex(
-                                2 * xIndex, yIndex, zIndex);
-                        nei_even_offsets.push_back(even_offset);
-                        if (isPositiveIndex(xIndex, yIndex, zIndex)) {
-                            nei_half_even_offsets.push_back(even_offset);
-                        }
-                    }
-                }
-                // bcc body center neighbour points whose index is (2*Index+1,yIndex,zIndex).
-                {
-                    const double r = (xIndex + 0.5) * (xIndex + 0.5) +
-                                     (yIndex + 0.5) * (yIndex + 0.5) +
-                                     (zIndex + 0.5) * (zIndex + 0.5);
-                    if (r < cutoff_lat_factor * cutoff_lat_factor && r > 0) { // in fact "r > 0" is not used.
-                        const _type_atom_index even_offset = atom_list.lattice.IndexOf3DIndex(
-                                2 * xIndex + 1, yIndex, zIndex);
-                        nei_even_offsets.push_back(even_offset);
-                        if (isPositiveIndex(xIndex + 0.5, yIndex + 0.5, zIndex + 0.5)) {
-                            nei_half_even_offsets.push_back(even_offset);
-                        }
+                double z = (double) zIndex + (((double) (xIndex % 2)) / 2); // zIndex plus 1/2 (odd) or 0(even).
+                double y = (double) yIndex + (((double) (xIndex % 2)) / 2);
+                double x = ((double) xIndex) / 2;
+                const double r = x * x + y * y + z * z;
+
+                // r > 0 means neighbour index can not be itself.
+                if (r < cutoff_lat_factor * cutoff_lat_factor && r > 0) {
+                    // if xIndex is less than 0 and it is odd.
+                    // for example xIndex=-1,yIndex=0,zIndex=0 =>
+                    // then (x,y,z) is (-0.5,-0.5,-0.5) and (ix,iy,iz) = (-1,-1,-1) not (-1,0,0)
+                    const _type_atom_index ix = xIndex;
+                    const _type_atom_index iy = (xIndex < 0 && xIndex % 2 != 0) ? yIndex - 1 : yIndex;
+                    const _type_atom_index iz = (xIndex < 0 && xIndex % 2 != 0) ? zIndex - 1 : zIndex;
+                    const _type_atom_index even_offset = atom_list.lattice.IndexOf3DIndex(ix, iy, iz);
+                    nei_even_offsets.push_back(even_offset);
+                    if (isPositiveIndex(x, y, z)) {
+                        nei_half_even_offsets.push_back(even_offset);
                     }
                 }
             }
@@ -54,31 +44,23 @@ void NeighbourIndex<T>::make(const _type_lattice_size cut_lattice,
     for (_type_atom_index zIndex = -cut_lattice - 1;
          zIndex <= cut_lattice + 1; zIndex++) { // loop for (2*_cutlattice + 1) times.
         for (_type_atom_index yIndex = -cut_lattice - 1; yIndex <= cut_lattice + 1; yIndex++) {
-            for (_type_atom_index xIndex = -cut_lattice - 1; xIndex <= cut_lattice + 1; xIndex++) {
+            for (_type_atom_index xIndex = -2 * cut_lattice - 2; xIndex <= 2 * cut_lattice + 2; xIndex++) {
                 // BCC body center neighbour points whose index is (2*Index,yIndex,zIndex).
-                {
-                    const double r = xIndex * xIndex + yIndex * yIndex + zIndex * zIndex;
-                    if (r < cutoff_lat_factor * cutoff_lat_factor && r > 0) {
-                        const _type_atom_index odd_offset = atom_list.lattice.IndexOf3DIndex(
-                                2 * xIndex, yIndex, zIndex);
-                        nei_odd_offsets.push_back(odd_offset);
-                        if (isPositiveIndex(xIndex, yIndex, zIndex)) {
-                            nei_half_odd_offsets.push_back(odd_offset);
-                        }
-                    }
-                }
-                // lattice neighbour points whose index is (2*Index-1,yIndex,zIndex).
-                {
-                    const double r = (xIndex - 0.5) * (xIndex - 0.5) +
-                                     (yIndex - 0.5) * (yIndex - 0.5) +
-                                     (zIndex - 0.5) * (zIndex - 0.5);
-                    if (r < cutoff_lat_factor * cutoff_lat_factor && r > 0) {
-                        const _type_atom_index odd_offset = atom_list.lattice.IndexOf3DIndex(
-                                2 * xIndex - 1, yIndex, zIndex);
-                        nei_odd_offsets.push_back(odd_offset);
-                        if (isPositiveIndex(xIndex - 0.5, yIndex - 0.5, zIndex - 0.6)) {
-                            nei_half_odd_offsets.push_back(odd_offset);
-                        }
+                double z = (double) zIndex - (((double) (xIndex % 2)) / 2);
+                double y = (double) yIndex - (((double) (xIndex % 2)) / 2);
+                double x = (double) xIndex / 2;
+                const double r = x * x + y * y + z * z;
+
+                if (r < cutoff_lat_factor * cutoff_lat_factor && r > 0) {
+                    // if xIndex,yIndex,zIndex is (-1,0,0), then (x,y,z) is (-0.5,0.5,0.5)
+                    // and (ix,iy,iz) is (-1,1,1)
+                    const _type_atom_index ix = xIndex;
+                    const _type_atom_index iy = (xIndex < 0 && xIndex % 2 != 0) ? yIndex + 1 : yIndex;
+                    const _type_atom_index iz = (xIndex < 0 && xIndex % 2 != 0) ? zIndex + 1 : zIndex;
+                    const _type_atom_index odd_offset = atom_list.lattice.IndexOf3DIndex(ix, iy, iz);
+                    nei_odd_offsets.push_back(odd_offset);
+                    if (isPositiveIndex(x, y, z)) {
+                        nei_half_odd_offsets.push_back(odd_offset);
                     }
                 }
             }
