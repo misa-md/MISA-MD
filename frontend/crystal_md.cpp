@@ -57,6 +57,7 @@ bool crystalMD::beforeCreate(int argc, char *argv[]) {
 }
 
 void crystalMD::onCreate() {
+    wall_clock_begin = MPI_Wtime(); // init time recorder.
     ConfigParser *pConfig;
     if (kiwi::mpiUtils::global_process.own_rank == MASTER_PROCESSOR) {
         kiwi::logs::s("env", "mpi env is initialized.\n");
@@ -116,6 +117,10 @@ void crystalMD::onFinish() {
     //模拟结束
     pSimulation->finalize();
     mpi_types::unsetInterMPIType();
+
+    double wall_clock_end = MPI_Wtime();
+    kiwi::logs::i(MASTER_PROCESSOR, "simulation", "total wall clock of program: {}\n",
+                  wall_clock_end - wall_clock_begin);
 }
 
 void crystalMD::beforeDestroy() {
