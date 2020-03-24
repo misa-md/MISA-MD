@@ -12,6 +12,6 @@ set(CMAKE_CXX_COMPILER "sw5g++")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mhost -std=c++11" CACHE STRING "" FORCE)
 add_compile_options(-mhost -std=c++11)
 
-# spesific cc and cxx link flag
+# specific cc and cxx link flag
 set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -mhybrid -std=c++11" CACHE STRING "" FORCE)
 set(CMAKE_C_LINK_FLAGS "${CMAKE_C_LINK_FLAGS} -mhybrid -std=c++11" CACHE STRING "" FORCE)
