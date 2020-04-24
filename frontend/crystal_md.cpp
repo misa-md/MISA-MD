@@ -101,7 +101,7 @@ bool crystalMD::prepare() {
     pSimulation->createDomain(config.phaseSpace, config.latticeConst, config.cutoffRadiusFactor); // 区域分解
     // todo alloy ratio seed is not used.
     pSimulation->createAtoms(config.phaseSpace, config.latticeConst, config.timeStepLength,
-                             config.createPhaseMode, config.createSeed, config.alloyRatio);
+                             config.createPhaseMode, config.createSeed, config.createTSet, config.alloyRatio);
     return true;
 }
 

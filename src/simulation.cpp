@@ -52,7 +52,8 @@ void simulation::createDomain(const int64_t phase_space[DIMENSION],
 }
 
 void simulation::createAtoms(const int64_t phase_space[DIMENSION], const double lattice_const,
-                             const double init_step_len, const bool create_mode, const unsigned long create_seed,
+                             const double init_step_len, const bool create_mode,
+                             const double t_set, const unsigned long create_seed,
                              const int alloy_ratio[atom_type::num_atom_types]) {
     _atom = new atom(_p_domain);
     // establish index offset for neighbour.
@@ -65,6 +66,7 @@ void simulation::createAtoms(const int64_t phase_space[DIMENSION], const double 
                 .setBoxSize(phase_space[0], phase_space[1], phase_space[2])
                 .setRandomSeed(create_seed)
                 .setLatticeConst(lattice_const)
+                .setTset(t_set)
                 .setAlloyRatio(alloy_ratio)
                 .build();
     } else { //读取原子坐标、速度信息
