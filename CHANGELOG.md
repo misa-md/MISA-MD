@@ -9,8 +9,12 @@
 - **pkg:** upgrade pkg.yaml file to version 2
 
 ### Docs
+- **changelog:** add changelog for hotfix of `MD_` prefix of cmake variables
 - **changelog:** update changelog for v0.4.0
 - **changelog:** add commit types of "build" and "improvement" to CHANGELOG.md file
+
+### Fix
+- **cmake:** add missing `_MD` prefix to cmake variabls in arch/arch_configure.cmake file
 
 ### Improvement
 - **eam:** remove unnecessary temporary variables in eam computing
