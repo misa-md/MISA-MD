@@ -13,9 +13,7 @@
 template<typename T>
 class NeighbourIndex;
 
-struct NeiOffset {
-    _type_atom_index x, y, z;
-};
+typedef _type_atom_index NeiOffset;
 
 template<class T, class Ref, class Ptr>
 class NeiIterator {
@@ -65,12 +63,10 @@ public:
      * @return true: equal, false: not equal.
      */
     bool operator==(const self &x) const {
-        return p_nei_index == x.p_nei_index &&
+        return current_nei_index == x.current_nei_index &&
+               p_nei_index == x.p_nei_index &&
                atom_list == x.atom_list &&
-               current_nei_index == x.current_nei_index &&
-               src_index_x == x.src_index_x &&
-               src_index_y == x.src_index_y &&
-               src_index_z == x.src_index_z;
+               src_index == x.src_index;
     }
 
     bool operator!=(const self &x) const {
@@ -78,7 +74,7 @@ public:
     }
 
     reference operator*() {
-        return atom_list->getAtomEleByGhostIndex(cur_index_x, cur_index_y, cur_index_z);
+        return atom_list->getAtomEleByLinearIndex(cur_index);
     }
 
     pointer operator->() { return &(operator*()); }
@@ -87,13 +83,13 @@ public:
     self &operator++();
 
 public:
-    // current index of particles in each dimension, cur_index = src_index + p_nei_index[current_nei_index].
-    _type_atom_index cur_index_x, cur_index_y, cur_index_z;
+    // current index of particle, cur_index = src_index + p_nei_index[current_nei_index].
+    _type_atom_index cur_index;
 
 protected:
-    link_type p_nei_index; // pointer of neighbour index vector todo make it const
+    const link_type p_nei_index; // pointer of neighbour index vector
     // source particle index for iterator, all offset of neighbour particles is based on this source particles index.
-    _type_atom_index src_index_x, src_index_y, src_index_z; // todo make in const
+    const _type_atom_index src_index;
     // current index for neighbour index.
     size_type current_nei_index;
     const AtomList *atom_list;

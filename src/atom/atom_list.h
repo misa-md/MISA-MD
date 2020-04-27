@@ -110,6 +110,15 @@ public:
     ~AtomList();
 
     /**
+     * calculate index of 1d atom array by the lattice coordinate in 3d
+     * @param x, y, z the lattice coordinate in 3d
+     * @return the index in 1d atoms array of the atom specified by @param x,y,z coordinate
+     */
+    inline _type_atom_index getAtomIndex(_type_atom_index x, _type_atom_index y, _type_atom_index z) const {
+        return (z * lattice._size_y + y) * lattice._size_x + x;
+    }
+
+    /**
      * get the reference of {@class AtomElement} by the lattice index in sub-box(not include ghost lattice).
      * @param index_x lattice index in sub-box at x dimension.
      * @param index_y lattice index in sub-box at y dimension.
@@ -118,9 +127,9 @@ public:
      */
     inline AtomElement &
     getAtomEleBySubBoxIndex(_type_atom_index index_x, _type_atom_index index_y, _type_atom_index index_z) {
-        return _atoms[lattice.purge_ghost_count_z + index_z]
-        [lattice.purge_ghost_count_y + index_y]
-        [lattice.purge_ghost_count_x + index_x];
+        return _atoms[getAtomIndex(lattice.purge_ghost_count_x + index_x,
+                                   lattice.purge_ghost_count_y + index_y,
+                                   lattice.purge_ghost_count_z + index_z)];
     }
 
     /**
@@ -132,7 +141,7 @@ public:
      */
     inline AtomElement &
     getAtomEleByGhostIndex(_type_atom_index index_x, _type_atom_index index_y, _type_atom_index index_z) const {
-        return _atoms[index_z][index_y][index_x];
+        return _atoms[getAtomIndex(index_x, index_y, index_z)];
     }
 
     /**
@@ -142,11 +151,7 @@ public:
      * @return
      */
     inline AtomElement &getAtomEleByLinearIndex(_type_atom_index index) const {
-        _type_atom_count x = index % lattice._size_x;
-        index = index / lattice._size_x;
-        _type_atom_count y = index % lattice._size_y;
-        _type_atom_count z = index / lattice._size_y;
-        return _atoms[z][y][x];
+        return _atoms[index];
     }
 
     /**
@@ -186,7 +191,7 @@ public:
 
 private:
     // 晶格点原子用数组存储其信息,including ghost atoms.
-    AtomElement ***_atoms; // atoms in 3d.
+    AtomElement *_atoms; // atoms in 3d.
 
     // the array to record atoms that are out of box.
     std::vector<std::vector<_type_atom_id> > sendlist; // todo make it temp data
@@ -200,7 +205,7 @@ void AtomList::foreachSubBoxAtom(Callable callback) {
     for (long z = lattice.purge_ghost_count_z; z < lattice._size_sub_box_z + lattice.purge_ghost_count_z; z++) {
         for (long y = lattice.purge_ghost_count_y; y < lattice._size_sub_box_y + lattice.purge_ghost_count_y; y++) {
             for (long x = lattice.purge_ghost_count_x; x < lattice._size_sub_box_x + lattice.purge_ghost_count_x; x++) {
-                callback(_atoms[z][y][x]);
+                callback(getAtomEleByGhostIndex(x, y, z));
             }
         }
     }

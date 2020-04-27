@@ -10,8 +10,8 @@
 // main function for adapting mpi environment
 int main(int argc, char *argv[]) {
     ::testing::InitGoogleTest(&argc, argv);
-#ifdef TEST_MPI_ENABLE_FLAG
+#ifdef MD_TEST_MPI_ENABLE_FLAG
     ::testing::AddGlobalTestEnvironment(new kiwi::MPIEnvironment);
-#endif  // end TEST_MPI_ENABLE_FLAG
+#endif  // end MD_TEST_MPI_ENABLE_FLAG
     return RUN_ALL_TESTS();
 }

@@ -49,6 +49,7 @@ private:
 
     std::string configFilePath = "config.yaml"; // configure file path default value.
     simulation *pSimulation;
+    double wall_clock_begin = 0.0; // the timestamp when program start running
 
 };
 

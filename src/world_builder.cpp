@@ -8,8 +8,9 @@
 #include <random>
 #include "utils/random/random.h"
 #include "world_builder.h"
+#include "system_configuration.h"
 
-WorldBuilder::WorldBuilder() : box_x(0), box_y(0), box_z(0) {
+WorldBuilder::WorldBuilder() : box_x(0), box_y(0), box_z(0), tset(0) {
     _p_domain = nullptr;
     _p_atom = nullptr;
 }
@@ -33,6 +34,11 @@ WorldBuilder &WorldBuilder::setRandomSeed(int seed) {
     } else {
         md_rand::initSeed(seed);
     }
+    return *this;
+}
+
+WorldBuilder &WorldBuilder::setTset(double t_set) {
+    this->tset = t_set;
     return *this;
 }
 
@@ -87,6 +93,13 @@ void WorldBuilder::build() {
     vcm(p);
     kiwi::logs::d("momentum", "momentum:{0} {1} {2}\n", p[0], p[1], p[2]);
 #endif
+    // set temperature for all atoms
+    if (tset != 0.0) {
+        const _type_atom_count n_global_atoms = 2 * _p_domain->phase_space[0] *
+                                                _p_domain->phase_space[1] *
+                                                _p_domain->phase_space[2];
+        configuration::rescale(tset, n_global_atoms, _p_atom->atom_list, _p_atom->inter_atom_list);
+    }
 }
 
 void WorldBuilder::createPhaseSpace() {

@@ -28,6 +28,13 @@ public:
      */
     WorldBuilder &setRandomSeed(int seek);
 
+    /**
+     * set temperature for creation.
+     * @param t_set
+     * @return
+     */
+    WorldBuilder &setTset(double t_set);
+
     WorldBuilder &setLatticeConst(double lattice_const);
 
     /**
@@ -59,6 +66,7 @@ private:
     AtomSet *_p_atom;
 
     int64_t box_x = 0, box_y = 0, box_z = 0; // todo re type
+    double tset;
     double _lattice_const;
     int _atoms_ratio[atom_type::num_atom_types];
 //    fixme double _mass, _mass_factor;

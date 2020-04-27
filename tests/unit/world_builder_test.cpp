@@ -25,8 +25,15 @@ TEST(zero_momentum_test, world_builder_test) {
             .setBoxSize(space[0], space[1], space[2])
             .setRandomSeed(rand_seek)
             .setLatticeConst(lattice_const)
+            .setTset(600)
             .setAlloyRatio(ra)
             .build();
+
+    // test configuration system temperature.
+    const double e = configuration::kineticEnergy(_atom->getAtomList(), _atom->getInterList(),
+                                                  configuration::ReturnMod::All, 0);
+    const double T2 = configuration::temperature(e, 2 * space[0] * space[1] * space[2]);
+    EXPECT_FLOAT_EQ(T2, 600);
 
     // test zero momentum.
     double p[4];
