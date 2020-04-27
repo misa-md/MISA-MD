@@ -2,6 +2,32 @@
 ## [Unreleased]
 
 
+<a name="v0.4.0"></a>
+## [v0.4.0] - 2020-04-27
+### Build
+- **cmake:** add `MD_` prefix to variable names of cmake options
+- **pkg:** upgrade pkg.yaml file to version 2
+
+### Docs
+- **changelog:** update changelog for v0.4.0
+- **changelog:** add commit types of "build" and "improvement" to CHANGELOG.md file
+
+### Improvement
+- **eam:** remove unnecessary temporary variables in eam computing
+- **logs:** log execution time of the whole program, not only time of timestep loop
+- **neighbor:** ues 1d linear offset(instead of 3d offset) in neighbor inde and its iterator
+
+### Refactor
+- **eam:** remove unnecessary BccLattice::IndexOf3DIndex calling while computing eam
+- **neighbor:** simplify neighbor index calculation and compare it with old method in unit test
+- **neighbor:** make members in NeiIterator constant and adjust comparison order in == operator
+
+### BREAKING CHANGE
+
+when performing cmake configuration, the option names have `MD_` prefix now
+(e.g. change 'SUNWAY_ARCH_ENABLE_FLAG' to `MD_SUNWAY_ARCH_ENABLE_FLAG`).
+
+
 <a name="v0.4.0-beta.3"></a>
 ## [v0.4.0-beta.3] - 2019-11-26
 ### Build
@@ -67,6 +93,10 @@ config file has been changed to yaml style.
 
 <a name="v0.4.0-beta"></a>
 ## [v0.4.0-beta] - 2019-09-24
+### Build
+- **cmake:** add cmake config for building frontend unit tests.
+- **libcomm:** update libcomm to v0.3.0.
+
 ### Ci
 - **gitlab-ci:** update cache key in .gitlab-ci.yml file to match libcomm version change.
 
@@ -402,7 +432,8 @@ config Term collision_v have been removed.
 <a name="v0.1.0"></a>
 ## v0.1.0 - 2017-11-17
 
-[Unreleased]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0-beta.3...HEAD
+[Unreleased]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0...HEAD
+[v0.4.0]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0-beta.3...v0.4.0
 [v0.4.0-beta.3]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0-beta.2...v0.4.0-beta.3
 [v0.4.0-beta.2]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0-beta...v0.4.0-beta.2
 [v0.4.0-beta]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.4...v0.4.0-beta
