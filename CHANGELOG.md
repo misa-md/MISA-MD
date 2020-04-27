@@ -4,6 +4,12 @@
 
 <a name="v0.4.0-beta.3"></a>
 ## [v0.4.0-beta.3] - 2019-11-26
+### Build
+- **arch:** move architecture related files and cmake config to src/arch directory
+- **pkg:** update libcomm to version 0.3.2
+- **pkg:** update libcomm to version 0.3.1
+- **pkg:** update googletest to version 1.10.0
+
 ### Ci
 - **gitlab-ci:** update gitlab ci cache key due to dependency changed
 
@@ -22,6 +28,9 @@ creation.create_t_set term (system temperature) was removed in config file.
 
 <a name="v0.4.0-beta.2"></a>
 ## [v0.4.0-beta.2] - 2019-10-05
+### Build
+- **dependency:** add yaml-cpp 0.6.2 package.
+
 ### Docs
 - **changelog:** add changelog for version 0.4.0-beta.2.
 - **readme:** update building and running document in readme.
@@ -116,6 +125,11 @@ variable_step_length array.
 
 <a name="v0.3.3"></a>
 ## [v0.3.3] - 2019-07-15
+### Build
+- **cmake:** modify sunway architecture configuration in cmake script.
+- **sunway:** add cmake script to compile and link sunway slave code.
+- **toolchain:** add cmake toolchain file for sunway taihulight supercomputer.
+
 ### Ci
 - **gitlab-ci:** add gitlab-ci config file to build code.
 
@@ -142,6 +156,10 @@ variable_step_length array.
 
 <a name="v0.3.2"></a>
 ## [v0.3.2] - 2019-07-15
+### Build
+- **libcomm:** update libcomm version to v0.1.0 to fix ghost size bug.
+- **pot:** update dependency lib pot version from v0.1.0-alpha to v0.1.0-beta.
+
 ### Docs
 - **changelog:** add changelog for version 0.3.2.
 
@@ -173,6 +191,10 @@ variable_step_length array.
 
 <a name="v0.3.1"></a>
 ## [v0.3.1] - 2019-04-23
+### Build
+- **cmake:** configure MD_DEV_MODE macro in  config.cmake file.
+- **dependency:** update kiwi lib to version 0.2.0-beta.
+
 ### Docs
 - **changelog:** add changelog for version 0.3.1
 
@@ -225,6 +247,14 @@ variable_step_length array.
 
 <a name="v0.3.0"></a>
 ## [v0.3.0] - 2019-03-11
+### Build
+- **$compile:** add debug in cmake config.
+- **dependency:** move dependency to dependency.cmake.
+- **googletest:** update googletest version to 1.8.1
+- **pkg:** correct pkg dependency version of pot lib.
+- **pkg:** update to pkg version 0.2.0-beta.
+- **pkg:** use pkg tool version 0.2.0-alpha.
+
 ### Docs
 - **README:** update authors scope in README.md
 - **changelog:** add changelog for version 0.3.0
@@ -353,6 +383,9 @@ config Term collision_v have been removed.
 
 <a name="v0.2.0"></a>
 ## [v0.2.0] - 2018-03-08
+### Build
+- **CMakeLists.txt pre_config.h:** add cmake install feature, add sunway support enable option.
+
 ### Docs
 - **README.md .input.swo:** add contributing section to README.md and remove .input.swo file.
 
