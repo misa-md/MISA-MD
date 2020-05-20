@@ -122,7 +122,7 @@ void simulation::prepareForStart(const std::string pot_file_path) {
                    MPIDomain::sim_processor.comm);
     _pot->interpolateFile(); // interpolation.
 
-    beforeAccelerateRun(_pot); // it runs after atom and boxes creation, but before simulation running.
+    acceleratePotInit(_pot); // it runs after atom and boxes creation, but before simulation running.
 
     starttime = MPI_Wtime();
     // todo make _cut_lattice a member of class AtomList
