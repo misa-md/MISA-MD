@@ -17,8 +17,8 @@ atom::atom(comm::BccDomain *domain)
                   domain->sub_box_lattice_size,
                   domain->lattice_size_ghost),
           p_domain(domain) {
-    if (isAccelerateSupport()) {
-        accelerateInitDomain(p_domain);
+    if (isArchAccSupport()) {
+        archAccInitDomain(p_domain);
     }
 }
 
@@ -160,8 +160,8 @@ void atom::latRho(eam *pot) {
     const int zstart = p_domain->dbx_lattice_size_ghost[2];
 
     // 本地晶格点上的原子计算电子云密度
-    if (isAccelerateSupport()) {
-        accelerateEamRhoCalc(pot, atom_list->_atoms, _cutoffRadius); // fixme
+    if (isArchAccSupport()) {
+        archAccEamRhoCalc(pot, atom_list->_atoms, _cutoffRadius); // fixme
     } else { // calculate electron density use cpu only.
         for (int k = zstart; k < p_domain->dbx_sub_box_lattice_size[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_sub_box_lattice_size[1] + ystart; j++) {
@@ -294,8 +294,8 @@ void atom::latDf(eam *pot) {
     const int zstart = p_domain->dbx_lattice_size_ghost[2];
 
     //本地晶格点计算嵌入能导数
-    if (isAccelerateSupport()) {
-        accelerateEamDfCalc(pot, atom_list->_atoms, _cutoffRadius);    // fixme
+    if (isArchAccSupport()) {
+        archAccEamDfCalc(pot, atom_list->_atoms, _cutoffRadius);    // fixme
     } else {
         for (int k = zstart; k < p_domain->dbx_sub_box_lattice_size[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_sub_box_lattice_size[1] + ystart; j++) {
@@ -321,8 +321,8 @@ void atom::latForce(eam *pot) {
     const int ystart = p_domain->dbx_lattice_size_ghost[1];
     const int zstart = p_domain->dbx_lattice_size_ghost[2];
 
-    if (isAccelerateSupport()) {
-        accelerateEamForceCalc(pot, atom_list->_atoms, _cutoffRadius);
+    if (isArchAccSupport()) {
+        archAccEamForceCalc(pot, atom_list->_atoms, _cutoffRadius);
     } else {
         for (int k = zstart; k < p_domain->dbx_sub_box_lattice_size[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_sub_box_lattice_size[1] + ystart; j++) {
@@ -358,7 +358,7 @@ void atom::latForce(eam *pot) {
                 }
             }
         }
-    } // end of if-isAccelerateSupport.
+    } // end of if-isArchAccSupport.
 }
 
 void atom::interForce(eam *pot) {

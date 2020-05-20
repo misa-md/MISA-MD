@@ -12,7 +12,7 @@
 #include "arch_imp.h"
 
 // check whether it has accelerate hardware to be used, for example GPU, MIC(Xeon Phi), or sunway slave cores.
-inline bool isAccelerateSupport() {
+inline bool isArchAccSupport() {
 #ifdef ACCELERATE_ENABLED
     return true; // sunway and other hardware.
 #else
@@ -22,7 +22,7 @@ inline bool isAccelerateSupport() {
 
 // initialize domain for hardware accelerate.
 // about const &, see: https://stackoverflow.com/questions/9637856/why-is-const-int-faster-than-const-int/9637951#9637951
-inline void accelerateInitDomain(const comm::BccDomain *domain) {
+inline void archAccInitDomain(const comm::BccDomain *domain) {
 #ifdef ACCELERATE_ENABLED
     ARCH_PREFIX(ARCH_NAME, accelerate_init)(domain);
 #endif
@@ -30,21 +30,21 @@ inline void accelerateInitDomain(const comm::BccDomain *domain) {
 
 // it runs after atom and boxes creation, but before simulation running.
 // which can initialize potential on device side.
-inline void acceleratePotInit(eam *_pot) {
+inline void archAccPotInit(eam *_pot) {
 #ifdef ACCELERATE_ENABLED
     ARCH_PREFIX(ARCH_NAME, pot_init)(_pot);
 #endif
 }
 
 // accelerate for calculating electron_density in computing eam potential.
-inline void accelerateEamRhoCalc(eam *pot, AtomElement *atoms, const double cutoff_radius) {
+inline void archAccEamRhoCalc(eam *pot, AtomElement *atoms, const double cutoff_radius) {
 #ifdef ACCELERATE_ENABLED
     ARCH_PREFIX(ARCH_NAME, eam_rho_calc)(pot, atoms, cutoff_radius);
 #endif
 }
 
 // accelerate for calculating df in computing eam potential.
-inline void accelerateEamDfCalc(eam *pot, AtomElement *atoms, const double cutoff_radius) {
+inline void archAccEamDfCalc(eam *pot, AtomElement *atoms, const double cutoff_radius) {
 #ifdef ACCELERATE_ENABLED
     ARCH_PREFIX(ARCH_NAME, eam_df_calc)(pot, atoms, cutoff_radius);
 #endif
@@ -53,7 +53,7 @@ inline void accelerateEamDfCalc(eam *pot, AtomElement *atoms, const double cutof
 /**
  * accelerate for calculating force in computing eam potential.
  */
-inline void accelerateEamForceCalc(eam *pot, AtomElement *atoms, const double cutoff_radius) {
+inline void archAccEamForceCalc(eam *pot, AtomElement *atoms, const double cutoff_radius) {
 #ifdef ACCELERATE_ENABLED
     ARCH_PREFIX(ARCH_NAME, eam_force_calc)(pot, atoms, cutoff_radius);
 #endif
