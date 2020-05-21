@@ -16,11 +16,7 @@ atom::atom(comm::BccDomain *domain)
                   domain->ghost_extended_lattice_size,
                   domain->sub_box_lattice_size,
                   domain->lattice_size_ghost),
-          p_domain(domain) {
-    if (isArchAccSupport()) {
-        archAccInitDomain(p_domain);
-    }
-}
+          p_domain(domain) {}
 
 int atom::decide() {
     inter_atom_list->clearGhost();

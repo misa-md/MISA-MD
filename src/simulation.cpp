@@ -48,6 +48,10 @@ void simulation::createDomain(const int64_t phase_space[DIMENSION],
     kiwi::mpiUtils::onGlobalCommChanged(new_comm); // set new domain.
     MPIDomain::sim_processor = kiwi::mpiUtils::global_process;
 
+    // init domain for architectures calculation.
+    if (isArchAccSupport()) {
+        archAccDomainInit(_p_domain);
+    }
     kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initialization done.\n");
 }
 

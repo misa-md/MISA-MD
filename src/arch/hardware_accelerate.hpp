@@ -20,11 +20,11 @@ inline bool isArchAccSupport() {
 #endif
 }
 
-// initialize domain for hardware accelerate.
+// callback function for hardware acceleration when domain is created.
 // about const &, see: https://stackoverflow.com/questions/9637856/why-is-const-int-faster-than-const-int/9637951#9637951
-inline void archAccInitDomain(const comm::BccDomain *domain) {
+inline void archAccDomainInit(const comm::BccDomain *domain) {
 #ifdef ACCELERATE_ENABLED
-    ARCH_PREFIX(ARCH_NAME, accelerate_init)(domain);
+    ARCH_PREFIX(ARCH_NAME, domain_init)(domain);
 #endif
 }
 

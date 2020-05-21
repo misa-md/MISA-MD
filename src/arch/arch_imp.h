@@ -18,7 +18,7 @@ void ARCH_PREFIX(ARCH_NAME, env_init)();
 
 void ARCH_PREFIX(ARCH_NAME, env_clean)();
 
-void ARCH_PREFIX(ARCH_NAME, accelerate_init)(const comm::BccDomain *domain);
+void ARCH_PREFIX(ARCH_NAME, domain_init)(const comm::BccDomain *domain);
 
 void ARCH_PREFIX(ARCH_NAME, pot_init)(eam *_pot);
 
