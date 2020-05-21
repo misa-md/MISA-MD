@@ -9,12 +9,15 @@
 - **pkg:** upgrade pkg.yaml file to version 2
 
 ### Docs
+- **changelog:** changlog for hotfix of "wrong parameters passing to func simulation::createAtoms"
 - **changelog:** add changelog for hotfix of `MD_` prefix of cmake variables
 - **changelog:** update changelog for v0.4.0
 - **changelog:** add commit types of "build" and "improvement" to CHANGELOG.md file
 
 ### Fix
 - **cmake:** add missing `_MD` prefix to cmake variabls in arch/arch_configure.cmake file
+- **config:** fix empty value of term `creation.create_t_set` in example/config.yaml file
+- **simulation:** fix wrong parameters passing (tset and create seed) to func simulation::createAtoms
 
 ### Improvement
 - **eam:** remove unnecessary temporary variables in eam computing
