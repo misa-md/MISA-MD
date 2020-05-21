@@ -6,9 +6,11 @@
 #define CRYSTAL_MD_HARDWARE_ACCELERATE_H
 
 #include <eam.h>
-#include "atom/atom_element.h"
-#include "arch_building_config.h"
+#include <comm/domain/bcc_domain.h>
 
+#include "atom/atom_element.h"
+#include "atom/neighbour_index.h"
+#include "arch_building_config.h"
 #include "arch_imp.h"
 
 // check whether it has accelerate hardware to be used, for example GPU, MIC(Xeon Phi), or sunway slave cores.
@@ -25,6 +27,13 @@ inline bool isArchAccSupport() {
 inline void archAccDomainInit(const comm::BccDomain *domain) {
 #ifdef ACCELERATE_ENABLED
     ARCH_PREFIX(ARCH_NAME, domain_init)(domain);
+#endif
+}
+
+// callback function for acceleration, when neighbor offset indexes are created.
+inline void archAccNeiOffsetInit(const NeighbourIndex<AtomElement> *nei_offset) {
+#ifdef ACCELERATE_ENABLED
+    ARCH_PREFIX(ARCH_NAME, nei_offset_init)(nei_offset);
 #endif
 }
 

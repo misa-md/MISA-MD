@@ -8,6 +8,8 @@
 #include <comm/domain/region.hpp>
 #include "neighbour_iterator.h"
 #include "atom_list.h"
+#include "arch/arch_macros.h"
+#include "arch/arch_imp.h"
 
 /**
  * NeighbourIndex stores the relative index of atoms in BCC box.
@@ -16,6 +18,11 @@
 template<class T>
 class NeighbourIndex {
     friend class iterator;
+
+#ifdef ACCELERATE_ENABLED
+    // friend function for accessing protected members in arch api: ${ARCH_NAME}_nei_offset_init.
+    friend void ARCH_PREFIX(ARCH_NAME, nei_offset_init)(const NeighbourIndex<T> *);
+#endif
 
 public:
     typedef NeiIterator<T, T &, T *> iterator;

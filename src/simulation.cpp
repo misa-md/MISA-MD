@@ -63,6 +63,10 @@ void simulation::createAtoms(const int64_t phase_space[DIMENSION], const double 
     // establish index offset for neighbour.
     _atom->calcNeighbourIndices(_p_domain->cutoff_radius_factor, _p_domain->cut_lattice);
 
+    // init domain and neighbor offset indexes for architectures calculation.
+    if (isArchAccSupport()) {
+        archAccNeiOffsetInit(_atom->getNeiOffsets());
+    }
     if (create_mode) {  //创建原子坐标、速度信息
         WorldBuilder mWorldBuilder;
         mWorldBuilder.setDomain(_p_domain)
