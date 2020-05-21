@@ -2,8 +2,8 @@
 ## [Unreleased]
 
 
-<a name="v0.4.0"></a>
-## [v0.4.0] - 2020-04-27
+<a name="v0.4.0-beta.4"></a>
+## [v0.4.0-beta.4] - 2020-05-21
 ### Build
 - **cmake:** add `MD_` prefix to variable names of cmake options
 - **pkg:** upgrade pkg.yaml file to version 2
@@ -436,8 +436,8 @@ config Term collision_v have been removed.
 <a name="v0.1.0"></a>
 ## v0.1.0 - 2017-11-17
 
-[Unreleased]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0...HEAD
-[v0.4.0]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0-beta.3...v0.4.0
+[Unreleased]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0-beta.4...HEAD
+[v0.4.0-beta.4]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0-beta.3...v0.4.0-beta.4
 [v0.4.0-beta.3]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0-beta.2...v0.4.0-beta.3
 [v0.4.0-beta.2]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0-beta...v0.4.0-beta.2
 [v0.4.0-beta]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.3.4...v0.4.0-beta
