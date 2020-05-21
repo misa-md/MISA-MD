@@ -23,7 +23,7 @@ potential: # potential file config
 creation: # read atoms information from file or create atoms.
   create_phase: true  # boolean type. true: create atoms,false: read atoms.
   create_seed: 466953 # int type, for create mode
-  create_t_set: # temperature double type, for creation mode
+  create_t_set: 600 # temperature double type, for creation mode
   alloy: # types of alloy
     create_seed: 1024 # random seek for creating atoms in Fe-Cu-Ni alloy material.
     ratio: # all integer type. # Fe:Cu:Ni = 95:2:3
