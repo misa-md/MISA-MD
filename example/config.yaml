@@ -1,7 +1,7 @@
-# <a href='https://yaml.org'>yaml</a> configure file for Crystal-MD application,
+# <a href='https://yaml.org'>yaml</a> configure file for MISA-MD application,
 # writen by <a href='mailto:genshenchu@gmail.com'>genshen</a>"
 
-title: "Crystal-MD Configure File"
+title: "MISA-MD Configure File"
 version: "0.4.0"
 contributors:
   original_author: "BaiHe"
@@ -35,8 +35,8 @@ creation: # read atoms information from file or create atoms.
 output:
   dump:
     atoms_dump_mode: "copy" # output mode,string, "copy"(copy all atoms to memory and then output) or "direct" (output atoms directly) ;
-    atoms_dump_file_path: "crystal_mdl.{}.out" # string,filename or path of dumped atoms, default value is "crystal_md.out"
-    origin_dump_path: "crystal_mdl.origin.out" # string,filename or path of dumped origin atoms before collision. Leave it empty for skipping dumping
+    atoms_dump_file_path: "misa_mdl.{}.out" # string,filename or path of dumped atoms, default value is "misa_mdl.out"
+    origin_dump_path: "misa_mdl.origin.out" # string,filename or path of dumped origin atoms before collision. Leave it empty for skipping dumping
     atoms_dump_interval: 10
     by_frame: true # bool type, used in copy mode, dump to mulpile file, one file for each frame.
   thermo:

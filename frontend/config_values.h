@@ -21,8 +21,8 @@ enum OutputMode {
 #define LOGS_MODE_CONSOLE_STRING "console"
 #define LOGS_MODE_FILE_STRING "file"
 #define DEFAULT_LOGS_MODE_CONSOLE_STRING LOGS_MODE_CONSOLE_STRING
-#define DEFAULT_OUTPUT_DUMP_FILE_PATH "crystal_md.out"
-#define ORIGIN_OUTPUT_DUMP_FILE_PATH "origin_crystal_md.out"
+#define DEFAULT_OUTPUT_DUMP_FILE_PATH "misa_mdl.out"
+#define ORIGIN_OUTPUT_DUMP_FILE_PATH "origin_misa_mdl.out"
 
 typedef short _type_logs_mode;
 

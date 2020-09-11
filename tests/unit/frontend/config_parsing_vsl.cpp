@@ -32,8 +32,8 @@ creation:
 output:
   dump:
     atoms_dump_mode: "copy"
-    atoms_dump_file_path: "crystal_mdl.{}.out"
-    origin_dump_path: "crystal_mdl.origin.out"
+    atoms_dump_file_path: "misa_mdl.{}.out"
+    origin_dump_path: "misa_mdl.origin.out"
     atoms_dump_interval: 10
     by_frame: true
   thermo:
