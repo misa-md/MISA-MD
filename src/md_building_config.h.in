@@ -20,4 +20,13 @@
 #cmakedefine RAND_LEGACY
 #cmakedefine RAND_LINUX_REAL
 
+// core configurations
+#define LAT_CUTOFF 0.5
+namespace config {
+    /**
+     * lattice cutoff.
+     */
+    const double nei_lat_cutoff = LAT_CUTOFF;
+}
+
 #endif //CRYSTAL_MD_PRE_CONFIG_H
