@@ -10,7 +10,7 @@
 #include "simulation.h"
 #include "config_parser.h"
 
-class crystalMD : public kiwi::kiwiApp {
+class MISAMD : public kiwi::kiwiApp {
 
 public:
 
