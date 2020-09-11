@@ -2,6 +2,30 @@
 ## [Unreleased]
 
 
+<a name="v0.4.0"></a>
+## [v0.4.0] - 2020-09-11
+### Ci
+- **gitlab-ci:** setup gitlab-ci for pkg version 0.4.x
+
+### Docs
+- **changelog:** update changelog for v0.4.0
+
+### Feat
+- **arch:** add a new arch func ${ARCH_NAME}_nei_offset_init to init neighbor offset on device side
+
+### Refactor
+- **arch:** change func signature of archAccDomainInit, and move its call to class simulation
+- **arch:** rename signature of architecture acceleration functions that called at host side
+- **arch:** pass higher-level potential and domain parameters into arch acceleration api
+- **neighbor:** make neighbor offset range radius configurable
+
+### BREAKING CHANGE
+
+the arch of initializing domain has changed: ${ARCH_NAME}_accelerate_init -> ${ARCH_NAME}_domain_init.
+
+the arch api has changed.
+
+
 <a name="v0.4.0-beta.4"></a>
 ## [v0.4.0-beta.4] - 2020-05-21
 ### Build
@@ -439,7 +463,8 @@ config Term collision_v have been removed.
 <a name="v0.1.0"></a>
 ## v0.1.0 - 2017-11-17
 
-[Unreleased]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0-beta.4...HEAD
+[Unreleased]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0...HEAD
+[v0.4.0]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0-beta.4...v0.4.0
 [v0.4.0-beta.4]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0-beta.3...v0.4.0-beta.4
 [v0.4.0-beta.3]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0-beta.2...v0.4.0-beta.3
 [v0.4.0-beta.2]: https://git.hpcer.dev/HPCer/CrystalMD/CrystalMD/compare/v0.4.0-beta...v0.4.0-beta.2
