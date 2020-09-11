@@ -2,8 +2,8 @@
 // Created by genshen on 2019-06-10.
 //
 
-#ifndef CRYSTALMD_MD_SIMULATION_H
-#define CRYSTALMD_MD_SIMULATION_H
+#ifndef MISA_MD_MD_SIMULATION_H
+#define MISA_MD_MD_SIMULATION_H
 
 
 #include <simulation.h>
@@ -84,4 +84,4 @@ private:
 };
 
 
-#endif //CRYSTALMD_MD_SIMULATION_H
+#endif //MISA_MD_MD_SIMULATION_H

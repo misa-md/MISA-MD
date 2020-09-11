@@ -2,8 +2,8 @@
 // Created by genshen on 2019-07-29.
 //
 
-#ifndef CRYSTALMD_OUTPUT_DUMP_H
-#define CRYSTALMD_OUTPUT_DUMP_H
+#ifndef MISA_MD_OUTPUT_DUMP_H
+#define MISA_MD_OUTPUT_DUMP_H
 
 #include "atom/atom_list.h"
 #include "atom/inter_atom_list.h"
@@ -52,4 +52,4 @@ protected:
     static void dump(const unsigned long time_step, AtomList *atom_list, InterAtomList *inter_atom_list);
 };
 
-#endif //CRYSTALMD_OUTPUT_DUMP_H
+#endif //MISA_MD_OUTPUT_DUMP_H

@@ -2,8 +2,8 @@
 // Created by genshen on 2019-03-17.
 //
 
-#ifndef CRYSTALMD_LAT_PARTICLE_PACKER_H
-#define CRYSTALMD_LAT_PARTICLE_PACKER_H
+#ifndef MISA_MD_LAT_PARTICLE_PACKER_H
+#define MISA_MD_LAT_PARTICLE_PACKER_H
 
 #include <vector>
 #include <comm/packer.h>
@@ -73,4 +73,4 @@ public:
 };
 
 
-#endif //CRYSTALMD_LAT_PARTICLE_PACKER_H
+#endif //MISA_MD_LAT_PARTICLE_PACKER_H

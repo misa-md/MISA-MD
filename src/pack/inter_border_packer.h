@@ -2,8 +2,8 @@
 // Created by genshen on 2019-03-17.
 //
 
-#ifndef CRYSTALMD_INTER_BORDER_PACKER_H
-#define CRYSTALMD_INTER_BORDER_PACKER_H
+#ifndef MISA_MD_INTER_BORDER_PACKER_H
+#define MISA_MD_INTER_BORDER_PACKER_H
 
 
 #include <comm/packer.h>
@@ -44,4 +44,4 @@ private:
 };
 
 
-#endif //CRYSTALMD_INTER_BORDER_PACKER_H
+#endif //MISA_MD_INTER_BORDER_PACKER_H
