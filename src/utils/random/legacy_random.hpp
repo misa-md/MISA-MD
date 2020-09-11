@@ -2,8 +2,8 @@
 // Created by genshen on 2019/10/1.
 //
 
-#ifndef CRYSTAL_MD_LEGACY_RANDOM_HPP
-#define CRYSTAL_MD_LEGACY_RANDOM_HPP
+#ifndef MISA_MD_LEGACY_RANDOM_HPP
+#define MISA_MD_LEGACY_RANDOM_HPP
 
 namespace md_rand {
     class LegacyRand {
@@ -42,4 +42,4 @@ namespace md_rand {
     };
 }
 
-#endif //CRYSTAL_MD_LEGACY_RANDOM_HPP
+#endif //MISA_MD_LEGACY_RANDOM_HPP

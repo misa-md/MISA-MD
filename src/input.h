@@ -2,8 +2,8 @@
 // Created by baihe back to 2015-08-17.
 //
 
-#ifndef CRYSTAL_MD_INPUT_H
-#define CRYSTAL_MD_INPUT_H
+#ifndef MISA_MD_INPUT_H
+#define MISA_MD_INPUT_H
 
 #include <string>
 #include <fstream>
@@ -25,4 +25,4 @@ private:
     std::fstream _phaseSpaceHeaderFileStream;
 };
 
-#endif //CRYSTAL_MD_INPUT_H
+#endif //MISA_MD_INPUT_H

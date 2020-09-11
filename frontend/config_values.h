@@ -2,8 +2,8 @@
 // Created by genshen(genshenchu@gmail.com) on 2018-3-9.
 //
 
-#ifndef CRYSTAL_MD_CONFIG_VALUES_H
-#define CRYSTAL_MD_CONFIG_VALUES_H
+#ifndef MISA_MD_CONFIG_VALUES_H
+#define MISA_MD_CONFIG_VALUES_H
 
 #include <string>
 #include <vector>
@@ -109,4 +109,4 @@ public:
 };
 
 
-#endif //CRYSTAL_MD_CONFIG_VALUES_H
+#endif //MISA_MD_CONFIG_VALUES_H

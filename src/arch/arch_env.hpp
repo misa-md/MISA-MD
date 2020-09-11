@@ -2,8 +2,8 @@
 // Created by genshen on 2018-3-4.
 //
 
-#ifndef CRYSTAL_MD_ARCH_H
-#define CRYSTAL_MD_ARCH_H
+#ifndef MISA_MD_ARCH_H
+#define MISA_MD_ARCH_H
 
 #include <iostream>
 #include "arch_building_config.h"
@@ -24,4 +24,4 @@ void archEnvFinalize() {
 #endif
 }
 
-#endif //CRYSTAL_MD_ARCH_H
+#endif //MISA_MD_ARCH_H

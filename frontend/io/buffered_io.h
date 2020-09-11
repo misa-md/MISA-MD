@@ -2,8 +2,8 @@
 // Created by genshen on 2019-07-25.
 //
 
-#ifndef CRYSTAL_MD_BUFFERED_FILE_WRITER_H
-#define CRYSTAL_MD_BUFFERED_FILE_WRITER_H
+#ifndef MISA_MD_BUFFERED_FILE_WRITER_H
+#define MISA_MD_BUFFERED_FILE_WRITER_H
 
 
 #include <mpi.h>
@@ -76,4 +76,4 @@ private:
 };
 
 
-#endif //CRYSTAL_MD_BUFFERED_FILE_WRITER_H
+#endif //MISA_MD_BUFFERED_FILE_WRITER_H

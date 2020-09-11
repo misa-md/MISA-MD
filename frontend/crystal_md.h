@@ -2,8 +2,8 @@
 // Created by gensh(genshenchu@gmail.com) on 2017/10/19.
 //
 
-#ifndef CRYSTAL_MD_H
-#define CRYSTAL_MD_H
+#ifndef MISA_MD_H
+#define MISA_MD_H
 
 #include <kiwi_app.h>
 
@@ -53,4 +53,4 @@ private:
 
 };
 
-#endif //CRYSTAL_MD_H
+#endif //MISA_MD_H

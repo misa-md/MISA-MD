@@ -2,8 +2,8 @@
 // Created by genshen on 5/7/18.
 //
 
-#ifndef CRYSTAL_MD_ATOM_ELEMENT_H
-#define CRYSTAL_MD_ATOM_ELEMENT_H
+#ifndef MISA_MD_ATOM_ELEMENT_H
+#define MISA_MD_ATOM_ELEMENT_H
 
 
 #include "../types/pre_define.h"
@@ -40,4 +40,4 @@ public:
 
 };
 
-#endif //CRYSTAL_MD_ATOM_ELEMENT_H
+#endif //MISA_MD_ATOM_ELEMENT_H

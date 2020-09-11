@@ -2,8 +2,8 @@
 // Created by genshen on 2019-04-11.
 //
 
-#ifndef CRYSTAL_MD_NEIGHBOUR_ITERATOR_H
-#define CRYSTAL_MD_NEIGHBOUR_ITERATOR_H
+#ifndef MISA_MD_NEIGHBOUR_ITERATOR_H
+#define MISA_MD_NEIGHBOUR_ITERATOR_H
 
 #include <iterator>
 #include <cstddef>
@@ -96,4 +96,4 @@ protected:
 #include "neighbour_iterator.inl"
 
 
-#endif //CRYSTAL_MD_NEIGHBOUR_ITERATOR_H
+#endif //MISA_MD_NEIGHBOUR_ITERATOR_H

@@ -2,8 +2,8 @@
 // Created by genshen on 9/6/18.
 //
 
-#ifndef CRYSTAL_MD_SIMULATION_DOMAIN_H
-#define CRYSTAL_MD_SIMULATION_DOMAIN_H
+#ifndef MISA_MD_SIMULATION_DOMAIN_H
+#define MISA_MD_SIMULATION_DOMAIN_H
 
 #include <utils/mpi_utils.h>
 #include <comm/types_define.h>
@@ -28,4 +28,4 @@ struct MPIDomain {
 };
 
 
-#endif //CRYSTAL_MD_SIMULATION_DOMAIN_H
+#endif //MISA_MD_SIMULATION_DOMAIN_H

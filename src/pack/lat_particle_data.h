@@ -2,8 +2,8 @@
 // Created by baihe back to 2016-06-28.
 //
 
-#ifndef CRYSTAL_MD_LAT_PARTICLE_DATA_H
-#define CRYSTAL_MD_LAT_PARTICLE_DATA_H
+#ifndef MISA_MD_LAT_PARTICLE_DATA_H
+#define MISA_MD_LAT_PARTICLE_DATA_H
 
 #include <mpi.h>
 #include "../types/atom_types.h"
@@ -19,4 +19,4 @@ public:
     double r[3];
 };
 
-#endif //CRYSTAL_MD_LAT_PARTICLE_DATA_H
+#endif //MISA_MD_LAT_PARTICLE_DATA_H

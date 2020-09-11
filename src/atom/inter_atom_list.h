@@ -2,8 +2,8 @@
 // Created by genshen on 2018-05-19.
 //
 
-#ifndef CRYSTAL_MD_INTER_ATOM_LIST_H
-#define CRYSTAL_MD_INTER_ATOM_LIST_H
+#ifndef MISA_MD_INTER_ATOM_LIST_H
+#define MISA_MD_INTER_ATOM_LIST_H
 
 #include <vector>
 #include <list>
@@ -80,4 +80,4 @@ public:
 };
 
 
-#endif //CRYSTAL_MD_INTER_ATOM_LIST_H
+#endif //MISA_MD_INTER_ATOM_LIST_H
