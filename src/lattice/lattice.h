@@ -22,6 +22,7 @@ public:
      *
      * initialize atom lattice with the size of atoms(including ghost atoms).
      * @param size_x,size_y,size_z the atoms count each dimension(including ghost atoms).
+     * @param size_sub_box_x,size_sub_box_y,size_sub_box_z the atoms count each dimension(without ghost regions).
      * @param ghost_count_x,ghost_count_y, ghost_count_z the count of ghost atoms at left or right of each dimension.
      * (in fact left and right has same count of ghost atoms)
      * @note the size at x dimension is doubled (including @param size_x,ghost_count_x).

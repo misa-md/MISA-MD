@@ -34,7 +34,8 @@ public:
     explicit NeighbourIndex(AtomList &atom_list);
 
     /**
-     * create neighbour index list.
+     * It record neighbor lattices that has interactions with the central lattice,
+     * and store it in neighbour index list.
      * @param cut_lattice the cutoff radius of neighbour lattices in lattice size.
      * @param cutoff_radius_factor the cutoff radius, it muse be less then @param cut_lattice.
      * @note the size_x is normal lattice size, which is not doubled due to the data structure..
