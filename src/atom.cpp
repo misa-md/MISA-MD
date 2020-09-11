@@ -16,22 +16,7 @@ atom::atom(comm::BccDomain *domain)
                   domain->ghost_extended_lattice_size,
                   domain->sub_box_lattice_size,
                   domain->lattice_size_ghost),
-          p_domain(domain) {
-    if (isAccelerateSupport()) {
-        accelerateInit(p_domain->dbx_sub_box_lattice_region.x_low,
-                       p_domain->dbx_sub_box_lattice_region.y_low,
-                       p_domain->dbx_sub_box_lattice_region.z_low,
-                       p_domain->dbx_sub_box_lattice_size[0],
-                       p_domain->dbx_sub_box_lattice_size[1],
-                       p_domain->dbx_sub_box_lattice_size[2],
-                       p_domain->dbx_ghost_ext_lattice_region.x_low,
-                       p_domain->dbx_ghost_ext_lattice_region.y_low,
-                       p_domain->dbx_ghost_ext_lattice_region.z_low,
-                       p_domain->dbx_ghost_extended_lattice_size[0],
-                       p_domain->dbx_ghost_extended_lattice_size[1],
-                       p_domain->dbx_ghost_extended_lattice_size[2]);
-    }
-}
+          p_domain(domain) {}
 
 int atom::decide() {
     inter_atom_list->clearGhost();
@@ -171,10 +156,8 @@ void atom::latRho(eam *pot) {
     const int zstart = p_domain->dbx_lattice_size_ghost[2];
 
     // 本地晶格点上的原子计算电子云密度
-    if (isAccelerateSupport()) {
-        InterpolationObject *rho_spline = pot->electron_density.getEamItemByType(26); // todo only Fe
-        accelerateEamRhoCalc(&(rho_spline->n), atom_list->_atoms, &_cutoffRadius,
-                             &(rho_spline->invDx), rho_spline->values); // fixme
+    if (isArchAccSupport()) {
+        archAccEamRhoCalc(pot, atom_list->_atoms, _cutoffRadius); // fixme
     } else { // calculate electron density use cpu only.
         for (int k = zstart; k < p_domain->dbx_sub_box_lattice_size[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_sub_box_lattice_size[1] + ystart; j++) {
@@ -307,10 +290,8 @@ void atom::latDf(eam *pot) {
     const int zstart = p_domain->dbx_lattice_size_ghost[2];
 
     //本地晶格点计算嵌入能导数
-    if (isAccelerateSupport()) {
-        InterpolationObject *f_spline = pot->embedded.getEamItemByType(26);  // todo only Fe
-        accelerateEamDfCalc(&(f_spline->n), atom_list->_atoms, &_cutoffRadius,
-                            &(f_spline->invDx), f_spline->values);    // fixme
+    if (isArchAccSupport()) {
+        archAccEamDfCalc(pot, atom_list->_atoms, _cutoffRadius);    // fixme
     } else {
         for (int k = zstart; k < p_domain->dbx_sub_box_lattice_size[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_sub_box_lattice_size[1] + ystart; j++) {
@@ -336,11 +317,8 @@ void atom::latForce(eam *pot) {
     const int ystart = p_domain->dbx_lattice_size_ghost[1];
     const int zstart = p_domain->dbx_lattice_size_ghost[2];
 
-    if (isAccelerateSupport()) {
-        InterpolationObject *phi_spline = pot->eam_phi.getPhiByEamPhiByType(26, 26);  // todo only Fe
-        InterpolationObject *rho_spline = pot->electron_density.getEamItemByType(26);
-        accelerateEamForceCalc(&(phi_spline->n), atom_list->_atoms, &_cutoffRadius,
-                               &(phi_spline->invDx), phi_spline->values, rho_spline->values);
+    if (isArchAccSupport()) {
+        archAccEamForceCalc(pot, atom_list->_atoms, _cutoffRadius);
     } else {
         for (int k = zstart; k < p_domain->dbx_sub_box_lattice_size[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_sub_box_lattice_size[1] + ystart; j++) {
@@ -376,7 +354,7 @@ void atom::latForce(eam *pot) {
                 }
             }
         }
-    } // end of if-isAccelerateSupport.
+    } // end of if-isArchAccSupport.
 }
 
 void atom::interForce(eam *pot) {

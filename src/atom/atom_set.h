@@ -71,6 +71,10 @@ public:
 
 #endif
 
+    inline NeighbourIndex<AtomElement> *getNeiOffsets() {
+        return neighbours;
+    }
+
 public:
     AtomList *atom_list;
     InterAtomList *inter_atom_list;

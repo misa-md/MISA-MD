@@ -6,13 +6,15 @@
 #define CRYSTAL_MD_HARDWARE_ACCELERATE_H
 
 #include <eam.h>
-#include "atom/atom_element.h"
-#include "arch_building_config.h"
+#include <comm/domain/bcc_domain.h>
 
+#include "atom/atom_element.h"
+#include "atom/neighbour_index.h"
+#include "arch_building_config.h"
 #include "arch_imp.h"
 
 // check whether it has accelerate hardware to be used, for example GPU, MIC(Xeon Phi), or sunway slave cores.
-inline bool isAccelerateSupport() {
+inline bool isArchAccSupport() {
 #ifdef ACCELERATE_ENABLED
     return true; // sunway and other hardware.
 #else
@@ -20,50 +22,49 @@ inline bool isAccelerateSupport() {
 #endif
 }
 
-// initial for hardware accelerate.
+// callback function for hardware acceleration when domain is created.
 // about const &, see: https://stackoverflow.com/questions/9637856/why-is-const-int-faster-than-const-int/9637951#9637951
-inline void accelerateInit(const int lolocalx, const int lolocaly, const int lolocalz,
-                           const int nlocalx, const int nlocaly, const int nlocalz,
-                           const int loghostx, const int loghosty, const int loghostz,
-                           const int nghostx, const int nghosty, const int nghostz) {
+inline void archAccDomainInit(const comm::BccDomain *domain) {
 #ifdef ACCELERATE_ENABLED
-    ARCH_PREFIX(ARCH_NAME, accelerate_init)(lolocalx, lolocaly, lolocalz, nlocalx, nlocaly, nlocalz,
-                                            loghostx, loghosty, loghostz, nghostx, nghosty, nghostz);
+    ARCH_PREFIX(ARCH_NAME, domain_init)(domain);
+#endif
+}
+
+// callback function for acceleration, when neighbor offset indexes are created.
+inline void archAccNeiOffsetInit(const NeighbourIndex<AtomElement> *nei_offset) {
+#ifdef ACCELERATE_ENABLED
+    ARCH_PREFIX(ARCH_NAME, nei_offset_init)(nei_offset);
 #endif
 }
 
 // it runs after atom and boxes creation, but before simulation running.
-inline void beforeAccelerateRun(eam *_pot) {
+// which can initialize potential on device side.
+inline void archAccPotInit(eam *_pot) {
 #ifdef ACCELERATE_ENABLED
-    // ARCH_PREFIX(ARCH_NAME, pot_init)(_pot->electron_density->spline, _pot->f->spline, _pot->phi->spline);
+    ARCH_PREFIX(ARCH_NAME, pot_init)(_pot);
 #endif
 }
 
 // accelerate for calculating electron_density in computing eam potential.
-inline void accelerateEamRhoCalc(int *rho_n, AtomElement *atoms, double *cutoffRadius,
-                                 double *rhoInvDx, double *rhoSplineValues) {
+inline void archAccEamRhoCalc(eam *pot, AtomElement *atoms, const double cutoff_radius) {
 #ifdef ACCELERATE_ENABLED
-    ARCH_PREFIX(ARCH_NAME, eam_rho_calc)(rho_n, atoms, cutoffRadius, rhoInvDx, rhoSplineValues);
+    ARCH_PREFIX(ARCH_NAME, eam_rho_calc)(pot, atoms, cutoff_radius);
 #endif
 }
 
 // accelerate for calculating df in computing eam potential.
-inline void accelerateEamDfCalc(int *df_n, AtomElement *atoms, double *cutoffRadius,
-                                double *dfSplineInvDx, double *dfSplineValues) {
+inline void archAccEamDfCalc(eam *pot, AtomElement *atoms, const double cutoff_radius) {
 #ifdef ACCELERATE_ENABLED
-    ARCH_PREFIX(ARCH_NAME, eam_df_calc)(df_n, atoms, cutoffRadius, dfSplineInvDx, dfSplineValues);
+    ARCH_PREFIX(ARCH_NAME, eam_df_calc)(pot, atoms, cutoff_radius);
 #endif
 }
 
 /**
  * accelerate for calculating force in computing eam potential.
- * // fixme many atom types.
  */
-inline void accelerateEamForceCalc(int *phi_n, AtomElement *atoms,
-                                   double *cutoffRadius, double *phiSplineInvDx,
-                                   double *phiSplineValues, double *rhoSplineValues) {
+inline void archAccEamForceCalc(eam *pot, AtomElement *atoms, const double cutoff_radius) {
 #ifdef ACCELERATE_ENABLED
-    ARCH_PREFIX(ARCH_NAME, eam_force_calc)(phi_n, atoms, cutoffRadius, phiSplineInvDx, phiSplineValues, rhoSplineValues);
+    ARCH_PREFIX(ARCH_NAME, eam_force_calc)(pot, atoms, cutoff_radius);
 #endif
 }
 

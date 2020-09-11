@@ -42,5 +42,6 @@ set(ARCH_FILES
         ${CURRENT_ARCH_SOURCE_DIR}/arch_building_config.h
         ${CURRENT_ARCH_SOURCE_DIR}/arch_env.hpp
         ${CURRENT_ARCH_SOURCE_DIR}/arch_imp.h
+        ${CURRENT_ARCH_SOURCE_DIR}/arch_macros.h
         ${CURRENT_ARCH_SOURCE_DIR}/hardware_accelerate.hpp
         )
