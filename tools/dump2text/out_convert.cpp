@@ -44,7 +44,7 @@ std::string getNameByEleName(int type);
 box_por getSystemConst();
 
 /**
- * this file convert binary output file of CrystalMD program to readable txt format.
+ * this file convert binary output file of MISA-MD program to readable txt format.
  * usage: ./conv -f [input_filename] -o [output_filename]
  * @param argc count of argv string.
  * @param argv example "-f md.out -o md.out.txt"

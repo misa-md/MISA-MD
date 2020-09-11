@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
-project(CrystalMD)
+project(MISA-MD)
 
 set(CMAKE_CXX_STANDARD 11)
 

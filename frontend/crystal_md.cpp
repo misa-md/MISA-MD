@@ -17,7 +17,7 @@
 bool crystalMD::beforeCreate(int argc, char *argv[]) {
     // parser arguments
     // see https://github.com/Taywee/args for using args.
-    args::ArgumentParser parser("This is CrystalMD program.", "authors:BaiHe.");
+    args::ArgumentParser parser("This is MISA-MD program.", "authors:BaiHe.");
     args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
     args::ValueFlag<std::string> conf(parser, "conf", "The configure file", {'c', "conf"});
     args::Flag version(parser, "version", "show version number", {'v', "version"});
@@ -47,7 +47,7 @@ bool crystalMD::beforeCreate(int argc, char *argv[]) {
     }
 
     if (version) {
-        std::cout << "Crystal MD version " << MD_VERSION_STRING << std::endl;
+        std::cout << "MISA-MD version " << MD_VERSION_STRING << std::endl;
         std::cout << "Build time: " << __TIME__ << " " << __DATE__ << "." << std::endl;
         return false;
     }
