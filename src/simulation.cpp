@@ -48,6 +48,10 @@ void simulation::createDomain(const int64_t phase_space[DIMENSION],
     kiwi::mpiUtils::onGlobalCommChanged(new_comm); // set new domain.
     MPIDomain::sim_processor = kiwi::mpiUtils::global_process;
 
+    // init domain for architectures calculation.
+    if (isArchAccSupport()) {
+        archAccDomainInit(_p_domain);
+    }
     kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initialization done.\n");
 }
 
@@ -59,6 +63,10 @@ void simulation::createAtoms(const int64_t phase_space[DIMENSION], const double 
     // establish index offset for neighbour.
     _atom->calcNeighbourIndices(_p_domain->cutoff_radius_factor, _p_domain->cut_lattice);
 
+    // init domain and neighbor offset indexes for architectures calculation.
+    if (isArchAccSupport()) {
+        archAccNeiOffsetInit(_atom->getNeiOffsets());
+    }
     if (create_mode) {  //创建原子坐标、速度信息
         WorldBuilder mWorldBuilder;
         mWorldBuilder.setDomain(_p_domain)
@@ -122,7 +130,7 @@ void simulation::prepareForStart(const std::string pot_file_path) {
                    MPIDomain::sim_processor.comm);
     _pot->interpolateFile(); // interpolation.
 
-    beforeAccelerateRun(_pot); // it runs after atom and boxes creation, but before simulation running.
+    archAccPotInit(_pot); // it runs after atom and boxes creation, but before simulation running.
 
     starttime = MPI_Wtime();
     // todo make _cut_lattice a member of class AtomList

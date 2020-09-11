@@ -2,6 +2,7 @@
 // Created by genshen on 2019-04-11.
 //
 #include <cassert>
+#include "../md_building_config.h"
 
 template<class T>
 NeighbourIndex<T>::NeighbourIndex(AtomList &atom_list)
@@ -11,13 +12,15 @@ NeighbourIndex<T>::NeighbourIndex(AtomList &atom_list)
 template<class T>
 void NeighbourIndex<T>::make(const _type_lattice_size cut_lattice,
                              const double cutoff_radius_factor) {
-    const double cutoff_lat_factor = cutoff_radius_factor + 1.0 / 2 + 1.0 / 2;
+    // This is because the WS cell is inside a spherical surface with radius of half lattice const.
+    // Thus, let cutoff_lat_factor as traversal radius.
+    // (maybe some extra neighbor lattices are indexed.)
+    const double cutoff_lat_factor = cutoff_radius_factor + 2 * config::nei_lat_cutoff;
     // if x index of a particle is even (the particle is lattice point,晶格点).
     for (_type_atom_index zIndex = -cut_lattice - 1;
          zIndex <= cut_lattice + 1; zIndex++) { // loop for (2*_cutlattice + 1) times.
         for (_type_atom_index yIndex = -cut_lattice - 1; yIndex <= cut_lattice + 1; yIndex++) {
             for (_type_atom_index xIndex = -2 * cut_lattice - 2; xIndex <= 2 * cut_lattice + 2; xIndex++) {
-                // lattice neighbour points whose index is (2*Index,yIndex,zIndex).
                 double z = (double) zIndex + (((double) (xIndex % 2)) / 2); // zIndex plus 1/2 (odd) or 0(even).
                 double y = (double) yIndex + (((double) (xIndex % 2)) / 2);
                 double x = ((double) xIndex) / 2;
@@ -45,7 +48,6 @@ void NeighbourIndex<T>::make(const _type_lattice_size cut_lattice,
          zIndex <= cut_lattice + 1; zIndex++) { // loop for (2*_cutlattice + 1) times.
         for (_type_atom_index yIndex = -cut_lattice - 1; yIndex <= cut_lattice + 1; yIndex++) {
             for (_type_atom_index xIndex = -2 * cut_lattice - 2; xIndex <= 2 * cut_lattice + 2; xIndex++) {
-                // BCC body center neighbour points whose index is (2*Index,yIndex,zIndex).
                 double z = (double) zIndex - (((double) (xIndex % 2)) / 2);
                 double y = (double) yIndex - (((double) (xIndex % 2)) / 2);
                 double x = (double) xIndex / 2;

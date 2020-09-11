@@ -5,33 +5,30 @@
 #ifndef CRYSTALMD_ARCH_IMP_H
 #define CRYSTALMD_ARCH_IMP_H
 
-#include <eam.h>
-#include "atom/atom_element.h"
 #include "arch_building_config.h"
 
 #ifdef ACCELERATE_ENABLED
+#include <comm/domain/bcc_domain.h>
+#include <eam.h>
 
-#define _ARCH_PREFIX_(arch_name, func_name)   arch_name ## _ ## func_name
-#define ARCH_PREFIX(arch_name, func_name) _ARCH_PREFIX_(arch_name, func_name)
+#include "atom/atom_element.h"
+#include "atom/neighbour_index.h"
 
 void ARCH_PREFIX(ARCH_NAME, env_init)();
 
 void ARCH_PREFIX(ARCH_NAME, env_clean)();
 
-void ARCH_PREFIX(ARCH_NAME, accelerate_init)(const int lolocalx, const int lolocaly, const int lolocalz,
-                                             const int nlocalx, const int nlocaly, const int nlocalz,
-                                             const int loghostx, const int loghosty, const int loghostz,
-                                             const int nghostx, const int nghosty, const int nghostz);
+void ARCH_PREFIX(ARCH_NAME, domain_init)(const comm::BccDomain *domain);
 
-void ARCH_PREFIX(ARCH_NAME, eam_rho_calc)(int *rho_n, AtomElement *atoms, double *cutoffRadius,
-                                          double *rhoInvDx, double *rhoSplineValues);
+void ARCH_PREFIX(ARCH_NAME, nei_offset_init)(const NeighbourIndex<AtomElement> *nei_offset);
 
-void ARCH_PREFIX(ARCH_NAME, eam_df_calc)(int *df_n, AtomElement *atoms, double *cutoffRadius,
-                                         double *dfSplineInvDx, double *dfSplineValues);
+void ARCH_PREFIX(ARCH_NAME, pot_init)(eam *_pot);
 
-void ARCH_PREFIX(ARCH_NAME, eam_force_calc)(int *phi_n, AtomElement *atoms,
-                                            double *cutoffRadius, double *phiSplineInvDx,
-                                            double *phiSplineValues, double *rhoSplineValues);
+void ARCH_PREFIX(ARCH_NAME, eam_rho_calc)(eam *pot, AtomElement *atoms, const double cutoff_radius);
+
+void ARCH_PREFIX(ARCH_NAME, eam_df_calc)(eam *pot, AtomElement *atoms, const double cutoff_radius);
+
+void ARCH_PREFIX(ARCH_NAME, eam_force_calc)(eam *pot, AtomElement *atoms, const double cutoff_radius);
 
 #endif //ACCELERATE_ENABLED
 

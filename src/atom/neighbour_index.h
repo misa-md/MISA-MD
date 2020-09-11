@@ -8,6 +8,8 @@
 #include <comm/domain/region.hpp>
 #include "neighbour_iterator.h"
 #include "atom_list.h"
+#include "arch/arch_macros.h"
+#include "arch/arch_imp.h"
 
 /**
  * NeighbourIndex stores the relative index of atoms in BCC box.
@@ -16,6 +18,11 @@
 template<class T>
 class NeighbourIndex {
     friend class iterator;
+
+#ifdef ACCELERATE_ENABLED
+    // friend function for accessing protected members in arch api: ${ARCH_NAME}_nei_offset_init.
+    friend void ARCH_PREFIX(ARCH_NAME, nei_offset_init)(const NeighbourIndex<T> *);
+#endif
 
 public:
     typedef NeiIterator<T, T &, T *> iterator;
@@ -27,7 +34,8 @@ public:
     explicit NeighbourIndex(AtomList &atom_list);
 
     /**
-     * create neighbour index list.
+     * It record neighbor lattices that has interactions with the central lattice,
+     * and store it in neighbour index list.
      * @param cut_lattice the cutoff radius of neighbour lattices in lattice size.
      * @param cutoff_radius_factor the cutoff radius, it muse be less then @param cut_lattice.
      * @note the size_x is normal lattice size, which is not doubled due to the data structure..

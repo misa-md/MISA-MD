@@ -36,6 +36,8 @@ typedef int _type_atom_type; // @deprecated
 typedef short _type_inter_type; // inter atom type.
 typedef unsigned short _type_atom_types; // the count of all types of atoms.
 
+typedef _type_atom_index NeiOffset;
+
 typedef double _type_atom_mass;
 typedef double _type_atom_location;
 typedef double _type_atom_velocity;

@@ -1,36 +1,46 @@
-image: hpcer/hpcdev:pkg-0.3.0-alpha
-
-cache:
-  key: vendor_libcomm_v0.3.2   # change this key if vendor changed.
-  paths:
-    - vendor/
-
 stages:
   - fetch
   - build
 
 fetch:
   stage: fetch
+  image:
+    name: genshen/pkg:0.4.1-clang10-mpi
+    entrypoint: [""]
   tags:
     - cpp
     - pkg
+  cache:
+    key: pkg_cache_v2
+    paths:
+      - pkg_cache
   variables:
     PKG_AUTH: 'gitlab-ci-token?${CI_JOB_TOKEN}@git.hpcer.dev'
+  before_script:
+    - mkdir -p pkg_cache
+    - ln -s $(pwd)/pkg_cache ~/.pkg
   script:
     - pkg fetch
     - pkg install --verbose
+    - rm -rf vendor/cache vendor/src
   artifacts:
-    untracked: true
+    paths:
+      - vendor
+      - pkg.dep.cmake
 
 build:
   stage: build
+  image:
+    name: genshen/pkg:0.4.1-clang10-mpi
+    entrypoint: [""]
   tags:
     - cpp
     - pkg
   script:
     - cmake -Bcmake-build -DCMAKE_BUILD_TYPE=Debug -H.
     - make -Ccmake-build
-  #  artifacts:
-  #    untracked: true
+  artifacts:
+    paths: # all binary are static linked, so just pass binary
+      - cmake-build/bin
   dependencies:
     - fetch

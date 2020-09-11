@@ -13,8 +13,6 @@
 template<typename T>
 class NeighbourIndex;
 
-typedef _type_atom_index NeiOffset;
-
 template<class T, class Ref, class Ptr>
 class NeiIterator {
 public:

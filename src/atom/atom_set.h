@@ -52,13 +52,13 @@ public:
     _type_atom_count getnlocalatom(comm::Domain *p_domain);
 
     /**
-      * compute the index offset of neighbour atoms.
-      */
+     * compute the index offset of neighbour atoms.
+     */
     void calcNeighbourIndices(const double cutoff_radius_factor, const _type_lattice_size cut_lattice);
 
     /**
-    * used in read creating mode.
-    */
+     * used in read creating mode.
+     */
     void addAtom(comm::BccDomain *p_domain, unsigned long id,
                  double rx, double ry, double rz, double vx, double vy, double vz);
 
@@ -70,6 +70,10 @@ public:
     _type_atom_count realAtoms();
 
 #endif
+
+    inline NeighbourIndex<AtomElement> *getNeiOffsets() {
+        return neighbours;
+    }
 
 public:
     AtomList *atom_list;
