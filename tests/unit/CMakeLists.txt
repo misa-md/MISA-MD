@@ -45,9 +45,9 @@ target_link_libraries(${MD_TEST_NAME}
 add_test(NAME ${MD_TEST_NAME} COMMAND ${MD_TEST_NAME})
 #if (MD_MPI_ENABLE_FLAG)
 #    set(MPI_PROC_NO 4)
-#    add_test(NAME crystalMD_Tests COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${MPI_PROC_NO} ${MD_TEST_NAME}) # run with 4 processors.
+#    add_test(NAME misamd_tests COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${MPI_PROC_NO} ${MD_TEST_NAME}) # run with 4 processors.
 #else ()
-#    add_test(NAME crystalMD_Tests COMMAND ${MD_TEST_NAME})
+#    add_test(NAME misamd_tests COMMAND ${MD_TEST_NAME})
 #endif ()
 
 

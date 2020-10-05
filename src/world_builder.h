@@ -4,8 +4,8 @@
 //
 //
 
-#ifndef CRYSTALMD_WORLD_BUILDER_H
-#define CRYSTALMD_WORLD_BUILDER_H
+#ifndef MISA_MD_WORLD_BUILDER_H
+#define MISA_MD_WORLD_BUILDER_H
 
 #include <comm/domain/domain.h>
 #include "atom.h"
@@ -83,4 +83,4 @@ private:
 };
 
 
-#endif //CRYSTALMD_WORLD_BUILDER_H
+#endif //MISA_MD_WORLD_BUILDER_H

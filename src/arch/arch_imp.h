@@ -2,8 +2,8 @@
 // Created by genshen on 2019/11/13.
 //
 
-#ifndef CRYSTALMD_ARCH_IMP_H
-#define CRYSTALMD_ARCH_IMP_H
+#ifndef MISA_MD_ARCH_IMP_H
+#define MISA_MD_ARCH_IMP_H
 
 #include "arch_building_config.h"
 
@@ -32,4 +32,4 @@ void ARCH_PREFIX(ARCH_NAME, eam_force_calc)(eam *pot, AtomElement *atoms, const 
 
 #endif //ACCELERATE_ENABLED
 
-#endif //CRYSTALMD_ARCH_IMP_H
+#endif //MISA_MD_ARCH_IMP_H

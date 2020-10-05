@@ -5,5 +5,5 @@
 #export MV2_ON_DEMAND_THRESHOLD=65536
 #export MV2_DEFAULT_MAX_CQ_SIZE=1600000
 #bsub -redun -b -m 1 -q q_sw_ccas -n $1 -cgsp 64 -share_size 6800 -host_stack 512 -o %J.out ./bin/cETD $2 $3 $4 $5
-bsub -b -m 1 -q q_sw_nofull -n $1 -cgsp $2 -share_size 6800 -host_stack 512 -o %J.out ./Crystal-MD
-# bsub -perf -b -m 1 -q q_sw_nofull -n $1 -cgsp $2 -share_size 6800 -host_stack 512 -o %J.out ../Crystal-MD # example2
+bsub -b -m 1 -q q_sw_nofull -n $1 -cgsp $2 -share_size 6800 -host_stack 512 -o %J.out ./misamd
+# bsub -perf -b -m 1 -q q_sw_nofull -n $1 -cgsp $2 -share_size 6800 -host_stack 512 -o %J.out ../misamd # example2

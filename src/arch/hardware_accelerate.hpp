@@ -2,8 +2,8 @@
 // Created by genshen on 2018-3-5.
 //
 
-#ifndef CRYSTAL_MD_HARDWARE_ACCELERATE_H
-#define CRYSTAL_MD_HARDWARE_ACCELERATE_H
+#ifndef MISA_MD_HARDWARE_ACCELERATE_H
+#define MISA_MD_HARDWARE_ACCELERATE_H
 
 #include <eam.h>
 #include <comm/domain/bcc_domain.h>
@@ -68,4 +68,4 @@ inline void archAccEamForceCalc(eam *pot, AtomElement *atoms, const double cutof
 #endif
 }
 
-#endif //CRYSTAL_MD_HARDWARE_ACCELERATE_H
+#endif //MISA_MD_HARDWARE_ACCELERATE_H

@@ -2,8 +2,8 @@
 // Created by genshen on 2019-07-29.
 //
 
-#ifndef CRYSTAL_MD_OUTPUT_COPY_H
-#define CRYSTAL_MD_OUTPUT_COPY_H
+#ifndef MISA_MD_OUTPUT_COPY_H
+#define MISA_MD_OUTPUT_COPY_H
 
 #include "atom/atom_list.h"
 #include "atom/inter_atom_list.h"
@@ -55,4 +55,4 @@ protected:
     double totalDumpTime = 0;
 };
 
-#endif //CRYSTAL_MD_OUTPUT_COPY_H
+#endif //MISA_MD_OUTPUT_COPY_H

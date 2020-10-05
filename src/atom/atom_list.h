@@ -2,8 +2,8 @@
 // Created by genshen on 5/8/18.
 //
 
-#ifndef CRYSTALMD_ATOM_LIST_H
-#define CRYSTALMD_ATOM_LIST_H
+#ifndef MISA_MD_ATOM_LIST_H
+#define MISA_MD_ATOM_LIST_H
 
 #include <iterator>
 #include <vector>
@@ -211,4 +211,4 @@ void AtomList::foreachSubBoxAtom(Callable callback) {
     }
 }
 
-#endif //CRYSTALMD_ATOM_LIST_H
+#endif //MISA_MD_ATOM_LIST_H

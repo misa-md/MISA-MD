@@ -2,8 +2,8 @@
 // Created by genshen on 5/6/18.
 //
 
-#ifndef CRYSTAL_MD_PRE_DEFINE_H
-#define CRYSTAL_MD_PRE_DEFINE_H
+#ifndef MISA_MD_PRE_DEFINE_H
+#define MISA_MD_PRE_DEFINE_H
 
 #include "../md_building_config.h"
 
@@ -46,4 +46,4 @@ typedef double _type_atom_rho;
 typedef double _type_atom_df;
 
 
-#endif //CRYSTAL_MD_PRE_DEFINE_H
+#endif //MISA_MD_PRE_DEFINE_H

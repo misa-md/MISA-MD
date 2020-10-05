@@ -2,8 +2,8 @@
 // Created by genshen on 2019-05-30.
 //
 
-#ifndef CRYSTAL_MD_DEVICE_H
-#define CRYSTAL_MD_DEVICE_H
+#ifndef MISA_MD_DEVICE_H
+#define MISA_MD_DEVICE_H
 
 #include <unistd.h>   // for isatty()
 #include <stdio.h>    // for fileno()
@@ -21,4 +21,4 @@ int istty() {
 } // extern "C"
 #endif
 
-#endif //CRYSTAL_MD_DEVICE_H
+#endif //MISA_MD_DEVICE_H

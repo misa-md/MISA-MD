@@ -71,7 +71,7 @@ include(arch/arch_libs.cmake)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
-# make crystal-md lib
+# make md lib
 add_library(${MD_LIB_NAME} STATIC ${HEADER_FILES} ${SOURCE_FILES} ${ARCH_FILES})
 target_include_directories(
         ${MD_LIB_NAME}

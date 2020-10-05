@@ -2,8 +2,8 @@
 // Created by genshen on 2018-05-06.
 //
 
-#ifndef CRYSTAL_MD_ATOM_TYPES_H
-#define CRYSTAL_MD_ATOM_TYPES_H
+#ifndef MISA_MD_ATOM_TYPES_H
+#define MISA_MD_ATOM_TYPES_H
 
 #include <cstdio>
 /**
@@ -81,4 +81,4 @@ namespace atom_type {
 //    }
 }
 
-#endif //CRYSTAL_MD_ATOM_TYPES_H
+#endif //MISA_MD_ATOM_TYPES_H

@@ -2,8 +2,8 @@
 // Created by genshen on 2019-01-02.
 //
 
-#ifndef CRYSTALMD_WS_UTILS_H
-#define CRYSTALMD_WS_UTILS_H
+#ifndef MISA_MD_WS_UTILS_H
+#define MISA_MD_WS_UTILS_H
 
 #include <comm/domain/domain.h>
 #include "atom/atom_list.h"
@@ -95,4 +95,4 @@ namespace ws {
 };
 
 
-#endif //CRYSTALMD_WS_UTILS_H
+#endif //MISA_MD_WS_UTILS_H

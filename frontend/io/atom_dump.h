@@ -2,8 +2,8 @@
 // Created by genshen on 5/6/18.
 //
 
-#ifndef CRYSTAL_MD_ATOM_DUMP_H
-#define CRYSTAL_MD_ATOM_DUMP_H
+#ifndef MISA_MD_ATOM_DUMP_H
+#define MISA_MD_ATOM_DUMP_H
 
 #include <io/local_storage.h>
 #include "atom.h"
@@ -67,4 +67,4 @@ private:
 };
 
 
-#endif //CRYSTAL_MD_ATOM_DUMP_H
+#endif //MISA_MD_ATOM_DUMP_H

@@ -7,17 +7,17 @@
 #include <logs/logs.h>
 #include <utils/mpi_data_types.h>
 
-#include "crystal_md.h"
+#include "misa_md.h"
 #include "utils/mpi_domain.h"
 #include "arch/arch_env.hpp"
 #include "device.h"
 #include "frontend_config.h"
 #include "md_simulation.h"
 
-bool crystalMD::beforeCreate(int argc, char *argv[]) {
+bool MISAMD::beforeCreate(int argc, char *argv[]) {
     // parser arguments
     // see https://github.com/Taywee/args for using args.
-    args::ArgumentParser parser("This is CrystalMD program.", "authors:BaiHe.");
+    args::ArgumentParser parser("This is MISA-MD program.", "authors:BaiHe.");
     args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
     args::ValueFlag<std::string> conf(parser, "conf", "The configure file", {'c', "conf"});
     args::Flag version(parser, "version", "show version number", {'v', "version"});
@@ -47,7 +47,7 @@ bool crystalMD::beforeCreate(int argc, char *argv[]) {
     }
 
     if (version) {
-        std::cout << "Crystal MD version " << MD_VERSION_STRING << std::endl;
+        std::cout << "MISA-MD version " << MD_VERSION_STRING << std::endl;
         std::cout << "Build time: " << __TIME__ << " " << __DATE__ << "." << std::endl;
         return false;
     }
@@ -56,7 +56,7 @@ bool crystalMD::beforeCreate(int argc, char *argv[]) {
     return false;
 }
 
-void crystalMD::onCreate() {
+void MISAMD::onCreate() {
     wall_clock_begin = MPI_Wtime(); // init time recorder.
     ConfigParser *pConfig;
     if (kiwi::mpiUtils::global_process.own_rank == MASTER_PROCESSOR) {
@@ -92,7 +92,7 @@ void crystalMD::onCreate() {
     archEnvInit(); // initialize architectures environment.
 }
 
-bool crystalMD::prepare() {
+bool MISAMD::prepare() {
     kiwi::logs::d(MASTER_PROCESSOR, "domain", "ranks {}\n", MPIDomain::sim_processor.all_ranks);
 
     mpi_types::setInterMPIType();
@@ -105,14 +105,14 @@ bool crystalMD::prepare() {
     return true;
 }
 
-void crystalMD::onStart() {
+void MISAMD::onStart() {
     const ConfigValues config = ConfigParser::getInstance()->configValues;
     pSimulation->prepareForStart(config.potentialFilename);
     kiwi::logs::v(MASTER_PROCESSOR, "simulation", "Start simulation.\n");
     pSimulation->simulate(config.timeSteps); // start simulation.
 }
 
-void crystalMD::onFinish() {
+void MISAMD::onFinish() {
     kiwi::logs::s(MASTER_PROCESSOR, "simulation", "finalizing simulation\n");
     //模拟结束
     pSimulation->finalize();
@@ -123,11 +123,11 @@ void crystalMD::onFinish() {
                   wall_clock_end - wall_clock_begin);
 }
 
-void crystalMD::beforeDestroy() {
+void MISAMD::beforeDestroy() {
     kiwi::logs::v(MASTER_PROCESSOR, "app", "app was detached.\n");
     archEnvFinalize(); // clean architectures environment.
 }
 
-void crystalMD::onDestroy() {
+void MISAMD::onDestroy() {
     delete pSimulation;
 }

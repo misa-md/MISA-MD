@@ -2,8 +2,8 @@
 // Created by baihe in 2016-12-22.
 //
 
-#ifndef CRYSTAL_MD_SIMULATION_H
-#define CRYSTAL_MD_SIMULATION_H
+#ifndef MISA_MD_SIMULATION_H
+#define MISA_MD_SIMULATION_H
 
 #include <mpi.h>
 #include <cstring>
@@ -117,4 +117,4 @@ protected:
 
 };
 
-#endif //CRYSTAL_MD_SIMULATION_H
+#endif //MISA_MD_SIMULATION_H

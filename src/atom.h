@@ -2,8 +2,8 @@
 // Created by baihe back to 2016-01-06.
 //
 
-#ifndef CRYSTAL_MD_ATOM_H
-#define CRYSTAL_MD_ATOM_H
+#ifndef MISA_MD_ATOM_H
+#define MISA_MD_ATOM_H
 
 #include <cstdio>
 #include <vector>
@@ -80,4 +80,4 @@ private:
     void interForce(eam *pot);
 };
 
-#endif // CRYSTAL_MD_ATOM_H
+#endif // MISA_MD_ATOM_H
