@@ -11,7 +11,7 @@ fetch:
     - cpp
     - pkg
   cache:
-    key: pkg_cache_v2
+    key: pkg_cache_kiwi_0.3.1
     paths:
       - pkg_cache
   variables:

@@ -82,7 +82,7 @@ void MISAMD::onCreate() {
     // prepare logs.
     if (pConfig->configValues.output.logs_mode == LOGS_MODE_CONSOLE && istty()) {
         // set colorful log if we output to console and it is a real tty(no io redirection).
-        kiwi::logs::setCorlorFul(true);
+        kiwi::logs::setColorFul(true);
     } else if (pConfig->configValues.output.logs_mode == LOGS_MODE_FILE) {
         kiwi::logs::setLogFile(pConfig->configValues.output.logs_filename);
     }
