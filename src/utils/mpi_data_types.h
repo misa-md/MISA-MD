@@ -2,8 +2,8 @@
 // Created by genshen on 2018-12-27.
 //
 
-#ifndef CRYSTALMD_MPI_DATA_TYPES_H
-#define CRYSTALMD_MPI_DATA_TYPES_H
+#ifndef MISA_MD_MPI_DATA_TYPES_H
+#define MISA_MD_MPI_DATA_TYPES_H
 
 
 #include <mpi.h>
@@ -22,4 +22,4 @@ namespace mpi_types {
 };
 
 
-#endif //CRYSTALMD_MPI_DATA_TYPES_H
+#endif //MISA_MD_MPI_DATA_TYPES_H

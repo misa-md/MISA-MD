@@ -2,8 +2,8 @@
 // Created by genshen on 2019-01-07.
 //
 
-#ifndef CRYSTAL_MD_BOX_H
-#define CRYSTAL_MD_BOX_H
+#ifndef MISA_MD_BOX_H
+#define MISA_MD_BOX_H
 
 /**
  * box status of atoms
@@ -20,4 +20,4 @@ namespace box {
     const _type_flag_32 OUT_BOX_Z_BIG = 1 << 5; // out of box at z direction(in big end)
 }
 
-#endif //CRYSTAL_MD_BOX_H
+#endif //MISA_MD_BOX_H

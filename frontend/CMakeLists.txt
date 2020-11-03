@@ -10,7 +10,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 set(HEADER_FILES
         config_values.h
-        crystal_md.h
+        misa_md.h
         def_config_values.h
         config_parser.h
         device.h
@@ -25,7 +25,7 @@ set(HEADER_FILES
 
 set(SOURCE_FILES
         config_values.cpp
-        crystal_md.cpp
+        misa_md.cpp
         config_parser.cpp
         main.cpp
         md_simulation.cpp

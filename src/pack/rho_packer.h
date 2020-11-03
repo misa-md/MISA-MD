@@ -2,8 +2,8 @@
 // Created by genshen on 2019-03-16.
 //
 
-#ifndef CRYSTAL_MD_RHO_PACKER_H
-#define CRYSTAL_MD_RHO_PACKER_H
+#ifndef MISA_MD_RHO_PACKER_H
+#define MISA_MD_RHO_PACKER_H
 
 #include <comm/packer.h>
 #include "atom/atom_list.h"
@@ -32,4 +32,4 @@ private:
 };
 
 
-#endif //CRYSTAL_MD_RHO_PACKER_H
+#endif //MISA_MD_RHO_PACKER_H

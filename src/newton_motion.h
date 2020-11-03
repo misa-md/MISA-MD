@@ -2,8 +2,8 @@
 // Created by genshen on 5/13/18.
 //
 
-#ifndef CRYSTAL_MD_NEWTON_H
-#define CRYSTAL_MD_NEWTON_H
+#ifndef MISA_MD_NEWTON_H
+#define MISA_MD_NEWTON_H
 
 #include "atom/atom_list.h"
 #include "atom/inter_atom_list.h"
@@ -36,4 +36,4 @@ private:
 };
 
 
-#endif //CRYSTAL_MD_NEWTON_H
+#endif //MISA_MD_NEWTON_H

@@ -2,8 +2,8 @@
 // Created by genshen(genshenchu@gmail.com) on 2018-3-9.
 //
 
-#ifndef CRYSTAL_MD_CONFIG_VALUES_H
-#define CRYSTAL_MD_CONFIG_VALUES_H
+#ifndef MISA_MD_CONFIG_VALUES_H
+#define MISA_MD_CONFIG_VALUES_H
 
 #include <string>
 #include <vector>
@@ -21,8 +21,8 @@ enum OutputMode {
 #define LOGS_MODE_CONSOLE_STRING "console"
 #define LOGS_MODE_FILE_STRING "file"
 #define DEFAULT_LOGS_MODE_CONSOLE_STRING LOGS_MODE_CONSOLE_STRING
-#define DEFAULT_OUTPUT_DUMP_FILE_PATH "crystal_md.out"
-#define ORIGIN_OUTPUT_DUMP_FILE_PATH "origin_crystal_md.out"
+#define DEFAULT_OUTPUT_DUMP_FILE_PATH "misa_mdl.out"
+#define ORIGIN_OUTPUT_DUMP_FILE_PATH "origin_misa_mdl.out"
 
 typedef short _type_logs_mode;
 
@@ -109,4 +109,4 @@ public:
 };
 
 
-#endif //CRYSTAL_MD_CONFIG_VALUES_H
+#endif //MISA_MD_CONFIG_VALUES_H

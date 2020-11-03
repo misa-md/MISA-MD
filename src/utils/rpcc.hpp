@@ -2,8 +2,8 @@
 // Created by genshen on 6/9/18.
 //
 
-#ifndef CRYSTALMD_RPCC_H
-#define CRYSTALMD_RPCC_H
+#ifndef MISA_MD_RPCC_H
+#define MISA_MD_RPCC_H
 
 /**
  * get current time.
@@ -16,4 +16,4 @@ static inline unsigned long rpcc() {
     return time;
 }
 
-#endif //CRYSTALMD_RPCC_H
+#endif //MISA_MD_RPCC_H

@@ -2,8 +2,8 @@
 // Created by genshen on 2019-03-16.
 //
 
-#ifndef CRYSTAL_MD_FORCE_PACKER_H
-#define CRYSTAL_MD_FORCE_PACKER_H
+#ifndef MISA_MD_FORCE_PACKER_H
+#define MISA_MD_FORCE_PACKER_H
 
 #include <vector>
 #include <mpi.h>
@@ -34,4 +34,4 @@ private:
 };
 
 
-#endif //CRYSTAL_MD_FORCE_PACKER_H
+#endif //MISA_MD_FORCE_PACKER_H

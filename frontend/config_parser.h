@@ -6,8 +6,8 @@
 #include "config_values.h"
 #include "config/config.h"
 
-#ifndef CRYSTAL_MD_CONFIG_PARSER_H
-#define CRYSTAL_MD_CONFIG_PARSER_H
+#ifndef MISA_MD_CONFIG_PARSER_H
+#define MISA_MD_CONFIG_PARSER_H
 
 /**
  * in our design, rank MASTER read config file,
@@ -89,4 +89,4 @@ private:
 };
 
 
-#endif //CRYSTAL_MD_CONFIG_PARSER_H
+#endif //MISA_MD_CONFIG_PARSER_H

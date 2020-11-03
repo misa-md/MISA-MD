@@ -2,8 +2,8 @@
 // Created by genshen on 2019-04-25.
 //
 
-#ifndef CRYSTALMD_SYSTEM_CONFIGURATION_H
-#define CRYSTALMD_SYSTEM_CONFIGURATION_H
+#ifndef MISA_MD_SYSTEM_CONFIGURATION_H
+#define MISA_MD_SYSTEM_CONFIGURATION_H
 
 
 #include <array>
@@ -105,4 +105,4 @@ namespace configuration {
 }
 
 
-#endif //CRYSTALMD_SYSTEM_CONFIGURATION_H
+#endif //MISA_MD_SYSTEM_CONFIGURATION_H

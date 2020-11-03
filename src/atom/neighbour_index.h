@@ -2,8 +2,8 @@
 // Created by genshen on 2019-04-11.
 //
 
-#ifndef CRYSTAL_MD_NEIGHBOUR_INDEX_H
-#define CRYSTAL_MD_NEIGHBOUR_INDEX_H
+#ifndef MISA_MD_NEIGHBOUR_INDEX_H
+#define MISA_MD_NEIGHBOUR_INDEX_H
 
 #include <comm/domain/region.hpp>
 #include "neighbour_iterator.h"
@@ -80,4 +80,4 @@ protected:
 #include "neighbour_index.inl"
 
 
-#endif //CRYSTAL_MD_NEIGHBOUR_INDEX_H
+#endif //MISA_MD_NEIGHBOUR_INDEX_H

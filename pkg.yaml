@@ -1,4 +1,4 @@
-# an example program, version: 1.0.0
+# MISA-MD program, version: 0.4.0
 # author: genshen <genshenchu@gmail.com>
 
 version: 2
@@ -12,7 +12,7 @@ dependencies:
   packages:
     github.com/Taywee/args@6.2.2@args: {build: ["CP args.hxx {{.INCLUDE}}/args.hpp"]}
     github.com/google/googletest: {version: release-1.10.0, target: GTest}
-    git.hpcer.dev/genshen/kiwi: {version: v0.3.0, target: kiwi}
+    git.hpcer.dev/genshen/kiwi: {version: v0.3.1, target: kiwi}
     git.hpcer.dev/HPCer/CrystalMD/potential: {version: v0.1.0, target: pot}
     git.hpcer.dev/HPCer/CrystalMD/libcomm: {version: v0.3.3, target: comm}
     github.com/misa-kmc/xoshiro: {version: v0.1.1, target: xoshiro}

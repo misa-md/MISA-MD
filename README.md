@@ -1,4 +1,4 @@
-# Crystal-MD
+# MISA-MD
 
 A molecular dynamics (MD) simulation program.
 Developers:[Baihe](mailto:baihe_ustb@163.com) and [Chugenshen](mailto:genshenchu@gmail.com)
@@ -20,7 +20,7 @@ $ pkg fetch
 $ pkg install
 ```
 
-To build or install CrystalMD, run:
+To build or install MISA-MD, run:
 ```bash
 $ cmake -DCMAKE_BUILD_TYPE=Release -H. -Bbuild/
 $ cmake --build build
@@ -40,8 +40,8 @@ $ wget https://www.ctcms.nist.gov/potentials/Download/Fe-Cu-Ni-GB/FeCuNi.eam.all
 run simulation:
 ```bash
 $ cd  example
-$ ../build/bin/CrystalMD  --help # run for showing help.
-$ mpiexec -n 64 ../build/bin/CrystalMD -c config.yaml  # run MD simulation
+$ ../build/bin/misamd  --help # run for showing help.
+$ mpiexec -n 64 ../build/bin/misamd -c config.yaml  # run MD simulation
 ```
 
 ## Document

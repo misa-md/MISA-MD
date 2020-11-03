@@ -2,8 +2,8 @@
 // Created by genshen on 5/31/18.
 //
 
-#ifndef CRYSTAL_MD_ATOM_INFO_DUMP_H
-#define CRYSTAL_MD_ATOM_INFO_DUMP_H
+#ifndef MISA_MD_ATOM_INFO_DUMP_H
+#define MISA_MD_ATOM_INFO_DUMP_H
 
 
 #include <cstddef>
@@ -26,4 +26,4 @@ namespace atom_dump {
     void registerAtomDumpMPIDataType();
 }
 
-#endif //CRYSTAL_MD_ATOM_INFO_DUMP_H
+#endif //MISA_MD_ATOM_INFO_DUMP_H

@@ -3,5 +3,4 @@
 #BSUB -q cpuII
 #BSUB -o %J.output
 #BSUB -e %J.error
-mpijob.intelmpi-2 ../Crystal-MD
-
+mpijob.intelmpi-2 ../misamd

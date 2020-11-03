@@ -2,8 +2,8 @@
 // Created by genshen on 2019-07-29.
 //
 
-#ifndef CRYSTAL_MD_OUTPUT_BASE_INTERFACE_H
-#define CRYSTAL_MD_OUTPUT_BASE_INTERFACE_H
+#ifndef MISA_MD_OUTPUT_BASE_INTERFACE_H
+#define MISA_MD_OUTPUT_BASE_INTERFACE_H
 
 #include <comm/domain/bcc_domain.h>
 #include "atom/atom_list.h"
@@ -73,4 +73,4 @@ protected:
     _type_lattice_size atoms_size;
 };
 
-#endif //CRYSTAL_MD_OUTPUT_BASE_INTERFACE_H
+#endif //MISA_MD_OUTPUT_BASE_INTERFACE_H

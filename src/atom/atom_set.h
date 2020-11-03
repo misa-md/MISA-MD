@@ -2,8 +2,8 @@
 // Created by genshen on 2018-12-31.
 //
 
-#ifndef CRYSTALMD_ATOM_SET_H
-#define CRYSTALMD_ATOM_SET_H
+#ifndef MISA_MD_ATOM_SET_H
+#define MISA_MD_ATOM_SET_H
 
 #include <vector>
 
@@ -88,4 +88,4 @@ protected:
 };
 
 
-#endif //CRYSTALMD_ATOM_SET_H
+#endif //MISA_MD_ATOM_SET_H

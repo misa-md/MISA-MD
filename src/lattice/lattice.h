@@ -2,8 +2,8 @@
 // Created by genshen on 2019-04-20.
 //
 
-#ifndef CRYSTALMD_LATTICE_H
-#define CRYSTALMD_LATTICE_H
+#ifndef MISA_MD_LATTICE_H
+#define MISA_MD_LATTICE_H
 
 
 #include "types/pre_define.h"
@@ -67,4 +67,4 @@ public:
 };
 
 
-#endif //CRYSTALMD_LATTICE_H
+#endif //MISA_MD_LATTICE_H
