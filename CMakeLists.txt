@@ -13,7 +13,7 @@ add_subdirectory(frontend)
 ##############################
 ## test configure
 ##############################
-if (TEST_ENABLE_FLAG)
+if (MD_TEST_ENABLE_FLAG)
     enable_testing()
     MESSAGE(STATUS "TEST is enabled")
     add_subdirectory(tests)
@@ -22,7 +22,7 @@ endif ()
 ##############################
 ## tools
 ##############################
-if (TOOLS_BUILD_ENABLE_FLAG)
+if (MD_TOOLS_BUILD_ENABLE_FLAG)
     MESSAGE(STATUS "Tools Building is enabled")
     add_subdirectory(tools)
 endif ()
