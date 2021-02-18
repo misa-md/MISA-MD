@@ -5,13 +5,12 @@
 #include <mpi.h>
 #include "df_embed_packer.h"
 
-DfEmbedPacker::DfEmbedPacker(AtomList &atom_list, InterAtomList &inter_atom_list,
+DfEmbedPacker::DfEmbedPacker(AtomList &atom_list,
                              std::vector<std::vector<_type_atom_id>> &send_list,
                              std::vector<std::vector<_type_atom_id>> &receive_list,
                              _type_inter_buf &inter_send_list,
                              _type_inter_buf &inter_receive_list)
-        : atom_list(atom_list), inter_atom_list(inter_atom_list),
-          send_list(send_list), receive_list(receive_list),
+        : atom_list(atom_list), send_list(send_list), receive_list(receive_list),
           inter_send_list(inter_send_list), inter_receive_list(inter_receive_list) {}
 
 const unsigned long DfEmbedPacker::sendLength(const int dimension, const int direction) {

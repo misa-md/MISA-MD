@@ -16,7 +16,7 @@
  */
 class DfEmbedPacker : public comm::Packer<double> {
 public:
-    DfEmbedPacker(AtomList &atom_list,InterAtomList &inter_atom_list,
+    DfEmbedPacker(AtomList &atom_list,
                   std::vector<std::vector<_type_atom_id>> &send_list,
                   std::vector<std::vector<_type_atom_id>> &receive_list,
                   _type_inter_buf &inter_send_list,
@@ -32,7 +32,6 @@ public:
 
 private:
     AtomList &atom_list;
-    InterAtomList &inter_atom_list;
     std::vector<std::vector<_type_atom_id>> &send_list;
     std::vector<std::vector<_type_atom_id>> &receive_list;
     _type_inter_buf &inter_send_list;

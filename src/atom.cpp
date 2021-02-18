@@ -124,8 +124,7 @@ void atom::computeEam(eam *pot, double &comm) {
         // 发送嵌入能导数
         // 将本地box属于邻居进程ghost区域的粒子的嵌入能导数发送给邻居进程
         starttime = MPI_Wtime();
-        DfEmbedPacker packer(getAtomListRef(), *inter_atom_list,
-                             atom_list->sendlist, atom_list->recvlist,
+        DfEmbedPacker packer(getAtomListRef(), atom_list->sendlist, atom_list->recvlist,
                              inter_atom_list->intersendlist,
                              inter_atom_list->interrecvlist);
         comm::neiSendReceive<double>(&packer, MPIDomain::toCommProcess(), MPI_DOUBLE, p_domain->rank_id_neighbours);
