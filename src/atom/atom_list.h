@@ -189,6 +189,10 @@ public:
 public:
     const BccLattice lattice;
 
+    inline std::vector<std::vector<_type_atom_id> > &getSendList() { return sendlist; }
+
+    inline std::vector<std::vector<_type_atom_id> > &getRecvList() { return recvlist; }
+
 private:
     // 晶格点原子用数组存储其信息,including ghost atoms.
     AtomElement *_atoms; // atoms in 3d.

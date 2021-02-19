@@ -16,6 +16,7 @@ set(TEST_SOURCE_FILES
         fixtures/domain_test_fixture.h
         fixtures/world_builder_test_fixture.cpp
         fixtures/world_builder_test_fixture.h
+        pack/df_embedd_packer_test.cpp
         test_config.h
         main.cpp
         f_test.cpp
