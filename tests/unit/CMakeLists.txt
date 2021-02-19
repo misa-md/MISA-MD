@@ -14,6 +14,8 @@ set(TEST_SOURCE_FILES
         atom/nei_index_test.cpp
         fixtures/domain_test_fixture.cpp
         fixtures/domain_test_fixture.h
+        fixtures/world_builder_test_fixture.cpp
+        fixtures/world_builder_test_fixture.h
         test_config.h
         main.cpp
         f_test.cpp

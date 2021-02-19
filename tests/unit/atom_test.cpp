@@ -5,24 +5,11 @@
 #include <gtest/gtest.h>
 #include <atom.h>
 #include <world_builder.h>
-#include "fixtures/domain_test_fixture.h"
+
+#include "fixtures/world_builder_test_fixture.h"
 
 // fixme in mpi, may crash. index out of range
-TEST_F(DomainFixture, atom_set_v_test) {
-    int rand_seek = 1024;
-    comm::BccDomain *_domain = p_domain;
-    auto *_atom = new atom(_domain);
-
-    int ra[3] = {97, 0, 0};
-    WorldBuilder mWorldBuilder;
-    mWorldBuilder.setDomain(_domain)
-            .setAtomsContainer(_atom)
-            .setBoxSize(space[0], space[1], space[2])
-            .setRandomSeed(rand_seek)
-            .setLatticeConst(lattice_const)
-            .setAlloyRatio(ra)
-            .build();
-
+TEST_F(WorldBuilderTestFixture, atom_set_v_test) {
     // test case 1
     const _type_lattice_coord pos[3]{25, 25, 25};
     const double dir[3]{1, 3, 5};
