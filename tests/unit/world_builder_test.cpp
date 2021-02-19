@@ -6,16 +6,12 @@
 #include <world_builder.h>
 #include <system_configuration.h>
 #include <utils/mpi_utils.h>
-
-#include "domain_test_utils.h"
+#include "fixtures/domain_test_fixture.h"
 
 // @MPI
-TEST(zero_momentum_test, world_builder_test) {
-    int64_t space[3] = {50, 60, 72};
-    double lattice_const = 0.86;
-    double cutoff_radius_factor = 1.1421;
+TEST_F(DomainFixture, world_build_zero_momentum_test) {
     int rand_seek = 1024;
-    comm::BccDomain *_domain = getDomainInstance(space, lattice_const, cutoff_radius_factor);
+    comm::BccDomain *_domain = p_domain;
     auto *_atom = new atom(_domain);
 
     int ra[3] = {97, 3, 1};
