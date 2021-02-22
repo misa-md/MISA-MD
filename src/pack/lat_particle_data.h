@@ -7,6 +7,7 @@
 
 #include <mpi.h>
 #include "../types/atom_types.h"
+#include "../md_building_config.h"
 
 class LatParticleData {
 public:
@@ -16,6 +17,9 @@ public:
     LatParticleData();
 
     atom_type::atom_type type;
+#ifdef DEV_MD_COMM_INC_ATOM_ID
+    _type_atom_id id;
+#endif
     double r[3];
 };
 

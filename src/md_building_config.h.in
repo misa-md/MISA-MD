@@ -11,6 +11,7 @@
 
 #cmakedefine MD_DEV_MODE
 
+// #define DEV_MD_COMM_INC_ATOM_ID
 
 // random number generating
 #cmakedefine RAND_LCG

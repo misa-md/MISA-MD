@@ -58,6 +58,9 @@ void InterBorderPacker::onSend(LatParticleData buffer[],
         case 0:
             for (int i = 0; i < send_len; i++) {
                 buffer[i].type = inter_atom_list.intersendlist[index][i]->type;
+#ifdef DEV_MD_COMM_INC_ATOM_ID
+                buffer[i].id = inter_atom_list.intersendlist[index][i]->id;
+#endif
                 buffer[i].r[0] = inter_atom_list.intersendlist[index][i]->x[0] + shift;
                 buffer[i].r[1] = inter_atom_list.intersendlist[index][i]->x[1];
                 buffer[i].r[2] = inter_atom_list.intersendlist[index][i]->x[2];
@@ -66,6 +69,9 @@ void InterBorderPacker::onSend(LatParticleData buffer[],
         case 1:
             for (int i = 0; i < send_len; i++) {
                 buffer[i].type = inter_atom_list.intersendlist[index][i]->type;
+#ifdef DEV_MD_COMM_INC_ATOM_ID
+                buffer[i].id = inter_atom_list.intersendlist[index][i]->id;
+#endif
                 buffer[i].r[0] = inter_atom_list.intersendlist[index][i]->x[0];
                 buffer[i].r[1] = inter_atom_list.intersendlist[index][i]->x[1] + shift;
                 buffer[i].r[2] = inter_atom_list.intersendlist[index][i]->x[2];
@@ -74,6 +80,9 @@ void InterBorderPacker::onSend(LatParticleData buffer[],
         case 2:
             for (int i = 0; i < send_len; i++) {
                 buffer[i].type = inter_atom_list.intersendlist[index][i]->type;
+#ifdef DEV_MD_COMM_INC_ATOM_ID
+                buffer[i].id = inter_atom_list.intersendlist[index][i]->id;
+#endif
                 buffer[i].r[0] = inter_atom_list.intersendlist[index][i]->x[0];
                 buffer[i].r[1] = inter_atom_list.intersendlist[index][i]->x[1];
                 buffer[i].r[2] = inter_atom_list.intersendlist[index][i]->x[2] + shift;
@@ -96,6 +105,9 @@ void InterBorderPacker::onReceive(LatParticleData buffer[],
     for (int i = 0; i < receive_len; i++) {
         // id is not necessary for ghost inter atoms.
         ele.type = buffer[i].type; // all type are valid(inter atoms)
+#ifdef DEV_MD_COMM_INC_ATOM_ID
+        ele.id = buffer[i].id;
+#endif
         ele.x[0] = buffer[i].r[0];
         ele.x[1] = buffer[i].r[1];
         ele.x[2] = buffer[i].r[2];
