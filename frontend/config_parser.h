@@ -64,6 +64,9 @@ private:
     // resolve "collision" in stages section in yaml config file.
     bool resolveConfigCollision(Stage *stage, const YAML::Node &yaml_collision);
 
+    // resolve "velocity" in stages section in yaml config file.
+    bool resolveConfigVelocity(Stage *stage, const YAML::Node &yaml_velocity);
+
     // resolve "output" section in yaml config file.
     bool parseConfigOutput(const YAML::Node &yaml_output);
 

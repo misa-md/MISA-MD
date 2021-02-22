@@ -37,6 +37,11 @@ struct Stage {
     double pkaEnergy;
     double direction[DIMENSION];
 
+    bool velocity_set;
+    unsigned long velocity_step;
+    long velocity_region[2 * DIMENSION];
+    double velocity_value[DIMENSION];
+
     // rescale
     bool rescales_set;
     double rescale_t; // rescale to a temperature.

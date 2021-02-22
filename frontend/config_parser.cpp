@@ -292,6 +292,35 @@ bool ConfigParser::resolveConfigCollision(Stage *stage, const YAML::Node &yaml_c
     return true;
 }
 
+bool ConfigParser::resolveConfigVelocity(Stage *stage, const YAML::Node &yaml_velocity) {
+    if (!yaml_velocity) {
+        setError("`velocity` config is not set.");
+        return false;
+    }
+    stage->velocity_step = yaml_velocity["step"].as<unsigned long>(0);
+
+    const YAML::Node yaml_velocity_value = yaml_velocity["v"];
+    if (yaml_velocity_value.IsSequence() && yaml_velocity_value.size() == 3) {
+        for (std::size_t i = 0; i < 3; i++) {
+            stage->velocity_value[i] = yaml_velocity_value[i].as<double>();
+        }
+    } else { //the array length must be 3.
+        setError("array length of value \"velocity.v\" must be 3.");
+        return false;
+    }
+
+    const YAML::Node yaml_region = yaml_velocity["region"];
+    if (yaml_region.IsSequence() && yaml_region.size() == 6) {
+        for (std::size_t i = 0; i < 6; i++) {
+            stage->velocity_region[i] = yaml_region[i].as<long>();
+        }
+    } else { //the array length must be 6.
+        setError("array length of value \"velocity.region\" must be 6.");
+        return false;
+    }
+    return true;
+}
+
 bool ConfigParser::resolveConfigRescale(Stage *stage, const YAML::Node &yaml_rescale) {
     if (!yaml_rescale) {
         setError("rescale config is not set.");
@@ -326,6 +355,15 @@ bool ConfigParser::parseStages(const YAML::Node &yaml_stages) {
             }
         } else {
             stage.collision_set = false;
+        }
+        // velocity
+        if (yaml_stage["velocity"]) {
+            stage.velocity_set = true;
+            if (!resolveConfigVelocity(&stage, yaml_stage["velocity"])) {
+                return false;
+            }
+        } else {
+            stage.velocity_set = false;
         }
         // rescale
         if (yaml_stage["rescale"]) {
