@@ -45,6 +45,14 @@ public :
      */
     void setv(const _type_lattice_coord lat[4], const double direction[3], const double energy);
 
+    /**
+     * set velocity for a atom whose position is specified by array @param lat.
+     * @param lat_x, lat_y, lat_z lattice position of the atom (x dimension is not doubled), whose velocity will be changed.
+     * @param v the velocity value at x, y, z dimension.
+     */
+    void setv(const _type_lattice_coord lat_x, const _type_lattice_coord lat_y,
+              const _type_lattice_coord lat_z, const double v[DIMENSION]);
+
 
 private:
     comm::BccDomain *p_domain;

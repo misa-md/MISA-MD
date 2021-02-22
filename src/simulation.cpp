@@ -216,6 +216,16 @@ void simulation::collisionStep(unsigned long coll_step, const _type_lattice_coor
     _atom->computeEam(_pot, comm);
 }
 
+void simulation::velocitySetStep(const comm::Region<long> global_region, const double velocity_value[DIMENSION]) {
+    for (long z = global_region.z_low; z < global_region.z_high; z++) {
+        for (long y = global_region.y_low; y < global_region.y_high; y++) {
+            for (long x = global_region.x_low; x < global_region.x_high; x++) {
+                _atom->setv(x, y, z, velocity_value);
+            }
+        }
+    }
+}
+
 void simulation::finalize() {
     if (_p_domain != nullptr) {
         delete _p_domain;
