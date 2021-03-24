@@ -17,7 +17,7 @@ atom::atom(comm::BccDomain *domain)
                   domain->sub_box_lattice_size,
                   domain->lattice_size_ghost),
           p_domain(domain) {
-    p_send_recv_list = new SendRecvLists(*(this->atom_list));
+    p_send_recv_list = new SendRecvLists(*(this->atom_list), *(this->inter_atom_list));
 }
 
 atom::~atom() {
@@ -131,8 +131,8 @@ void atom::computeEam(eam *pot, double &comm) {
         // 将本地box属于邻居进程ghost区域的粒子的嵌入能导数发送给邻居进程
         starttime = MPI_Wtime();
         DfEmbedPacker packer(getAtomListRef(), p_send_recv_list->sendlist, p_send_recv_list->recvlist,
-                             inter_atom_list->intersendlist,
-                             inter_atom_list->interrecvlist);
+                             p_send_recv_list->intersendlist,
+                             p_send_recv_list->interrecvlist);
         comm::neiSendReceive<double>(&packer, MPIDomain::toCommProcess(), MPI_DOUBLE, p_domain->rank_id_neighbours);
         stoptime = MPI_Wtime();
         comm += stoptime - starttime;

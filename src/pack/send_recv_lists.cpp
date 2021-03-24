@@ -8,6 +8,8 @@
 
 #include "send_recv_lists.h"
 #include "../pack/lat_particle_packer.h"
+#include "../pack/inter_border_packer.h"
+#include "../pack/inter_particle_packer.h"
 #include "../utils/mpi_data_types.h"
 
 
@@ -40,6 +42,22 @@ void SendRecvLists::exchangeAtomFirst(comm::BccDomain *p_domain) {
 void SendRecvLists::exchangeAtom(comm::BccDomain *p_domain) {
     LatPacker lat_packer(*p_domain, atom_list, sendlist, recvlist);
     comm::neiSendReceive<LatParticleData>(&lat_packer,
+                                          MPIDomain::toCommProcess(),
+                                          mpi_types::_mpi_latParticle_data,
+                                          p_domain->rank_id_neighbours);
+}
+
+void SendRecvLists::exchangeInter(comm::Domain *p_domain) {
+    InterParticlePacker inter_packer(*p_domain, inter_atom_list);
+    comm::neiSendReceive<particledata>(&inter_packer,
+                                       MPIDomain::toCommProcess(),
+                                       mpi_types::_mpi_Particle_data,
+                                       p_domain->rank_id_neighbours);
+}
+
+void SendRecvLists::borderInter(comm::BccDomain *p_domain) {
+    InterBorderPacker border_packer(*p_domain, inter_atom_list, intersendlist, interrecvlist);
+    comm::neiSendReceive<LatParticleData>(&border_packer,
                                           MPIDomain::toCommProcess(),
                                           mpi_types::_mpi_latParticle_data,
                                           p_domain->rank_id_neighbours);

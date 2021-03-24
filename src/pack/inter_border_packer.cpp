@@ -9,17 +9,19 @@
 #include "inter_border_packer.h"
 
 
-InterBorderPacker::InterBorderPacker(const comm::BccDomain &domain, InterAtomList &inter_atom_list)
-        : domain(domain), inter_atom_list(inter_atom_list) {
-    inter_atom_list.intersendlist.clear();
-    inter_atom_list.interrecvlist.clear();
-    inter_atom_list.intersendlist.resize(6);
-    inter_atom_list.interrecvlist.resize(6);
+InterBorderPacker::InterBorderPacker(const comm::BccDomain &domain, InterAtomList &inter_atom_list,
+                                     _type_inter_buf &intersendlist, _type_inter_buf &interrecvlist)
+        : domain(domain), inter_atom_list(inter_atom_list),
+          intersendlist(intersendlist), interrecvlist(interrecvlist){
+    intersendlist.clear();
+    interrecvlist.clear();
+    intersendlist.resize(6);
+    interrecvlist.resize(6);
 }
 
 const unsigned long InterBorderPacker::sendLength(const int dimension, const int direction) {
     const int index = 2 * dimension + direction;
-    std::vector<AtomElement *> &sendlist = inter_atom_list.intersendlist[index];
+    std::vector<AtomElement *> &sendlist = intersendlist[index];
     // before x dimension communication, ghost list is empty.
     comm::Region<comm::_type_lattice_size> region = comm::fwCommLocalRegion(&domain, dimension, direction);
     _type_atom_index coords[DIMENSION] = {0, 0, 0};
@@ -57,35 +59,35 @@ void InterBorderPacker::onSend(LatParticleData buffer[],
     switch (dimension) {
         case 0:
             for (int i = 0; i < send_len; i++) {
-                buffer[i].type = inter_atom_list.intersendlist[index][i]->type;
+                buffer[i].type = intersendlist[index][i]->type;
 #ifdef DEV_MD_COMM_INC_ATOM_ID
-                buffer[i].id = inter_atom_list.intersendlist[index][i]->id;
+                buffer[i].id = intersendlist[index][i]->id;
 #endif
-                buffer[i].r[0] = inter_atom_list.intersendlist[index][i]->x[0] + shift;
-                buffer[i].r[1] = inter_atom_list.intersendlist[index][i]->x[1];
-                buffer[i].r[2] = inter_atom_list.intersendlist[index][i]->x[2];
+                buffer[i].r[0] = intersendlist[index][i]->x[0] + shift;
+                buffer[i].r[1] = intersendlist[index][i]->x[1];
+                buffer[i].r[2] = intersendlist[index][i]->x[2];
             }
             break;
         case 1:
             for (int i = 0; i < send_len; i++) {
-                buffer[i].type = inter_atom_list.intersendlist[index][i]->type;
+                buffer[i].type =intersendlist[index][i]->type;
 #ifdef DEV_MD_COMM_INC_ATOM_ID
-                buffer[i].id = inter_atom_list.intersendlist[index][i]->id;
+                buffer[i].id = intersendlist[index][i]->id;
 #endif
-                buffer[i].r[0] = inter_atom_list.intersendlist[index][i]->x[0];
-                buffer[i].r[1] = inter_atom_list.intersendlist[index][i]->x[1] + shift;
-                buffer[i].r[2] = inter_atom_list.intersendlist[index][i]->x[2];
+                buffer[i].r[0] = intersendlist[index][i]->x[0];
+                buffer[i].r[1] = intersendlist[index][i]->x[1] + shift;
+                buffer[i].r[2] = intersendlist[index][i]->x[2];
             }
             break;
         case 2:
             for (int i = 0; i < send_len; i++) {
-                buffer[i].type = inter_atom_list.intersendlist[index][i]->type;
+                buffer[i].type = intersendlist[index][i]->type;
 #ifdef DEV_MD_COMM_INC_ATOM_ID
-                buffer[i].id = inter_atom_list.intersendlist[index][i]->id;
+                buffer[i].id = intersendlist[index][i]->id;
 #endif
-                buffer[i].r[0] = inter_atom_list.intersendlist[index][i]->x[0];
-                buffer[i].r[1] = inter_atom_list.intersendlist[index][i]->x[1];
-                buffer[i].r[2] = inter_atom_list.intersendlist[index][i]->x[2] + shift;
+                buffer[i].r[0] = intersendlist[index][i]->x[0];
+                buffer[i].r[1] = intersendlist[index][i]->x[1];
+                buffer[i].r[2] = intersendlist[index][i]->x[2] + shift;
             }
             break;
         default:
@@ -98,7 +100,7 @@ void InterBorderPacker::onReceive(LatParticleData buffer[],
                                   const int dimension,
                                   const int direction) {
     const int index = 2 * dimension + direction;
-    inter_atom_list.interrecvlist[index].resize(receive_len);
+    interrecvlist[index].resize(receive_len);
 
     AtomElement ele;
     memset(&ele, 0, sizeof(AtomElement)); // set f,v,rho,df to 0.
@@ -113,6 +115,6 @@ void InterBorderPacker::onReceive(LatParticleData buffer[],
         ele.x[2] = buffer[i].r[2];
         // todo: check if the atom is in ghost area using lattice coord.
         // kiwi::logs::w("inter", "unexpected atom.\n");
-        inter_atom_list.interrecvlist[index][i] = inter_atom_list.addGhostAtom(ele);
+        interrecvlist[index][i] = inter_atom_list.addGhostAtom(ele);
     }
 }

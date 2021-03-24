@@ -22,7 +22,8 @@
  */
 class InterBorderPacker : public comm::Packer<LatParticleData> {
 public:
-    explicit InterBorderPacker(const comm::BccDomain &domain, InterAtomList &inter_atom_list);
+    explicit InterBorderPacker(const comm::BccDomain &domain, InterAtomList &inter_atom_list,
+                               _type_inter_buf &intersendlist, _type_inter_buf &interrecvlist);
 
     /**
      * the atoms to be send will be saved in sendlist..
@@ -41,6 +42,8 @@ public:
 private:
     const comm::BccDomain &domain;
     InterAtomList &inter_atom_list;
+    _type_inter_buf &intersendlist;
+    _type_inter_buf &interrecvlist;
 };
 
 

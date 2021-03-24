@@ -6,23 +6,13 @@
 #include <comm/domain/domain.h>
 #include <comm/comm.hpp>
 
-#include "pack/inter_border_packer.h"
 #include "pack/inter_particle_packer.h"
 #include "inter_atom_list.h"
 #include "../utils/mpi_domain.h"
 #include "../utils/mpi_data_types.h"
 #include "lattice/ws_utils.h"
 
-InterAtomList::InterAtomList() : nlocalinter(0), nghostinter(0),
-                                 intersendlist(6), interrecvlist(6) {}
-
-void InterAtomList::exchangeInter(comm::Domain *p_domain) {
-    InterParticlePacker inter_packer(*p_domain, *this);
-    comm::neiSendReceive<particledata>(&inter_packer,
-                                       MPIDomain::toCommProcess(),
-                                       mpi_types::_mpi_Particle_data,
-                                       p_domain->rank_id_neighbours);
-}
+InterAtomList::InterAtomList() : nlocalinter(0), nghostinter(0){}
 
 void InterAtomList::makeIndex(AtomList *atom_list, const comm::Domain *p_domain) {
     inter_map.clear();
@@ -42,14 +32,6 @@ void InterAtomList::makeIndex(AtomList *atom_list, const comm::Domain *p_domain)
         const _type_atom_index _atom_near_index = atom_list->lattice.IndexOf3DIndex(coords[0], coords[1], coords[2]);
         inter_map.insert(std::make_pair(_atom_near_index, &(*inter_it))); // save address
     }
-}
-
-void InterAtomList::borderInter(comm::BccDomain *p_domain) {
-    InterBorderPacker border_packer(*p_domain, *this);
-    comm::neiSendReceive<LatParticleData>(&border_packer,
-                                          MPIDomain::toCommProcess(),
-                                          mpi_types::_mpi_latParticle_data,
-                                          p_domain->rank_id_neighbours);
 }
 
 void InterAtomList::addInterAtom(AtomElement &atom) {

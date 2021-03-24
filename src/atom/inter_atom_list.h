@@ -33,9 +33,6 @@ public:
     size_t nlocalinter; // 本地间隙原子数
     size_t nghostinter; // ghost间隙原子数
 
-    _type_inter_buf intersendlist; // the atoms to be send to other processes as ghost.
-    _type_inter_buf interrecvlist;
-
     std::unordered_multimap<_type_atom_index, AtomElement *> inter_map;
 
     InterAtomList();
@@ -60,21 +57,11 @@ public:
         return nlocalinter;
     }
 
-    void exchangeInter(comm::Domain *p_domain);
-
-    /**
-     * setup ghost area for inter atoms.
-     * send inter atoms in simulation area that are contributed to ghost area of other processes.
-     * @param p_domain pointer of domain
-     */
-    void borderInter(comm::BccDomain *p_domain);
-
     void makeIndex(AtomList *atom_list, const comm::Domain *p_domain);
 
     _type_inter_list::iterator removeInter(_type_inter_list::iterator);
 
     void clearGhost();
-
 
 };
 
