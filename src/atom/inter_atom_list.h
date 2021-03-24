@@ -9,6 +9,7 @@
 #include <list>
 #include <unordered_map>
 #include <comm/domain/domain.h>
+#include <comm/domain/bcc_domain.h>
 
 #include "atom_list.h"
 #include "atom_element.h"

@@ -175,10 +175,6 @@ public:
      */
     void appendInter(_type_atom_id atom_id);
 
-    void exchangeAtomFirst(comm::BccDomain *p_domain);
-
-    void exchangeAtom(comm::BccDomain *p_domain);
-
     /**
      * return true if the there is atom in current box that is far away out of this box.
      * @param domain
@@ -189,18 +185,9 @@ public:
 public:
     const BccLattice lattice;
 
-    inline std::vector<std::vector<_type_atom_id> > &getSendList() { return sendlist; }
-
-    inline std::vector<std::vector<_type_atom_id> > &getRecvList() { return recvlist; }
-
 private:
     // 晶格点原子用数组存储其信息,including ghost atoms.
     AtomElement *_atoms; // atoms in 3d.
-
-    // the array to record atoms that are out of box.
-    std::vector<std::vector<_type_atom_id> > sendlist; // todo make it temp data
-    std::vector<std::vector<_type_atom_id> > recvlist;
-
 };
 
 

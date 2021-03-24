@@ -8,6 +8,7 @@
 #include <vector>
 #include <comm/packer.h>
 #include <comm/domain/domain.h>
+#include <comm/domain/bcc_domain.h>
 #include "atom/atom_list.h"
 #include "lat_particle_data.h"
 
