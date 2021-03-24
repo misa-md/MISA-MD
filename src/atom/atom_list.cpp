@@ -3,10 +3,10 @@
 //
 
 #include <utils/mpi_domain.h>
-#include <pack/lat_particle_packer.h>
 #include <comm/comm.hpp>
 #include <comm/preset/comm_forwarding_region.h>
 #include "atom_list.h"
+#include "pack/lat_particle_packer.h"
 #include "../utils/mpi_data_types.h"
 
 AtomList::AtomList(_type_atom_count size_x, _type_atom_count size_y, _type_atom_count size_z,

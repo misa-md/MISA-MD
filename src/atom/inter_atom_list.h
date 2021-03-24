@@ -12,8 +12,6 @@
 
 #include "atom_list.h"
 #include "atom_element.h"
-#include "../pack/particledata.h"
-#include "../pack/lat_particle_data.h"
 #include "../types/pre_define.h"
 #include "../types/atom_types.h"
 #include "lattice/box.h"

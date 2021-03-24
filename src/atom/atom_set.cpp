@@ -5,7 +5,6 @@
 #include <cmath>
 #include <types/pre_define.h>
 #include <comm/domain/domain.h>
-#include "../arch/hardware_accelerate.hpp"
 
 #include "atom_set.h"
 
