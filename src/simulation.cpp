@@ -134,7 +134,7 @@ void simulation::prepareForStart(const std::string pot_file_path) {
 
     starttime = MPI_Wtime();
     // todo make _cut_lattice a member of class AtomList
-    _atom->getAtomList()->exchangeAtomFirst(_p_domain);
+    _atom->p_send_recv_list->exchangeAtomFirst(_p_domain);
     // fixme those code does not fit [read atom mode], because in [create atom mode], inter is empty at first step;
     // so borderInter is not get called.
     stoptime = MPI_Wtime();
@@ -171,9 +171,9 @@ void simulation::simulate(const unsigned long steps) {
 
         //通信ghost区域，交换粒子
         starttime = MPI_Wtime();
-        _atom->getInterList()->exchangeInter(_p_domain);
-        _atom->getInterList()->borderInter(_p_domain);
-        _atom->getAtomList()->exchangeAtom(_p_domain);
+        _atom->p_send_recv_list->exchangeInter(_p_domain);
+        _atom->p_send_recv_list->borderInter(_p_domain);
+        _atom->p_send_recv_list->exchangeAtom(_p_domain);
         stoptime = MPI_Wtime();
         commtime += stoptime - starttime;
 
@@ -209,9 +209,9 @@ void simulation::collisionStep(unsigned long coll_step, const _type_lattice_coor
                                const double coll_dir[DIMENSION], const double coll_pka_energy) {
     double comm = 0;
     _atom->setv(coll_lat, coll_dir, coll_pka_energy);
-    _atom->getInterList()->exchangeInter(_p_domain);
-    _atom->getInterList()->borderInter(_p_domain);
-    _atom->getAtomList()->exchangeAtom(_p_domain);
+    _atom->p_send_recv_list->exchangeInter(_p_domain);
+    _atom->p_send_recv_list->borderInter(_p_domain);
+    _atom->p_send_recv_list->exchangeAtom(_p_domain);
     _atom->clearForce();
     _atom->computeEam(_pot, comm);
 }

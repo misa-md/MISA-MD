@@ -16,7 +16,13 @@ atom::atom(comm::BccDomain *domain)
                   domain->ghost_extended_lattice_size,
                   domain->sub_box_lattice_size,
                   domain->lattice_size_ghost),
-          p_domain(domain) {}
+          p_domain(domain) {
+    p_send_recv_list = new SendRecvLists(*(this->atom_list), *(this->inter_atom_list));
+}
+
+atom::~atom() {
+    delete p_send_recv_list;
+}
 
 int atom::decide() {
     inter_atom_list->clearGhost();
@@ -110,7 +116,7 @@ void atom::computeEam(eam *pot, double &comm) {
         // 发送电子云密度
         // 将ghost区域的粒子的电子云密度发送给其所在的进程，得到完整的电子云密度
         starttime = MPI_Wtime();
-        RhoPacker rho_packer(getAtomListRef(), atom_list->sendlist, atom_list->recvlist);
+        RhoPacker rho_packer(getAtomListRef(), p_send_recv_list->sendlist, p_send_recv_list->recvlist);
         comm::neiSendReceive<double, true>(&rho_packer, MPIDomain::toCommProcess(),
                                            MPI_DOUBLE, p_domain->rank_id_neighbours);
         stoptime = MPI_Wtime();
@@ -124,9 +130,9 @@ void atom::computeEam(eam *pot, double &comm) {
         // 发送嵌入能导数
         // 将本地box属于邻居进程ghost区域的粒子的嵌入能导数发送给邻居进程
         starttime = MPI_Wtime();
-        DfEmbedPacker packer(getAtomListRef(), atom_list->sendlist, atom_list->recvlist,
-                             inter_atom_list->intersendlist,
-                             inter_atom_list->interrecvlist);
+        DfEmbedPacker packer(getAtomListRef(), p_send_recv_list->sendlist, p_send_recv_list->recvlist,
+                             p_send_recv_list->intersendlist,
+                             p_send_recv_list->interrecvlist);
         comm::neiSendReceive<double>(&packer, MPIDomain::toCommProcess(), MPI_DOUBLE, p_domain->rank_id_neighbours);
         stoptime = MPI_Wtime();
         comm += stoptime - starttime;
@@ -140,7 +146,7 @@ void atom::computeEam(eam *pot, double &comm) {
 
     // send force
     starttime = MPI_Wtime();
-    ForcePacker force_packer(getAtomListRef(), atom_list->sendlist, atom_list->recvlist);
+    ForcePacker force_packer(getAtomListRef(), p_send_recv_list->sendlist, p_send_recv_list->recvlist);
     comm::neiSendReceive<double, true>(&force_packer, MPIDomain::toCommProcess(),
                                        MPI_DOUBLE, p_domain->rank_id_neighbours);
     stoptime = MPI_Wtime();
@@ -484,7 +490,8 @@ void atom::setv(const _type_lattice_coord lat[4], const double direction[3], con
                                                 lat[2] - p_domain->dbx_ghost_ext_lattice_region.z_low) + lat[3]);
         // todo verify the position.
         AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
-        const double v_ = sqrt(2 * energy / atom_type::getAtomMass(atom_.type) / mvv2e); // the unit of v is A/ps (or 100m/s)
+        const double v_ = sqrt(
+                2 * energy / atom_type::getAtomMass(atom_.type) / mvv2e); // the unit of v is A/ps (or 100m/s)
         const double d_ = sqrt(direction[0] * direction[0] + direction[1] * direction[1] + direction[2] * direction[2]);
         atom_.v[0] += v_ * direction[0] / d_;
         atom_.v[1] += v_ * direction[1] / d_;

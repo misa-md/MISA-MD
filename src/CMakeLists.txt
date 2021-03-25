@@ -25,6 +25,7 @@ set(HEADER_FILES
         pack/lat_particle_packer.h
         pack/particledata.h
         pack/rho_packer.h
+        pack/send_recv_lists.h
         utils/random/random.h
         utils/random/rand_generators.h
         utils/mpi_data_types.h
@@ -56,6 +57,7 @@ set(SOURCE_FILES
         pack/lat_particle_packer.cpp
         pack/particledata.cpp
         pack/rho_packer.cpp
+        pack/send_recv_lists.cpp
         utils/random/legacy_random.hpp
         utils/random/random.cpp
         utils/random/rand_generators.cpp

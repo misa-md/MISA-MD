@@ -13,13 +13,13 @@
 //@MPI; @ranks=4,6
 TEST_F(WorldBuilderTestFixture, df_embedd_packer_test) {
     // set inter sending and receiving list to nothing.
-    _atom->inter_atom_list->intersendlist.clear();
-    _atom->inter_atom_list->interrecvlist.clear();
-    _atom->inter_atom_list->intersendlist.resize(6);
-    _atom->inter_atom_list->interrecvlist.resize(6);
+    _atom->p_send_recv_list->getInterSendList().clear();
+    _atom->p_send_recv_list->getInterRecvList().clear();
+    _atom->p_send_recv_list->getInterSendList().resize(6);
+    _atom->p_send_recv_list->getInterRecvList().resize(6);
 
-    std::vector<std::vector<_type_atom_id> > &send_list = _atom->atom_list->getSendList();
-    std::vector<std::vector<_type_atom_id> > &recv_list = _atom->atom_list->getRecvList();
+    std::vector<std::vector<_type_atom_id> > &send_list = _atom->p_send_recv_list->getSendList();
+    std::vector<std::vector<_type_atom_id> > &recv_list = _atom->p_send_recv_list->getRecvList();
     send_list.clear();
     recv_list.clear();
     send_list.resize(6);
@@ -67,9 +67,9 @@ TEST_F(WorldBuilderTestFixture, df_embedd_packer_test) {
     });
 
     DfEmbedPacker packer(_atom->getAtomListRef(),
-                         _atom->atom_list->getSendList(), _atom->atom_list->getRecvList(),
-                         _atom->inter_atom_list->intersendlist,
-                         _atom->inter_atom_list->interrecvlist);
+                         _atom->p_send_recv_list->getSendList(), _atom->p_send_recv_list->getRecvList(),
+                         _atom->p_send_recv_list->getInterSendList(),
+                         _atom->p_send_recv_list->getInterRecvList());
 
     comm::neiSendReceive<double>(&packer, MPIDomain::toCommProcess(), MPI_DOUBLE, p_domain->rank_id_neighbours);
 

@@ -16,12 +16,15 @@
 #include "atom/atom_element.h"
 #include "atom/atom_list.h"
 #include "atom/inter_atom_list.h"
+#include "pack/send_recv_lists.h"
 #include "pack/particledata.h"
 #include "pack/lat_particle_data.h"
 
 class atom : public AtomSet {
 public :
     atom(comm::BccDomain *domain);
+
+    ~ atom();
 
     /**
      * move atoms to inter-atom list if the atoms is not in its lattice.
@@ -45,6 +48,8 @@ public :
      */
     void setv(const _type_lattice_coord lat[4], const double direction[3], const double energy);
 
+public:
+    SendRecvLists *p_send_recv_list;
 
 private:
     comm::BccDomain *p_domain;
