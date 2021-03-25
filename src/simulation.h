@@ -115,6 +115,12 @@ protected:
     input *_input;  // 从文件读取原子坐标,速度信息
     eam *_pot; // eam potential
 
+    /**
+     * set velocity for atoms in a given region
+     * @param global_region the given region
+     * @param velocity_value velocity value at x,y,z dimension. unit A/ps
+     */
+    void velocitySetStep(const comm::Region<long> global_region, const double velocity_value[DIMENSION]);
 };
 
 #endif //MISA_MD_SIMULATION_H

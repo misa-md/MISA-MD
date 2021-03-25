@@ -70,6 +70,15 @@ void MDSimulation::beforeStep(const unsigned long step) {
         collisionStep(step, current_stage.collisionLat, current_stage.direction, current_stage.pkaEnergy);
     }
 
+    // perform "velocity"
+    if (current_stage.velocity_set && cur_stage_steps + 1 == current_stage.velocity_step) {
+        // set atoms' velocity in a region
+        const comm::Region<long> region(current_stage.velocity_region[0], current_stage.velocity_region[1],
+                                        current_stage.velocity_region[2], current_stage.velocity_region[3],
+                                        current_stage.velocity_region[4], current_stage.velocity_region[5]);
+        velocitySetStep(region, current_stage.velocity_value);
+    }
+
     // perform rescale
     if (current_stage.rescales_set && cur_stage_steps % current_stage.rescale_every == 0) {
         const _type_atom_count n_global_atoms = 2 * _p_domain->phase_space[0] *

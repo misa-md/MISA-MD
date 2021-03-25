@@ -10,9 +10,11 @@
 #include "def_config_values.h"
 
 Stage::Stage() : steps(0), step_length(default_time_length),
-                 collisionStep(0), collisionLat{0, 0, 0, 0},
-                 pkaEnergy(0), direction{1.0, 1.0, 1.0},
-                 rescales_set(false), rescale_t(0), rescale_every(1) {}
+                 collision_set(false), collisionStep(0), collisionLat{0, 0, 0, 0},
+                 pkaEnergy(0.0), direction{1.0, 1.0, 1.0},
+                 velocity_set(false), velocity_step(0),
+                 velocity_region{0, 0, 0, 0, 0, 0}, velocity_value{0.0, 0.0, 0.0},
+                 rescales_set(false), rescale_t(0.0), rescale_every(1) {}
 
 void Stage::packdata(kiwi::Bundle &bundle) {
     bundle.put(steps);
@@ -23,6 +25,11 @@ void Stage::packdata(kiwi::Bundle &bundle) {
     bundle.put(4, collisionLat);
     bundle.put(pkaEnergy);
     bundle.put(DIMENSION, direction);
+    // velocity
+    bundle.put(velocity_set);
+    bundle.put(velocity_step);
+    bundle.put(3, velocity_value);
+    bundle.put(6, velocity_region);
     // rescale
     bundle.put(rescales_set);
     bundle.put(rescale_t);
@@ -38,6 +45,11 @@ void Stage::unnpackdata(int &cursor, kiwi::Bundle &bundle) {
     bundle.get(cursor, 4, collisionLat);
     bundle.get(cursor, pkaEnergy);
     bundle.get(cursor, DIMENSION, direction);
+    // velocity
+    bundle.get(cursor, velocity_set);
+    bundle.get(cursor, velocity_step);
+    bundle.get(cursor, 3, velocity_value);
+    bundle.get(cursor, 6, velocity_region);
     // rescale
     bundle.get(cursor, rescales_set);
     bundle.get(cursor, rescale_t);

@@ -498,3 +498,23 @@ void atom::setv(const _type_lattice_coord lat[4], const double direction[3], con
         atom_.v[2] += v_ * direction[2] / d_;
     }
 }
+
+void atom::setv(const _type_lattice_coord lat_x, const _type_lattice_coord lat_y,
+                const _type_lattice_coord lat_z, const double v[DIMENSION]) {
+    if ((lat_x * 2) >= p_domain->dbx_sub_box_lattice_region.x_low &&
+        (lat_x * 2) < (p_domain->dbx_sub_box_lattice_region.x_low + p_domain->dbx_sub_box_lattice_size[0])
+        && lat_y >= p_domain->dbx_sub_box_lattice_region.y_low &&
+        lat_y < (p_domain->dbx_sub_box_lattice_region.y_low + p_domain->dbx_sub_box_lattice_size[1])
+        && lat_z >= p_domain->dbx_sub_box_lattice_region.z_low &&
+        lat_z < (p_domain->dbx_sub_box_lattice_region.z_low + p_domain->dbx_sub_box_lattice_size[2])) {
+        const long kk = atom_list->lattice.IndexOf3DIndex(
+                lat_x * 2 - p_domain->dbx_ghost_ext_lattice_region.x_low,
+                lat_y - p_domain->dbx_ghost_ext_lattice_region.y_low,
+                lat_z - p_domain->dbx_ghost_ext_lattice_region.z_low);
+
+        AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
+        atom_.v[0] = v[0];
+        atom_.v[1] = v[1];
+        atom_.v[2] = v[2];
+    }
+}
