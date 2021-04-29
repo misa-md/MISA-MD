@@ -9,7 +9,7 @@
 #include <mpi.h>
 #include <io/local_storage.h>
 #include "atom/atom_element.h"
-#include "atom_info_dump.h"
+#include "atom_dump_types.h"
 
 class BufferedFileWriter {
 public:
@@ -21,7 +21,7 @@ public:
      * set local storage pointer for writing shared file.
      *
      * @param p_file MPI-IO file pointer.
-     * @param buffer_size buffer size.
+     * @param buffer_size buffer size, unit: atoms number.
      */
     BufferedFileWriter(kiwi::LocalStorage *p_local_storage, const unsigned long buffer_size);
 
@@ -31,19 +31,20 @@ public:
      * Add atoms to buffer.
      * If the buffer is full, we write buffered data to MPI-IO file and then write left atoms to buffer.
      * @param atom atom pointer.
-     * @param time_step current simulation step.
+     * @param mpi_data_type MPI data type to write
      */
-    void write(AtomElement *atom, const unsigned long time_step);
+    void write(AtomElement *atom, MPI_Datatype mpi_data_type);
 
     /**
      * flush atoms data in buffer to MPI-IO file, and clear buffer array.
+     * @param mpi_data_type MPI data type to write
      */
-    void flush();
+    void flush(MPI_Datatype mpi_data_type);
 
     /**
      * @return the total atoms have been written.
      */
-    inline unsigned long totalAtomsWritten() {
+    inline unsigned long totalAtomsWritten() const {
         return total_atoms_written;
     }
 

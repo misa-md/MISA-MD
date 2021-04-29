@@ -22,17 +22,21 @@ void OutputCopy::onOutputStep(const unsigned long time_step, AtomList *atom_list
     start = MPI_Wtime();
     if (!output_config.outByFrame) {
         if (dumpInstance == nullptr) { // initialize atomDump if it is not initialized.
-            dumpInstance = new AtomDump(output_config.atomsDumpFilePath, atoms_size, begin, end); // atoms dump.
+            dumpInstance = new AtomDump(atoms_size, 0, begin, end); // atoms dump. // fixme: set frames
+            dumpInstance->tryCreateLocalStorage(output_config.atomsDumpFilePath);
             // fixme Attempting to use an MPI routine after finalizing MPICH.
         }
-        dumpInstance->dump(atom_list, inter_atom_list, time_step);
+        dumpInstance->setFrameHeader(time_step);
+        dumpInstance->dumpFrame(atom_list, inter_atom_list, time_step);
     } else {
         std::string filename = fmt::format(output_config.atomsDumpFilePath, time_step);
         // pointer to the atom dump class for outputting atoms information.
-        auto *dumpInstance = new AtomDump(filename, atoms_size, begin, end);
-        dumpInstance->dump(atom_list, inter_atom_list, time_step);
-        dumpInstance->writeDumpHeader();
-        delete dumpInstance;
+        auto *dump_instance = new AtomDump(atoms_size, 1, begin, end);
+        dump_instance->tryCreateLocalStorage(filename);
+        dump_instance->setFrameHeader(time_step);
+        dump_instance->dumpFrame(atom_list, inter_atom_list, time_step);
+        dump_instance->writeDumpHeader();
+        delete dump_instance;
     }
     stop = MPI_Wtime();
     totalDumpTime += (stop - start);
@@ -42,10 +46,12 @@ void OutputCopy::beforeCollision(const unsigned long time_step, AtomList *atom_l
                                  InterAtomList *inter_atom_list) {
     std::string filename = output_config.originDumpPath; // todo pass file name from func output parameters.
     // pointer to the atom dump class for outputting atoms information.
-    auto *dumpInstance = new AtomDump(filename, atoms_size, begin, end);
-    dumpInstance->dump(atom_list, inter_atom_list, time_step);
-    dumpInstance->writeDumpHeader();
-    delete dumpInstance;
+    auto *dump_instance = new AtomDump(atoms_size, 1, begin, end);
+    dump_instance->tryCreateLocalStorage(filename);
+    dump_instance->setFrameHeader(time_step);
+    dump_instance->dumpFrame(atom_list, inter_atom_list, time_step);
+    dump_instance->writeDumpHeader();
+    delete dump_instance;
 }
 
 void OutputCopy::onAllOut(const unsigned long time_step) {
