@@ -7,7 +7,7 @@
 #include "output_copy.h"
 
 OutputCopy::OutputCopy(const Output output, const comm::BccDomain p_domain)
-        : OutputBaseInterface(output, p_domain) {}
+        : dumpInstance(nullptr), OutputBaseInterface(output, p_domain) {}
 
 void OutputCopy::prepareOutput(const comm::BccDomain domain) {
     // atom boundary in array.

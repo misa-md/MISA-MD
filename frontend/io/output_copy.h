@@ -47,7 +47,7 @@ protected:
     /**
      * dump instance if it is not outputting by frame (only one file shared by all processors).
      */
-    AtomDump *dumpInstance;
+    AtomDump *dumpInstance = nullptr;
 
     /**
      * time of outputting
