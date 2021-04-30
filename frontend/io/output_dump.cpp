@@ -20,14 +20,6 @@ void OutputDump::onOutputStep(const unsigned long time_step, AtomList *atom_list
     total_dump_time += (stop - start);
 }
 
-void OutputDump::beforeCollision(const unsigned long time_step, AtomList *atom_list, InterAtomList *inter_atom_list) {
-    double start = 0, stop = 0;
-    start = MPI_Wtime();
-    dump(time_step, atom_list, inter_atom_list);
-    stop = MPI_Wtime();
-    total_dump_time += (stop - start);
-}
-
 void OutputDump::onAllOut(const unsigned long time_step) {
     kiwi::logs::i(MASTER_PROCESSOR, "dump", "time of dumping atoms in direct mode: {}.\n", total_dump_time);
 }

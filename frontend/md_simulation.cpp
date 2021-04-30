@@ -65,12 +65,8 @@ void MDSimulation::beforeStep(const unsigned long step) {
                   step + 1, pConfigVal->timeSteps);
 
     // perform collision.
-    if (current_stage.collision_set && cur_stage_steps + 1 == current_stage.collisionStep &&
-        !pConfigVal->output.presets[0].file_path.empty()) {
-        // output atoms in system before collision.
-        // step not plus 1 because it just start time step.
+    if (current_stage.collision_set && cur_stage_steps + 1 == current_stage.collisionStep) {
         // just output atoms in preview step of the collision step.
-//        out->beforeCollision(step, _atom->getAtomList(), _atom->getInterList());
         collisionStep(step, current_stage.collisionLat, current_stage.direction, current_stage.pkaEnergy);
     }
 

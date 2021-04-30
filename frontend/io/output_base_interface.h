@@ -47,15 +47,6 @@ public:
     virtual void onOutputStep(const unsigned long time_step, AtomList *atom_list, InterAtomList *inter_atom_list) = 0;
 
     /**
-     * this will be called before collision step.
-     * @param time_step current collision time step
-     * @param atom_list list of lattice atoms.
-     * @param inter_atom_list list of inter atoms.
-     */
-    virtual void beforeCollision(const unsigned long time_step, AtomList *atom_list,
-                                 InterAtomList *inter_atom_list) = 0;
-
-    /**
      * this will be call when all time steps finished.
      * @param time_step current time step
      */

@@ -41,18 +41,6 @@ void OutputCopy::onOutputStep(const unsigned long time_step, AtomList *atom_list
     totalDumpTime += (stop - start);
 }
 
-void OutputCopy::beforeCollision(const unsigned long time_step, AtomList *atom_list,
-                                 InterAtomList *inter_atom_list) {
-    std::string filename = output_config.file_path; // todo pass file name from func output parameters.
-    // pointer to the atom dump class for outputting atoms information.
-    auto *dump_instance = new AtomDump(atoms_size, 1, begin, end);
-    dump_instance->tryCreateLocalStorage(filename);
-    dump_instance->setFrameHeader(time_step);
-    dump_instance->dumpFrame(atom_list, inter_atom_list, time_step);
-    dump_instance->writeDumpHeader();
-    delete dump_instance;
-}
-
 void OutputCopy::onAllOut(const unsigned long time_step) {
     if (!output_config.by_frame) {
         // if it is not outputting by frame, write header after the final step.
