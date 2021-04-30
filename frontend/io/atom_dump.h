@@ -62,8 +62,11 @@ public:
 
     /**
      * dumpFrame dump one frame of atoms in current system into file(s), as well as frame header.
+     * @param region the dump region
+     * @param region_enabled enabled region dump.
      */
-    void dumpFrame(AtomList *atom_list, InterAtomList *inter_list, size_t time_step);
+    void dumpFrame(const comm::Region<double> region, const bool region_enabled,
+            AtomList *atom_list, InterAtomList *inter_list, size_t time_step);
 
     /**
      * It write global header and frame headers into dump file.

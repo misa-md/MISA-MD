@@ -71,6 +71,7 @@ void DumpConfig::packdata(kiwi::Bundle &bundle) {
     bundle.put(steps);
     bundle.put(file_path);
     bundle.put(by_frame);
+    bundle.put(dump_whole_system);
 }
 
 void DumpConfig::unnpackdata(int &cursor, kiwi::Bundle &bundle) {
@@ -80,6 +81,7 @@ void DumpConfig::unnpackdata(int &cursor, kiwi::Bundle &bundle) {
     bundle.get(cursor, steps);
     bundle.get(cursor, file_path);
     bundle.get(cursor, by_frame);
+    bundle.get(cursor, dump_whole_system);
 }
 
 ConfigValues::ConfigValues() :
@@ -210,6 +212,7 @@ std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
         os << "output.presets.steps:" << out.steps << std::endl;
         os << "output.presets.file_path:" << out.file_path << std::endl;
         os << "output.presets.by-frame:" << out.by_frame << std::endl;
+        os << "output.presets.whole-system:" << out.dump_whole_system << std::endl;
     }
     os << "output.thermo.interval:" << cv.output.thermo_interval << std::endl;
     os << "output.logs.mode: "

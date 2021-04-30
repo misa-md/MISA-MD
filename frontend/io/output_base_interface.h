@@ -6,6 +6,8 @@
 #define MISA_MD_OUTPUT_BASE_INTERFACE_H
 
 #include <comm/domain/bcc_domain.h>
+#include <comm/domain/region.hpp>
+
 #include "atom/atom_list.h"
 #include "atom/inter_atom_list.h"
 #include "../config_values.h"
@@ -21,7 +23,9 @@ public:
      * @param domain bcc domain to specific start and end boundary of box.
      */
     explicit OutputBaseInterface(const DumpConfig config, const comm::BccDomain domain)
-            : output_config(config) {
+            : output_config(config),
+              region({config.region[0], config.region[1], config.region[2],
+                      config.region[3], config.region[4], config.region[5]}) {
         // atom boundary in array.
         begin[0] = domain.dbx_sub_box_lattice_region.x_low - domain.dbx_ghost_ext_lattice_region.x_low;
         begin[1] = domain.dbx_sub_box_lattice_region.y_low - domain.dbx_ghost_ext_lattice_region.y_low;
@@ -58,7 +62,12 @@ protected:
      */
     const DumpConfig output_config;
 
-    // atom boundary in array.
+    /**
+     * dump region
+     */
+    const comm::Region<double> region;
+
+    // atom boundary in array for "whole system dump".
     _type_lattice_coord begin[DIMENSION];
     _type_lattice_coord end[DIMENSION];
     _type_lattice_size atoms_size;

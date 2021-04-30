@@ -36,7 +36,7 @@ output:
   atom_dump:
     presets:
       - name: my_dump
-        region: [ 30.0, 34.0, 34.0, 80.4, 80.4, 80.4 ]
+        region: [ 25.0, 25.0, 25.0, 80.4, 80.4, 80.4 ]
         mode: "copy" # output mode,string, "copy"(copy all atoms to memory and then output) or "direct" (output atoms directly) ;
         file_path: "misa_mdl.{}.out" # string,filename or path of dumped atoms, default value is "misa_mdl.out"
         by_frame: true # bool type, used in copy mode, dump to multiple file, one file for each frame.

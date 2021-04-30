@@ -207,14 +207,20 @@ bool ConfigParser::parseDumpPresets(const YAML::Node &yaml_atom_dump) {
         }
         // dump region
         const YAML::Node yaml_region = yaml_preset["region"];
-        if (yaml_region.IsSequence() && yaml_region.size() == 2 * DIMENSION) {
-            for (std::size_t r = 0; r < 2 * DIMENSION; r++) {
-                dump_config.region[r] = yaml_region[r].as<double>(0.0);
+        if (yaml_region) {
+            dump_config.dump_whole_system = false;
+            if (yaml_region.IsSequence() && yaml_region.size() == 2 * DIMENSION) {
+                for (std::size_t r = 0; r < 2 * DIMENSION; r++) {
+                    dump_config.region[r] = yaml_region[r].as<double>(0.0);
+                }
+            } else { //the array length must be 6.
+                setError("array length of value \"output.atom_dump.presets.region\" must be 6.");
+                return false;
             }
-        } else { //the array length must be 6.
-            setError("array length of value \"output.atom_dump.presets.region\" must be 6.");
-            return false;
+        } else {
+            dump_config.dump_whole_system = true;
         }
+
         dump_config.by_frame = yaml_preset["by_frame"].as<bool>(false);
         dump_config.name = yaml_preset["name"].as<std::string>("default");
         dump_config.file_path = yaml_preset["file_path"].as<std::string>(DEFAULT_OUTPUT_DUMP_FILE_PATH);

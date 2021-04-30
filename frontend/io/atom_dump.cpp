@@ -75,7 +75,8 @@ void AtomDump::setFrameHeader(size_t time_step) {
 }
 
 // todo asynchronous io.
-void AtomDump::dumpFrame(AtomList *atom_list, InterAtomList *inter_list, size_t time_step) {
+void AtomDump::dumpFrame(const comm::Region<double> region, const bool region_enabled,
+                         AtomList *atom_list, InterAtomList *inter_list, size_t time_step) {
     if (local_storage == nullptr) {
         kiwi::logs::e("dump", "local storage is not created");
         // todo exit application.
@@ -91,7 +92,9 @@ void AtomDump::dumpFrame(AtomList *atom_list, InterAtomList *inter_list, size_t 
     // dumping inter atoms.
     kiwi::logs::v("dump", "inter atoms count: {}\n", inter_list->nLocalInter());
     for (AtomElement &inter_ref :inter_list->inter_list) {
-        buffered_writer->write(&inter_ref, mpi_data_type);
+        if (!region_enabled || region.isIn(inter_ref.x[0], inter_ref.x[1], inter_ref.x[2])) {
+            buffered_writer->write(&inter_ref, mpi_data_type);
+        }
     }
 
     // dumping normal atoms
@@ -102,7 +105,10 @@ void AtomDump::dumpFrame(AtomList *atom_list, InterAtomList *inter_list, size_t 
                 if (atom_.type == atom_type::INVALID) {
                     continue; // skip out of boxed atoms.
                 }
-                buffered_writer->write(&atom_, mpi_data_type);
+                // if it is whole system dump, or not while system dump but atom is in the region
+                if (!region_enabled || region.isIn(atom_.x[0], atom_.x[1], atom_.x[2])) {
+                    buffered_writer->write(&atom_, mpi_data_type);
+                }
             }
         }
     }

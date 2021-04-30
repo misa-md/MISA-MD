@@ -72,8 +72,11 @@ struct DumpConfig {
     std::string file_path;
     // output atoms by frame if true.
     bool by_frame;
+    // dump the whole system, not atoms in the given region. (this field is not in config file)
+    bool dump_whole_system;
 
-    DumpConfig() : mode(OutputMode::COPY), steps(0), file_path(DEFAULT_OUTPUT_DUMP_FILE_PATH), by_frame(false) {};
+    DumpConfig() : mode(OutputMode::COPY), steps(0), file_path(DEFAULT_OUTPUT_DUMP_FILE_PATH),
+                   by_frame(false), dump_whole_system(true) {};
 
     void packdata(kiwi::Bundle &bundle);
 
