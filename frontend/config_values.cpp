@@ -19,6 +19,10 @@ Stage::Stage() : steps(0), step_length(default_time_length),
 void Stage::packdata(kiwi::Bundle &bundle) {
     bundle.put(steps);
     bundle.put(step_length);
+    // output dump
+    bundle.put(dump_set);
+    bundle.put(dump_preset_use);
+    bundle.put(dump_every_steps);
     // collision
     bundle.put(collision_set);
     bundle.put(collisionStep);
@@ -39,6 +43,10 @@ void Stage::packdata(kiwi::Bundle &bundle) {
 void Stage::unnpackdata(int &cursor, kiwi::Bundle &bundle) {
     bundle.get(cursor, steps); // get size,
     bundle.get(cursor, step_length);
+    // output dump
+    bundle.get(cursor, dump_set);
+    bundle.get(cursor, dump_preset_use);
+    bundle.get(cursor, dump_every_steps);
     // collision
     bundle.get(cursor, collision_set);
     bundle.get(cursor, collisionStep);
@@ -56,10 +64,28 @@ void Stage::unnpackdata(int &cursor, kiwi::Bundle &bundle) {
     bundle.get(cursor, rescale_every);
 }
 
+void DumpConfig::packdata(kiwi::Bundle &bundle) {
+    bundle.put(name);
+    bundle.put(2 * DIMENSION, region);
+    bundle.put(mode);
+    bundle.put(steps);
+    bundle.put(file_path);
+    bundle.put(by_frame);
+}
+
+void DumpConfig::unnpackdata(int &cursor, kiwi::Bundle &bundle) {
+    bundle.get(cursor, name);
+    bundle.get(cursor, 2 * DIMENSION, region);
+    bundle.get(cursor, mode);
+    bundle.get(cursor, steps);
+    bundle.get(cursor, file_path);
+    bundle.get(cursor, by_frame);
+}
+
 ConfigValues::ConfigValues() :
         phaseSpace{0, 0, 0}, cutoffRadiusFactor(0.0), latticeConst(0.0),
         timeSteps(0),
-        createPhaseMode(true),  createTSet(0.0), createSeed(1024), readPhaseFilename(""),
+        createPhaseMode(true), createTSet(0.0), createSeed(1024), readPhaseFilename(""),
         alloyCreateSeed(1024), alloyRatio{1, 0, 0},
         output(), stages() {}
 // todo potential type and filename initialize.
@@ -87,11 +113,10 @@ void ConfigValues::packdata(kiwi::Bundle &bundle) {
     bundle.put(potentialFilename);
 
     // output section
-    bundle.put(output.atomsDumpMode);
-    bundle.put(output.atomsDumpFilePath);
-    bundle.put(output.originDumpPath);
-    bundle.put(output.atomsDumpInterval);
-    bundle.put(output.outByFrame);
+    bundle.put(output.presets.size());
+    for (DumpConfig out: output.presets) {
+        out.packdata(bundle);
+    }
 
     bundle.put(output.thermo_interval);
     // logs subsection in output section.
@@ -131,11 +156,12 @@ void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
     bundle.get(cursor, potentialFilename);
 
     // output section.
-    bundle.get(cursor, output.atomsDumpMode);
-    bundle.get(cursor, output.atomsDumpFilePath);
-    bundle.get(cursor, output.originDumpPath);
-    bundle.get(cursor, output.atomsDumpInterval);
-    bundle.get(cursor, output.outByFrame);
+    std::size_t presets_size = 0;
+    bundle.get(cursor, presets_size);
+    output.presets.resize(presets_size);
+    for (std::size_t i = 0; i < presets_size; i++) {
+        output.presets[i].unnpackdata(cursor, bundle);
+    }
 
     bundle.get(cursor, output.thermo_interval);
 
@@ -175,19 +201,25 @@ std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
     os << "simulation.potential_file.filename:" << cv.potentialFilename << std::endl;
 
     // output section
-    os << "output.mode(debug:0, copy:1):" << cv.output.atomsDumpMode << std::endl;
-    os << "output.dump_interval:" << cv.output.atomsDumpInterval << std::endl;
-    os << "output.dump_file_path:" << cv.output.atomsDumpFilePath << std::endl;
-    os << "output.origin_dump_path:" << cv.output.originDumpPath << std::endl;
+    os << "output.preset:" << std::endl;
+    for (const DumpConfig &out : cv.output.presets) {
+        os << "output.presets.name:" << out.name << std::endl;
+        os << "output.presets.mode(debug:0, copy:1):" << out.mode << std::endl;
+        os << "output.presets.region:" << out.region[0] << "," << out.region[1] << "," << out.region[2] << ","
+           << out.region[3] << "," << out.region[4] << "," << out.region[5] << "," << std::endl;
+        os << "output.presets.steps:" << out.steps << std::endl;
+        os << "output.presets.file_path:" << out.file_path << std::endl;
+        os << "output.presets.by-frame:" << out.by_frame << std::endl;
+    }
     os << "output.thermo.interval:" << cv.output.thermo_interval << std::endl;
     os << "output.logs.mode: "
        << (cv.output.logs_mode == LOGS_MODE_CONSOLE ? LOGS_MODE_CONSOLE_STRING : LOGS_MODE_FILE_STRING)
-       << ", output.logs.by-frame:" << cv.output.outByFrame << std::endl;
+       << std::endl;
     os << "output.logs_filename:" << cv.output.logs_filename << std::endl;
 
     // stages
     os << "stages:" << std::endl;
-    for (Stage stage : cv.stages) {
+    for (const Stage &stage : cv.stages) {
         os << "stage.steps:" << stage.steps << std::endl;
         os << "stage.steps_length:" << stage.step_length << std::endl;
         if (stage.collision_set) {
@@ -200,6 +232,10 @@ std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
         }
         if (stage.rescales_set) {
             os << "rescale to T:" << stage.rescale_t << " every " << stage.rescale_every << " step(s)" << std::endl;
+        }
+        if (stage.dump_set) {
+            os << "use dump preset:" << stage.dump_preset_use << " every " << stage.dump_every_steps << " step(s)"
+               << std::endl;
         }
     }
     os << "============================================" << std::endl << std::endl;

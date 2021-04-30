@@ -20,7 +20,7 @@ public:
      * @param config output config
      * @param domain bcc domain to specific start and end boundary of box.
      */
-    explicit OutputBaseInterface(const Output config, const comm::BccDomain domain)
+    explicit OutputBaseInterface(const DumpConfig config, const comm::BccDomain domain)
             : output_config(config) {
         // atom boundary in array.
         begin[0] = domain.dbx_sub_box_lattice_region.x_low - domain.dbx_ghost_ext_lattice_region.x_low;
@@ -65,7 +65,7 @@ protected:
     /**
      * output configures
      */
-    const Output output_config;
+    const DumpConfig output_config;
 
     // atom boundary in array.
     _type_lattice_coord begin[DIMENSION];

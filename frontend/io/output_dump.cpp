@@ -7,7 +7,7 @@
 #include <logs/logs.h>
 #include "output_dump.h"
 
-OutputDump::OutputDump(const Output output, const comm::BccDomain p_domain)
+OutputDump::OutputDump(const DumpConfig output, const comm::BccDomain p_domain)
         : OutputBaseInterface(output, p_domain) {}
 
 void OutputDump::prepareOutput(const comm::BccDomain p_domain) {}

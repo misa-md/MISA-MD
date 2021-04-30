@@ -64,11 +64,17 @@ private:
     // resolve "collision" in stages section in yaml config file.
     bool resolveConfigCollision(Stage *stage, const YAML::Node &yaml_collision);
 
+    // resolve "dump" in stages section in yaml config file.
+    bool resolveStageDump(Stage *stage, const YAML::Node &yaml_stage_dump);
+
     // resolve "velocity" in stages section in yaml config file.
     bool resolveConfigVelocity(Stage *stage, const YAML::Node &yaml_velocity);
 
     // resolve "output" section in yaml config file.
     bool parseConfigOutput(const YAML::Node &yaml_output);
+
+    // resolve "output.atom_dump.presets" section in yaml config file.
+    bool parseDumpPresets(const YAML::Node &yaml_atom_dump);
 
     // resolve "rescale" in stages section in yaml config file.
     bool resolveConfigRescale(Stage *stage, const YAML::Node &yaml_rescale);

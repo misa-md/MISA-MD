@@ -12,7 +12,7 @@
 #include "io/output_copy.h"
 
 MDSimulation::MDSimulation(ConfigValues *p_config_values)
-        : simulation(), cur_stage_steps(0), pConfigVal(p_config_values) {
+        : simulation(), cur_stage_steps(0), pConfigVal(p_config_values), dump_instances() {
     // initialize stage, we make a stage with zero steps.
     // then, in first time step simulation, it will move to next stage.
     Stage s;
@@ -22,19 +22,23 @@ MDSimulation::MDSimulation(ConfigValues *p_config_values)
 }
 
 void MDSimulation::onSimulationStarted() {
-    switch (pConfigVal->output.atomsDumpMode) {
-        case OutputMode::DEBUG:
-            out = new OutputDump(pConfigVal->output, *_p_domain);
-            break;
-        case OutputMode::COPY:
-            out = new OutputCopy(pConfigVal->output, *_p_domain);
-            break;
+    for (const DumpConfig preset : pConfigVal->output.presets) {
+        switch (pConfigVal->output.presets[0].mode) {
+            case OutputMode::DEBUG:
+                this->dump_instances[preset.name] = new OutputDump(preset, *_p_domain);
+                break;
+            case OutputMode::COPY:
+                this->dump_instances[preset.name] = new OutputCopy(preset, *_p_domain);
+                break;
+        }
     }
 }
 
 void MDSimulation::onSimulationDone(const unsigned long step) {
-    out->onAllOut(step);
-    delete out;
+    for (auto ins_pair :this->dump_instances) {
+        ins_pair.second->onAllOut(step);
+        delete ins_pair.second;
+    }
 }
 
 void MDSimulation::beforeStep(const unsigned long step) {
@@ -62,11 +66,11 @@ void MDSimulation::beforeStep(const unsigned long step) {
 
     // perform collision.
     if (current_stage.collision_set && cur_stage_steps + 1 == current_stage.collisionStep &&
-        !pConfigVal->output.originDumpPath.empty()) {
+        !pConfigVal->output.presets[0].file_path.empty()) {
         // output atoms in system before collision.
         // step not plus 1 because it just start time step.
         // just output atoms in preview step of the collision step.
-        out->beforeCollision(step, _atom->getAtomList(), _atom->getInterList());
+//        out->beforeCollision(step, _atom->getAtomList(), _atom->getInterList());
         collisionStep(step, current_stage.collisionLat, current_stage.direction, current_stage.pkaEnergy);
     }
 
@@ -93,9 +97,15 @@ void MDSimulation::postStep(const unsigned long step) {
     cur_stage_steps++; // add current stage steps.
     kiwi::logs::i(MASTER_PROCESSOR, "simulation", "simulated physical time: {} ps.\n", phy_time);
 
-    // output atoms information if it is dumping step
-    if ((step + 1) % pConfigVal->output.atomsDumpInterval == 0) {
-        out->onOutputStep(step + 1, _atom->getAtomList(), _atom->getInterList());
+    // output atoms information if it is the dumping step
+    if (current_stage.dump_set && cur_stage_steps % current_stage.dump_every_steps == 0) {
+        if (this->dump_instances.find(current_stage.dump_preset_use) == this->dump_instances.end()) {
+            kiwi::logs::e("output", "bad output dump `use`: {}.\n", current_stage.dump_preset_use);
+            MPI_Abort(MPI_COMM_WORLD, 1);
+        } else {
+            OutputBaseInterface *dump_ptr = this->dump_instances[current_stage.dump_preset_use];
+            dump_ptr->onOutputStep(step + 1, _atom->getAtomList(), _atom->getInterList());
+        }
     }
 
     // output thermodynamics information if it it the step

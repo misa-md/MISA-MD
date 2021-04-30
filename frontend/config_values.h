@@ -7,6 +7,9 @@
 
 #include <string>
 #include <vector>
+#include <array>
+#include <map>
+
 #include <utils/bundle.h>
 #include "types/pre_define.h"
 #include "types/atom_types.h"
@@ -29,6 +32,11 @@ typedef short _type_logs_mode;
 struct Stage {
     unsigned long steps;
     double step_length;
+
+    // dump
+    bool dump_set;
+    std::string dump_preset_use;
+    unsigned int dump_every_steps;
 
     // collision
     bool collision_set;
@@ -54,25 +62,35 @@ struct Stage {
     void unnpackdata(int &cursor, kiwi::Bundle &bundle);
 };
 
+struct DumpConfig {
+    std::string name;
+    double region[2 * DIMENSION]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    OutputMode mode;
+    // total steps in this dump
+    unsigned int steps;
+    // path of dumped origin atoms before collision
+    std::string file_path;
+    // output atoms by frame if true.
+    bool by_frame;
+
+    DumpConfig() : mode(OutputMode::COPY), steps(0), file_path(DEFAULT_OUTPUT_DUMP_FILE_PATH), by_frame(false) {};
+
+    void packdata(kiwi::Bundle &bundle);
+
+    void unnpackdata(int &cursor, kiwi::Bundle &bundle);
+};
+
 struct Output {
     // output section
-    OutputMode atomsDumpMode;
-    unsigned long atomsDumpInterval;
-    // output atoms by frame if true.
-    bool outByFrame;
-    std::string atomsDumpFilePath;
-    // path of dumped origin atoms before collision
-    std::string originDumpPath;
+    std::vector<DumpConfig> presets;
+
     // interval to output thermodynamics information.
     unsigned long thermo_interval;
     // logs in output section
     _type_logs_mode logs_mode;
     std::string logs_filename;
 
-    Output() : atomsDumpMode(OutputMode::COPY), atomsDumpInterval(1),
-               outByFrame(false), originDumpPath(ORIGIN_OUTPUT_DUMP_FILE_PATH),
-               atomsDumpFilePath(DEFAULT_OUTPUT_DUMP_FILE_PATH), thermo_interval(0),
-               logs_mode(LOGS_MODE_CONSOLE), logs_filename("") {}
+    Output() : thermo_interval(0), logs_mode(LOGS_MODE_CONSOLE), logs_filename("") {}
 };
 
 class ConfigValues {

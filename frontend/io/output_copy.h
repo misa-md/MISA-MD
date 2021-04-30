@@ -16,7 +16,7 @@
  */
 class OutputCopy : public OutputBaseInterface {
 public:
-    explicit OutputCopy(const Output output, const comm::BccDomain p_domain);
+    explicit OutputCopy(const DumpConfig output, const comm::BccDomain p_domain);
 
     void prepareOutput(const comm::BccDomain p_domain) override;
 

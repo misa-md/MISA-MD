@@ -33,12 +33,13 @@ creation: # read atoms information from file or create atoms.
 #read_phase_filename = ""  # string type, for read mode.
 
 output:
-  dump:
-    atoms_dump_mode: "copy" # output mode,string, "copy"(copy all atoms to memory and then output) or "direct" (output atoms directly) ;
-    atoms_dump_file_path: "misa_mdl.{}.out" # string,filename or path of dumped atoms, default value is "misa_mdl.out"
-    origin_dump_path: "misa_mdl.origin.out" # string,filename or path of dumped origin atoms before collision. Leave it empty for skipping dumping
-    atoms_dump_interval: 10
-    by_frame: true # bool type, used in copy mode, dump to mulpile file, one file for each frame.
+  atom_dump:
+    presets:
+      - name: my_dump
+        region: [ 30.0, 34.0, 34.0, 80.4, 80.4, 80.4 ]
+        mode: "copy" # output mode,string, "copy"(copy all atoms to memory and then output) or "direct" (output atoms directly) ;
+        file_path: "misa_mdl.{}.out" # string,filename or path of dumped atoms, default value is "misa_mdl.out"
+        by_frame: true # bool type, used in copy mode, dump to multiple file, one file for each frame.
   thermo:
     interval: 0 # unsigned integer type, default is 0, no output
   logs:
@@ -51,6 +52,9 @@ stages:
   - name: rescale
     step_length: 0.001
     steps: 4
+    dump:
+      use: my_dump
+      every_steps: 2
     rescale: # rescale to a temperature.
       t: 600
       every_steps: 2 # rescale every n steps
