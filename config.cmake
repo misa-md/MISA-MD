@@ -26,7 +26,7 @@ set(MD_RAND "MT" CACHE STRING "random number generating algorithm") # random num
 #   STC: subtract with carry
 #   xoshiro: http://xoshiro.di.unimi.it
 #   LEGACY: lammps legacy
-#   REAL: real random number privided by linux OS.
+#   REAL: real random number provided by linux OS.
 
 if (CMAKE_BUILD_TYPE MATCHES "^(Debug|DEBUG|debug)$")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
@@ -41,7 +41,7 @@ endif ()
 #############
 # all variables here start with "MD_"
 set(EXECUTE_BIN_NAME misamd)
-set(MD_LIB_NAME md) # use PARENT_SCOPE to modify globle variable.
+set(MD_LIB_NAME md) # use PARENT_SCOPE to modify global variable.
 set(MD_FRONTEND_LIB_NAME frontend)
 
 # test
