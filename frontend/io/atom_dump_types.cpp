@@ -5,10 +5,6 @@
 #include <logs/logs.h>
 #include "atom_dump_types.h"
 
-// the mask of dump option, it is associated with MPI_DataTypes array (as array index)
-atom_dump::type_dump_mask atom_dump::WithPositionMask = 1 << 0;
-atom_dump::type_dump_mask atom_dump::WithVelocityMask = 1 << 1;
-atom_dump::type_dump_mask atom_dump::WithForceMask = 1 << 2;
 
 size_t atom_dump::getAtomDumpDataSize(const atom_dump::type_dump_mask mask) {
     if (((mask & atom_dump::WithPositionMask) | (mask & atom_dump::WithVelocityMask) |

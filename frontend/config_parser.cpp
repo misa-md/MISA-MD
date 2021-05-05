@@ -221,6 +221,33 @@ bool ConfigParser::parseDumpPresets(const YAML::Node &yaml_atom_dump) {
             dump_config.dump_whole_system = true;
         }
 
+        // parse `with` field
+        const YAML::Node yaml_with = yaml_preset["with"];
+        if (!yaml_with) {
+            dump_config.dump_mask = DefaultAtomDumpMask;
+        } else {
+            if (yaml_with.IsSequence()) {
+                atom_dump::type_dump_mask local_mask = 0;
+                for (auto ele : yaml_with) {
+                    const std::string ele_str = ele.as<std::string>();
+                    if (ele_str == "location") {
+                        local_mask |= atom_dump::WithPositionMask;
+                    } else if (ele_str == "velocity") {
+                        local_mask |= atom_dump::WithVelocityMask;
+                    } else if (ele_str == "force") {
+                        local_mask |= atom_dump::WithForceMask;
+                    } else {
+                        setError("unrecognized value `" + ele_str + "` for \"output.atom_dump.presets.with\".");
+                        return false;
+                    }
+                }
+                dump_config.dump_mask = local_mask;
+            } else {
+                setError("\"output.atom_dump.presets.with\" must be a sequence.");
+                return false;
+            }
+        }
+
         dump_config.by_frame = yaml_preset["by_frame"].as<bool>(false);
         dump_config.name = yaml_preset["name"].as<std::string>("default");
         dump_config.file_path = yaml_preset["file_path"].as<std::string>(DEFAULT_OUTPUT_DUMP_FILE_PATH);
@@ -240,7 +267,9 @@ bool ConfigParser::parseConfigOutput(const YAML::Node &yaml_output) {
     }
     // resole dump config.
     const YAML::Node yaml_atom_dump = yaml_output["atom_dump"];
-    parseDumpPresets(yaml_atom_dump);
+    if (!parseDumpPresets(yaml_atom_dump)) {
+        return false;
+    }
 
     // resole thermodynamics config
     const YAML::Node yaml_thermo = yaml_output["thermo"];

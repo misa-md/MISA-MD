@@ -24,7 +24,7 @@ public:
      * @param end ending atoms index of dumping in 3d
      * @param atoms_size the count of atoms to be dumped in one frame.
      */
-    AtomDump(_type_lattice_size atoms_size, unsigned int frames,
+    AtomDump(_type_lattice_size atoms_size, unsigned int frames, atom_dump::type_dump_mask dump_mask,
              _type_lattice_coord begin[DIMENSION], _type_lattice_coord end[DIMENSION]);
 
     ~AtomDump();
@@ -85,7 +85,7 @@ private:
     _type_lattice_coord _begin[DIMENSION];
     _type_lattice_coord _end[DIMENSION];
 
-    const atom_dump::type_dump_mask mask = atom_dump::WithPositionMask | atom_dump::WithVelocityMask;
+    const atom_dump::type_dump_mask mask;
 
     std::vector<atom_dump::FrameMetaData> frames_meta;
 

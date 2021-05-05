@@ -14,9 +14,10 @@
 
 namespace atom_dump {
     typedef unsigned int type_dump_mask;
-    extern type_dump_mask WithPositionMask;
-    extern type_dump_mask WithVelocityMask;
-    extern type_dump_mask WithForceMask;
+    // the dump_mask of dump option, it is associated with MPI_DataTypes array (as array index)
+    constexpr type_dump_mask WithPositionMask = 1 << 0;
+    constexpr type_dump_mask WithVelocityMask = 1 << 1;
+    constexpr type_dump_mask WithForceMask = 1 << 2;;
 
     struct GlobalMetaData {
         size_t self_size; // in bytes

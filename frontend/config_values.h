@@ -11,6 +11,7 @@
 #include <map>
 
 #include <utils/bundle.h>
+#include "io/atom_dump_types.h"
 #include "types/pre_define.h"
 #include "types/atom_types.h"
 
@@ -26,6 +27,8 @@ enum OutputMode {
 #define DEFAULT_LOGS_MODE_CONSOLE_STRING LOGS_MODE_CONSOLE_STRING
 #define DEFAULT_OUTPUT_DUMP_FILE_PATH "misa_mdl.out"
 #define ORIGIN_OUTPUT_DUMP_FILE_PATH "origin_misa_mdl.out"
+
+constexpr atom_dump::type_dump_mask DefaultAtomDumpMask = atom_dump::WithPositionMask;
 
 typedef short _type_logs_mode;
 
@@ -72,11 +75,13 @@ struct DumpConfig {
     std::string file_path;
     // output atoms by frame if true.
     bool by_frame;
+    // dump dump_mask
+    atom_dump::type_dump_mask dump_mask;
     // dump the whole system, not atoms in the given region. (this field is not in config file)
     bool dump_whole_system;
 
     DumpConfig() : mode(OutputMode::COPY), steps(0), file_path(DEFAULT_OUTPUT_DUMP_FILE_PATH),
-                   by_frame(false), dump_whole_system(true) {};
+                   by_frame(false), dump_mask(DefaultAtomDumpMask), dump_whole_system(true) {};
 
     void packdata(kiwi::Bundle &bundle);
 

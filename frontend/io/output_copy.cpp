@@ -21,8 +21,8 @@ void OutputCopy::onOutputStep(const unsigned long time_step, AtomList *atom_list
     start = MPI_Wtime();
     if (!output_config.by_frame) {
         if (dumpInstance == nullptr) { // initialize atomDump if it is not initialized.
-            dumpInstance = new AtomDump(atoms_size, output_config.steps, begin,
-                                        end); // atoms dump. // fixme: set frames
+            dumpInstance = new AtomDump(atoms_size, output_config.steps, output_config.dump_mask, begin,
+                                        end); // atoms dump.
             dumpInstance->tryCreateLocalStorage(output_config.file_path);
             // fixme Attempting to use an MPI routine after finalizing MPICH.
         }
@@ -32,7 +32,7 @@ void OutputCopy::onOutputStep(const unsigned long time_step, AtomList *atom_list
     } else {
         std::string filename = fmt::format(output_config.file_path, time_step);
         // pointer to the atom dump class for outputting atoms information.
-        auto *dump_instance = new AtomDump(atoms_size, 1, begin, end);
+        auto *dump_instance = new AtomDump(atoms_size, 1, output_config.dump_mask, begin, end);
         dump_instance->tryCreateLocalStorage(filename);
         dump_instance->setFrameHeader(time_step);
         dump_instance->dumpFrame(region, !(output_config.dump_whole_system), atom_list, inter_atom_list, time_step);

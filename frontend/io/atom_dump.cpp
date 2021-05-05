@@ -10,11 +10,11 @@
 #include "atom_dump_types.h"
 #include "types/pre_define.h"
 
-AtomDump::AtomDump() : frames(0), cur_frame(0), _atoms_size(0), frames_meta() {}
+AtomDump::AtomDump() : frames(0), cur_frame(0), _atoms_size(0), mask(atom_dump::WithPositionMask), frames_meta() {}
 
-AtomDump::AtomDump(_type_lattice_size atoms_size, unsigned int frames,
+AtomDump::AtomDump(_type_lattice_size atoms_size, unsigned int frames, atom_dump::type_dump_mask dump_mask,
                    _type_lattice_coord *begin, _type_lattice_coord *end)
-        : frames(frames), cur_frame(0), _atoms_size(atoms_size), frames_meta() {
+        : frames(frames), cur_frame(0), _atoms_size(atoms_size), mask(dump_mask), frames_meta() {
     setBoundary(begin, end, atoms_size); // todo set variable atoms_size twice.
 }
 
