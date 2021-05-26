@@ -365,10 +365,10 @@ bool ConfigParser::resolveStageDump(Stage *stage, const YAML::Node &yaml_stage_d
     size_t index = 0;
     for (auto &p : configValues.output.presets) {
         if (p.name == stage->dump_preset_use) {
-            index++;
             found = true;
             break;
         }
+        index++;
     }
     if (!found) {
         setError("dump preset not found for `" + stage->dump_preset_use + "`");
