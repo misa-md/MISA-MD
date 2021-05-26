@@ -15,27 +15,17 @@
  */
 class OutputDump : public OutputBaseInterface {
 public:
-    explicit OutputDump(const Output output, const comm::BccDomain p_domain);
+    explicit OutputDump(const DumpConfig output, const comm::BccDomain p_domain);
 
     void prepareOutput(const comm::BccDomain p_domain) override;
 
     /**
      * this will be call in each output step.
-     * @param time_step current time step
+     * @param config dump config in the stage.
      * @param atom_list list of lattice atoms.
      * @param inter_atom_list list of inter atoms.
      */
-    void onOutputStep(const unsigned long time_step, AtomList *atom_list,
-                      InterAtomList *inter_atom_list) override;
-
-    /**
-     * this will be called before collision step.
-     * @param time_step current collision time step
-     * @param atom_list list of lattice atoms.
-     * @param inter_atom_list list of inter atoms.
-     */
-    void beforeCollision(const unsigned long time_step, AtomList *atom_list,
-                         InterAtomList *inter_atom_list) override;
+    void onOutputStep(const unsigned long time_step, AtomList *atom_list, InterAtomList *inter_atom_list) override;
 
     /**
      * this will be call when all time steps finished.

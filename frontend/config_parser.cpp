@@ -134,7 +134,7 @@ bool ConfigParser::parseConfigCreation(const YAML::Node &yaml_creation) {
         if (yaml_creation["create_t_set"]) {
             configValues.createTSet = yaml_creation["create_t_set"].as<double>(0.0);
         } else {
-            setError("creation t_set must be specified.");
+            setError("creation `create_t_set` must be specified.");
             return false;
         }
         configValues.createSeed = yaml_creation["create_seed"].as<int>(default_random_seek);
@@ -177,36 +177,98 @@ bool ConfigParser::parseConfigPotential(const YAML::Node &yaml_pot) {
     return true;
 }
 
+bool ConfigParser::parseDumpPresets(const YAML::Node &yaml_atom_dump) {
+    if (!yaml_atom_dump) {
+        // skip "atom_dump"
+        return true;
+    }
+    const YAML::Node yaml_dump_preset = yaml_atom_dump["presets"];
+    if (!yaml_dump_preset) {
+        // skip "atom_dump.presets"
+        return true;
+    }
+
+    if (!yaml_dump_preset.IsSequence()) {
+        setError("`output.atom_dump.presets` is not correctly set in config file.");
+        return false;
+    }
+    const std::size_t presets_size = yaml_dump_preset.size();
+
+    for (std::size_t i = 0; i < presets_size; i++) {
+        const YAML::Node yaml_preset = yaml_dump_preset[i];
+        DumpConfig dump_config;
+        // dump mode
+        if (yaml_preset["mode"]) {
+            if ("copy" == yaml_preset["mode"].as<std::string>("copy")) { // todo equal?
+                dump_config.mode = OutputMode::COPY;
+            } else {
+                dump_config.mode = OutputMode::DEBUG;
+            }
+        }
+        // dump region
+        const YAML::Node yaml_region = yaml_preset["region"];
+        if (yaml_region) {
+            dump_config.dump_whole_system = false;
+            if (yaml_region.IsSequence() && yaml_region.size() == 2 * DIMENSION) {
+                for (std::size_t r = 0; r < 2 * DIMENSION; r++) {
+                    dump_config.region[r] = yaml_region[r].as<double>(0.0);
+                }
+            } else { //the array length must be 6.
+                setError("array length of value \"output.atom_dump.presets.region\" must be 6.");
+                return false;
+            }
+        } else {
+            dump_config.dump_whole_system = true;
+        }
+
+        // parse `with` field
+        const YAML::Node yaml_with = yaml_preset["with"];
+        if (!yaml_with) {
+            dump_config.dump_mask = DefaultAtomDumpMask;
+        } else {
+            if (yaml_with.IsSequence()) {
+                atom_dump::type_dump_mask local_mask = 0;
+                for (auto ele : yaml_with) {
+                    const std::string ele_str = ele.as<std::string>();
+                    if (ele_str == "location") {
+                        local_mask |= atom_dump::WithPositionMask;
+                    } else if (ele_str == "velocity") {
+                        local_mask |= atom_dump::WithVelocityMask;
+                    } else if (ele_str == "force") {
+                        local_mask |= atom_dump::WithForceMask;
+                    } else {
+                        setError("unrecognized value `" + ele_str + "` for \"output.atom_dump.presets.with\".");
+                        return false;
+                    }
+                }
+                dump_config.dump_mask = local_mask;
+            } else {
+                setError("\"output.atom_dump.presets.with\" must be a sequence.");
+                return false;
+            }
+        }
+
+        dump_config.by_frame = yaml_preset["by_frame"].as<bool>(false);
+        dump_config.name = yaml_preset["name"].as<std::string>("default");
+        dump_config.file_path = yaml_preset["file_path"].as<std::string>(DEFAULT_OUTPUT_DUMP_FILE_PATH);
+        // todo check if it is a real path.
+        if (dump_config.by_frame && dump_config.file_path.find("{}") == std::string::npos) {
+            setError("error format of dump file path: " + dump_config.file_path);
+        }
+        configValues.output.presets.emplace_back(dump_config);
+    }
+    return true;
+}
+
 bool ConfigParser::parseConfigOutput(const YAML::Node &yaml_output) {
     if (!yaml_output) {
         setError("output section in config file is not specified.");
         return false;
     }
     // resole dump config.
-    const YAML::Node yaml_dump = yaml_output["dump"];
-    if (!yaml_dump) {
-        setError("dumping output section in config file is not specified.");
+    const YAML::Node yaml_atom_dump = yaml_output["atom_dump"];
+    if (!parseDumpPresets(yaml_atom_dump)) {
         return false;
-    }
-
-    // dump mode
-    if (yaml_dump["atoms_dump_mode"]) {
-        if ("copy" == yaml_dump["atoms_dump_mode"].as<std::string>("")) { // todo equal?
-            configValues.output.atomsDumpMode = OutputMode::COPY;
-        } else {
-            configValues.output.atomsDumpMode = OutputMode::DEBUG;
-        }
-    }
-    // todo 0 as default.
-    configValues.output.atomsDumpInterval = yaml_dump["atoms_dump_interval"].as<uint64_t>(ULONG_MAX);
-    configValues.output.outByFrame = yaml_dump["by_frame"].as<bool>(false);
-
-    configValues.output.atomsDumpFilePath = yaml_dump["atoms_dump_file_path"].as<std::string>(
-            DEFAULT_OUTPUT_DUMP_FILE_PATH);
-    configValues.output.originDumpPath = yaml_dump["origin_dump_path"].as<std::string>("");
-    // todo check if it is a real path.
-    if (configValues.output.outByFrame && configValues.output.atomsDumpFilePath.find("{}") == std::string::npos) {
-        setError("error format of dump file path");
     }
 
     // resole thermodynamics config
@@ -292,6 +354,30 @@ bool ConfigParser::resolveConfigCollision(Stage *stage, const YAML::Node &yaml_c
     return true;
 }
 
+bool ConfigParser::resolveStageDump(Stage *stage, const YAML::Node &yaml_stage_dump) {
+
+    stage->dump_preset_use = yaml_stage_dump["use"].as<std::string>("default");
+    // todo 0 as default.
+    stage->dump_every_steps = yaml_stage_dump["every_steps"].as<unsigned long>(ULONG_MAX);
+
+    // verify (e.g. the preset must exist) and calculate total step in this dump preset.
+    bool found = false;
+    size_t index = 0;
+    for (auto &p : configValues.output.presets) {
+        if (p.name == stage->dump_preset_use) {
+            found = true;
+            break;
+        }
+        index++;
+    }
+    if (!found) {
+        setError("dump preset not found for `" + stage->dump_preset_use + "`");
+        return false;
+    }
+    configValues.output.presets[index].steps += stage->steps / stage->dump_every_steps;
+    return true;
+}
+
 bool ConfigParser::resolveConfigVelocity(Stage *stage, const YAML::Node &yaml_velocity) {
     if (!yaml_velocity) {
         setError("`velocity` config is not set.");
@@ -355,6 +441,15 @@ bool ConfigParser::parseStages(const YAML::Node &yaml_stages) {
             }
         } else {
             stage.collision_set = false;
+        }
+        // dump
+        if (yaml_stage["dump"]) {
+            stage.dump_set = true;
+            if (!resolveStageDump(&stage, yaml_stage["dump"])) {
+                return false;
+            }
+        } else {
+            stage.dump_set = false;
         }
         // velocity
         if (yaml_stage["velocity"]) {

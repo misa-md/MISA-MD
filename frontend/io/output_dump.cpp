@@ -7,20 +7,12 @@
 #include <logs/logs.h>
 #include "output_dump.h"
 
-OutputDump::OutputDump(const Output output, const comm::BccDomain p_domain)
+OutputDump::OutputDump(const DumpConfig output, const comm::BccDomain p_domain)
         : OutputBaseInterface(output, p_domain) {}
 
 void OutputDump::prepareOutput(const comm::BccDomain p_domain) {}
 
 void OutputDump::onOutputStep(const unsigned long time_step, AtomList *atom_list, InterAtomList *inter_atom_list) {
-    double start = 0, stop = 0;
-    start = MPI_Wtime();
-    dump(time_step, atom_list, inter_atom_list);
-    stop = MPI_Wtime();
-    total_dump_time += (stop - start);
-}
-
-void OutputDump::beforeCollision(const unsigned long time_step, AtomList *atom_list, InterAtomList *inter_atom_list) {
     double start = 0, stop = 0;
     start = MPI_Wtime();
     dump(time_step, atom_list, inter_atom_list);
