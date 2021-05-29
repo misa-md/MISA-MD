@@ -5,6 +5,8 @@
 #ifndef MISA_MD_ARCH_IMP_H
 #define MISA_MD_ARCH_IMP_H
 
+#include <args.hpp>
+
 #include "arch_building_config.h"
 
 #ifdef ACCELERATE_ENABLED
@@ -13,6 +15,12 @@
 
 #include "atom/atom_element.h"
 #include "atom/neighbour_index.h"
+
+void ARCH_PREFIX(ARCH_NAME, cli_options)(args::ArgumentParser &parser);
+
+// if you return false, it will abort argument parsing.
+// You may print error messages in the parsing implementation.
+bool ARCH_PREFIX(ARCH_NAME, cli_options_parse)(args::ArgumentParser &parser);
 
 void ARCH_PREFIX(ARCH_NAME, env_init)();
 

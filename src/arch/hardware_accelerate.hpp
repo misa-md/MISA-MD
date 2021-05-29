@@ -7,6 +7,7 @@
 
 #include <eam.h>
 #include <comm/domain/bcc_domain.h>
+#include <args.hpp>
 
 #include "atom/atom_element.h"
 #include "atom/neighbour_index.h"
@@ -19,6 +20,21 @@ inline bool isArchAccSupport() {
     return true; // sunway and other hardware.
 #else
     return false;
+#endif
+}
+
+// set command line interface options.
+inline void archCliOptions(args::ArgumentParser &parser) {
+#ifdef ACCELERATE_ENABLED
+    ARCH_PREFIX(ARCH_NAME, cli_options)(parser);
+#endif
+}
+
+inline bool archCliOptionsParse(args::ArgumentParser &parser) {
+#ifdef ACCELERATE_ENABLED
+    return ARCH_PREFIX(ARCH_NAME, cli_options_parse)(parser);
+#else
+    return true;
 #endif
 }
 
