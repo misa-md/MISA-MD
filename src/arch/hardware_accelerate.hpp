@@ -38,6 +38,25 @@ inline bool archCliOptionsParse(args::ArgumentParser &parser) {
 #endif
 }
 
+// api for creating lattice atoms memory.
+// It will recreate using `malloc/new` after this call if it returns nullptr.
+inline AtomElement *archCreateAtomsMemory(_type_atom_count size_x, _type_atom_count size_y, _type_atom_count size_z) {
+#ifdef ACCELERATE_ENABLED
+    return ARCH_PREFIX(ARCH_NAME, create_atoms_mem)(size_x, size_y, size_z);
+#else
+    return nullptr;
+#endif
+}
+
+// release created lattice atoms.
+inline bool archReleaseAtomsMemory(AtomElement *atoms) {
+#ifdef ACCELERATE_ENABLED
+    return ARCH_PREFIX(ARCH_NAME, release_atoms_mem)(atoms);
+#else
+    return false;
+#endif
+}
+
 // callback function for hardware acceleration when domain is created.
 // about const &, see: https://stackoverflow.com/questions/9637856/why-is-const-int-faster-than-const-int/9637951#9637951
 inline void archAccDomainInit(const comm::BccDomain *domain) {
