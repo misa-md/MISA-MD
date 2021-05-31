@@ -18,5 +18,9 @@ endif ()
 
 configure_file(
         "${CURRENT_ARCH_SOURCE_DIR}/arch_building_config.h.in"
-        "${CURRENT_ARCH_SOURCE_DIR}/arch_building_config.h"
+        "${CONFIGURE_GENERATED_PATH}/arch_building_config.h"
 )
+
+install(FILES "${CONFIGURE_GENERATED_PATH}/arch_building_config.h"
+        DESTINATION "include"
+        )

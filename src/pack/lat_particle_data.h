@@ -7,7 +7,7 @@
 
 #include <mpi.h>
 #include "../types/atom_types.h"
-#include "../md_building_config.h"
+#include "md_building_config.h"
 
 class LatParticleData {
 public:

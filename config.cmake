@@ -44,5 +44,6 @@ set(EXECUTE_BIN_NAME misamd)
 set(MD_LIB_NAME md) # use PARENT_SCOPE to modify globle variable.
 set(MD_FRONTEND_LIB_NAME frontend)
 
+set(CONFIGURE_GENERATED_PATH ${CMAKE_BINARY_DIR}/generated)
 # test
 set(MD_TEST_NAME "md-test")

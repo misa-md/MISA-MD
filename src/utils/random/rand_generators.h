@@ -10,7 +10,7 @@
 
 #include <xoshiro_gen.h>
 #include "legacy_random.hpp"
-#include "../../md_building_config.h"
+#include "md_building_config.h"
 
 namespace md_rand {
 #ifdef RAND_LCG
