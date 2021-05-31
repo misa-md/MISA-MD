@@ -10,6 +10,7 @@
 #include "misa_md.h"
 #include "utils/mpi_domain.h"
 #include "arch/arch_env.hpp"
+#include "arch/hardware_accelerate.hpp"
 #include "device.h"
 #include "frontend_config.h"
 #include "md_simulation.h"
@@ -20,6 +21,7 @@ bool MISAMD::beforeCreate(int argc, char *argv[]) {
     args::ArgumentParser parser("This is MISA-MD program.", "authors:BaiHe.");
     args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
     args::ValueFlag<std::string> conf(parser, "conf", "The configure file", {'c', "conf"});
+    archCliOptions(parser);
     args::Flag version(parser, "version", "show version number", {'v', "version"});
     try {
         parser.ParseCLI(argc, (const char *const *) argv);
@@ -39,18 +41,22 @@ bool MISAMD::beforeCreate(int argc, char *argv[]) {
         return false;
     }
 
-    // todo add version command.
-
-    if (conf) {
-        configFilePath = args::get(conf);
-        return true;
-    }
-
     if (version) {
         std::cout << "MISA-MD version " << MD_VERSION_STRING << std::endl;
         std::cout << "Build time: " << __TIME__ << " " << __DATE__ << "." << std::endl;
         return false;
     }
+
+    // if verification for arch option fails, just return
+    if (isArchAccSupport() && !archCliOptionsParse(parser)) {
+        return false;
+    }
+    // set config file path
+    if (conf) {
+        configFilePath = args::get(conf);
+        return true;
+    }
+
     // if no args, print usage.
     std::cerr << parser;
     return false;
