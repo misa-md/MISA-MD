@@ -19,7 +19,7 @@ class AtomElement {
 public:
     _type_atom_id id; // atom id.
     // <del> @deprecated
-//    _type_atom_type type; // atom type @depresed
+//    _type_atom_type type; // atom type @depressed
     // </del>
     _type_atom_type_enum type; // atom type
 

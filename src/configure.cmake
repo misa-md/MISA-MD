@@ -14,7 +14,7 @@ elseif (MD_RAND MATCHES "REAL")
     #    set(RAND_LINUX_REAL TRUE)
     MESSAGE(SEND_ERROR "real rand number is not currently supported")
 else ()
-    MESSAGE(SEND_ERROR "unsupported random number generation method ${KMC_RAND}")
+    MESSAGE(SEND_ERROR "unsupported random number generation method ${MD_RAND}")
 endif ()
 
 

@@ -8,7 +8,7 @@ Developers:[Baihe](mailto:baihe_ustb@163.com) and [Chugenshen](mailto:genshenchu
 ## Build
 ### Build from CMake (recommend)  
 dependency:
-1. cmake CMake 3.6 or higher is required;
+1. CMake 3.6 or higher is required;
 2. c++ 11 feature required(check your gcc version);
 3. mpi.
 
@@ -30,7 +30,7 @@ $ cmake --build build --target install
 ```
 
 ## Run
-NOtice: befor running, you should have [FeCuNi.eam.alloy](https://www.ctcms.nist.gov/potentials/Download/Fe-Cu-Ni-GB/FeCuNi.eam.alloy) file,then specific the file path in config.toml file.  
+Notice: before running, you should have [FeCuNi.eam.alloy](https://www.ctcms.nist.gov/potentials/Download/Fe-Cu-Ni-GB/FeCuNi.eam.alloy) file,then specific the file path in config.toml file.  
 see [here](https://www.ctcms.nist.gov/potentials/Fe-Cu-Ni.html) for more details.
 For example, you can get the file by running following command to download the file:
 ```bash
@@ -48,5 +48,5 @@ $ mpiexec -n 64 ../build/bin/misamd -c config.yaml  # run MD simulation
 For details on how to build, configure and run, check out our [document](https://hpcer.pages.hpcer.dev/CrystalMD/MDoc/).
 
 ## Contributing
-It is meaningful to make commit messages formatted, so we use use [AngularJS's commit message convention](https://github.com/angular/angular/blob/master/CONTRIBUTING.md#-commit-message-guidelines) also known as conventional-changelog.  
+It is meaningful to make commit messages formatted, so we use [AngularJS's commit message convention](https://github.com/angular/angular/blob/master/CONTRIBUTING.md#-commit-message-guidelines) also known as conventional-changelog.  
 You can also use [commitizen tool](https://github.com/commitizen/cz-cli) to generate AngularJS style commit messages.

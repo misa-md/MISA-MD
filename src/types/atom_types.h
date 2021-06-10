@@ -76,7 +76,7 @@ namespace atom_type {
 //        return type;
 //    }
 //
-//    inline int getAtomTypeMatrisIndex(atom_type type1, atom_type type2) {
+//    inline int getAtomTypeMaterialsIndex(atom_type type1, atom_type type2) {
 //        return num_atom_types * type1 + type2;
 //    }
 }
