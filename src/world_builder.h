@@ -8,8 +8,10 @@
 #define MISA_MD_WORLD_BUILDER_H
 
 #include <comm/domain/domain.h>
+
 #include "atom.h"
 #include "types/atom_types.h"
+#include "utils/random/rand_generators.h"
 
 // todo documents
 class WorldBuilder {
@@ -59,7 +61,7 @@ public:
     void vcm(double p[DIMENSION + 1]);
 
 protected:
-    atom_type::atom_type randomAtomsType();
+    atom_type::atom_type randomAtomsType(md_rand::type_rng &rng);
 
 private:
     comm::BccDomain *_p_domain;

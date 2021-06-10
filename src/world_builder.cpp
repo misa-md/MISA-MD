@@ -6,6 +6,7 @@
 #include <iostream>
 #include <logs/logs.h>
 #include <random>
+
 #include "utils/random/random.h"
 #include "world_builder.h"
 #include "system_configuration.h"
@@ -110,12 +111,14 @@ void WorldBuilder::createPhaseSpace() {
                              _p_domain->dbx_sub_box_lattice_size[1] *
                              _p_domain->dbx_sub_box_lattice_size[2];
     _type_atom_mass mass = 0;
+    md_rand::type_rng atom_type_rng;
+    atom_type_rng.seed(0);
     for (int k = 0; k < _p_domain->dbx_sub_box_lattice_size[2]; k++) {
         for (int j = 0; j < _p_domain->dbx_sub_box_lattice_size[1]; j++) {
             for (int i = 0; i < _p_domain->dbx_sub_box_lattice_size[0]; i++) {
                 AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
                 atom_.id = ++id_pre;
-                atom_.type = randomAtomsType(); // set random atom type.
+                atom_.type = randomAtomsType(atom_type_rng); // set random atom type.
                 mass = atom_type::getAtomMass(atom_.type); // get atom mass of this kind of atom.
                 atom_.x[0] = (_p_domain->dbx_sub_box_lattice_region.x_low + i) * 0.5 * (_lattice_const);
                 atom_.x[1] = (_p_domain->dbx_sub_box_lattice_region.y_low + j) * _lattice_const +
@@ -177,18 +180,18 @@ void WorldBuilder::vcm(double p[DIMENSION + 1]) {
     }
 }
 
-atom_type::atom_type WorldBuilder::randomAtomsType() {
-    int ratio_total = 0;
+atom_type::atom_type WorldBuilder::randomAtomsType(md_rand::type_rng &rng) {
+    unsigned int ratio_total = 0;
     for (int i = 0; i < atom_type::num_atom_types; i++) {
         ratio_total += _atoms_ratio[i];
     }
 #ifdef MD_DEV_MODE
-    int rand_ = rand() % ratio_total;
+    unsigned int rand_ = rand() % ratio_total;
 #else
-    int rand_ = rand() % ratio_total; // todo srank. Rand() has limited randomness; use C++ lib instead.
+    unsigned int rand_ = rng() % ratio_total; // todo srank. Rand() has limited randomness; use C++ lib instead.
 #endif
 //    return atom_type::getAtomTypeByOrder();
-    int rank_local = 0;
+    unsigned int rank_local = 0;
     for (int i = 0; i < atom_type::num_atom_types; i++) {
         rank_local += _atoms_ratio[i];
         if (rand_ < rank_local) {
