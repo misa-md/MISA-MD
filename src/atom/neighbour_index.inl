@@ -2,7 +2,7 @@
 // Created by genshen on 2019-04-11.
 //
 #include <cassert>
-#include "../md_building_config.h"
+#include "md_building_config.h"
 
 template<class T>
 NeighbourIndex<T>::NeighbourIndex(AtomList &atom_list)

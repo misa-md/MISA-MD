@@ -3,6 +3,8 @@
 //
 
 #include <comm/preset/comm_forwarding_region.h>
+
+#include "arch/hardware_accelerate.hpp"
 #include "atom_list.h"
 
 AtomList::AtomList(_type_atom_count size_x, _type_atom_count size_y, _type_atom_count size_z,
@@ -10,12 +12,25 @@ AtomList::AtomList(_type_atom_count size_x, _type_atom_count size_y, _type_atom_
                    _type_atom_count ghost_count_x, _type_atom_count ghost_count_y, _type_atom_count ghost_count_z) :
         lattice(size_x, size_y, size_z, size_sub_box_x, size_sub_box_y, size_sub_box_z,
                 ghost_count_x, ghost_count_y, ghost_count_z) {
-
-    _atoms = new AtomElement[size_z * size_x * size_y];
+    bool need_create = true;
+    if (isArchAccSupport()) {
+        // we may create memory using other api (e.g. pinned memory on CUDA platform).
+        _atoms = archCreateAtomsMemory(size_x, size_y, size_z);
+        need_create = (_atoms == nullptr);
+    }
+    if (need_create) {
+        _atoms = new AtomElement[size_z * size_x * size_y];
+    }
 }
 
 AtomList::~AtomList() {
-    delete[] _atoms;
+    bool need_des = true;
+    if (isArchAccSupport()) {
+        need_des = !archReleaseAtomsMemory(_atoms);
+    }
+    if (need_des) {
+        delete[] _atoms;
+    }
 }
 
 bool AtomList::isBadList(comm::Domain domain) {

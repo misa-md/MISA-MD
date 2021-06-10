@@ -16,7 +16,7 @@
  */
 class OutputCopy : public OutputBaseInterface {
 public:
-    explicit OutputCopy(const Output output, const comm::BccDomain p_domain);
+    explicit OutputCopy(const DumpConfig output, const comm::BccDomain p_domain);
 
     void prepareOutput(const comm::BccDomain p_domain) override;
 
@@ -29,15 +29,6 @@ public:
     void onOutputStep(const unsigned long time_step, AtomList *atom_list, InterAtomList *inter_atom_list) override;
 
     /**
-     * this will be called before collision step.
-     * @param time_step current collision time step
-     * @param atom_list list of lattice atoms.
-     * @param inter_atom_list list of inter atoms.
-     */
-    void beforeCollision(const unsigned long time_step, AtomList *atom_list,
-                         InterAtomList *inter_atom_list) override;
-
-    /**
      * this will be call when all time steps finished.
      * @param time_step current time step
      */
@@ -47,7 +38,7 @@ protected:
     /**
      * dump instance if it is not outputting by frame (only one file shared by all processors).
      */
-    AtomDump *dumpInstance;
+    AtomDump *dumpInstance = nullptr;
 
     /**
      * time of outputting

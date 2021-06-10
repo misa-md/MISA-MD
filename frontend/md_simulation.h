@@ -62,7 +62,8 @@ private:
      */
     const ConfigValues *pConfigVal = nullptr;
 
-    OutputBaseInterface *out = nullptr;
+    // map of dump instance, indexed by dump preset name
+    std::map<std::string, OutputBaseInterface *> dump_instances;
 
     /**
      * log force of all atoms in simulation system.

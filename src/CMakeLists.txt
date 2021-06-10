@@ -77,7 +77,9 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 add_library(${MD_LIB_NAME} STATIC ${HEADER_FILES} ${SOURCE_FILES} ${ARCH_FILES})
 target_include_directories(
         ${MD_LIB_NAME}
-        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}$<SEMICOLON>${CONFIGURE_GENERATED_PATH}>
+        $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(
         ${MD_LIB_NAME}

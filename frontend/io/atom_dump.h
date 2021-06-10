@@ -19,16 +19,22 @@ public:
 
     /**
      * dumping atoms information to binary file, including intel atoms.
-     * @param mode dumping mode, mode or direct.
-     * @param filename the path of dumping file.
+     * @param frames total frames to be dumped.
      * @param begin starting atoms index of dumping in 3d
      * @param end ending atoms index of dumping in 3d
-     * @param atoms_size the count of atoms to be dumped
+     * @param atoms_size the count of atoms to be dumped in one frame.
      */
-    AtomDump(const std::string &filename, _type_lattice_size atoms_size,
+    AtomDump(_type_lattice_size atoms_size, unsigned int frames, atom_dump::type_dump_mask dump_mask,
              _type_lattice_coord begin[DIMENSION], _type_lattice_coord end[DIMENSION]);
 
     ~AtomDump();
+
+    /**
+     * Try to create local storage for storing atoms data.
+     * if the local storage is already created, then skip creation.
+     * @param dump_file_name the path of dumping file.
+     */
+    void tryCreateLocalStorage(std::string dump_file_name);
 
     /**
      *
@@ -48,18 +54,40 @@ public:
     AtomDump &setDumpFile(const std::string &filename);
 
     /**
-     * dump atoms to file(s).
+     * set header for one frame
+     * it should be called before `dumpFrame`.
+     * @param time_step current time step.
      */
-    void dump(AtomList *atom_list, InterAtomList *inter_list, size_t time_step);
+    void setFrameHeader(size_t time_step);
 
+    /**
+     * dumpFrame dump one frame of atoms in current system into file(s), as well as frame header.
+     * @param region the dump region
+     * @param region_enabled enabled region dump.
+     */
+    void dumpFrame(const comm::Region<double> region, const bool region_enabled,
+            AtomList *atom_list, InterAtomList *inter_list, size_t time_step);
+
+    /**
+     * It write global header and frame headers into dump file.
+     */
     void writeDumpHeader();
 
-private:
-    std::string _dump_file_name;
+    /**
+     * and close the shared file.
+     */
+    void onClose();
 
+private:
+    const unsigned int frames; // total frame
+    unsigned int cur_frame; // current frame
     _type_lattice_size _atoms_size;
     _type_lattice_coord _begin[DIMENSION];
     _type_lattice_coord _end[DIMENSION];
+
+    const atom_dump::type_dump_mask mask;
+
+    std::vector<atom_dump::FrameMetaData> frames_meta;
 
     kiwi::LocalStorage *local_storage = nullptr; // io writer for writing a shared file using mpi-IO lib.
     BufferedFileWriter *buffered_writer = nullptr;

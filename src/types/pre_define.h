@@ -5,7 +5,7 @@
 #ifndef MISA_MD_PRE_DEFINE_H
 #define MISA_MD_PRE_DEFINE_H
 
-#include "../md_building_config.h"
+#include "md_building_config.h"
 
 // constance
 #define BOLTZ 8.617343e-5 // Boltzmann constant, 8.617343e-5 EV/K; also equals to 1.3806505e-23 J/K.

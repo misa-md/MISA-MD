@@ -16,7 +16,7 @@ set(HEADER_FILES
         device.h
         md_simulation.h
         io/atom_dump.h
-        io/atom_info_dump.h
+        io/atom_dump_types.h
         io/buffered_io.h
         io/output_copy.h
         io/output_base_interface.h
@@ -30,7 +30,7 @@ set(SOURCE_FILES
         main.cpp
         md_simulation.cpp
         io/atom_dump.cpp
-        io/atom_info_dump.cpp
+        io/atom_dump_types.cpp
         io/buffered_io.cpp
         io/output_copy.cpp
         io/output_dump.cpp

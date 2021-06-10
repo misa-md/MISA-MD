@@ -20,5 +20,9 @@ endif ()
 
 configure_file(
         "${CMAKE_CURRENT_SOURCE_DIR}/md_building_config.h.in"
-        "${CMAKE_CURRENT_SOURCE_DIR}/md_building_config.h"
+        "${CONFIGURE_GENERATED_PATH}/md_building_config.h"
 )
+
+install(FILES "${CONFIGURE_GENERATED_PATH}/md_building_config.h"
+        DESTINATION "include"
+        )
