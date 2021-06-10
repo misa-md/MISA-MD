@@ -176,7 +176,7 @@ void ws::getNearLatCoord(const AtomElement &src_atom, const comm::Domain *p_doma
  * calculate distance (denoted as d1) of atom position to major lattice and
  * distance (denoted as d2) of atom position to minor lattice.
  * If d1 < d2, return lattice coordinate of major lattice,
- * otherwise return lattice coordinate of miinor lattice.
+ * otherwise return lattice coordinate of minor lattice.
  */
 void ws::getNearLatSubBoxCoord(const AtomElement &src_atom, const comm::Domain *p_domain,
                                _type_atom_index coords[DIMENSION]) {

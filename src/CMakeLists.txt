@@ -65,8 +65,8 @@ set(SOURCE_FILES
         utils/mpi_data_types.cpp
         )
 
-# set varibale ARCH_FILES for archiecture source files.
-# set varibale ARCH_LIBS to link if some archiecture is enabled.
+# set variable ARCH_FILES for architecture source files.
+# set variable ARCH_LIBS to link if some architecture is enabled.
 include(arch/arch_libs.cmake)
 
 # set binary path and lib storage path for compiling process.

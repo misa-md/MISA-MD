@@ -14,7 +14,7 @@ namespace mpi_types {
     extern MPI_Datatype _mpi_Particle_data;
     extern MPI_Datatype _mpi_latParticle_data;
 
-    // todo call me in initialze
+    // todo call me in initialization
     void setInterMPIType();
 
     // todo call me when finished

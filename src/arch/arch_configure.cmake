@@ -1,4 +1,4 @@
-# set arch relative macor and write to a header file 'arch_building_config.h'.
+# set arch relative macro and write to a header file 'arch_building_config.h'.
 
 # set arch flags, and source files dir.
 set(ACCELERATE_ENABLED OFF)

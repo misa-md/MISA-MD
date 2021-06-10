@@ -1,5 +1,5 @@
 # <a href='https://yaml.org'>yaml</a> configure file for MISA-MD application,
-# writen by <a href='mailto:genshenchu@gmail.com'>genshen</a>"
+# written by <a href='mailto:genshenchu@gmail.com'>genshen</a>"
 
 title: "MISA-MD Configure File"
 version: "0.4.0"
@@ -12,7 +12,7 @@ contributors:
 # for BCC struct
 simulation:
   phasespace: [50, 50, 50] # box size, the count of lattice at each dimension. #int array type
-  cutoff_radius_factor: 1.96125  # the real cutoff radius is cutoff_radius_factor*lattice_cosnt , double type
+  cutoff_radius_factor: 1.96125  # the real cutoff radius is cutoff_radius_factor*lattice_const , double type
   lattice_const: 2.85532   # lattice const, double type
   def_timesteps_length: 0.001  # simulation time steps length for each timestep, double type.
 
@@ -38,7 +38,7 @@ output:
     atoms_dump_file_path: "misa_mdl.{}.out" # string,filename or path of dumped atoms, default value is "misa_mdl.out"
     origin_dump_path: "misa_mdl.origin.out" # string,filename or path of dumped origin atoms before collision. Leave it empty for skipping dumping
     atoms_dump_interval: 10
-    by_frame: true # bool type, used in copy mode, dump to mulpile file, one file for each frame.
+    by_frame: true # bool type, used in copy mode, dump to multiple files, one file for each frame.
   thermo:
     interval: 0 # unsigned integer type, default is 0, no output
   logs:

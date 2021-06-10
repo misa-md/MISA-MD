@@ -27,7 +27,7 @@ public:
 
     // @see https://gist.github.com/jeetsukumaran/307264
     // @see https://stackoverflow.com/questions/3846296/how-to-overload-the-operator-in-two-different-ways-for-postfix-a-and-prefix
-    // dont use it.
+    // don't use it.
     class iterator {
     public:
         typedef iterator self_type;

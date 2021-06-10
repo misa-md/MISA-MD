@@ -16,8 +16,8 @@
 /**
  * If some inter atoms get into ghost area of neighbour processors(they are still in local box.),
  * those atoms should be send to neighbour processors
- * (neighbour processors will save those atoms as ghost intel atoms).
- * We call those atoms as "neighbour ghost intel atom".
+ * (neighbour processors will save those atoms as ghost inter atoms).
+ * We call those atoms as "neighbour ghost inter atom".
  *
  */
 class InterBorderPacker : public comm::Packer<LatParticleData> {
