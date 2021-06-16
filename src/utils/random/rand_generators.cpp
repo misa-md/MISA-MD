@@ -4,74 +4,16 @@
 
 #include "rand_generators.h"
 
+md_rand::type_rng md_rand::rng;
 
-#ifdef RAND_LCG
-std::minstd_rand md_rand::rng;
-
-void md_rand::seed(const uint32_t seed){
-    rng.seed(seed);
-}
-
-uint32_t md_rand::rand32(){
-     return rng();
-}
-
-#endif
-
-#ifdef RAND_MT
-std::mt19937 md_rand::rng;
-
-void md_rand::seed(const uint32_t seed){
-    rng.seed(seed);
-}
-
-uint32_t md_rand::rand32(){
-    return rng();
-}
-
-#endif
-
-#ifdef RAND_STC
-std::ranlux24 md_rand::rng;
-
-void md_rand::seed(const uint32_t seed){
-    rng.seed(seed);
-}
-
-uint32_t md_rand::rand32(){
-     return rng();
-}
-
-#endif
-
-#ifdef RAND_XOSHIRO
-util::random::xoroshiro128_plus md_rand::rng;
-
-void md_rand::seed(const uint32_t seed){
-     rng.init_seed(seed);
-}
-
-uint32_t md_rand::rand32(){
-     return rng();
-}
-
-#endif
-
-#ifdef RAND_LEGACY
-md_rand::LegacyRand md_rand::rng;
-
-/**
- * set seed for legacy random.
- */
-void md_rand::seed(const uint32_t seed) {
-    rng.seed(seed);
-}
-
+// all rand number generation engines share the same implementation to generate a new random number.
 uint32_t md_rand::rand32() {
     return rng();
 }
 
-#endif
+void md_rand::seed(const uint32_t seed) {
+    rng.seed(seed);
+}
 
 #ifdef RAND_LINUX_REAL
 #endif
