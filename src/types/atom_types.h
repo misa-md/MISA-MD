@@ -61,11 +61,11 @@ namespace atom_type {
     inline unsigned short getTypeIdByType(atom_type tp) {
         switch (tp) {
             case Fe:
-                return 26;
+                return Fe;
             case Cu:
-                return 29;
+                return Cu;
             case Ni:
-                return 28;
+                return Ni;
             default:
                 printf("waring, not expect id zero, it may cause error.\n");
                 return 0;
