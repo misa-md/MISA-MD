@@ -77,7 +77,7 @@ void MISAMD::onCreate() {
         // just initial a empty config Obj.
         pConfig = ConfigParser::getInstance();
     }
-    pConfig->sync(); // sync config data to other processors from master processor.
+    pConfig->sync(2048); // sync config data to other processors from master processor.
 #ifdef MD_DEV_MODE
 // print configure.
     if (kiwi::mpiUtils::global_process.own_rank == MASTER_PROCESSOR) {
