@@ -86,11 +86,24 @@ void DumpConfig::unnpackdata(int &cursor, kiwi::Bundle &bundle) {
     bundle.get(cursor, dump_whole_system);
 }
 
+
+void AtomType::packdata(kiwi::Bundle &bundle) const {
+    bundle.put(name);
+    bundle.put(mass);
+    bundle.put(weight);
+}
+
+void AtomType::unnpackdata(int &cursor, kiwi::Bundle &bundle) {
+    bundle.get(cursor, name);
+    bundle.get(cursor, mass);
+    bundle.get(cursor, weight);
+}
+
 ConfigValues::ConfigValues() :
         phaseSpace{0, 0, 0}, cutoffRadiusFactor(0.0), latticeConst(0.0),
         timeSteps(0),
         createPhaseMode(true), createTSet(0.0), createSeed(1024), readPhaseFilename(""),
-        alloyCreateSeed(1024), alloyRatio{1, 0, 0},
+        alloyCreateSeed(1024), types(),
         output(), stages() {}
 // todo potential type and filename initialize.
 
@@ -111,7 +124,10 @@ void ConfigValues::packdata(kiwi::Bundle &bundle) {
 
     // alloy
     bundle.put(alloyCreateSeed);
-    bundle.put(atom_type::num_atom_types, alloyRatio);
+    bundle.put(types.size());
+    for (const AtomType &atom_ty:types) {
+        atom_ty.packdata(bundle);
+    }
 
     bundle.put(potentialFileType);
     bundle.put(potentialFilename);
@@ -154,7 +170,12 @@ void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
 
     // alloy
     bundle.get(cursor, alloyCreateSeed);
-    bundle.get(cursor, atom_type::num_atom_types, alloyRatio);
+    std::size_t atom_types_size = 0;
+    bundle.get(cursor, atom_types_size);
+    types.resize(atom_types_size);
+    for (std::size_t i = 0; i < atom_types_size; i++) {
+        types[i].unnpackdata(cursor, bundle);
+    }
 
     bundle.get(cursor, potentialFileType);
     bundle.get(cursor, potentialFilename);
@@ -198,9 +219,11 @@ std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
 
     // simulation.alloy
     os << "simulation.alloy.alloyCreateSeed:" << cv.alloyCreateSeed << std::endl;
-    os << "simulation.alloy.ratio Fe:Cu:Ni\t" << cv.alloyRatio[atom_type::Fe] <<
-       ":" << cv.alloyRatio[atom_type::Cu] << ":" << cv.alloyRatio[atom_type::Ni] << ":" << std::endl;
-
+    os << "simulation.alloy.types:" << std::endl;
+    for (const AtomType &atom_type : cv.types) {
+        os << "Name: " << atom_type.name << ", mass: " << atom_type.mass << ", weight: " << atom_type.weight
+           << std::endl;
+    }
     os << "simulation.potential_file.type:" << cv.potentialFileType << std::endl;
     os << "simulation.potential_file.filename:" << cv.potentialFilename << std::endl;
 

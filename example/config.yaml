@@ -25,11 +25,18 @@ creation: # read atoms information from file or create atoms.
   create_seed: 466953 # int type, for create mode
   create_t_set: 600 # temperature double type, for creation mode
   alloy: # types of alloy
-    create_seed: 1024 # random seek for creating atoms in Fe-Cu-Ni alloy material.
-    ratio: # all integer type. # Fe:Cu:Ni = 95:2:3
-      Fe: 97
-      Cu: 2
-      Ni: 1
+    create_seed: 1024 # random seek for creating atoms in alloy material.
+    types: # "weight" must be integer type. e.g. Fe:Cu:Ni = 95:2:3
+      - name: Fe
+        mass: 55.845
+        weight: 97
+      - name: Cu
+        mass: 63.546
+        weight: 2
+      - name: Ni
+        mass: 58.6934
+        weight: 1
+
 #read_phase_filename = ""  # string type, for read mode.
 
 output:
