@@ -58,7 +58,7 @@ void simulation::createDomain(const int64_t phase_space[DIMENSION],
 void simulation::createAtoms(const int64_t phase_space[DIMENSION], const double lattice_const,
                              const double init_step_len, const bool create_mode,
                              const double t_set, const unsigned long create_seed,
-                             const int alloy_ratio[atom_type::num_atom_types]) {
+                             const std::vector<tp_atom_type_weight> &types_weight) {
     _atom = new atom(_p_domain);
     // establish index offset for neighbour.
     _atom->calcNeighbourIndices(_p_domain->cutoff_radius_factor, _p_domain->cut_lattice);
@@ -75,13 +75,13 @@ void simulation::createAtoms(const int64_t phase_space[DIMENSION], const double 
                 .setRandomSeed(create_seed)
                 .setLatticeConst(lattice_const)
                 .setTset(t_set)
-                .setAlloyRatio(alloy_ratio)
+                .setAlloyRatio(types_weight)
                 .build();
     } else { //读取原子坐标、速度信息
         _input = new input();
         _input->readPhaseSpace(_atom, _p_domain);
     }
-    _newton_motion = new NewtonMotion(init_step_len); // time step length.
+    _newton_motion = new NewtonMotion(init_step_len, atom_type::num_atom_types); // time step length.
 }
 
 void simulation::prepareForStart(const std::string pot_file_path) {

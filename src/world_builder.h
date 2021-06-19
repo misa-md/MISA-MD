@@ -13,6 +13,8 @@
 #include "types/atom_types.h"
 #include "utils/random/rand_generators.h"
 
+typedef int tp_atom_type_weight;
+
 // todo documents
 class WorldBuilder {
 public:
@@ -41,10 +43,10 @@ public:
 
     /**
      * set the ratio of alloy(e.g. Fe-Cu-Ni alloy)
-     * @param mass
+     * @param types_weight weight or percent of each alloy type
      * @return
      */
-    WorldBuilder &setAlloyRatio(const int ratio[atom_type::num_atom_types]);
+    WorldBuilder &setAlloyRatio(const std::vector<tp_atom_type_weight> &types_weight);
 
     WorldBuilder &setBoxSize(int64_t box_x, int64_t box_y, int64_t box_z);
 
@@ -70,7 +72,7 @@ private:
     int64_t box_x = 0, box_y = 0, box_z = 0; // todo re type
     double tset;
     double _lattice_const;
-    int _atoms_ratio[atom_type::num_atom_types];
+    std::vector<tp_atom_type_weight> _atoms_ratio;
 //    fixme double _mass, _mass_factor;
 //    double _mass, _mass_factor;
 

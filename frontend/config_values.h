@@ -130,7 +130,6 @@ public:
 
     // alloy
     int alloyCreateSeed;
-    int alloyRatio[atom_type::num_atom_types];
     std::vector<AtomType> types;
 
     // potential config

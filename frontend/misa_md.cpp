@@ -105,9 +105,18 @@ bool MISAMD::prepare() {
     pSimulation = new MDSimulation(&ConfigParser::getInstance()->configValues);
     const ConfigValues config = ConfigParser::getInstance()->configValues;
     pSimulation->createDomain(config.phaseSpace, config.latticeConst, config.cutoffRadiusFactor); // 区域分解
+
+    // set system atom mass
+    std::vector<tp_atom_type_weight> weight;
+    std::vector<double> masses;
+    for (auto &tp :config.types) {
+        weight.emplace_back(tp.weight);
+        masses.emplace_back(tp.mass);
+    }
+    atom_type::setGlobalAtomMasses(masses);
     // todo alloy ratio seed is not used.
     pSimulation->createAtoms(config.phaseSpace, config.latticeConst, config.timeStepLength,
-                             config.createPhaseMode, config.createTSet, config.createSeed, config.alloyRatio);
+                             config.createPhaseMode, config.createTSet, config.createSeed, weight);
     return true;
 }
 

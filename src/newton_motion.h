@@ -14,7 +14,12 @@
  */
 class NewtonMotion {
 public:
-    NewtonMotion(double timestepLength);
+    /**
+     *
+     * @param timestepLength initial step length
+     * @param num_types number of atoms types in system.
+     */
+    NewtonMotion(double timestepLength, const _type_atom_types num_types);
 
     ~NewtonMotion();
 
@@ -25,12 +30,13 @@ public:
     void setTimestepLength(const double dt);
 
 private:
+    const _type_atom_types num_types;
     double _timestepLength;
 
     /**
      * index is consistent with the order in atom_type::atom_type in file atom_types.h
      */
-    double dt_inv_m[atom_type::num_atom_types];
+    std::vector<double> dt_inv_m;
 
     void preComputeDtInv2m();
 };
