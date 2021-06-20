@@ -101,6 +101,16 @@ struct Output {
     Output() : thermo_interval(0), logs_mode(LOGS_MODE_CONSOLE), logs_filename("") {}
 };
 
+struct AtomType {
+    std::string name;
+    double mass;
+    int weight;
+
+    void packdata(kiwi::Bundle &bundle) const;
+
+    void unnpackdata(int &cursor, kiwi::Bundle &bundle);
+};
+
 class ConfigValues {
     friend std::ostream &operator<<(std::ostream &os, const ConfigValues &cv);
 
@@ -120,7 +130,7 @@ public:
 
     // alloy
     int alloyCreateSeed;
-    int alloyRatio[atom_type::num_atom_types];
+    std::vector<AtomType> types;
 
     // potential config
     std::string potentialFileType;

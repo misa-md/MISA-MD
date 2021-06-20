@@ -11,7 +11,7 @@
 #include "world_builder.h"
 #include "system_configuration.h"
 
-WorldBuilder::WorldBuilder() : box_x(0), box_y(0), box_z(0), tset(0) {
+WorldBuilder::WorldBuilder() : box_x(0), box_y(0), box_z(0), tset(0), _atoms_ratio() {
     _p_domain = nullptr;
     _p_atom = nullptr;
 }
@@ -48,10 +48,8 @@ WorldBuilder &WorldBuilder::setLatticeConst(double lattice_const) {
     return *this;
 }
 
-WorldBuilder &WorldBuilder::setAlloyRatio(const int ratio[atom_type::num_atom_types]) {
-    for (int i = 0; i < atom_type::num_atom_types; i++) {
-        _atoms_ratio[i] = ratio[i];
-    }
+WorldBuilder &WorldBuilder::setAlloyRatio(const std::vector<tp_atom_type_weight> &types_weight) {
+    _atoms_ratio = types_weight;
     return *this;
 }
 

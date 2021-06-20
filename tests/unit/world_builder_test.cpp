@@ -14,7 +14,7 @@ TEST_F(DomainFixture, world_build_zero_momentum_test) {
     comm::BccDomain *_domain = p_domain;
     auto *_atom = new atom(_domain);
 
-    int ra[3] = {97, 3, 1};
+    std::vector<int> ra = {97, 3, 1};
     WorldBuilder mWorldBuilder;
     mWorldBuilder.setDomain(_domain)
             .setAtomsContainer(_atom)

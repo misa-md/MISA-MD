@@ -77,7 +77,7 @@ void MISAMD::onCreate() {
         // just initial a empty config Obj.
         pConfig = ConfigParser::getInstance();
     }
-    pConfig->sync(); // sync config data to other processors from master processor.
+    pConfig->sync(2048); // sync config data to other processors from master processor.
 #ifdef MD_DEV_MODE
 // print configure.
     if (kiwi::mpiUtils::global_process.own_rank == MASTER_PROCESSOR) {
@@ -105,9 +105,18 @@ bool MISAMD::prepare() {
     pSimulation = new MDSimulation(&ConfigParser::getInstance()->configValues);
     const ConfigValues config = ConfigParser::getInstance()->configValues;
     pSimulation->createDomain(config.phaseSpace, config.latticeConst, config.cutoffRadiusFactor); // 区域分解
+
+    // set system atom mass
+    std::vector<tp_atom_type_weight> weight;
+    std::vector<double> masses;
+    for (auto &tp :config.types) {
+        weight.emplace_back(tp.weight);
+        masses.emplace_back(tp.mass);
+    }
+    atom_type::setGlobalAtomMasses(masses);
     // todo alloy ratio seed is not used.
     pSimulation->createAtoms(config.phaseSpace, config.latticeConst, config.timeStepLength,
-                             config.createPhaseMode, config.createTSet, config.createSeed, config.alloyRatio);
+                             config.createPhaseMode, config.createTSet, config.createSeed, weight);
     return true;
 }
 

@@ -41,7 +41,7 @@ void LatParticleData::setMPIType(MPI_Datatype &sendPartType) {
     MPI_Type_commit(&sendPartType);
 }
 
-LatParticleData::LatParticleData() : type(atom_type::Fe) {
+LatParticleData::LatParticleData() : type(atom_type::INVALID) {
     for (int i = 0; i < 3; i++) {
         r[i] = 0.0;
     }

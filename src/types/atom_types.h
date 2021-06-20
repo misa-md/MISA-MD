@@ -6,46 +6,46 @@
 #define MISA_MD_ATOM_TYPES_H
 
 #include <cstdio>
+#include <vector>
+#include <string>
+
 /**
  * @see also config_values.h#AlloyRatio
  */
 #include "pre_define.h"
 
-#define _ATOM_TYPES 3 // 3 different types of atoms(Fe-Cu-Ni).
-
-// WARNING: DO NOT use the marco below directly.
-#define _R_A_M_Fe 55.845 // in which, R_A_M means "relative atomic mass"
-#define _R_A_M_Cu 63.546
-#define _R_A_M_Ni 58.6934
-
 namespace atom_type {
 
-    enum atom_type {
-        INVALID = -1, Fe = 0, Cu = 1, Ni = 2 /*,Co */
+    enum atom_type { // atom id
+        INVALID = -1 // Fe = 0, Cu = 1, Ni = 2 /*,Co */
     };
 
     /**
+     * mass array of system atoms.
+     * atom id is the index of this array.
+     */
+    extern std::vector<double> mass_array;
+    /**
      * the count of atom types.
      * How many types of atoms appears in this system.
+     * private variable.
      */
-    const _type_atom_types num_atom_types = _ATOM_TYPES;
+    extern _type_atom_types num_atom_types;
+
+    void setGlobalAtomMasses(const std::vector<double> masses);
+
+    void releaseGlobalAtomMesses();
 
     /**
      * get element relative atomic mass.
      * @param type
      * @return relative atomic mass
      */
-    inline _type_atom_mass getAtomMass(atom_type atom) {
-        switch (atom) {
-            case Fe:
-                return _R_A_M_Fe;
-            case Cu:
-                return _R_A_M_Cu;
-            case Ni:
-                return _R_A_M_Ni;
-            default:
-                return 0; //
+    inline _type_atom_mass getAtomMass(atom_type tp) {
+        if (tp < 0 || tp >= num_atom_types) {
+            return 0.0;
         }
+        return mass_array[tp];
     }
 
     /**
@@ -59,17 +59,21 @@ namespace atom_type {
 
     // tod return type atom_type::_type_prop_key
     inline unsigned short getTypeIdByType(atom_type tp) {
+        if (tp < 0 || tp >= num_atom_types) {
+            printf("waring, not expect id zero, it may cause error.\n");
+            return 0;
+        }
         switch (tp) {
-            case Fe:
-                return 26;
-            case Cu:
-                return 29;
-            case Ni:
-                return 28;
+            case 0:
+                return 0;
+            case 1:
+                return 1;
+            case 2:
+                return 2;
             default:
-                printf("waring, not expect id zero, it may cause error.\n");
                 return 0;
         }
+        return tp;
     }
 
 //    inline int getAtomTypeIndex(atom_type type) {

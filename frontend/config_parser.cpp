@@ -311,14 +311,18 @@ bool ConfigParser::parseConfigAlloy(const YAML::Node &yaml_alloy) {
     }
     configValues.alloyCreateSeed = yaml_alloy["create_seed"].as<int>(default_random_seek);
 
-    const YAML::Node ratios = yaml_alloy["ratio"];
-    if (!ratios.IsMap()) {
-        setError("alloy ratio must be a map.");
+    const YAML::Node yaml_types = yaml_alloy["types"];
+    if (!yaml_types || !yaml_types.IsSequence()) {
+        setError("alloy types must be an array.");
         return false;
     } else {
-        configValues.alloyRatio[atom_type::Fe] = ratios["Fe"].as<int>(1);
-        configValues.alloyRatio[atom_type::Cu] = ratios["Cu"].as<int>(0);
-        configValues.alloyRatio[atom_type::Ni] = ratios["Ni"].as<int>(0);
+        for (const auto &yaml_type : yaml_types) {
+            AtomType atom_type;
+            atom_type.name = yaml_type["name"].as<std::string>("undefined");
+            atom_type.mass = yaml_type["mass"].as<double>(1.0);
+            atom_type.weight = yaml_type["weight"].as<int>(1);
+            configValues.types.emplace_back(atom_type);
+        }
     }
     return true;
 }

@@ -28,7 +28,7 @@ void particledata::setMPIType(MPI_Datatype &sendPartType) {
     MPI_Type_commit(&sendPartType);
 }
 
-particledata::particledata() : id(0), type(atom_type::Fe) {
+particledata::particledata() : id(0), type(atom_type::INVALID) {
     for (int i = 0; i < 3; i++) {
         r[i] = 0.0;
         v[i] = 0.0;

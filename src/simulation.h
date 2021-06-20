@@ -12,6 +12,7 @@
 
 #include "newton_motion.h"
 #include "input.h"
+#include "world_builder.h"
 
 class simulation {
 public:
@@ -40,11 +41,11 @@ public:
      * @param create_mode whether create atom randomly.
      * @param create_seed seed to create atoms.
      * @param t_set initial temperature.
-     * @param alloy_ratio ratio of alloy for each types of material.
+     * @param types types defines ratio and relative atomic mass of alloy for each types of material.
      */
     void createAtoms(const int64_t phase_space[DIMENSION], const double lattice_const, const double init_step_len,
                      const bool create_mode, const double t_set, const unsigned long create_seed,
-                     const int alloy_ratio[atom_type::num_atom_types]);
+                     const std::vector<tp_atom_type_weight> &types_weight);
 
     /**
      * initialize potential function and perform the first simulation step.

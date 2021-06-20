@@ -4,7 +4,8 @@
 
 #include "newton_motion.h"
 
-NewtonMotion::NewtonMotion(double timestepLength) : _timestepLength(timestepLength) {
+NewtonMotion::NewtonMotion(double timestepLength, const _type_atom_types num_types)
+        : num_types(num_types), _timestepLength(timestepLength), dt_inv_m(num_types) {
     preComputeDtInv2m();
 }
 
@@ -19,7 +20,7 @@ void NewtonMotion::setTimestepLength(const double dt) {
 void NewtonMotion::preComputeDtInv2m() {
     atom_type::atom_type type;
     double _m, dt_halve;
-    for (int i = 0; i < atom_type::num_atom_types; i++) {
+    for (int i = 0; i < num_types; i++) {
         type = atom_type::getAtomTypeByNum(i);
         _m = atom_type::getAtomMass(type);
         dt_halve = 0.5 * _timestepLength * ftm2v;
