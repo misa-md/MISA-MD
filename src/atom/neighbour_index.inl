@@ -68,7 +68,7 @@ void NeighbourIndex<T>::make(const _type_lattice_size cut_lattice,
             }
         }
     }
-#ifdef MD_DEV_MODE
+#ifdef MD_RUNTIME_CHECKING
     assert(nei_odd_offsets.size() == 2 * nei_half_odd_offsets.size());
     assert(nei_even_offsets.size() == 2 * nei_half_even_offsets.size());
     assert(nei_odd_offsets.size() == nei_even_offsets.size());

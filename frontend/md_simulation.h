@@ -72,7 +72,7 @@ private:
      */
     void print_force(const std::string filename, int step);
 
-#ifdef MD_DEV_MODE
+#ifdef MD_RUNTIME_CHECKING
 
     /**
      * check force, only works in dev mode.

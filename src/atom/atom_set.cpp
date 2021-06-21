@@ -76,7 +76,7 @@ _type_atom_count AtomSet::getnlocalatom(comm::Domain *p_domain) {
             p_domain->sub_box_lattice_size[2]);
 }
 
-#ifdef MD_DEV_MODE
+#ifdef MD_RUNTIME_CHECKING
 
 _type_atom_count AtomSet::realAtoms() {
     _type_atom_count count = 0;

@@ -114,7 +114,7 @@ void MDSimulation::postStep(const unsigned long step) {
         kiwi::logs::i(MASTER_PROCESSOR, "energy", "kinetic energy = {}, T = {}.\n", e, T);
     }
 
-#ifdef MD_DEV_MODE
+#ifdef MD_RUNTIME_CHECKING
     {
         unsigned long count[2] = {0, 0};
         count[0] = _atom->realAtoms();
@@ -130,7 +130,7 @@ void MDSimulation::postStep(const unsigned long step) {
 }
 
 void MDSimulation::onForceSolved(const unsigned long step) {
-#ifdef MD_DEV_MODE
+#ifdef MD_RUNTIME_CHECKING
     forceChecking();
 #endif
 }
@@ -160,7 +160,7 @@ void MDSimulation::print_force(const std::string filename, int step) {
 }
 
 
-#ifdef MD_DEV_MODE
+#ifdef MD_RUNTIME_CHECKING
 
 void MDSimulation::forceChecking() {
     auto forces = configuration::systemForce(_atom->getAtomList(), _atom->getInterList());
@@ -178,4 +178,4 @@ void MDSimulation::forceChecking() {
     }
 }
 
-#endif //MD_DEV_MODE
+#endif //MD_RUNTIME_CHECKING
