@@ -167,9 +167,9 @@ void MDSimulation::forceChecking() {
     double fx[3] = {forces[0], forces[1], forces[2]};
     double fx_2[3] = {0.0, 0.0, 0.0};
     MPI_Allreduce(fx, fx_2, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    kiwi::logs::d("force2", "({}, {}, {})\n\n", forces[0], forces[1], forces[2]);
-    kiwi::logs::d(MASTER_PROCESSOR, "sum force:", "({}, {}, {})\n\n", fx_2[0], fx_2[1], fx_2[2]);
-    if (std::abs(fx_2[0]) > 0.00001) {
+    if (std::abs(fx_2[0]) > 0.00001 || std::abs(fx_2[1]) > 0.00001 || std::abs(fx_2[2]) > 0.00001) {
+        kiwi::logs::d("force2", "({}, {}, {})\n\n", forces[0], forces[1], forces[2]);
+        kiwi::logs::d(MASTER_PROCESSOR, "sum force:", "({}, {}, {})\n\n", fx_2[0], fx_2[1], fx_2[2]);
         char filename[20];
         sprintf(filename, "force_%d.txt", kiwi::mpiUtils::global_process.own_rank);
         print_force(filename, _simulation_time_step);
