@@ -116,6 +116,13 @@ void InterParticlePacker::onReceive(particledata *buffer, const unsigned long re
         atom.v[0] = buffer[i].v[0];
         atom.v[1] = buffer[i].v[1];
         atom.v[2] = buffer[i].v[2];
+#ifdef MD_RUNTIME_CHECKING
+        if (!ws::isInBox(atom, &domain)) {
+            kiwi::logs::e("comm", "out of simulation box: atom id: {};atom position:({}, {}, {}).\n",
+                          atom.id, atom.x[0], atom.x[1], atom.x[2]);
+            assert(false);
+        }
+#endif
         inter_atom_list.addInterAtom(atom);
     }
 }
