@@ -10,6 +10,7 @@
 
 
 #cmakedefine MD_DEV_MODE
+#cmakedefine MD_RUNTIME_CHECKING // run data checking at runtimee
 
 // #define DEV_MD_COMM_INC_ATOM_ID
 

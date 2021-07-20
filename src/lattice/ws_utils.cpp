@@ -195,7 +195,7 @@ bool ws::isInBox(const AtomElement &src_atom, const comm::Domain *p_domain) {
     lat_coord_y -= p_domain->sub_box_lattice_region.y_low;
     lat_coord_z -= p_domain->sub_box_lattice_region.z_low;
     return (lat_coord_x >= 0 && lat_coord_y >= 0 && lat_coord_z >= 0 &&
-            lat_coord_x < p_domain->sub_box_lattice_size[0] &&
+            lat_coord_x < 2 * p_domain->sub_box_lattice_size[0] &&
             lat_coord_y < p_domain->sub_box_lattice_size[1] &&
             lat_coord_z < p_domain->sub_box_lattice_size[2]);
 }

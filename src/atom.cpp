@@ -210,10 +210,13 @@ void atom::interRho(eam *pot) {
          inter_it != inter_atom_list->inter_list.end(); inter_it++) {
         // get index of nearest atom of inter atoms.
         near_atom_index = ws::findNearLatIndexInSubBox(atom_list, *inter_it, p_domain);
+#ifdef MD_RUNTIME_CHECKING
         if (near_atom_index == box::IndexNotExists) {
+            assert(false);
             continue; // make sure the inter atoms is in sub box.
             // todo find a good way to filter out-of-box atoms while exchanging inter atoms.
         }
+#endif
         AtomElement &atom_near = atom_list->getAtomEleByLinearIndex(near_atom_index);
         delx = (*inter_it).x[0] - atom_near.x[0];
         dely = (*inter_it).x[1] - atom_near.x[1];
@@ -372,11 +375,13 @@ void atom::interForce(eam *pot) {
     for (_type_inter_list::iterator inter_it = inter_atom_list->inter_list.begin();
          inter_it != inter_atom_list->inter_list.end(); inter_it++) {
         _atom_near_index = ws::findNearLatIndexInSubBox(atom_list, *inter_it, p_domain);
+#ifdef MD_RUNTIME_CHECKING
         if (_atom_near_index == box::IndexNotExists) {
             assert(false);
             continue; // make sure the inter atoms is in sub box.
             // todo find a good way to filter out-of-box atoms while exchanging inter atoms.
         }
+#endif 
         // 间隙原子所在晶格处的原子
         AtomElement &atom_central = atom_list->getAtomEleByLinearIndex(_atom_near_index);
 

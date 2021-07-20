@@ -17,6 +17,9 @@ else ()
     MESSAGE(SEND_ERROR "unsupported random number generation method ${MD_RAND}")
 endif ()
 
+if (MD_RUNTIME_CHECKING_FLAG)
+    set(MD_RUNTIME_CHECKING ON)
+endif ()
 
 configure_file(
         "${CMAKE_CURRENT_SOURCE_DIR}/md_building_config.h.in"

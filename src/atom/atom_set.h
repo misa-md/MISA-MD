@@ -62,7 +62,7 @@ public:
     void addAtom(comm::BccDomain *p_domain, unsigned long id,
                  double rx, double ry, double rz, double vx, double vy, double vz);
 
-#ifdef MD_DEV_MODE
+#ifdef MD_RUNTIME_CHECKING
 
     /**
      * @return the count of atoms that are not vacancy (not type of INVALID).

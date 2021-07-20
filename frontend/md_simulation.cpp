@@ -114,7 +114,7 @@ void MDSimulation::postStep(const unsigned long step) {
         kiwi::logs::i(MASTER_PROCESSOR, "energy", "kinetic energy = {}, T = {}.\n", e, T);
     }
 
-#ifdef MD_DEV_MODE
+#ifdef MD_RUNTIME_CHECKING
     {
         unsigned long count[2] = {0, 0};
         count[0] = _atom->realAtoms();
@@ -130,7 +130,7 @@ void MDSimulation::postStep(const unsigned long step) {
 }
 
 void MDSimulation::onForceSolved(const unsigned long step) {
-#ifdef MD_DEV_MODE
+#ifdef MD_RUNTIME_CHECKING
     forceChecking();
 #endif
 }
@@ -160,16 +160,16 @@ void MDSimulation::print_force(const std::string filename, int step) {
 }
 
 
-#ifdef MD_DEV_MODE
+#ifdef MD_RUNTIME_CHECKING
 
 void MDSimulation::forceChecking() {
     auto forces = configuration::systemForce(_atom->getAtomList(), _atom->getInterList());
     double fx[3] = {forces[0], forces[1], forces[2]};
     double fx_2[3] = {0.0, 0.0, 0.0};
     MPI_Allreduce(fx, fx_2, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    kiwi::logs::d("force2", "({}, {}, {})\n\n", forces[0], forces[1], forces[2]);
-    kiwi::logs::d(MASTER_PROCESSOR, "sum force:", "({}, {}, {})\n\n", fx_2[0], fx_2[1], fx_2[2]);
-    if (std::abs(fx_2[0]) > 0.00001) {
+    if (std::abs(fx_2[0]) > 0.00001 || std::abs(fx_2[1]) > 0.00001 || std::abs(fx_2[2]) > 0.00001) {
+        kiwi::logs::d("force2", "({}, {}, {})\n\n", forces[0], forces[1], forces[2]);
+        kiwi::logs::d(MASTER_PROCESSOR, "sum force:", "({}, {}, {})\n\n", fx_2[0], fx_2[1], fx_2[2]);
         char filename[20];
         sprintf(filename, "force_%d.txt", kiwi::mpiUtils::global_process.own_rank);
         print_force(filename, _simulation_time_step);
@@ -178,4 +178,4 @@ void MDSimulation::forceChecking() {
     }
 }
 
-#endif //MD_DEV_MODE
+#endif //MD_RUNTIME_CHECKING

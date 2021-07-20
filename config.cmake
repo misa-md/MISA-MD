@@ -10,6 +10,7 @@ option(MD_MPI_ENABLE_FLAG "Use MPI library" ON) #change this flag to false to di
 option(MD_TEST_ENABLE_FLAG "Enable test" ON) # enable test
 option(MD_TEST_MPI_ENABLE_FLAG "Enable MPI in test" ON) # enable mpi in test, its value depends on option MPI_ENABLE_FLAG.
 option(MD_TOOLS_BUILD_ENABLE_FLAG "Enable tools building" ON) # enable tools building (in tools directory) binary.(tools example: convert simulation result binary file to text file)
+option(MD_RUNTIME_CHECKING_FLAG "Run data checking while running" OFF)
 
 ## architecture related values (only used in src/arch dir).
 option(MD_SUNWAY_ARCH_ENABLE_FLAG "Enable sunway athread" OFF) # enable sunway athread if its running on sunway system.

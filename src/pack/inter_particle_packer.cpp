@@ -21,7 +21,7 @@ const unsigned long InterParticlePacker::sendLength(const int dimension, const i
             {box::OUT_BOX_Z_LITTER, box::OUT_BOX_Z_BIG},
     };
 
-#ifdef MD_DEV_MODE
+#ifdef MD_RUNTIME_CHECKING
     auto pos_assert = [](bool flag, AtomElement &atom, const char *file, const char *func, const int line) {
         if (flag) {
             kiwi::logs::e("comm", "atom position out of box, assert failed in file {}, line {}\n", file, line);
@@ -35,7 +35,7 @@ const unsigned long InterParticlePacker::sendLength(const int dimension, const i
     unsigned int num_to_send = 0;
     for (_type_inter_list::iterator inter_it = inter_atom_list.inter_list.begin();
          inter_it != inter_atom_list.inter_list.end(); inter_it++) {
-#ifdef MD_DEV_MODE
+#ifdef MD_RUNTIME_CHECKING
         {
             const box::_type_flag_32 flag = ws::isOutBox(*inter_it, &domain);
             if (dimension == 1) { // y dimension
@@ -116,6 +116,13 @@ void InterParticlePacker::onReceive(particledata *buffer, const unsigned long re
         atom.v[0] = buffer[i].v[0];
         atom.v[1] = buffer[i].v[1];
         atom.v[2] = buffer[i].v[2];
+#ifdef MD_RUNTIME_CHECKING
+        if (!ws::isInBox(atom, &domain)) {
+            kiwi::logs::e("comm", "out of simulation box: atom id: {};atom position:({}, {}, {}).\n",
+                          atom.id, atom.x[0], atom.x[1], atom.x[2]);
+            assert(false);
+        }
+#endif
         inter_atom_list.addInterAtom(atom);
     }
 }
