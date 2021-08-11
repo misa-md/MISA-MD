@@ -19,7 +19,7 @@ void ForcePacker::onSend(double *buffer, const unsigned long send_len, const int
     int j, m = 0;
     for (int i = 0; i < send_len / 3; i++) {
         j = recvlist[i];
-        AtomElement &atom = atom_list.getAtomEleByLinearIndex(j);
+        AtomElement &atom = atom_list._atoms.getAtomEleByLinearIndex(j);
         buffer[m++] = atom.f[0];
         buffer[m++] = atom.f[1];
         buffer[m++] = atom.f[2];
@@ -32,7 +32,7 @@ void ForcePacker::onReceive(double *buffer, const unsigned long receive_len, con
     int j, m = 0;
     for (int i = 0; i < send_list[list_index].size(); i++) {
         j = send_list[list_index][i];
-        AtomElement &atom_ = atom_list.getAtomEleByLinearIndex(j);
+        AtomElement &atom_ = atom_list._atoms.getAtomEleByLinearIndex(j);
         atom_.f[0] += buffer[m++];
         atom_.f[1] += buffer[m++];
         atom_.f[2] += buffer[m++];

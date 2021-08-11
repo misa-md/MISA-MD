@@ -25,7 +25,7 @@ void RhoPacker::onSend(double *buffer, const unsigned long send_len,
     int j, m = 0;
     for (int i = 0; i < send_len; i++) {
         j = recvlist[i];
-        AtomElement &atom = atom_list.getAtomEleByLinearIndex(j);
+        AtomElement &atom = atom_list._atoms.getAtomEleByLinearIndex(j);
         buffer[m++] = atom.rho;
     }
 }
@@ -40,7 +40,7 @@ void RhoPacker::onReceive(double buffer[], const unsigned long receive_len,
     int j, m = 0;
     for (int i = 0; i < send_list[list_index].size(); i++) {
         j = send_list[list_index][i];
-        AtomElement &atom_ = atom_list.getAtomEleByLinearIndex(j);
+        AtomElement &atom_ = atom_list._atoms.getAtomEleByLinearIndex(j);
         atom_.rho += buf[m++];
     }
 }

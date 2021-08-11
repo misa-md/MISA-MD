@@ -42,7 +42,7 @@ void LatPackerFirst::onSend(LatParticleData *buffer, const unsigned long send_le
     _type_atom_id local_id;
     for (int i = 0; i < send_len; i++) {
         local_id = sendlist[i];
-        AtomElement &atom = atom_list.getAtomEleByLinearIndex(local_id);
+        AtomElement &atom = atom_list._atoms.getAtomEleByLinearIndex(local_id);
         // for ghost atoms, we just care their position and atom type(EamParser calculating), so positions and types are enough.
         buffer[i].type = atom.type; // fixme --type
 #ifdef DEV_MD_COMM_INC_ATOM_ID
@@ -81,7 +81,7 @@ void LatPackerFirst::onReceive(LatParticleData *buffer, const unsigned long rece
             for (int j = ystart; j < ystop; j++) {
                 for (int i = xstart; i < xstop; i++) {
 //                        kk = IndexOf3DIndex(i, j, k);
-                    AtomElement &atom_ = atom_list.getAtomEleByGhostIndex(i, j, k);
+                    AtomElement &atom_ = atom_list._atoms.getAtomEleByGhostIndex(i, j, k);
                     atom_.type = buffer[m].type;
 #ifdef DEV_MD_COMM_INC_ATOM_ID
                     atom_.id = buffer[m].id;
@@ -116,7 +116,7 @@ void LatPackerFirst::onReceive(LatParticleData *buffer, const unsigned long rece
         for (int k = zstart; k < zstop; k++) {
             for (int j = ystart; j < ystop; j++) {
                 for (int i = xstart; i < xstop; i++) {
-                    AtomElement &atom_ = atom_list.getAtomEleByGhostIndex(i, j, k);
+                    AtomElement &atom_ = atom_list._atoms.getAtomEleByGhostIndex(i, j, k);
                     atom_.type = buffer[m].type;
 #ifdef DEV_MD_COMM_INC_ATOM_ID
                     atom_.id = buffer[m].id;
@@ -150,7 +150,7 @@ void LatPackerFirst::onReceive(LatParticleData *buffer, const unsigned long rece
             for (int j = ystart; j < ystop; j++) {
                 for (int i = xstart; i < xstop; i++) {
 //                        kk = IndexOf3DIndex(i, j, k);
-                    AtomElement &atom_ = atom_list.getAtomEleByGhostIndex(i, j, k);
+                    AtomElement &atom_ = atom_list._atoms.getAtomEleByGhostIndex(i, j, k);
                     atom_.type = buffer[m].type;
 #ifdef DEV_MD_COMM_INC_ATOM_ID
                     atom_.id = buffer[m].id;
@@ -182,7 +182,7 @@ void LatPacker::onSend(LatParticleData *buffer, const unsigned long send_len,
     _type_atom_id local_id;
     for (int i = 0; i < send_len; i++) {
         local_id = sendlist[i];
-        AtomElement &atom = atom_list.getAtomEleByLinearIndex(local_id);
+        AtomElement &atom = atom_list._atoms.getAtomEleByLinearIndex(local_id);
         // for ghost atoms, we just care their position and atom type(EamParser calculating), so positions and types are enough.
         buffer[i].type = atom.type; // fixme --type
 #ifdef DEV_MD_COMM_INC_ATOM_ID
@@ -200,7 +200,7 @@ void LatPacker::onReceive(LatParticleData *buffer, const unsigned long receive_l
     long kk;
     for (int i = 0; i < receive_len; i++) {
         kk = receive_list[list_index][i];
-        AtomElement &atom_ = atom_list.getAtomEleByLinearIndex(kk);
+        AtomElement &atom_ = atom_list._atoms.getAtomEleByLinearIndex(kk);
         atom_.type = buffer[i].type;
 #ifdef DEV_MD_COMM_INC_ATOM_ID
         atom_.id = buffer[i].id;

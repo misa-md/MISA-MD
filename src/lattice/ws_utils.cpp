@@ -118,7 +118,7 @@ AtomElement &ws::findNearLatAtom(AtomList *atom_list, const AtomElement &src_ato
     _type_atom_index coords[DIMENSION];
     getNearLatCoord(src_atom, p_domain, coords);
     _type_atom_index near_index = atom_list->lattice.IndexOf3DIndex(coords[0], coords[1], coords[2]);
-    return atom_list->getAtomEleByLinearIndex(near_index); // todo return _atoms[l][k][j];
+    return atom_list->_atoms.getAtomEleByLinearIndex(near_index); // todo return _atoms[l][k][j];
 }
 
 AtomElement *ws::findNearLatAtomInSubBox(AtomList *atom_list, const AtomElement &src_atom,
@@ -127,7 +127,7 @@ AtomElement *ws::findNearLatAtomInSubBox(AtomList *atom_list, const AtomElement 
     if (near_index == box::IndexNotExists) {
         return nullptr;
     }
-    return &(atom_list->getAtomEleByLinearIndex(near_index));
+    return &(atom_list->_atoms.getAtomEleByLinearIndex(near_index));
 }
 
 _type_atom_index ws::findNearLatIndexInSubBox(AtomList *atom_list, const AtomElement &src_atom,

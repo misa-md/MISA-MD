@@ -9,6 +9,7 @@
 #include "simulation.h"
 #include "utils/mpi_domain.h"
 #include "arch/hardware_accelerate.hpp"
+#include "arch/hardware_accelerate_init.hpp"
 #include "world_builder.h"
 
 simulation::simulation() :

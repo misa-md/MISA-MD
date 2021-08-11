@@ -60,7 +60,7 @@ AtomSet::addAtom(comm::BccDomain *p_domain, _type_atom_id id,
         lattice[2] -= p_domain->dbx_ghost_ext_lattice_region.z_low;
         i = (((p_domain->dbx_ghost_extended_lattice_size[1])) * lattice[2] + lattice[1]) *
             ((p_domain->dbx_ghost_extended_lattice_size[0])) + lattice[0];
-        AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(i);
+        AtomElement &atom_ = atom_list->_atoms.getAtomEleByLinearIndex(i);
         atom_.id = id;
         atom_.x[0] = rx;
         atom_.x[1] = ry;

@@ -73,10 +73,10 @@ TEST_F(WorldBuilderTestFixture, df_embedd_packer_test) {
 
     comm::neiSendReceive<double>(&packer, MPIDomain::toCommProcess(), MPI_DOUBLE, p_domain->rank_id_neighbours);
 
-    double df1 = _atom->atom_list->getAtomEleByGhostIndex(0, p_domain->dbx_local_sub_box_lattice_region.y_high / 2,
+    double df1 = _atom->atom_list->_atoms.getAtomEleByGhostIndex(0, p_domain->dbx_local_sub_box_lattice_region.y_high / 2,
                                                           p_domain->dbx_local_sub_box_lattice_region.z_high / 2).df;
     EXPECT_EQ(df1, p_domain->rank_id_neighbours[0][0]);
-    double df2 = _atom->atom_list->getAtomEleByGhostIndex(p_domain->dbx_local_sub_box_lattice_region.x_high + 1,
+    double df2 = _atom->atom_list->_atoms.getAtomEleByGhostIndex(p_domain->dbx_local_sub_box_lattice_region.x_high + 1,
                                                           p_domain->dbx_local_sub_box_lattice_region.y_high / 2,
                                                           p_domain->dbx_local_sub_box_lattice_region.z_high / 2).df;
     EXPECT_EQ(df2, p_domain->rank_id_neighbours[0][1]);

@@ -114,7 +114,7 @@ void WorldBuilder::createPhaseSpace() {
     for (int k = 0; k < _p_domain->dbx_sub_box_lattice_size[2]; k++) {
         for (int j = 0; j < _p_domain->dbx_sub_box_lattice_size[1]; j++) {
             for (int i = 0; i < _p_domain->dbx_sub_box_lattice_size[0]; i++) {
-                AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
+                AtomElement &atom_ = _p_atom->getAtomList()->_atoms.getAtomEleBySubBoxIndex(i, j, k);
                 atom_.id = ++id_pre;
                 atom_.type = randomAtomsType(atom_type_rng); // set random atom type.
                 mass = atom_type::getAtomMass(atom_.type); // get atom mass of this kind of atom.
@@ -146,7 +146,7 @@ void WorldBuilder::zeroMomentum(double *vcm) {
     for (int k = 0; k < _p_domain->dbx_sub_box_lattice_size[2]; k++) {
         for (int j = 0; j < _p_domain->dbx_sub_box_lattice_size[1]; j++) {
             for (int i = 0; i < _p_domain->dbx_sub_box_lattice_size[0]; i++) {
-                AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
+                AtomElement &atom_ = _p_atom->getAtomList()->_atoms.getAtomEleBySubBoxIndex(i, j, k);
                 mass = atom_type::getAtomMass(atom_.type);
                 atom_.v[0] -= (vcm[0] / mass);
                 atom_.v[1] -= (vcm[1] / mass);
@@ -167,7 +167,7 @@ void WorldBuilder::vcm(double p[DIMENSION + 1]) {
     for (int k = 0; k < _p_domain->dbx_sub_box_lattice_size[2]; k++) {
         for (int j = 0; j < _p_domain->dbx_sub_box_lattice_size[1]; j++) {
             for (int i = 0; i < _p_domain->dbx_sub_box_lattice_size[0]; i++) {
-                AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
+                AtomElement &atom_ = _p_atom->getAtomList()->_atoms.getAtomEleBySubBoxIndex(i, j, k);
                 mass_one = atom_type::getAtomMass(atom_.type);
                 p[0] += atom_.v[0] * mass_one;
                 p[1] += atom_.v[1] * mass_one;

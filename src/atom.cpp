@@ -35,7 +35,7 @@ int atom::decide() {
         for (_type_atom_index j = 0; j < p_domain->dbx_sub_box_lattice_size[1]; j++) {
             for (_type_atom_index i = 0; i < p_domain->dbx_sub_box_lattice_size[0]; i++) {
 //                kk = atom_list->IndexOf3DIndex(i, j, k);
-                AtomElement &atom_ = atom_list->getAtomEleBySubBoxIndex(i, j, k); // todo long type
+                AtomElement &atom_ = atom_list->_atoms.getAtomEleBySubBoxIndex(i, j, k); // todo long type
                 if (!atom_.isInterElement()) {
                     xtemp = (i + p_domain->dbx_sub_box_lattice_region.x_low) * 0.5 * p_domain->lattice_const;
                     ytemp = (j + p_domain->dbx_sub_box_lattice_region.y_low + (i % 2) * 0.5) *
@@ -91,7 +91,7 @@ int atom::decide() {
 
 void atom::clearForce() {
     for (_type_atom_index i = 0; i < atom_list->cap(); i++) {
-        AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(i);
+        AtomElement &atom_ = atom_list->_atoms.getAtomEleByLinearIndex(i);
         atom_.f[0] = 0;
         atom_.f[1] = 0;
         atom_.f[2] = 0;
@@ -162,12 +162,12 @@ void atom::latRho(eam *pot) {
 
     // 本地晶格点上的原子计算电子云密度
     if (isArchAccSupport()) {
-        archAccEamRhoCalc(pot, atom_list->_atoms, _cutoffRadius); // fixme
+        archAccEamRhoCalc(pot, atom_list->_atoms._data(), _cutoffRadius); // fixme
     } else { // calculate electron density use cpu only.
         for (int k = zstart; k < p_domain->dbx_sub_box_lattice_size[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_sub_box_lattice_size[1] + ystart; j++) {
                 for (int i = xstart; i < p_domain->dbx_sub_box_lattice_size[0] + xstart; i++) {
-                    AtomElement &atom_central = atom_list->getAtomEleByGhostIndex(i, j, k);
+                    AtomElement &atom_central = atom_list->_atoms.getAtomEleByGhostIndex(i, j, k);
                     if (!atom_central.isInterElement()) {
                         //对晶格点邻居原子遍历
                         // only consider the atoms whose id is bigger than {@var atom_central}, just single side.
@@ -217,7 +217,7 @@ void atom::interRho(eam *pot) {
             // todo find a good way to filter out-of-box atoms while exchanging inter atoms.
         }
 #endif
-        AtomElement &atom_near = atom_list->getAtomEleByLinearIndex(near_atom_index);
+        AtomElement &atom_near = atom_list->_atoms.getAtomEleByLinearIndex(near_atom_index);
         delx = (*inter_it).x[0] - atom_near.x[0];
         dely = (*inter_it).x[1] - atom_near.x[1];
         delz = (*inter_it).x[2] - atom_near.x[2];
@@ -299,12 +299,12 @@ void atom::latDf(eam *pot) {
 
     //本地晶格点计算嵌入能导数
     if (isArchAccSupport()) {
-        archAccEamDfCalc(pot, atom_list->_atoms, _cutoffRadius);    // fixme
+        archAccEamDfCalc(pot, atom_list->_atoms._data(), _cutoffRadius);    // fixme
     } else {
         for (int k = zstart; k < p_domain->dbx_sub_box_lattice_size[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_sub_box_lattice_size[1] + ystart; j++) {
                 for (int i = xstart; i < p_domain->dbx_sub_box_lattice_size[0] + xstart; i++) {
-                    AtomElement &atom_ = atom_list->getAtomEleByGhostIndex(i, j, k);
+                    AtomElement &atom_ = atom_list->_atoms.getAtomEleByGhostIndex(i, j, k);
                     if (atom_.isInterElement()) {
                         continue;
                     }
@@ -326,12 +326,12 @@ void atom::latForce(eam *pot) {
     const int zstart = p_domain->dbx_lattice_size_ghost[2];
 
     if (isArchAccSupport()) {
-        archAccEamForceCalc(pot, atom_list->_atoms, _cutoffRadius);
+        archAccEamForceCalc(pot, atom_list->_atoms._data(), _cutoffRadius);
     } else {
         for (int k = zstart; k < p_domain->dbx_sub_box_lattice_size[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_sub_box_lattice_size[1] + ystart; j++) {
                 for (int i = xstart; i < p_domain->dbx_sub_box_lattice_size[0] + xstart; i++) {
-                    AtomElement &atom_ = atom_list->getAtomEleByGhostIndex(i, j, k);
+                    AtomElement &atom_ = atom_list->_atoms.getAtomEleByGhostIndex(i, j, k);
                     if (atom_.isInterElement()) {
                         continue;
                     }
@@ -383,7 +383,7 @@ void atom::interForce(eam *pot) {
         }
 #endif 
         // 间隙原子所在晶格处的原子
-        AtomElement &atom_central = atom_list->getAtomEleByLinearIndex(_atom_near_index);
+        AtomElement &atom_central = atom_list->_atoms.getAtomEleByLinearIndex(_atom_near_index);
 
         delx = (*inter_it).x[0] - atom_central.x[0];
         dely = (*inter_it).x[1] - atom_central.x[1];
@@ -494,7 +494,7 @@ void atom::setv(const _type_lattice_coord lat[4], const double direction[3], con
                                                 lat[1] - p_domain->dbx_ghost_ext_lattice_region.y_low,
                                                 lat[2] - p_domain->dbx_ghost_ext_lattice_region.z_low) + lat[3]);
         // todo verify the position.
-        AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
+        AtomElement &atom_ = atom_list->_atoms.getAtomEleByLinearIndex(kk);
         const double v_ = sqrt(
                 2 * energy / atom_type::getAtomMass(atom_.type) / mvv2e); // the unit of v is A/ps (or 100m/s)
         const double d_ = sqrt(direction[0] * direction[0] + direction[1] * direction[1] + direction[2] * direction[2]);
@@ -517,7 +517,7 @@ void atom::setv(const _type_lattice_coord lat_x, const _type_lattice_coord lat_y
                 lat_y - p_domain->dbx_ghost_ext_lattice_region.y_low,
                 lat_z - p_domain->dbx_ghost_ext_lattice_region.z_low);
 
-        AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(kk);
+        AtomElement &atom_ = atom_list->_atoms.getAtomEleByLinearIndex(kk);
         atom_.v[0] = v[0];
         atom_.v[1] = v[1];
         atom_.v[2] = v[2];

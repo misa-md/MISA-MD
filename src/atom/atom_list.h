@@ -14,6 +14,7 @@
 
 #include "../types/pre_define.h"
 #include "atom_element.h"
+#include "atom_prop_list.hpp"
 #include "lattice/lattice.h"
 
 
@@ -110,55 +111,13 @@ public:
     ~AtomList();
 
     /**
-     * calculate index of 1d atom array by the lattice coordinate in 3d
-     * @param x, y, z the lattice coordinate in 3d
-     * @return the index in 1d atoms array of the atom specified by @param x,y,z coordinate
-     */
-    inline _type_atom_index getAtomIndex(_type_atom_index x, _type_atom_index y, _type_atom_index z) const {
-        return (z * lattice._size_y + y) * lattice._size_x + x;
-    }
-
-    /**
-     * get the reference of {@class AtomElement} by the lattice index in sub-box(not include ghost lattice).
-     * @param index_x lattice index in sub-box at x dimension.
-     * @param index_y lattice index in sub-box at y dimension.
-     * @param index_z lattice index in sub-box at z dimension.
-     * @return reference of {@class AtomElement} at corresponding position.
-     */
-    inline AtomElement &
-    getAtomEleBySubBoxIndex(_type_atom_index index_x, _type_atom_index index_y, _type_atom_index index_z) {
-        return _atoms[getAtomIndex(lattice.purge_ghost_count_x + index_x,
-                                   lattice.purge_ghost_count_y + index_y,
-                                   lattice.purge_ghost_count_z + index_z)];
-    }
-
-    /**
-     * just by index of ghost lattice.
-     * @param index_x
-     * @param index_y
-     * @param index_z
-     * @return
-     */
-    inline AtomElement &
-    getAtomEleByGhostIndex(_type_atom_index index_x, _type_atom_index index_y, _type_atom_index index_z) const {
-        return _atoms[getAtomIndex(index_x, index_y, index_z)];
-    }
-
-    /**
-     * get atom element by linear index.
-     * index = (zIndex * p_domain->getGhostLatticeSize(1) + yIndex) * p_domain->getGhostLatticeSize(0) + xIndex;
-     * @param index
-     * @return
-     */
-    inline AtomElement &getAtomEleByLinearIndex(_type_atom_index index) const {
-        return _atoms[index];
-    }
-
-    /**
      *
      */
     template<typename Callable>
     void foreachSubBoxAtom(Callable callback);
+
+    template<typename Callback>
+    void foreachSubBoxAtoms(Callback callback);
 
     /**
      * get the capacity of lattice atom in the box (including ghost lattice atoms).
@@ -185,9 +144,9 @@ public:
 public:
     const BccLattice lattice;
 
-private:
+public:
     // 晶格点原子用数组存储其信息,including ghost atoms.
-    AtomElement *_atoms; // atoms in 3d.
+    AtomPropList<AtomElement> _atoms; // atoms in 3d.
 };
 
 
@@ -196,7 +155,7 @@ void AtomList::foreachSubBoxAtom(Callable callback) {
     for (long z = lattice.purge_ghost_count_z; z < lattice._size_sub_box_z + lattice.purge_ghost_count_z; z++) {
         for (long y = lattice.purge_ghost_count_y; y < lattice._size_sub_box_y + lattice.purge_ghost_count_y; y++) {
             for (long x = lattice.purge_ghost_count_x; x < lattice._size_sub_box_x + lattice.purge_ghost_count_x; x++) {
-                callback(getAtomEleByGhostIndex(x, y, z));
+                callback(_atoms.getAtomEleByGhostIndex(x, y, z));
             }
         }
     }

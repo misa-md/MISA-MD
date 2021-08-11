@@ -72,7 +72,7 @@ public:
     }
 
     reference operator*() {
-        return atom_list->getAtomEleByLinearIndex(cur_index);
+        return atom_list->_atoms.getAtomEleByLinearIndex(cur_index);
     }
 
     pointer operator->() { return &(operator*()); }

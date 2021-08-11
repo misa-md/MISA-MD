@@ -11,26 +11,10 @@ AtomList::AtomList(_type_atom_count size_x, _type_atom_count size_y, _type_atom_
                    _type_atom_count size_sub_box_x, _type_atom_count size_sub_box_y, _type_atom_count size_sub_box_z,
                    _type_atom_count ghost_count_x, _type_atom_count ghost_count_y, _type_atom_count ghost_count_z) :
         lattice(size_x, size_y, size_z, size_sub_box_x, size_sub_box_y, size_sub_box_z,
-                ghost_count_x, ghost_count_y, ghost_count_z) {
-    bool need_create = true;
-    if (isArchAccSupport()) {
-        // we may create memory using other api (e.g. pinned memory on CUDA platform).
-        _atoms = archCreateAtomsMemory(size_x, size_y, size_z);
-        need_create = (_atoms == nullptr);
-    }
-    if (need_create) {
-        _atoms = new AtomElement[size_z * size_x * size_y];
-    }
-}
+                ghost_count_x, ghost_count_y, ghost_count_z), _atoms(AtomPropList<AtomElement>(lattice)) {}
 
 AtomList::~AtomList() {
-    bool need_des = true;
-    if (isArchAccSupport()) {
-        need_des = !archReleaseAtomsMemory(_atoms);
-    }
-    if (need_des) {
-        delete[] _atoms;
-    }
+    _atoms.destroyPropList();
 }
 
 bool AtomList::isBadList(comm::Domain domain) {
@@ -38,7 +22,7 @@ bool AtomList::isBadList(comm::Domain domain) {
     for (long z = lattice.purge_ghost_count_z; z < lattice._size_sub_box_z + lattice.purge_ghost_count_z; z++) {
         for (long y = lattice.purge_ghost_count_y; y < lattice._size_sub_box_y + lattice.purge_ghost_count_y; y++) {
             for (long x = lattice.purge_ghost_count_x; x < lattice._size_sub_box_x + lattice.purge_ghost_count_x; x++) {
-                AtomElement &_atom = getAtomEleByGhostIndex(x, y, z);
+                AtomElement &_atom = _atoms.getAtomEleByGhostIndex(x, y, z);
                 if (_atom.x[0] < domain.meas_global_region.x_low - delta ||
                     _atom.x[1] < domain.meas_global_region.y_low - delta ||
                     _atom.x[2] < domain.meas_global_region.z_low - delta ||
