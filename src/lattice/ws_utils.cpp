@@ -123,14 +123,14 @@ AtomElement &ws::findNearLatAtom(AtomList *atom_list, const AtomElement &src_ato
 
 AtomElement *ws::findNearLatAtomInSubBox(AtomList *atom_list, const AtomElement &src_atom,
                                          const comm::Domain *p_domain) {
-    _type_atom_index near_index = findNearLatIndexInSubBox(atom_list, src_atom, p_domain);
+    _type_atom_index near_index = findNearLatIndexInSubBox(atom_list->lattice, src_atom, p_domain);
     if (near_index == box::IndexNotExists) {
         return nullptr;
     }
     return &(atom_list->_atoms.getAtomEleByLinearIndex(near_index));
 }
 
-_type_atom_index ws::findNearLatIndexInSubBox(AtomList *atom_list, const AtomElement &src_atom,
+_type_atom_index ws::findNearLatIndexInSubBox(const BccLattice &lattice, const AtomElement &src_atom,
                                               const comm::Domain *p_domain) {
     // get the lattice coordinate of nearest atom first.
     _type_atom_index coord_to_sub_box[DIMENSION];
@@ -150,7 +150,7 @@ _type_atom_index ws::findNearLatIndexInSubBox(AtomList *atom_list, const AtomEle
     j += 2 * p_domain->lattice_size_ghost[0];
     k += p_domain->lattice_size_ghost[1];
     l += p_domain->lattice_size_ghost[2];
-    return atom_list->lattice.IndexOf3DIndex(j, k, l);
+    return lattice.IndexOf3DIndex(j, k, l);
 }
 
 void ws::getNearLatCoord(const AtomElement &src_atom, const comm::Domain *p_domain,

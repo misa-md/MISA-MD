@@ -56,12 +56,12 @@ namespace ws {
      * if the nearest atom is not found in sub-box(the @param src_atom can be out of sub-box),
      * box::IndexNotExists will be returned.
      *
-     * @param atom_list pointer to the atom list.
+     * @param lattice the lattice which described the simulation box.
      * @param src_atom reference to source atom.
      * @param p_domain pointer to box domain.
      * @return lattice index of nearest atom in 3d, or box::IndexNotExists if the nearest atom is not found
      */
-    _type_atom_index findNearLatIndexInSubBox(AtomList *atom_list, const AtomElement &src_atom, const comm::Domain *p_domain);
+    _type_atom_index findNearLatIndexInSubBox(const BccLattice &lattice, const AtomElement &src_atom, const comm::Domain *p_domain);
 
     /**
      * get the coordinate(starting from ghost area, not sub-box) of nearest lattice of @param src_atom.
