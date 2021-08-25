@@ -42,9 +42,9 @@ public:
     /**
      * add an inter atom to @var inter_list.
      * The atom data will be copied into the list.
-     * @param atom reference of the atom.
+     * @param atom copy of the atom.
      */
-    void addInterAtom(AtomElement &atom);
+    void addInterAtom(AtomElement atom);
 
     /**
      * insert an atom into ghost list, and return the atom pointer inserted.

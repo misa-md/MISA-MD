@@ -11,7 +11,8 @@ AtomList::AtomList(_type_atom_count size_x, _type_atom_count size_y, _type_atom_
                    _type_atom_count size_sub_box_x, _type_atom_count size_sub_box_y, _type_atom_count size_sub_box_z,
                    _type_atom_count ghost_count_x, _type_atom_count ghost_count_y, _type_atom_count ghost_count_z) :
         lattice(size_x, size_y, size_z, size_sub_box_x, size_sub_box_y, size_sub_box_z,
-                ghost_count_x, ghost_count_y, ghost_count_z), MD_HASH_LIST_INIT(lattice)) {}
+                ghost_count_x, ghost_count_y, ghost_count_z), MD_HASH_LIST_INIT(lattice) {
+}
 
 AtomList::~AtomList() {
     MD_HASH_LIST_DESTROY();
@@ -22,13 +23,14 @@ bool AtomList::isBadList(comm::Domain domain) {
     for (long z = lattice.purge_ghost_count_z; z < lattice._size_sub_box_z + lattice.purge_ghost_count_z; z++) {
         for (long y = lattice.purge_ghost_count_y; y < lattice._size_sub_box_y + lattice.purge_ghost_count_y; y++) {
             for (long x = lattice.purge_ghost_count_x; x < lattice._size_sub_box_x + lattice.purge_ghost_count_x; x++) {
-                AtomElement &_atom = _atoms.getAtomEleByGhostIndex(x, y, z);
-                if (_atom.x[0] < domain.meas_global_region.x_low - delta ||
-                    _atom.x[1] < domain.meas_global_region.y_low - delta ||
-                    _atom.x[2] < domain.meas_global_region.z_low - delta ||
-                    _atom.x[0] > domain.meas_global_region.x_high + delta ||
-                    _atom.x[1] > domain.meas_global_region.y_high + delta ||
-                    _atom.x[2] > domain.meas_global_region.z_high + delta) {
+                const _type_atom_index gid = _atoms.getAtomIndex(x, y, z); // todo long type
+                MD_LOAD_ATOM_VAR(_atom, this, gid);
+                if (MD_GET_ATOM_X(_atom, gid, 0) < domain.meas_global_region.x_low - delta ||
+                    MD_GET_ATOM_X(_atom, gid, 1) < domain.meas_global_region.y_low - delta ||
+                    MD_GET_ATOM_X(_atom, gid, 2) < domain.meas_global_region.z_low - delta ||
+                    MD_GET_ATOM_X(_atom, gid, 0) > domain.meas_global_region.x_high + delta ||
+                    MD_GET_ATOM_X(_atom, gid, 1) > domain.meas_global_region.y_high + delta ||
+                    MD_GET_ATOM_X(_atom, gid, 2) > domain.meas_global_region.z_high + delta) {
                     return true;
                 }
             }

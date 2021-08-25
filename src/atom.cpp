@@ -69,21 +69,27 @@ int atom::decide() {
         // If we use func findNearLatAtom to find a near atom of an inter atom in atoms list
         // the near atom can be an ghost atom (but the position of that ghost atom may still be in sub-box).
         // we should find near atom only in lattice atoms(exclude ghost atoms), so we use func finNearLatAtomInSubBox.
-        AtomElement *near_atom = ws::findNearLatAtomInSubBox(atom_list, inter_ref, p_domain);
-        // the near atom must be in sub-box, and it is in the lattice atom lists.
-        if (near_atom != nullptr && near_atom->isInterElement() &&
-            ws::isOutBox(*near_atom, p_domain) == box::IN_BOX) {
-            near_atom->id = inter_ref.id;
-            near_atom->type = inter_ref.type; // set type to valid.
-            near_atom->x[0] = inter_ref.x[0];
-            near_atom->x[1] = inter_ref.x[1];
-            near_atom->x[2] = inter_ref.x[2];
-            near_atom->v[0] = inter_ref.v[0];
-            near_atom->v[1] = inter_ref.v[1];
-            near_atom->v[2] = inter_ref.v[2];
+        const _type_atom_index near_atom_inx = ws::findNearLatIndexInSubBox(atom_list->lattice, inter_ref, p_domain);
 
-            // remove this atom from inter list.
-            inter_it = inter_atom_list->removeInter(inter_it);
+        // the near atom must be in sub-box, and it is in the lattice atom lists.
+        if (near_atom_inx != box::IndexNotExists) {
+            MD_LOAD_ATOM_VAR(near_atom, atom_list, near_atom_inx);
+            if (MD_IS_ATOM_TYPE_INTER(near_atom, near_atom_inx) &&
+                ws::isOutBox(MD_GET_ATOM_X_ALL(near_atom, near_atom_inx), p_domain) == box::IN_BOX) {
+                MD_SET_ATOM_ID(near_atom, near_atom_inx, inter_ref.id);
+                MD_SET_ATOM_TYPE(near_atom, near_atom_inx, inter_ref.type); // set type to valid.
+                MD_SET_ATOM_X(near_atom, near_atom_inx, 0, inter_ref.x[0]);
+                MD_SET_ATOM_X(near_atom, near_atom_inx, 1, inter_ref.x[1]);
+                MD_SET_ATOM_X(near_atom, near_atom_inx, 2, inter_ref.x[2]);
+                MD_SET_ATOM_V(near_atom, near_atom_inx, 0, inter_ref.v[0]);
+                MD_SET_ATOM_V(near_atom, near_atom_inx, 1, inter_ref.v[1]);
+                MD_SET_ATOM_V(near_atom, near_atom_inx, 2, inter_ref.v[2]);
+
+                // remove this atom from inter list.
+                inter_it = inter_atom_list->removeInter(inter_it);
+            } else {
+                inter_it++;
+            }
         } else {
             inter_it++;
         }
@@ -254,7 +260,7 @@ void atom::interRho(eam *pot) {
                     (*inter_it).rho += pot->chargeDensity(
                             atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(lat_nei_atom, nei_id)), dist2);
                     MD_ADD_ATOM_RHO(lat_nei_atom, nei_id, pot->chargeDensity(
-                            atom_type::getTypeIdByType((*inter_it).type), dist2);
+                            atom_type::getTypeIdByType((*inter_it).type), dist2));
                 }
             }
         }
@@ -513,13 +519,14 @@ void atom::setv(const _type_lattice_coord lat[4], const double direction[3], con
                                                 lat[1] - p_domain->dbx_ghost_ext_lattice_region.y_low,
                                                 lat[2] - p_domain->dbx_ghost_ext_lattice_region.z_low) + lat[3]);
         // todo verify the position.
-        AtomElement &atom_ = atom_list->_atoms.getAtomEleByLinearIndex(kk);
-        const double v_ = sqrt(
-                2 * energy / atom_type::getAtomMass(atom_.type) / mvv2e); // the unit of v is A/ps (or 100m/s)
+        MD_LOAD_ATOM_VAR(atom_, atom_list, kk);
+        // the unit of v is A/ps (or 100m/s)
+        const double v_ = sqrt(2 * energy / atom_type::getAtomMass(MD_GET_ATOM_TYPE(atom_, kk)) / mvv2e);
         const double d_ = sqrt(direction[0] * direction[0] + direction[1] * direction[1] + direction[2] * direction[2]);
-        atom_.v[0] += v_ * direction[0] / d_;
-        atom_.v[1] += v_ * direction[1] / d_;
-        atom_.v[2] += v_ * direction[2] / d_;
+        // fixme: to set v, just set, no adding.
+        MD_ADD_ATOM_V(atom_, kk, 0, v_ * direction[0] / d_);
+        MD_ADD_ATOM_V(atom_, kk, 1, v_ * direction[1] / d_);
+        MD_ADD_ATOM_V(atom_, kk, 2, v_ * direction[2] / d_);
     }
 }
 
@@ -536,9 +543,9 @@ void atom::setv(const _type_lattice_coord lat_x, const _type_lattice_coord lat_y
                 lat_y - p_domain->dbx_ghost_ext_lattice_region.y_low,
                 lat_z - p_domain->dbx_ghost_ext_lattice_region.z_low);
 
-        AtomElement &atom_ = atom_list->_atoms.getAtomEleByLinearIndex(kk);
-        atom_.v[0] = v[0];
-        atom_.v[1] = v[1];
-        atom_.v[2] = v[2];
+        MD_LOAD_ATOM_VAR(atom_, atom_list, kk);
+        MD_SET_ATOM_V(atom_, kk, 0, v[0]);
+        MD_SET_ATOM_V(atom_, kk, 1, v[1]);
+        MD_SET_ATOM_V(atom_, kk, 2, v[2]);
     }
 }

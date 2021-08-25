@@ -11,7 +11,7 @@
 AtomPropList<AtomElement> _atoms; // atoms in 3d.
 
 #define MD_HASH_LIST_INIT(lattice) \
-_atoms(AtomPropList<AtomElement>(lattice)
+_atoms(AtomPropList<AtomElement>(lattice))
 
 #define MD_HASH_LIST_DESTROY(lattice) \
 _atoms.destroyPropList();
@@ -22,8 +22,11 @@ _atoms.destroyPropList();
 #define MD_LOAD_ATOM_VAR(name, list, id)  \
 AtomElement &name = list->_atoms.getAtomEleByLinearIndex(id)
 
-#define GET_ATOM_ID(name, gid) \
+#define MD_GET_ATOM_ID(name, gid) \
 name.id
+
+#define MD_SET_ATOM_ID(name, gid, _id) \
+name.id = _id
 
 #define MD_GET_ATOM_TYPE(name, gid) \
 name.type
@@ -37,8 +40,23 @@ name.type = _tp
 #define MD_GET_ATOM_X(name, gid, i) \
 name.x[i]
 
+#define MD_SET_ATOM_X(name, gid, i, _x) \
+name.x[i] = _x
+
+#define MD_GET_ATOM_X_ALL(name, gid) \
+name.x
+
+#define MD_GET_ATOM_V(name, gid, i) \
+name.v[i]
+
+#define MD_ADD_ATOM_X(name, gid, i, _x) \
+name.x[i] += _x
+
 #define MD_SET_ATOM_V(name, gid, i, _v) \
 name.v[i] = _v
+
+#define MD_ADD_ATOM_V(name, gid, i, _v) \
+name.v[i] += _v
 
 #define MD_GET_ATOM_F(name, gid, i) \
 name.f[i]

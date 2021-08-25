@@ -60,14 +60,16 @@ AtomSet::addAtom(comm::BccDomain *p_domain, _type_atom_id id,
         lattice[2] -= p_domain->dbx_ghost_ext_lattice_region.z_low;
         i = (((p_domain->dbx_ghost_extended_lattice_size[1])) * lattice[2] + lattice[1]) *
             ((p_domain->dbx_ghost_extended_lattice_size[0])) + lattice[0];
-        AtomElement &atom_ = atom_list->_atoms.getAtomEleByLinearIndex(i);
-        atom_.id = id;
-        atom_.x[0] = rx;
-        atom_.x[1] = ry;
-        atom_.x[2] = rz;
-        atom_.v[0] = vx;
-        atom_.v[1] = vy;
-        atom_.v[2] = vz;
+        MD_LOAD_ATOM_VAR(atom_, atom_list, i);
+        MD_SET_ATOM_ID(atom_, i, id);
+
+        MD_SET_ATOM_X(atom_, i, 0, rx);
+        MD_SET_ATOM_X(atom_, i, 1, ry);
+        MD_SET_ATOM_X(atom_, i, 2, rz);
+
+        MD_SET_ATOM_V(atom_, i, 0, vx);
+        MD_SET_ATOM_V(atom_, i, 1, vy);
+        MD_SET_ATOM_V(atom_, i, 2, vz);
     }
 }
 

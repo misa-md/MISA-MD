@@ -21,7 +21,7 @@ public:
         bool need_create = true;
         if (isArchAccSupport()) {
             // we may create memory using other api (e.g. pinned memory on CUDA platform).
-            data = archCreateAtomsMemory<AtomElement>(lattice._size_x, lattice._size_y, lattice._size_z);
+            data = archCreateAtomsMemory<T>(lattice._size_x, lattice._size_y, lattice._size_z);
             need_create = (data == nullptr);
         }
         if (need_create) {
@@ -31,6 +31,14 @@ public:
 
     inline T *_data() {
         return data;
+    }
+
+    inline T & operator[](size_t i) {
+        return data[i];
+    }
+
+    inline const T & operator[](size_t i) const {
+        return data[i];
     }
 
     void destroyPropList() {
