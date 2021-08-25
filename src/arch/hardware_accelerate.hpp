@@ -39,7 +39,8 @@ inline bool archCliOptionsParse(args::ArgumentParser &parser) {
 
 // api for creating lattice atoms memory.
 // It will recreate using `malloc/new` after this call if it returns nullptr.
-inline AtomElement *archCreateAtomsMemory(_type_atom_count size_x, _type_atom_count size_y, _type_atom_count size_z) {
+template<typename T>
+inline T *archCreateAtomsMemory(_type_atom_count size_x, _type_atom_count size_y, _type_atom_count size_z) {
 #ifdef ACCELERATE_ENABLED
     return ARCH_PREFIX(ARCH_NAME, create_atoms_mem)(size_x, size_y, size_z);
 #else
@@ -48,7 +49,8 @@ inline AtomElement *archCreateAtomsMemory(_type_atom_count size_x, _type_atom_co
 }
 
 // release created lattice atoms.
-inline bool archReleaseAtomsMemory(AtomElement *atoms) {
+template<typename T>
+inline bool archReleaseAtomsMemory(T *atoms) {
 #ifdef ACCELERATE_ENABLED
     return ARCH_PREFIX(ARCH_NAME, release_atoms_mem)(atoms);
 #else

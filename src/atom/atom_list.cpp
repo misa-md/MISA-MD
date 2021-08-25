@@ -11,10 +11,10 @@ AtomList::AtomList(_type_atom_count size_x, _type_atom_count size_y, _type_atom_
                    _type_atom_count size_sub_box_x, _type_atom_count size_sub_box_y, _type_atom_count size_sub_box_z,
                    _type_atom_count ghost_count_x, _type_atom_count ghost_count_y, _type_atom_count ghost_count_z) :
         lattice(size_x, size_y, size_z, size_sub_box_x, size_sub_box_y, size_sub_box_z,
-                ghost_count_x, ghost_count_y, ghost_count_z), _atoms(AtomPropList<AtomElement>(lattice)) {}
+                ghost_count_x, ghost_count_y, ghost_count_z), MD_HASH_LIST_INIT(lattice)) {}
 
 AtomList::~AtomList() {
-    _atoms.destroyPropList();
+    MD_HASH_LIST_DESTROY();
 }
 
 bool AtomList::isBadList(comm::Domain domain) {

@@ -21,11 +21,11 @@ public:
         bool need_create = true;
         if (isArchAccSupport()) {
             // we may create memory using other api (e.g. pinned memory on CUDA platform).
-            data = archCreateAtomsMemory(lattice._size_x, lattice._size_y, lattice._size_z);
+            data = archCreateAtomsMemory<AtomElement>(lattice._size_x, lattice._size_y, lattice._size_z);
             need_create = (data == nullptr);
         }
         if (need_create) {
-            data = new AtomElement[lattice._size_z * lattice._size_x * lattice._size_y];
+            data = new T[lattice._size_z * lattice._size_x * lattice._size_y];
         }
     }
 
@@ -61,6 +61,18 @@ public:
      */
     inline _type_atom_index getAtomIndex(_type_atom_index x, _type_atom_index y, _type_atom_index z) const {
         return (z * lattice._size_y + y) * lattice._size_x + x;
+    }
+
+    /**
+     * get array index by coordinate in sub box
+     * @param index_x, index_y, index_z the coordinate relative to the simulation sub box.
+     * @return the array index
+     */
+    inline _type_atom_index
+    getAtomIndexInSubBox(_type_atom_index index_x, _type_atom_index index_y, _type_atom_index index_z) {
+        return getAtomIndex(lattice.purge_ghost_count_x + index_x,
+                            lattice.purge_ghost_count_y + index_y,
+                            lattice.purge_ghost_count_z + index_z);
     }
 
     /**

@@ -6,6 +6,7 @@
 
 #include "atom.h"
 #include "lattice/ws_utils.h"
+#include "atom/atom_props_macro_wrapper.h"
 #include "pack/rho_packer.h"
 #include "pack/force_packer.h"
 #include "pack/df_embed_packer.h"
@@ -35,22 +36,23 @@ int atom::decide() {
         for (_type_atom_index j = 0; j < p_domain->dbx_sub_box_lattice_size[1]; j++) {
             for (_type_atom_index i = 0; i < p_domain->dbx_sub_box_lattice_size[0]; i++) {
 //                kk = atom_list->IndexOf3DIndex(i, j, k);
-                AtomElement &atom_ = atom_list->_atoms.getAtomEleBySubBoxIndex(i, j, k); // todo long type
-                if (!atom_.isInterElement()) {
+                const _type_atom_index gid = atom_list->_atoms.getAtomIndexInSubBox(i, j, k); // todo long type
+                MD_LOAD_ATOM_VAR(atom_, atom_list, gid);
+                if (!MD_IS_ATOM_TYPE_INTER(atom_, gid)) {
                     xtemp = (i + p_domain->dbx_sub_box_lattice_region.x_low) * 0.5 * p_domain->lattice_const;
                     ytemp = (j + p_domain->dbx_sub_box_lattice_region.y_low + (i % 2) * 0.5) *
                             p_domain->lattice_const;
                     ztemp = (k + p_domain->dbx_sub_box_lattice_region.z_low + (i % 2) * 0.5) *
                             p_domain->lattice_const;
-                    dist = (atom_.x[0] - xtemp) * (atom_.x[0] - xtemp);
-                    dist += (atom_.x[1] - ytemp) * (atom_.x[1] - ytemp);
-                    dist += (atom_.x[2] - ztemp) * (atom_.x[2] - ztemp);
+                    dist = (MD_GET_ATOM_X(atom_, gid, 0) - xtemp) * (MD_GET_ATOM_X(atom_, gid, 0) - xtemp);
+                    dist += (MD_GET_ATOM_X(atom_, gid, 1) - ytemp) * (MD_GET_ATOM_X(atom_, gid, 1) - ytemp);
+                    dist += (MD_GET_ATOM_X(atom_, gid, 2) - ztemp) * (MD_GET_ATOM_X(atom_, gid, 2) - ztemp);
                     if (dist > (pow(0.2 * p_domain->lattice_const, 2.0))) { /**超过距离则判断为间隙原子*/
-                        inter_atom_list->addInterAtom(atom_);
-                        atom_.type = atom_type::INVALID;
-                        atom_.v[0] = 0;
-                        atom_.v[1] = 0;
-                        atom_.v[2] = 0;
+                        inter_atom_list->addInterAtom(MD_TO_ATOM_ELEMENT(atom_, gid));
+                        MD_SET_ATOM_TYPE(atom_, gid, atom_type::INVALID);
+                        MD_SET_ATOM_V(atom_, gid, 0, 0.0);
+                        MD_SET_ATOM_V(atom_, gid, 1, 0.0);
+                        MD_SET_ATOM_V(atom_, gid, 2, 0.0);
                         nflag = 1;
                     }
                 }
@@ -91,11 +93,11 @@ int atom::decide() {
 
 void atom::clearForce() {
     for (_type_atom_index i = 0; i < atom_list->cap(); i++) {
-        AtomElement &atom_ = atom_list->_atoms.getAtomEleByLinearIndex(i);
-        atom_.f[0] = 0;
-        atom_.f[1] = 0;
-        atom_.f[2] = 0;
-        atom_.rho = 0;
+        MD_LOAD_ATOM_VAR(atom_, atom_list, i);
+        MD_SET_ATOM_F(atom_, i, 0, 0.0);
+        MD_SET_ATOM_F(atom_, i, 1, 0.0);
+        MD_SET_ATOM_F(atom_, i, 2, 0.0);
+        MD_SET_ATOM_RHO(atom_, i, 0.0);
     }
     for (AtomElement &inter_ref :inter_atom_list->inter_list) {
         inter_ref.f[0] = 0;
@@ -167,27 +169,32 @@ void atom::latRho(eam *pot) {
         for (int k = zstart; k < p_domain->dbx_sub_box_lattice_size[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_sub_box_lattice_size[1] + ystart; j++) {
                 for (int i = xstart; i < p_domain->dbx_sub_box_lattice_size[0] + xstart; i++) {
-                    AtomElement &atom_central = atom_list->_atoms.getAtomEleByGhostIndex(i, j, k);
-                    if (!atom_central.isInterElement()) {
-                        //对晶格点邻居原子遍历
-                        // only consider the atoms whose id is bigger than {@var atom_central}, just single side.
-                        AtomNei::iterator nei_itl_end = neighbours->end(true, i, j, k);
-                        for (AtomNei::iterator nei_itl = neighbours->begin(true, i, j, k);
-                             nei_itl != nei_itl_end; ++nei_itl) {
-                            AtomElement &atom_neighbour = *nei_itl;
-                            if (atom_neighbour.isInterElement()) {
-                                continue;
-                            }
-                            delx = atom_central.x[0] - atom_neighbour.x[0];
-                            dely = atom_central.x[1] - atom_neighbour.x[1];
-                            delz = atom_central.x[2] - atom_neighbour.x[2];
-                            dist2 = delx * delx + dely * dely + delz * delz;
-                            if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                                atom_central.rho += pot->chargeDensity(
-                                        atom_type::getTypeIdByType(atom_neighbour.type), dist2);
-                                atom_neighbour.rho += pot->chargeDensity(
-                                        atom_type::getTypeIdByType(atom_central.type), dist2);
-                            }
+                    const _type_atom_index gid = atom_list->_atoms.getAtomIndex(i, j, k);
+                    MD_LOAD_ATOM_VAR(atom_central, atom_list, gid);
+
+                    if (MD_IS_ATOM_TYPE_INTER(atom_central, gid)) {
+                        continue;
+                    }
+                    //对晶格点邻居原子遍历
+                    // only consider the atoms whose id is bigger than {@var atom_central}, just single side.
+                    AtomNei::iterator nei_itl_end = neighbours->end(true, i, j, k);
+                    for (AtomNei::iterator nei_itl = neighbours->begin(true, i, j, k);
+                         nei_itl != nei_itl_end; ++nei_itl) {
+                        const _type_atom_index nei_id = nei_itl.cur_index;
+                        MD_LOAD_ATOM_VAR(atom_neighbour, atom_list, nei_id);
+
+                        if (MD_IS_ATOM_TYPE_INTER(atom_neighbour, nei_id)) {
+                            continue;
+                        }
+                        delx = MD_GET_ATOM_X(atom_central, gid, 0) - MD_GET_ATOM_X(atom_neighbour, nei_id, 0);
+                        dely = MD_GET_ATOM_X(atom_central, gid, 1) - MD_GET_ATOM_X(atom_neighbour, nei_id, 1);
+                        delz = MD_GET_ATOM_X(atom_central, gid, 2) - MD_GET_ATOM_X(atom_neighbour, nei_id, 2);
+                        dist2 = delx * delx + dely * dely + delz * delz;
+                        if (dist2 < (_cutoffRadius * _cutoffRadius)) {
+                            MD_ADD_ATOM_RHO(atom_central, gid, pot->chargeDensity(
+                                    atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(atom_neighbour, nei_id)), dist2));
+                            MD_ADD_ATOM_RHO(atom_neighbour, nei_id, pot->chargeDensity(
+                                    atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(atom_central, gid)), dist2));
                         }
                     }
                 }
@@ -217,14 +224,17 @@ void atom::interRho(eam *pot) {
             // todo find a good way to filter out-of-box atoms while exchanging inter atoms.
         }
 #endif
-        AtomElement &atom_near = atom_list->_atoms.getAtomEleByLinearIndex(near_atom_index);
-        delx = (*inter_it).x[0] - atom_near.x[0];
-        dely = (*inter_it).x[1] - atom_near.x[1];
-        delz = (*inter_it).x[2] - atom_near.x[2];
+        MD_LOAD_ATOM_VAR(atom_near, atom_list, near_atom_index);
+
+        delx = (*inter_it).x[0] - MD_GET_ATOM_X(atom_near, near_atom_index, 0);
+        dely = (*inter_it).x[1] - MD_GET_ATOM_X(atom_near, near_atom_index, 1);
+        delz = (*inter_it).x[2] - MD_GET_ATOM_X(atom_near, near_atom_index, 2);
         dist2 = delx * delx + dely * dely + delz * delz;
-        if (!atom_near.isInterElement() && dist2 < (_cutoffRadius * _cutoffRadius)) {
-            inter_it->rho += pot->chargeDensity(atom_type::getTypeIdByType(atom_near.type), dist2);
-            atom_near.rho += pot->chargeDensity(atom_type::getTypeIdByType((*inter_it).type), dist2);
+        if (!MD_IS_ATOM_TYPE_INTER(atom_near, near_atom_index) && dist2 < (_cutoffRadius * _cutoffRadius)) {
+            inter_it->rho += pot->chargeDensity(
+                    atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(atom_near, near_atom_index)), dist2);
+            MD_ADD_ATOM_RHO(atom_near, near_atom_index,
+                            pot->chargeDensity(atom_type::getTypeIdByType((*inter_it).type), dist2));
         }
 
         _type_atom_index x, y, z;
@@ -233,16 +243,17 @@ void atom::interRho(eam *pot) {
         AtomNei::iterator nei_full_itl_end = neighbours->end(false, x, y, z);
         for (AtomNei::iterator nei_itl = neighbours->begin(false, x, y, z);
              nei_itl != nei_full_itl_end; ++nei_itl) {
-            AtomElement &lat_nei_atom = *nei_itl; // this is a lattice atom.
-            if (!lat_nei_atom.isInterElement()) {
-                delx = (*inter_it).x[0] - lat_nei_atom.x[0];
-                dely = (*inter_it).x[1] - lat_nei_atom.x[1];
-                delz = (*inter_it).x[2] - lat_nei_atom.x[2];
+            const _type_atom_index nei_id = nei_itl.cur_index;
+            MD_LOAD_ATOM_VAR(lat_nei_atom, atom_list, nei_id); // this is a lattice atom.
+            if (!MD_IS_ATOM_TYPE_INTER(lat_nei_atom, nei_id)) {
+                delx = (*inter_it).x[0] - MD_GET_ATOM_X(lat_nei_atom, nei_id, 0);
+                dely = (*inter_it).x[1] - MD_GET_ATOM_X(lat_nei_atom, nei_id, 1);
+                delz = (*inter_it).x[2] - MD_GET_ATOM_X(lat_nei_atom, nei_id, 2);
                 dist2 = delx * delx + dely * dely + delz * delz;
                 if (dist2 < (_cutoffRadius * _cutoffRadius)) {
                     (*inter_it).rho += pot->chargeDensity(
-                            atom_type::getTypeIdByType(lat_nei_atom.type), dist2);
-                    lat_nei_atom.rho += pot->chargeDensity(
+                            atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(lat_nei_atom, nei_id)), dist2);
+                    MD_ADD_ATOM_RHO(lat_nei_atom, nei_id, pot->chargeDensity(
                             atom_type::getTypeIdByType((*inter_it).type), dist2);
                 }
             }
@@ -304,12 +315,15 @@ void atom::latDf(eam *pot) {
         for (int k = zstart; k < p_domain->dbx_sub_box_lattice_size[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_sub_box_lattice_size[1] + ystart; j++) {
                 for (int i = xstart; i < p_domain->dbx_sub_box_lattice_size[0] + xstart; i++) {
-                    AtomElement &atom_ = atom_list->_atoms.getAtomEleByGhostIndex(i, j, k);
-                    if (atom_.isInterElement()) {
+                    const _type_atom_index gid = atom_list->_atoms.getAtomIndex(i, j, k);
+                    MD_LOAD_ATOM_VAR(atom_, atom_list, gid);
+
+                    if (MD_IS_ATOM_TYPE_INTER(atom_, gid)) {
                         continue;
                     }
-                    dfEmbed = pot->dEmbedEnergy(atom_type::getTypeIdByType(atom_.type), atom_.rho); // fixme
-                    atom_.df = dfEmbed;
+                    dfEmbed = pot->dEmbedEnergy(atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(atom_, gid)),
+                                                MD_GET_ATOM_RHO(atom_, gid));
+                    MD_SET_ATOM_DF(atom_, gid, dfEmbed);
                 }
             }
         }
@@ -331,8 +345,10 @@ void atom::latForce(eam *pot) {
         for (int k = zstart; k < p_domain->dbx_sub_box_lattice_size[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_sub_box_lattice_size[1] + ystart; j++) {
                 for (int i = xstart; i < p_domain->dbx_sub_box_lattice_size[0] + xstart; i++) {
-                    AtomElement &atom_ = atom_list->_atoms.getAtomEleByGhostIndex(i, j, k);
-                    if (atom_.isInterElement()) {
+                    const _type_atom_index gid = atom_list->_atoms.getAtomIndex(i, j, k);
+                    MD_LOAD_ATOM_VAR(atom_, atom_list, gid);
+
+                    if (MD_IS_ATOM_TYPE_INTER(atom_, gid)) {
                         continue;
                     }
 
@@ -340,23 +356,25 @@ void atom::latForce(eam *pot) {
                     AtomNei::iterator nei_itl_end = neighbours->end(true, i, j, k);
                     for (AtomNei::iterator nei_itl = neighbours->begin(true, i, j, k);
                          nei_itl != nei_itl_end; ++nei_itl) {
-                        AtomElement &atom_n = *nei_itl;
-                        delx = atom_.x[0] - atom_n.x[0];
-                        dely = atom_.x[1] - atom_n.x[1];
-                        delz = atom_.x[2] - atom_n.x[2];
+                        const _type_atom_index nei_id = nei_itl.cur_index;
+                        MD_LOAD_ATOM_VAR(atom_n, atom_list, nei_id);
+
+                        delx = MD_GET_ATOM_X(atom_, gid, 0) - MD_GET_ATOM_X(atom_n, nei_id, 0);
+                        dely = MD_GET_ATOM_X(atom_, gid, 1) - MD_GET_ATOM_X(atom_n, nei_id, 1);
+                        delz = MD_GET_ATOM_X(atom_, gid, 2) - MD_GET_ATOM_X(atom_n, nei_id, 2);
                         dist2 = delx * delx + dely * dely + delz * delz;
-                        if (dist2 < (_cutoffRadius * _cutoffRadius) && !atom_n.isInterElement()) {
-                            fpair = pot->toForce(atom_type::getTypeIdByType(atom_.type),
-                                                 atom_type::getTypeIdByType(atom_n.type),
-                                                 dist2, atom_.df, atom_n.df);
+                        if (dist2 < (_cutoffRadius * _cutoffRadius) && !MD_IS_ATOM_TYPE_INTER(atom_n, nei_id)) {
+                            fpair = pot->toForce(atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(atom_, gid)),
+                                                 atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(atom_n, nei_id)),
+                                                 dist2, MD_GET_ATOM_DF(atom_, gid), MD_GET_ATOM_DF(atom_n, nei_id));
 
-                            atom_.f[0] += delx * fpair;
-                            atom_.f[1] += dely * fpair;
-                            atom_.f[2] += delz * fpair;
+                            MD_ADD_ATOM_F(atom_, gid, 0, delx * fpair);
+                            MD_ADD_ATOM_F(atom_, gid, 1, dely * fpair);
+                            MD_ADD_ATOM_F(atom_, gid, 2, delz * fpair);
 
-                            atom_n.f[0] -= delx * fpair;
-                            atom_n.f[1] -= dely * fpair;
-                            atom_n.f[2] -= delz * fpair;
+                            MD_ADD_ATOM_F(atom_n, nei_id, 0, -delx * fpair);
+                            MD_ADD_ATOM_F(atom_n, nei_id, 1, -dely * fpair);
+                            MD_ADD_ATOM_F(atom_n, nei_id, 2, -delz * fpair);
                         }
                     }
                 }
@@ -383,25 +401,25 @@ void atom::interForce(eam *pot) {
         }
 #endif 
         // 间隙原子所在晶格处的原子
-        AtomElement &atom_central = atom_list->_atoms.getAtomEleByLinearIndex(_atom_near_index);
+        MD_LOAD_ATOM_VAR(atom_central, atom_list, _atom_near_index);
 
-        delx = (*inter_it).x[0] - atom_central.x[0];
-        dely = (*inter_it).x[1] - atom_central.x[1];
-        delz = (*inter_it).x[2] - atom_central.x[2];
+        delx = (*inter_it).x[0] - MD_GET_ATOM_X(atom_central, _atom_near_index, 0);
+        dely = (*inter_it).x[1] - MD_GET_ATOM_X(atom_central, _atom_near_index, 1);
+        delz = (*inter_it).x[2] - MD_GET_ATOM_X(atom_central, _atom_near_index, 2);
         dist2 = delx * delx + dely * dely + delz * delz;
-        if (dist2 < (_cutoffRadius * _cutoffRadius) && !atom_central.isInterElement()) {
+        if (dist2 < (_cutoffRadius * _cutoffRadius) && !MD_IS_ATOM_TYPE_INTER(atom_central, _atom_near_index)) {
             fpair = pot->toForce(
                     atom_type::getTypeIdByType((*inter_it).type),
-                    atom_type::getTypeIdByType(atom_central.type),
-                    dist2, (*inter_it).df, atom_central.df);
+                    atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(atom_central, _atom_near_index)),
+                    dist2, (*inter_it).df, MD_GET_ATOM_DF(atom_central, _atom_near_index));
 
             (*inter_it).f[0] += delx * fpair;
             (*inter_it).f[1] += dely * fpair;
             (*inter_it).f[2] += delz * fpair;
 
-            atom_central.f[0] -= delx * fpair;
-            atom_central.f[1] -= dely * fpair;
-            atom_central.f[2] -= delz * fpair;
+            MD_ADD_ATOM_F(atom_central, _atom_near_index, 0, -delx * fpair);
+            MD_ADD_ATOM_F(atom_central, _atom_near_index, 1, -dely * fpair);
+            MD_ADD_ATOM_F(atom_central, _atom_near_index, 2, -delz * fpair);
         }
 
         _type_atom_index x, y, z;
@@ -410,24 +428,25 @@ void atom::interForce(eam *pot) {
         AtomNei::iterator nei_full_itl_end = neighbours->end(false, x, y, z);
         for (AtomNei::iterator nei_itl = neighbours->begin(false, x, y, z);
              nei_itl != nei_full_itl_end; ++nei_itl) {
-            AtomElement &lattice_neighbour = *nei_itl; // this is a lattice atom.
-            delx = (*inter_it).x[0] - lattice_neighbour.x[0];
-            dely = (*inter_it).x[1] - lattice_neighbour.x[1];
-            delz = (*inter_it).x[2] - lattice_neighbour.x[2];
+            const _type_atom_index nei_atom_inx = nei_itl.cur_index;
+            MD_LOAD_ATOM_VAR(lattice_neighbour, atom_list, nei_atom_inx); // this is a lattice atom.
+            delx = (*inter_it).x[0] - MD_GET_ATOM_X(lattice_neighbour, nei_atom_inx, 0);
+            dely = (*inter_it).x[1] - MD_GET_ATOM_X(lattice_neighbour, nei_atom_inx, 1);
+            delz = (*inter_it).x[2] - MD_GET_ATOM_X(lattice_neighbour, nei_atom_inx, 2);
             dist2 = delx * delx + dely * dely + delz * delz;
-            if (dist2 < (_cutoffRadius * _cutoffRadius) && !lattice_neighbour.isInterElement()) {
+            if (dist2 < (_cutoffRadius * _cutoffRadius) && !MD_IS_ATOM_TYPE_INTER(lattice_neighbour, nei_atom_inx)) {
                 fpair = pot->toForce(
                         atom_type::getTypeIdByType((*inter_it).type),
-                        atom_type::getTypeIdByType(lattice_neighbour.type),
-                        dist2, (*inter_it).df, lattice_neighbour.df);
+                        atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(lattice_neighbour, nei_atom_inx)),
+                        dist2, (*inter_it).df, MD_GET_ATOM_DF(lattice_neighbour, nei_atom_inx));
 
                 (*inter_it).f[0] += delx * fpair;
                 (*inter_it).f[1] += dely * fpair;
                 (*inter_it).f[2] += delz * fpair;
 
-                lattice_neighbour.f[0] -= delx * fpair;
-                lattice_neighbour.f[1] -= dely * fpair;
-                lattice_neighbour.f[2] -= delz * fpair;
+                MD_ADD_ATOM_F(lattice_neighbour, nei_atom_inx, 0, -delx * fpair);
+                MD_ADD_ATOM_F(lattice_neighbour, nei_atom_inx, 1, -dely * fpair);
+                MD_ADD_ATOM_F(lattice_neighbour, nei_atom_inx, 2, -delz * fpair);
             }
         }
         // force contribution of neighbour atoms in the same bucket.

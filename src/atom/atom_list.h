@@ -13,6 +13,7 @@
 #include <comm/domain/bcc_domain.h>
 
 #include "../types/pre_define.h"
+#include "atom_props_macro_wrapper.h"
 #include "atom_element.h"
 #include "atom_prop_list.hpp"
 #include "lattice/lattice.h"
@@ -146,7 +147,7 @@ public:
 
 public:
     // 晶格点原子用数组存储其信息,including ghost atoms.
-    AtomPropList<AtomElement> _atoms; // atoms in 3d.
+    MD_HASH_LIST_DECLARE();
 };
 
 
