@@ -140,11 +140,19 @@ void MDSimulation::print_force(const std::string filename, int step) {
     outfile.open(filename);
 
     _atom->atom_list->foreachSubBoxAtom(
-            [&outfile](AtomElement &_atom_ref) {
-                outfile << _atom_ref.id << "\t"
-                        << _atom_ref.x[0] << "\t" << _atom_ref.x[1] << "\t" << _atom_ref.x[2] << "\t"
-                        << _atom_ref.v[0] << "\t" << _atom_ref.v[1] << "\t" << _atom_ref.v[2] << "\t"
-                        << _atom_ref.f[0] << "\t" << _atom_ref.f[1] << "\t" << _atom_ref.f[2] << std::endl;
+            [&](const _type_atom_index gid) {
+                MD_LOAD_ATOM_VAR(_atom_ref, _atom->atom_list, gid);
+                outfile << MD_GET_ATOM_ID(_atom_ref, gid) << "\t"
+                        << MD_GET_ATOM_X(_atom_ref, gid, 0) << "\t"
+                        << MD_GET_ATOM_X(_atom_ref, gid, 1) << "\t"
+                        << MD_GET_ATOM_X(_atom_ref, gid, 2) << "\t"
+                        << MD_GET_ATOM_V(_atom_ref, gid, 0) << "\t"
+                        << MD_GET_ATOM_V(_atom_ref, gid, 1) << "\t"
+                        << MD_GET_ATOM_V(_atom_ref, gid, 2) << "\t"
+                        << MD_GET_ATOM_F(_atom_ref, gid, 0) << "\t"
+                        << MD_GET_ATOM_F(_atom_ref, gid, 1) << "\t"
+                        << MD_GET_ATOM_F(_atom_ref, gid, 2)
+                        << std::endl;
             }
     );
     outfile << "inter atoms" << std::endl;

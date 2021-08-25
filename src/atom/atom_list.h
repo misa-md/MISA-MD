@@ -156,7 +156,8 @@ void AtomList::foreachSubBoxAtom(Callable callback) {
     for (long z = lattice.purge_ghost_count_z; z < lattice._size_sub_box_z + lattice.purge_ghost_count_z; z++) {
         for (long y = lattice.purge_ghost_count_y; y < lattice._size_sub_box_y + lattice.purge_ghost_count_y; y++) {
             for (long x = lattice.purge_ghost_count_x; x < lattice._size_sub_box_x + lattice.purge_ghost_count_x; x++) {
-                callback(_atoms.getAtomEleByGhostIndex(x, y, z));
+                const _type_atom_index gid = _atoms.getAtomIndex(x, y, z);
+                callback(gid);
             }
         }
     }
