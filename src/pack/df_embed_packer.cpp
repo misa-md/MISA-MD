@@ -27,8 +27,8 @@ void DfEmbedPacker::onSend(double *buffer, const unsigned long send_len,
     int n = sendlist.size();
     for (int i = 0; i < n; i++) {
         j = sendlist[i];
-        AtomElement &atom = atom_list._atoms.getAtomEleByLinearIndex(j);
-        buffer[m++] = atom.df;
+        MD_LOAD_ATOM_VAR(atom, (&atom_list), j);
+        buffer[m++] = MD_GET_ATOM_DF(atom, j);
     }
     n = intersendlist.size();
     for (int i = 0; i < n; i++) {
@@ -53,8 +53,8 @@ void DfEmbedPacker::onReceive(double *buffer, const unsigned long receive_len,
     unsigned long len1 = recvlist.size();
     for (int i = 0; i < len1; i++) {
         kk = recvlist[i];
-        AtomElement &atom_ = atom_list._atoms.getAtomEleByLinearIndex(kk);
-        atom_.df = buffer[m++];
+        MD_LOAD_ATOM_VAR(atom, (&atom_list), kk);
+        MD_SET_ATOM_DF(atom, kk, buffer[m++]);
     }
     unsigned long len2 = interrecvlist.size();
     for (int i = 0; i < len2; i++) {
