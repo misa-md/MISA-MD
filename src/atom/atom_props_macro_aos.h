@@ -6,6 +6,7 @@
 #define MISA_MD_ATOM_PROPS_MACRO_AOS_H
 
 #include "types/atom_types.h"
+#include "arch/arch_atom_list_collection.h"
 
 #define MD_HASH_LIST_DECLARE() \
 AtomPropList<AtomElement> _atoms; // atoms in 3d.
@@ -81,6 +82,13 @@ name.df
 
 #define MD_SET_ATOM_DF(name, gid, _df) \
 name.df = _df
+
+inline _type_atom_list_collection to_atom_list_coll(AtomElement *atoms_prop) {
+    _type_atom_list_collection coll{.atoms = atoms_prop};
+    return coll;
+}
+
+#define TO_ATOM_LIST_COLL(p_list) to_atom_list_coll(p_list->_atoms._data())
 
 #define MD_TO_ATOM_ELEMENT(name, gid) \
 name

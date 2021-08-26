@@ -11,6 +11,7 @@
 
 #include "atom/atom_element.h"
 #include "arch_building_config.h"
+#include "arch_atom_list_collection.h"
 #include "arch_imp.h"
 
 // check whether it has accelerate hardware to be used, for example GPU, MIC(Xeon Phi), or sunway slave cores.
@@ -67,14 +68,14 @@ inline void archAccPotInit(eam *_pot) {
 }
 
 // accelerate for calculating electron_density in computing eam potential.
-inline void archAccEamRhoCalc(eam *pot, AtomElement *atoms, const double cutoff_radius) {
+inline void archAccEamRhoCalc(eam *pot, _type_atom_list_collection atoms, const double cutoff_radius) {
 #ifdef ACCELERATE_ENABLED
     ARCH_PREFIX(ARCH_NAME, eam_rho_calc)(pot, atoms, cutoff_radius);
 #endif
 }
 
 // accelerate for calculating df in computing eam potential.
-inline void archAccEamDfCalc(eam *pot, AtomElement *atoms, const double cutoff_radius) {
+inline void archAccEamDfCalc(eam *pot, _type_atom_list_collection atoms, const double cutoff_radius) {
 #ifdef ACCELERATE_ENABLED
     ARCH_PREFIX(ARCH_NAME, eam_df_calc)(pot, atoms, cutoff_radius);
 #endif
@@ -83,7 +84,7 @@ inline void archAccEamDfCalc(eam *pot, AtomElement *atoms, const double cutoff_r
 /**
  * accelerate for calculating force in computing eam potential.
  */
-inline void archAccEamForceCalc(eam *pot, AtomElement *atoms, const double cutoff_radius) {
+inline void archAccEamForceCalc(eam *pot, _type_atom_list_collection atoms, const double cutoff_radius) {
 #ifdef ACCELERATE_ENABLED
     ARCH_PREFIX(ARCH_NAME, eam_force_calc)(pot, atoms, cutoff_radius);
 #endif

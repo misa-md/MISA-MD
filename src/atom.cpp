@@ -170,7 +170,7 @@ void atom::latRho(eam *pot) {
 
     // 本地晶格点上的原子计算电子云密度
     if (isArchAccSupport()) {
-        archAccEamRhoCalc(pot, atom_list->_atoms._data(), _cutoffRadius); // fixme
+        archAccEamRhoCalc(pot, TO_ATOM_LIST_COLL(atom_list), _cutoffRadius); // fixme
     } else { // calculate electron density use cpu only.
         for (int k = zstart; k < p_domain->dbx_sub_box_lattice_size[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_sub_box_lattice_size[1] + ystart; j++) {
@@ -316,7 +316,7 @@ void atom::latDf(eam *pot) {
 
     //本地晶格点计算嵌入能导数
     if (isArchAccSupport()) {
-        archAccEamDfCalc(pot, atom_list->_atoms._data(), _cutoffRadius);    // fixme
+        archAccEamDfCalc(pot, TO_ATOM_LIST_COLL(atom_list), _cutoffRadius);    // fixme
     } else {
         for (int k = zstart; k < p_domain->dbx_sub_box_lattice_size[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_sub_box_lattice_size[1] + ystart; j++) {
@@ -346,7 +346,7 @@ void atom::latForce(eam *pot) {
     const int zstart = p_domain->dbx_lattice_size_ghost[2];
 
     if (isArchAccSupport()) {
-        archAccEamForceCalc(pot, atom_list->_atoms._data(), _cutoffRadius);
+        archAccEamForceCalc(pot, TO_ATOM_LIST_COLL(atom_list), _cutoffRadius);
     } else {
         for (int k = zstart; k < p_domain->dbx_sub_box_lattice_size[2] + zstart; k++) {
             for (int j = ystart; j < p_domain->dbx_sub_box_lattice_size[1] + ystart; j++) {

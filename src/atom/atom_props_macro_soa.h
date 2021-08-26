@@ -8,6 +8,7 @@
 #include "../types/pre_define.h"
 #include "atom_element.h"
 #include "atom_prop_list.hpp"
+#include "arch/arch_atom_list_collection.h"
 #include "types/atom_types.h"
 
 #define MD_HASH_LIST_DECLARE() \
@@ -133,6 +134,29 @@ convert_list_to_atom_element(const size_t gid, AtomPropList<_type_atom_id> &id_l
 
     return ele;
 }
+
+inline _type_atom_list_collection to_atom_list_coll(AtomPropList<_type_atom_id> &id_list,
+                                                    AtomPropList<_type_atom_type_enum> &type_list,
+                                                    AtomPropList<_type_atom_location[DIMENSION]> &location_list,
+                                                    AtomPropList<_type_atom_velocity[DIMENSION]> &velocity_list,
+                                                    AtomPropList<_type_atom_force[DIMENSION]> &force_list,
+                                                    AtomPropList<_type_atom_rho> &rho_list,
+                                                    AtomPropList<_type_atom_df> &df_list) {
+    _type_atom_list_collection coll{
+            .atom_ids = id_list._data(),
+            .atom_types  = type_list._data(),
+            .atom_x = location_list._data(),
+            .atom_v = velocity_list._data(),
+            .atom_f = force_list._data(),
+            .atom_rho = rho_list._data(),
+            .atom_df = df_list._data(),
+    };
+    return coll;
+}
+
+#define TO_ATOM_LIST_COLL(p_list) \
+to_atom_list_coll(p_list->_atoms, p_list->atom_types, p_list->atom_x, \
+p_list->atom_v, p_list->atom_f, p_list->atom_rho, p_list->atom_df)
 
 #define MD_TO_ATOM_ELEMENT(name, gid) \
 convert_list_to_atom_element(gid, name ## _id, name ## _tp, name ## _x,  name ## _v, name ## _f, name ## _rho, name ## _df)
