@@ -5,8 +5,8 @@
 #include "md_building_config.h"
 
 template<class T>
-NeighbourIndex<T>::NeighbourIndex(AtomList &atom_list)
-        :atom_list(atom_list), nei_even_offsets(), nei_odd_offsets(),
+NeighbourIndex<T>::NeighbourIndex(T *atom_list, const BccLattice &lattice)
+        :atom_list(atom_list), lattice(lattice), nei_even_offsets(), nei_odd_offsets(),
          nei_half_even_offsets(), nei_half_odd_offsets() {}
 
 template<class T>
@@ -34,7 +34,7 @@ void NeighbourIndex<T>::make(const _type_lattice_size cut_lattice,
                     const _type_atom_index ix = xIndex;
                     const _type_atom_index iy = (xIndex < 0 && xIndex % 2 != 0) ? yIndex - 1 : yIndex;
                     const _type_atom_index iz = (xIndex < 0 && xIndex % 2 != 0) ? zIndex - 1 : zIndex;
-                    const _type_atom_index even_offset = atom_list.lattice.IndexOf3DIndex(ix, iy, iz);
+                    const _type_atom_index even_offset = lattice.IndexOf3DIndex(ix, iy, iz);
                     nei_even_offsets.push_back(even_offset);
                     if (isPositiveIndex(x, y, z)) {
                         nei_half_even_offsets.push_back(even_offset);
@@ -59,7 +59,7 @@ void NeighbourIndex<T>::make(const _type_lattice_size cut_lattice,
                     const _type_atom_index ix = xIndex;
                     const _type_atom_index iy = (xIndex < 0 && xIndex % 2 != 0) ? yIndex + 1 : yIndex;
                     const _type_atom_index iz = (xIndex < 0 && xIndex % 2 != 0) ? zIndex + 1 : zIndex;
-                    const _type_atom_index odd_offset = atom_list.lattice.IndexOf3DIndex(ix, iy, iz);
+                    const _type_atom_index odd_offset = lattice.IndexOf3DIndex(ix, iy, iz);
                     nei_odd_offsets.push_back(odd_offset);
                     if (isPositiveIndex(x, y, z)) {
                         nei_half_odd_offsets.push_back(odd_offset);
@@ -92,41 +92,42 @@ bool NeighbourIndex<T>::isPositiveIndex(const double x, const double y, const do
 }
 
 template<class T>
-NeiIterator<T, T &, T *>
+NeiIterator<T, T &, T *, T *>
 NeighbourIndex<T>::begin(const bool half_itl, const _type_atom_index x,
                          const _type_atom_index y, const _type_atom_index z) {
-    const NeiOffset offset = atom_list.lattice.IndexOf3DIndex(x, y, z);
+    const NeiOffset offset = lattice.IndexOf3DIndex(x, y, z);
     const int flag = (half_itl ? 2 : 0) | (x % 2 == 0 ? 1 : 0);
     switch (flag) {
         case 0: // 0b00
-            return NeiIterator<T, T &, T *>(&nei_odd_offsets, offset, &atom_list);
+            return NeiIterator<T, T &, T *, T *>(&nei_odd_offsets, offset, atom_list);
         case 1: //  0b01
-            return NeiIterator<T, T &, T *>(&nei_even_offsets, offset, &atom_list);
+            return NeiIterator<T, T &, T *, T *>(&nei_even_offsets, offset, atom_list);
         case 2: // 0b10
-            return NeiIterator<T, T &, T *>(&nei_half_odd_offsets, offset, &atom_list);
+            return NeiIterator<T, T &, T *, T *>(&nei_half_odd_offsets, offset, atom_list);
         case 3: // 0b11
-            return NeiIterator<T, T &, T *>(&nei_half_even_offsets, offset, &atom_list);
+            return NeiIterator<T, T &, T *, T *>(&nei_half_even_offsets, offset, atom_list);
         default: // default is not used.
-            return NeiIterator<T, T &, T *>(&nei_even_offsets, offset, &atom_list);
+            return NeiIterator<T, T &, T *, T *>(&nei_even_offsets, offset, atom_list);
     }
 }
 
 template<class T>
-NeiIterator<T, T &, T *>
+NeiIterator<T, T &, T *, T *>
 NeighbourIndex<T>::end(const bool half_itl, const _type_atom_index x,
                        const _type_atom_index y, const _type_atom_index z) {
-    const NeiOffset offset = atom_list.lattice.IndexOf3DIndex(x, y, z);
+    const NeiOffset offset = lattice.IndexOf3DIndex(x, y, z);
     const int flag = (half_itl ? 2 : 0) | (x % 2 == 0 ? 1 : 0);
     switch (flag) {
         case 0: // 0b00
-            return NeiIterator<T, T &, T *>(&nei_odd_offsets, offset, &atom_list, nei_odd_offsets.size());
+            return NeiIterator<T, T &, T *, T *>(&nei_odd_offsets, offset, atom_list, nei_odd_offsets.size());
         case 1: //  0b01
-            return NeiIterator<T, T &, T *>(&nei_even_offsets, offset, &atom_list, nei_even_offsets.size());
+            return NeiIterator<T, T &, T *, T *>(&nei_even_offsets, offset, atom_list, nei_even_offsets.size());
         case 2: // 0b10
-            return NeiIterator<T, T &, T *>(&nei_half_odd_offsets, offset, &atom_list, nei_half_odd_offsets.size());
+            return NeiIterator<T, T &, T *, T *>(&nei_half_odd_offsets, offset, atom_list, nei_half_odd_offsets.size());
         case 3: // 0b11
-            return NeiIterator<T, T &, T *>(&nei_half_even_offsets, offset, &atom_list, nei_half_even_offsets.size());
+            return NeiIterator<T, T &, T *, T *>(&nei_half_even_offsets, offset, atom_list,
+                                                 nei_half_even_offsets.size());
         default: // default is not used.
-            return NeiIterator<T, T &, T *>(&nei_even_offsets, offset, &atom_list, nei_even_offsets.size());
+            return NeiIterator<T, T &, T *, T *>(&nei_even_offsets, offset, atom_list, nei_even_offsets.size());
     }
 }

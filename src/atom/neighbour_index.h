@@ -7,7 +7,7 @@
 
 #include <comm/domain/region.hpp>
 #include "neighbour_iterator.h"
-#include "atom_list.h"
+#include "lattice/lattice.h"
 #include "arch/arch_macros.h"
 #include "arch/arch_imp.h"
 
@@ -25,13 +25,14 @@ class NeighbourIndex {
 #endif
 
 public:
-    typedef NeiIterator<T, T &, T *> iterator;
+    typedef NeiIterator<T, T &, T *, T *> iterator;
 
     /**
      * Initialize neighbour particles index.
-     * @param atom_list ref of atom list.
+     * @param atom_list the data array. (e.g. data of atoms list)
+     * @param lattice description of the BCC lattice.
      */
-    explicit NeighbourIndex(AtomList &atom_list);
+    explicit NeighbourIndex(T *atom_list, const BccLattice &lattice);
 
     /**
      * It record neighbor lattices that has interactions with the central lattice,
@@ -60,7 +61,8 @@ public:
                  const _type_atom_index y, const _type_atom_index z);
 
 protected:
-    const AtomList &atom_list;
+    T *atom_list;
+    const BccLattice &lattice;
 
     // particles offset indexes of neighbours lattices.
     std::vector<NeiOffset> nei_even_offsets;

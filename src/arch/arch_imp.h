@@ -12,6 +12,7 @@
 #include <eam.h>
 #include <args.hpp>
 
+#include "arch_macros.h"
 #include "arch_atom_list_collection.h"
 #include "atom/atom_element.h"
 #include "atom/neighbour_index.h"
