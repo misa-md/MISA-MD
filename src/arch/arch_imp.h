@@ -28,12 +28,13 @@ void ARCH_PREFIX(ARCH_NAME, env_init)();
 void ARCH_PREFIX(ARCH_NAME, env_clean)();
 
 // create atoms memory for saving lattice atoms.
-// If it returns nullptr, it means creations is failed or rejected.
-AtomElement *ARCH_PREFIX(ARCH_NAME, create_atoms_mem)(_type_atom_count size_x, _type_atom_count size_y, _type_atom_count size_z);
+// If it returns false, it means creations is failed or rejected.
+bool ARCH_PREFIX(ARCH_NAME, create_atoms_mem)(void **atoms, std::size_t element_size, _type_atom_count size_x,
+                                              _type_atom_count size_y, _type_atom_count size_z);
 
 // release atoms memory of saving lattice atoms.
 // If it returns false, it means destroying is failed or rejected.
-bool ARCH_PREFIX(ARCH_NAME, release_atoms_mem)(AtomElement *atoms);
+bool ARCH_PREFIX(ARCH_NAME, release_atoms_mem)(void *atoms);
 
 void ARCH_PREFIX(ARCH_NAME, domain_init)(const comm::BccDomain *domain);
 

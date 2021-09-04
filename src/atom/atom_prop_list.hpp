@@ -21,8 +21,7 @@ public:
         bool need_create = true;
         if (isArchAccSupport()) {
             // we may create memory using other api (e.g. pinned memory on CUDA platform).
-            data = archCreateAtomsMemory<T>(lattice._size_x, lattice._size_y, lattice._size_z);
-            need_create = (data == nullptr);
+            need_create = !archCreateAtomsMemory<T>(&data, lattice._size_x, lattice._size_y, lattice._size_z);
         }
         if (need_create) {
             data = new T[lattice._size_z * lattice._size_x * lattice._size_y];
@@ -44,7 +43,7 @@ public:
     void destroyPropList() {
         bool need_des = true;
         if (isArchAccSupport()) {
-            need_des = !archReleaseAtomsMemory(data);
+            need_des = !archReleaseAtomsMemory<T>(data);
         }
         if (need_des) {
             delete[] data;
