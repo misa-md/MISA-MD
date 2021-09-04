@@ -37,7 +37,7 @@ bool ARCH_PREFIX(ARCH_NAME, release_atoms_mem)(AtomElement *atoms);
 
 void ARCH_PREFIX(ARCH_NAME, domain_init)(const comm::BccDomain *domain);
 
-void ARCH_PREFIX(ARCH_NAME, nei_offset_init)(const NeighbourIndex<AtomElement> *nei_offset);
+void ARCH_PREFIX(ARCH_NAME, nei_offset_init)(const NeighbourIndex<_type_neighbour_index_ele> *nei_offset);
 
 void ARCH_PREFIX(ARCH_NAME, pot_init)(eam *_pot);
 

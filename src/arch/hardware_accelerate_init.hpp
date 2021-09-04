@@ -21,7 +21,7 @@ inline void archAccDomainInit(const comm::BccDomain *domain) {
 }
 
 // callback function for acceleration, when neighbor offset indexes are created.
-inline void archAccNeiOffsetInit(const NeighbourIndex<AtomElement> *nei_offset) {
+inline void archAccNeiOffsetInit(const NeighbourIndex<_type_neighbour_index_ele> *nei_offset) {
 #ifdef ACCELERATE_ENABLED
     ARCH_PREFIX(ARCH_NAME, nei_offset_init)(nei_offset);
 #endif

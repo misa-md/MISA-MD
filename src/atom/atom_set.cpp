@@ -26,7 +26,7 @@ AtomSet::AtomSet(const double cutoff_radius,
 
     inter_atom_list = new InterAtomList();
     // create neighbour relative index.
-    neighbours = new NeighbourIndex<AtomElement>(atom_list->_atoms._data(), atom_list->lattice);
+    neighbours = new NeighbourIndex<_type_neighbour_index_ele>(atom_list->_atoms._data(), atom_list->lattice);
 }
 
 AtomSet::~AtomSet() {

@@ -13,10 +13,10 @@
 
 
 // used for reading protected member.
-class NeiIndexTests : public NeighbourIndex<AtomElement> {
+class NeiIndexTests : public NeighbourIndex<_type_neighbour_index_ele> {
 public:
     explicit NeiIndexTests(AtomList &atom_list)
-            : NeighbourIndex<AtomElement>(atom_list._atoms._data(), atom_list.lattice) {}
+            : NeighbourIndex<_type_neighbour_index_ele>(atom_list._atoms._data(), atom_list.lattice) {}
 
     FRIEND_TEST(atom_cutoff_radius_included_test, lattice_included_test);
 };

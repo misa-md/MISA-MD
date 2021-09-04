@@ -10,6 +10,7 @@
 
 #ifdef MD_ATOM_HASH_ARRAY_MEMORY_LAYOUT_AOS
 
+typedef AtomElement _type_neighbour_index_ele;
 
 // pointer to data in hash array of atom list.
 typedef struct {
@@ -19,6 +20,8 @@ typedef struct {
 #endif //MD_ATOM_HASH_ARRAY_MEMORY_LAYOUT_AOS
 
 #ifndef MD_ATOM_HASH_ARRAY_MEMORY_LAYOUT_AOS
+
+typedef _type_atom_id _type_neighbour_index_ele;
 
 // pointer to all data in hash array of atom list.
 typedef struct {
