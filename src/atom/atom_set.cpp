@@ -80,11 +80,12 @@ _type_atom_count AtomSet::getnlocalatom(comm::Domain *p_domain) {
 
 #ifdef MD_RUNTIME_CHECKING
 
-_type_atom_count AtomSet::realAtoms() {
+_type_atom_count AtomSet::realAtoms() const {
     _type_atom_count count = 0;
     atom_list->foreachSubBoxAtom(
-            [&count](AtomElement &_atom_ref) {
-                if (_atom_ref.type != atom_type::INVALID) {
+            [=, &count](const _type_atom_index gid) {
+                MD_LOAD_ATOM_VAR(_atom_ref, atom_list, gid);
+                if (!MD_IS_ATOM_TYPE_INTER(_atom_ref, gid)) {
                     count++;
                 }
             }

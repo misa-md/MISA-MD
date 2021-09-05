@@ -67,7 +67,7 @@ public:
     /**
      * @return the count of atoms that are not vacancy (not type of INVALID).
      */
-    _type_atom_count realAtoms();
+    _type_atom_count realAtoms() const;
 
 #endif
 
