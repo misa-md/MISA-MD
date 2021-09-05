@@ -48,5 +48,4 @@ set(ARCH_FILES
         ${CURRENT_ARCH_SOURCE_DIR}/arch_imp.h
         ${CURRENT_ARCH_SOURCE_DIR}/arch_macros.h
         ${CURRENT_ARCH_SOURCE_DIR}/hardware_accelerate.hpp
-        ${CURRENT_ARCH_SOURCE_DIR}/hardware_accelerate_init.hpp
         )
