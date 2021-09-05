@@ -37,7 +37,7 @@ const unsigned long InterParticlePacker::sendLength(const int dimension, const i
          inter_it != inter_atom_list.inter_list.end(); inter_it++) {
 #ifdef MD_RUNTIME_CHECKING
         {
-            const box::_type_flag_32 flag = ws::isOutBox(*inter_it, &domain);
+            const box::_type_flag_32 flag = ws::isOutBox((*inter_it).x, &domain);
             if (dimension == 1) { // y dimension
                 // In y dimension communication, atoms in inter atoms list
                 // can not be out of x boundary of simulation box.
