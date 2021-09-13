@@ -85,7 +85,7 @@ void LatPackerFirst::onReceive(LatParticleData *buffer, const unsigned long rece
                     MD_LOAD_ATOM_VAR(atom_, (&atom_list), gid);
                     MD_SET_ATOM_TYPE(atom_, gid, buffer[m].type);
 #ifdef DEV_MD_COMM_INC_ATOM_ID
-                    atom_.id = buffer[m].id;
+                    MD_SET_ATOM_ID(atom_, gid, buffer[m].id);
 #endif
                     MD_SET_ATOM_X(atom_, gid, 0, buffer[m].r[0]);
                     MD_SET_ATOM_X(atom_, gid, 1, buffer[m].r[1]);
@@ -121,7 +121,7 @@ void LatPackerFirst::onReceive(LatParticleData *buffer, const unsigned long rece
                     MD_LOAD_ATOM_VAR(atom_, (&atom_list), gid);
                     MD_SET_ATOM_TYPE(atom_, gid, buffer[m].type);
 #ifdef DEV_MD_COMM_INC_ATOM_ID
-                    atom_.id = buffer[m].id;
+                    MD_SET_ATOM_ID(atom_, gid, buffer[m].id);
 #endif
                     MD_SET_ATOM_X(atom_, gid, 0, buffer[m].r[0]);
                     MD_SET_ATOM_X(atom_, gid, 1, buffer[m].r[1]);
@@ -155,7 +155,7 @@ void LatPackerFirst::onReceive(LatParticleData *buffer, const unsigned long rece
                     MD_LOAD_ATOM_VAR(atom_, (&atom_list), gid);
                     MD_SET_ATOM_TYPE(atom_, gid, buffer[m].type);
 #ifdef DEV_MD_COMM_INC_ATOM_ID
-                    atom_.id = buffer[m].id;
+                    MD_SET_ATOM_ID(atom_, gid, buffer[m].id);
 #endif
                     MD_SET_ATOM_X(atom_, gid, 0, buffer[m].r[0]);
                     MD_SET_ATOM_X(atom_, gid, 1, buffer[m].r[1]);
@@ -188,7 +188,7 @@ void LatPacker::onSend(LatParticleData *buffer, const unsigned long send_len,
         // for ghost atoms, we just care their position and atom type(EamParser calculating), so positions and types are enough.
         buffer[i].type = MD_GET_ATOM_TYPE(atom, local_id); // fixme --type
 #ifdef DEV_MD_COMM_INC_ATOM_ID
-        buffer[i].id = atom.id;
+        buffer[i].id = MD_GET_ATOM_ID(atom, local_id);
 #endif
         buffer[i].r[0] = MD_GET_ATOM_X(atom, local_id, 0) + offset[0];
         buffer[i].r[1] = MD_GET_ATOM_X(atom, local_id, 1) + offset[1];
@@ -206,7 +206,7 @@ void LatPacker::onReceive(LatParticleData *buffer, const unsigned long receive_l
 
         MD_SET_ATOM_TYPE(atom_, kk, buffer[i].type);
 #ifdef DEV_MD_COMM_INC_ATOM_ID
-        atom_.id = buffer[i].id;
+        MD_SET_ATOM_ID(atom_, kk, buffer[i].id);
 #endif
         MD_SET_ATOM_X(atom_, kk, 0, buffer[i].r[0]);
         MD_SET_ATOM_X(atom_, kk, 1, buffer[i].r[1]);
