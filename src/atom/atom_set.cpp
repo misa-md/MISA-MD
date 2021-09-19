@@ -26,7 +26,7 @@ AtomSet::AtomSet(const double cutoff_radius,
 
     inter_atom_list = new InterAtomList();
     // create neighbour relative index.
-    neighbours = new NeighbourIndex<AtomElement>(*atom_list);
+    neighbours = new NeighbourIndex<_type_neighbour_index_ele>(atom_list->_atoms._data(), atom_list->lattice);
 }
 
 AtomSet::~AtomSet() {
@@ -60,14 +60,16 @@ AtomSet::addAtom(comm::BccDomain *p_domain, _type_atom_id id,
         lattice[2] -= p_domain->dbx_ghost_ext_lattice_region.z_low;
         i = (((p_domain->dbx_ghost_extended_lattice_size[1])) * lattice[2] + lattice[1]) *
             ((p_domain->dbx_ghost_extended_lattice_size[0])) + lattice[0];
-        AtomElement &atom_ = atom_list->getAtomEleByLinearIndex(i);
-        atom_.id = id;
-        atom_.x[0] = rx;
-        atom_.x[1] = ry;
-        atom_.x[2] = rz;
-        atom_.v[0] = vx;
-        atom_.v[1] = vy;
-        atom_.v[2] = vz;
+        MD_LOAD_ATOM_VAR(atom_, atom_list, i);
+        MD_SET_ATOM_ID(atom_, i, id);
+
+        MD_SET_ATOM_X(atom_, i, 0, rx);
+        MD_SET_ATOM_X(atom_, i, 1, ry);
+        MD_SET_ATOM_X(atom_, i, 2, rz);
+
+        MD_SET_ATOM_V(atom_, i, 0, vx);
+        MD_SET_ATOM_V(atom_, i, 1, vy);
+        MD_SET_ATOM_V(atom_, i, 2, vz);
     }
 }
 
@@ -78,11 +80,12 @@ _type_atom_count AtomSet::getnlocalatom(comm::Domain *p_domain) {
 
 #ifdef MD_RUNTIME_CHECKING
 
-_type_atom_count AtomSet::realAtoms() {
+_type_atom_count AtomSet::realAtoms() const {
     _type_atom_count count = 0;
     atom_list->foreachSubBoxAtom(
-            [&count](AtomElement &_atom_ref) {
-                if (_atom_ref.type != atom_type::INVALID) {
+            [=, &count](const _type_atom_index gid) {
+                MD_LOAD_ATOM_VAR(_atom_ref, atom_list, gid);
+                if (!MD_IS_ATOM_TYPE_INTER(_atom_ref, gid)) {
                     count++;
                 }
             }

@@ -21,7 +21,7 @@
  */
 class AtomSet {
 public:
-    typedef NeighbourIndex<AtomElement> AtomNei;
+    typedef NeighbourIndex<_type_neighbour_index_ele> AtomNei;
 public:
     /**
      * create atoms list(include lattice atoms list and inter atoms list) and neighbour relative index.
@@ -67,11 +67,11 @@ public:
     /**
      * @return the count of atoms that are not vacancy (not type of INVALID).
      */
-    _type_atom_count realAtoms();
+    _type_atom_count realAtoms() const;
 
 #endif
 
-    inline NeighbourIndex<AtomElement> *getNeiOffsets() {
+    inline NeighbourIndex<_type_neighbour_index_ele> *getNeiOffsets() {
         return neighbours;
     }
 
@@ -84,7 +84,7 @@ protected:
     double _cutoffRadius;
 //    int _cutlattice;
     //   double _latticeconst;
-    NeighbourIndex<AtomElement> *neighbours;
+    NeighbourIndex<_type_neighbour_index_ele> *neighbours;
 };
 
 

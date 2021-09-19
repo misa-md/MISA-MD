@@ -101,13 +101,16 @@ void AtomDump::dumpFrame(const comm::Region<double> region, const bool region_en
     for (int k = _begin[2]; k < _end[2]; k++) {
         for (int j = _begin[1]; j < _end[1]; j++) {
             for (int i = _begin[0]; i < _end[0]; i++) {
-                AtomElement &atom_ = atom_list->getAtomEleByGhostIndex(i, j, k);
-                if (atom_.type == atom_type::INVALID) {
+                const _type_atom_index gid = atom_list->_atoms.getAtomIndex(i, j, k);
+                MD_LOAD_ATOM_VAR(atom_, atom_list, gid);
+                if (MD_GET_ATOM_TYPE(atom_, gid) == atom_type::INVALID) {
                     continue; // skip out of boxed atoms.
                 }
                 // if it is whole system dump, or not while system dump but atom is in the region
-                if (!region_enabled || region.isIn(atom_.x[0], atom_.x[1], atom_.x[2])) {
-                    buffered_writer->write(&atom_, mpi_data_type);
+                if (!region_enabled || region.isIn(MD_GET_ATOM_X(atom_, gid, 0), MD_GET_ATOM_X(atom_, gid, 1),
+                                                   MD_GET_ATOM_X(atom_, gid, 2))) {
+                    AtomElement atom_write = MD_TO_ATOM_ELEMENT(atom_, gid);
+                    buffered_writer->write(&atom_write, mpi_data_type);
                 }
             }
         }

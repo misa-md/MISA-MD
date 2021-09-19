@@ -14,9 +14,11 @@ option(MD_RUNTIME_CHECKING_FLAG "Run data checking while running" OFF)
 
 ## architecture related values (only used in src/arch dir).
 option(MD_SUNWAY_ARCH_ENABLE_FLAG "Enable sunway athread" OFF) # enable sunway athread if its running on sunway system.
+option(MD_TH_ARCH_ENABLE_FLAG "Enable TianHe-3 hThreads" OFF) # enable hThreads if its running on TianHe-3 Matrix-3000.
 option(MD_CUDA_ARCH_ENABLE_FLAG "Enable GPU using CUDA" OFF) # enable GPU if its running on nvidia GPU.
-option(MD_HIP_ARCH_ENABLE_FLAG "Enable DCU using HIP" OFF) # enable DCU if its running on sugon DCU.
+option(MD_HIP_ARCH_ENABLE_FLAG "Enable DCU using HIP" OFF) # enable DCU if its running on sugon DCU or AMD GPU.
 set(MD_SUNWAY_ARCH_SRC_PATH "" CACHE PATH "Source files directory of sunway architecture") # source file directory of sunway arch code.
+set(MD_TH_ARCH_SRC_PATH "" CACHE PATH "Source files directory of TianHe-3 architecture") # source file directory of TianHe-3 arch code.
 set(MD_CUDA_ARCH_SRC_PATH "" CACHE PATH "Source directory of CUDA architecture code") # source file directory of cuda arch code.
 set(MD_HIP_ARCH_SRC_PATH "" CACHE PATH "Source directory of HIP architecture code") # source file directory of hip arch code.
 

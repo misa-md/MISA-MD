@@ -114,18 +114,20 @@ void WorldBuilder::createPhaseSpace() {
     for (int k = 0; k < _p_domain->dbx_sub_box_lattice_size[2]; k++) {
         for (int j = 0; j < _p_domain->dbx_sub_box_lattice_size[1]; j++) {
             for (int i = 0; i < _p_domain->dbx_sub_box_lattice_size[0]; i++) {
-                AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
-                atom_.id = ++id_pre;
-                atom_.type = randomAtomsType(atom_type_rng); // set random atom type.
-                mass = atom_type::getAtomMass(atom_.type); // get atom mass of this kind of atom.
-                atom_.x[0] = (_p_domain->dbx_sub_box_lattice_region.x_low + i) * 0.5 * (_lattice_const);
-                atom_.x[1] = (_p_domain->dbx_sub_box_lattice_region.y_low + j) * _lattice_const +
-                             (i % 2) * (_lattice_const / 2);
-                atom_.x[2] = (_p_domain->dbx_sub_box_lattice_region.z_low + k) * _lattice_const +
-                             (i % 2) * (_lattice_const / 2);
-                atom_.v[0] = (md_rand::random() - 0.5) / mass;
-                atom_.v[1] = (md_rand::random() - 0.5) / mass;
-                atom_.v[2] = (md_rand::random() - 0.5) / mass;
+                const _type_atom_index gid = _p_atom->getAtomList()->_atoms.getAtomIndexInSubBox(i, j, k);
+                MD_LOAD_ATOM_VAR(atom_, _p_atom->getAtomList(), gid);
+                MD_SET_ATOM_ID(atom_, gid, ++id_pre);
+                MD_SET_ATOM_TYPE(atom_, gid, randomAtomsType(atom_type_rng)); // set random atom type.
+                mass = atom_type::getAtomMass(MD_GET_ATOM_TYPE(atom_, gid)); // get atom mass of this kind of atom.
+                MD_SET_ATOM_X(atom_, gid, 0,
+                              (_p_domain->dbx_sub_box_lattice_region.x_low + i) * 0.5 * (_lattice_const));
+                MD_SET_ATOM_X(atom_, gid, 1, (_p_domain->dbx_sub_box_lattice_region.y_low + j) * _lattice_const +
+                                             (i % 2) * (_lattice_const / 2));
+                MD_SET_ATOM_X(atom_, gid, 2, (_p_domain->dbx_sub_box_lattice_region.z_low + k) * _lattice_const +
+                                             (i % 2) * (_lattice_const / 2));
+                MD_SET_ATOM_V(atom_, gid, 0, (md_rand::random() - 0.5) / mass);
+                MD_SET_ATOM_V(atom_, gid, 1, (md_rand::random() - 0.5) / mass);
+                MD_SET_ATOM_V(atom_, gid, 2, (md_rand::random() - 0.5) / mass);
             }
         }
     }
@@ -146,11 +148,12 @@ void WorldBuilder::zeroMomentum(double *vcm) {
     for (int k = 0; k < _p_domain->dbx_sub_box_lattice_size[2]; k++) {
         for (int j = 0; j < _p_domain->dbx_sub_box_lattice_size[1]; j++) {
             for (int i = 0; i < _p_domain->dbx_sub_box_lattice_size[0]; i++) {
-                AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
-                mass = atom_type::getAtomMass(atom_.type);
-                atom_.v[0] -= (vcm[0] / mass);
-                atom_.v[1] -= (vcm[1] / mass);
-                atom_.v[2] -= (vcm[2] / mass);
+                const _type_atom_index gid = _p_atom->getAtomList()->_atoms.getAtomIndexInSubBox(i, j, k);
+                MD_LOAD_ATOM_VAR(atom_, _p_atom->getAtomList(), gid);
+                mass = atom_type::getAtomMass(MD_GET_ATOM_TYPE(atom_, gid));
+                MD_ADD_ATOM_V(atom_, gid, 0, -(vcm[0] / mass));
+                MD_ADD_ATOM_V(atom_, gid, 1, -(vcm[1] / mass));
+                MD_ADD_ATOM_V(atom_, gid, 2, -(vcm[2] / mass));
             }
         }
     }
@@ -167,11 +170,12 @@ void WorldBuilder::vcm(double p[DIMENSION + 1]) {
     for (int k = 0; k < _p_domain->dbx_sub_box_lattice_size[2]; k++) {
         for (int j = 0; j < _p_domain->dbx_sub_box_lattice_size[1]; j++) {
             for (int i = 0; i < _p_domain->dbx_sub_box_lattice_size[0]; i++) {
-                AtomElement &atom_ = _p_atom->getAtomList()->getAtomEleBySubBoxIndex(i, j, k);
-                mass_one = atom_type::getAtomMass(atom_.type);
-                p[0] += atom_.v[0] * mass_one;
-                p[1] += atom_.v[1] * mass_one;
-                p[2] += atom_.v[2] * mass_one;
+                const _type_atom_index gid = _p_atom->getAtomList()->_atoms.getAtomIndexInSubBox(i, j, k);
+                MD_LOAD_ATOM_VAR(atom_, _p_atom->getAtomList(), gid);
+                mass_one = atom_type::getAtomMass(MD_GET_ATOM_TYPE(atom_, gid));
+                p[0] += MD_GET_ATOM_V(atom_, gid, 0) * mass_one;
+                p[1] += MD_GET_ATOM_V(atom_, gid, 1) * mass_one;
+                p[2] += MD_GET_ATOM_V(atom_, gid, 2) * mass_one;
                 p[3] += mass_one; // all mass.
             }
         }

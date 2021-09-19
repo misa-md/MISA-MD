@@ -62,8 +62,9 @@ TEST_F(WorldBuilderTestFixture, df_embedd_packer_test) {
     }
 
     // set df values
-    _atom->atom_list->foreachSubBoxAtom([](AtomElement &element) {
-        element.df = MPIDomain::sim_processor.own_rank;
+    _atom->atom_list->foreachSubBoxAtom([&](const _type_atom_index gid) {
+        MD_LOAD_ATOM_VAR(element, _atom->atom_list, gid);
+        MD_SET_ATOM_DF(element, gid, MPIDomain::sim_processor.own_rank);
     });
 
     DfEmbedPacker packer(_atom->getAtomListRef(),
@@ -73,11 +74,19 @@ TEST_F(WorldBuilderTestFixture, df_embedd_packer_test) {
 
     comm::neiSendReceive<double>(&packer, MPIDomain::toCommProcess(), MPI_DOUBLE, p_domain->rank_id_neighbours);
 
-    double df1 = _atom->atom_list->getAtomEleByGhostIndex(0, p_domain->dbx_local_sub_box_lattice_region.y_high / 2,
-                                                          p_domain->dbx_local_sub_box_lattice_region.z_high / 2).df;
+    const _type_atom_index gid1 = _atom->atom_list->_atoms.getAtomIndex(
+            0,
+            p_domain->dbx_local_sub_box_lattice_region.y_high / 2,
+            p_domain->dbx_local_sub_box_lattice_region.z_high / 2);
+    MD_LOAD_ATOM_VAR(_atom_1, _atom->atom_list, gid1);
+    double df1 = MD_GET_ATOM_DF(_atom_1, gid1);
     EXPECT_EQ(df1, p_domain->rank_id_neighbours[0][0]);
-    double df2 = _atom->atom_list->getAtomEleByGhostIndex(p_domain->dbx_local_sub_box_lattice_region.x_high + 1,
-                                                          p_domain->dbx_local_sub_box_lattice_region.y_high / 2,
-                                                          p_domain->dbx_local_sub_box_lattice_region.z_high / 2).df;
+
+    const _type_atom_index gid2 = _atom->atom_list->_atoms.getAtomIndex(
+            p_domain->dbx_local_sub_box_lattice_region.x_high + 1,
+            p_domain->dbx_local_sub_box_lattice_region.y_high / 2,
+            p_domain->dbx_local_sub_box_lattice_region.z_high / 2);
+    MD_LOAD_ATOM_VAR(_atom_2, _atom->atom_list, gid2);
+    double df2 = MD_GET_ATOM_DF(_atom_2, gid2);
     EXPECT_EQ(df2, p_domain->rank_id_neighbours[0][1]);
 }

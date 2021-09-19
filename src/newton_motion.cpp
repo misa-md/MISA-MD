@@ -32,14 +32,19 @@ void NewtonMotion::firststep(AtomList *atom_list, InterAtomList *inter_atom_list
     double &dt = _timestepLength;
     //本地晶格点上的原子求解运动方程第一步
     atom_list->foreachSubBoxAtom(
-            [=](AtomElement &_atom_ref) {
-                if (!_atom_ref.isInterElement()) {
-                    _atom_ref.v[0] = _atom_ref.v[0] + dt_inv_m[_atom_ref.type] * _atom_ref.f[0];
-                    _atom_ref.v[1] = _atom_ref.v[1] + dt_inv_m[_atom_ref.type] * _atom_ref.f[1];
-                    _atom_ref.v[2] = _atom_ref.v[2] + dt_inv_m[_atom_ref.type] * _atom_ref.f[2];
-                    _atom_ref.x[0] += dt * _atom_ref.v[0];
-                    _atom_ref.x[1] += dt * _atom_ref.v[1];
-                    _atom_ref.x[2] += dt * _atom_ref.v[2];
+            [=](const _type_atom_index gid) {
+                MD_LOAD_ATOM_VAR(_atom_ref, atom_list, gid);
+                if (!MD_IS_ATOM_TYPE_INTER(_atom_ref, gid)) {
+                    MD_ADD_ATOM_V(_atom_ref, gid, 0,
+                                  dt_inv_m[MD_GET_ATOM_TYPE(_atom_ref, gid)] * MD_GET_ATOM_F(_atom_ref, gid, 0));
+                    MD_ADD_ATOM_V(_atom_ref, gid, 1,
+                                  dt_inv_m[MD_GET_ATOM_TYPE(_atom_ref, gid)] * MD_GET_ATOM_F(_atom_ref, gid, 1));
+                    MD_ADD_ATOM_V(_atom_ref, gid, 2,
+                                  dt_inv_m[MD_GET_ATOM_TYPE(_atom_ref, gid)] * MD_GET_ATOM_F(_atom_ref, gid, 2));
+
+                    MD_ADD_ATOM_X(_atom_ref, gid, 0, dt * MD_GET_ATOM_V(_atom_ref, gid, 0));
+                    MD_ADD_ATOM_X(_atom_ref, gid, 1, dt * MD_GET_ATOM_V(_atom_ref, gid, 1));
+                    MD_ADD_ATOM_X(_atom_ref, gid, 2, dt * MD_GET_ATOM_V(_atom_ref, gid, 2));
                 }
             }
     );
@@ -58,11 +63,15 @@ void NewtonMotion::firststep(AtomList *atom_list, InterAtomList *inter_atom_list
 void NewtonMotion::secondstep(AtomList *atom_list, InterAtomList *inter_atom_list) {
     //本地晶格点上的原子求解运动方程第二步
     atom_list->foreachSubBoxAtom(
-            [=](AtomElement &_atom_ref) {
-                if (!_atom_ref.isInterElement()) {
-                    _atom_ref.v[0] += dt_inv_m[_atom_ref.type] * _atom_ref.f[0];
-                    _atom_ref.v[1] += dt_inv_m[_atom_ref.type] * _atom_ref.f[1];
-                    _atom_ref.v[2] += dt_inv_m[_atom_ref.type] * _atom_ref.f[2];
+            [=](const _type_atom_index gid) {
+                MD_LOAD_ATOM_VAR(_atom_ref, atom_list, gid);
+                if (!MD_IS_ATOM_TYPE_INTER(_atom_ref, gid)) {
+                    MD_ADD_ATOM_V(_atom_ref, gid, 0,
+                                  dt_inv_m[MD_GET_ATOM_TYPE(_atom_ref, gid)] * MD_GET_ATOM_F(_atom_ref, gid, 0));
+                    MD_ADD_ATOM_V(_atom_ref, gid, 1,
+                                  dt_inv_m[MD_GET_ATOM_TYPE(_atom_ref, gid)] * MD_GET_ATOM_F(_atom_ref, gid, 1));
+                    MD_ADD_ATOM_V(_atom_ref, gid, 2,
+                                  dt_inv_m[MD_GET_ATOM_TYPE(_atom_ref, gid)] * MD_GET_ATOM_F(_atom_ref, gid, 2));
                 }
             }
     );

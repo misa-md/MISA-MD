@@ -8,11 +8,12 @@
 std::array<_type_atom_force, DIMENSION> configuration::systemForce(
         AtomList *atom_list, InterAtomList *inter_atom_list) {
     _type_atom_force force_x = 0.0, force_y = 0.0, force_z = 0.0;
-    atom_list->foreachSubBoxAtom([&force_x, &force_y, &force_z](AtomElement &_atom_ref) {
-        if (_atom_ref.type != atom_type::INVALID) {
-            force_x += _atom_ref.f[0];
-            force_y += _atom_ref.f[1];
-            force_z += _atom_ref.f[2];
+    atom_list->foreachSubBoxAtom([atom_list, &force_x, &force_y, &force_z](const _type_atom_index gid) {
+        MD_LOAD_ATOM_VAR(_atom_ref, atom_list, gid);
+        if (MD_GET_ATOM_TYPE(_atom_ref, gid) != atom_type::INVALID) {
+            force_x += MD_GET_ATOM_F(_atom_ref, gid, 0);
+            force_y += MD_GET_ATOM_F(_atom_ref, gid, 1);
+            force_z += MD_GET_ATOM_F(_atom_ref, gid, 2);
         }
     });
     for (AtomElement &atom_ele:inter_atom_list->inter_list) {
@@ -61,12 +62,13 @@ double configuration::temperature(const _type_atom_count n_atoms,
 double configuration::mvv(AtomList *atom_list, InterAtomList *inter_atom_list) {
     double energy = 0.0;
     if (atom_list) {
-        atom_list->foreachSubBoxAtom([&energy](AtomElement &_atom_ref) {
-            if (_atom_ref.type != atom_type::INVALID) {
-                energy += (_atom_ref.v[0] * _atom_ref.v[0] +
-                           _atom_ref.v[1] * _atom_ref.v[1] +
-                           _atom_ref.v[2] * _atom_ref.v[2]) *
-                          atom_type::getAtomMass(_atom_ref.type);
+        atom_list->foreachSubBoxAtom([atom_list, &energy](const _type_atom_index gid) {
+            MD_LOAD_ATOM_VAR(_atom_ref, atom_list, gid);
+            if (MD_GET_ATOM_TYPE(_atom_ref, gid) != atom_type::INVALID) {
+                energy += (MD_GET_ATOM_V(_atom_ref, gid, 0) * MD_GET_ATOM_V(_atom_ref, gid, 0) +
+                           MD_GET_ATOM_V(_atom_ref, gid, 1) * MD_GET_ATOM_V(_atom_ref, gid, 1) +
+                           MD_GET_ATOM_V(_atom_ref, gid, 2) * MD_GET_ATOM_V(_atom_ref, gid, 2)) *
+                          atom_type::getAtomMass(MD_GET_ATOM_TYPE(_atom_ref, gid));
             }
         });
     }
@@ -96,10 +98,11 @@ void configuration::rescale(const double T, const _type_atom_count n_atoms_globa
     const double rescale_factor = sqrt(T / scalar);
 
     // perform resale
-    atom_list->foreachSubBoxAtom([rescale_factor](AtomElement &_atom_ref) {
-        _atom_ref.v[0] *= rescale_factor;
-        _atom_ref.v[1] *= rescale_factor;
-        _atom_ref.v[2] *= rescale_factor;
+    atom_list->foreachSubBoxAtom([atom_list, rescale_factor](const _type_atom_index gid) {
+        MD_LOAD_ATOM_VAR(_atom_ref, atom_list, gid);
+        MD_SET_ATOM_V(_atom_ref, gid, 0, rescale_factor * MD_GET_ATOM_V(_atom_ref, gid, 0));
+        MD_SET_ATOM_V(_atom_ref, gid, 1, rescale_factor * MD_GET_ATOM_V(_atom_ref, gid, 1));
+        MD_SET_ATOM_V(_atom_ref, gid, 2, rescale_factor * MD_GET_ATOM_V(_atom_ref, gid, 2));
     });
     for (_type_inter_list::iterator itl = inter_atom_list->inter_list.begin();
          itl != inter_atom_list->inter_list.end(); ++itl) {

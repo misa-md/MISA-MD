@@ -9,6 +9,9 @@ set(HEADER_FILES
         world_builder.h
         atom/atom_element.h
         atom/atom_list.h
+        atom/atom_props_macro_aos.h
+        atom/atom_props_macro_soa.h
+        atom/atom_props_macro_wrapper.h
         atom/atom_set.h
         atom/inter_atom_list.h
         atom/neighbour_index.h

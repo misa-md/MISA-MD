@@ -34,13 +34,14 @@ void OutputDump::dump(const unsigned long time_step, AtomList *atom_list, InterA
     outfile << "print atoms" << std::endl;
 
     atom_list->foreachSubBoxAtom(
-            [&outfile](AtomElement &_atom_ref) {
-                if (!_atom_ref.isInterElement()) {
-                    outfile << _atom_ref.id << " "
+            [atom_list, &outfile](const _type_atom_index gid) {
+                MD_LOAD_ATOM_VAR(_atom_ref, atom_list, gid);
+                if (!MD_IS_ATOM_TYPE_INTER(_atom_ref, gid)) {
+                    outfile << MD_GET_ATOM_ID(_atom_ref, gid) << " "
                             // << "ty" << atom_.type << " "
-                            << _atom_ref.x[0] << " "
-                            << _atom_ref.x[1] << " "
-                            << _atom_ref.x[2] << std::endl;
+                            << MD_GET_ATOM_X(_atom_ref, gid, 0) << " "
+                            << MD_GET_ATOM_X(_atom_ref, gid, 1) << " "
+                            << MD_GET_ATOM_X(_atom_ref, gid, 2) << std::endl;
                 }
             }
     );

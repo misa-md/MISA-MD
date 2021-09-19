@@ -8,23 +8,23 @@
 #include <iterator>
 #include <cstddef>
 #include <types/pre_define.h>
-#include "atom_list.h"
 
 template<typename T>
 class NeighbourIndex;
 
-template<class T, class Ref, class Ptr>
+template<class T, class Ref, class Ptr, class DataTp>
 class NeiIterator {
 public:
-    typedef NeiIterator<T, T &, T *> iterator;
-    typedef NeiIterator<T, const T &, const T *> const_iterator;
-    typedef NeiIterator<T, Ref, Ptr> self;
+    typedef NeiIterator<T, T &, T *, T *> iterator;
+    typedef NeiIterator<T, const T &, const T *, const T *> const_iterator;
+    typedef NeiIterator<T, Ref, Ptr, DataTp> self;
 
     typedef std::forward_iterator_tag iterator_category;
 
     typedef T value_type;
     typedef Ptr pointer;
     typedef Ref reference;
+    typedef DataTp data_ref;
     typedef std::vector<NeiOffset> *link_type;
 //    typedef typename Bucket<T>::bucket_iterator bucket_iterator_type; // iterator of list in Bucket
     typedef size_t size_type;
@@ -41,19 +41,19 @@ public:
      * set the iterator to the first element in neighbour indexes list.
      * \param nei_index neighbour indexes list.
      * \param src_index source index
-     * \param atom_list atom list, all atoms here.
+     * \param atom_list  pointer to atoms data (e.g. array of `AtomElement`).
      */
-    NeiIterator(const link_type nei_index, const NeiOffset src_index, const AtomList *atom_list);
+    NeiIterator(const link_type nei_index, const NeiOffset src_index, DataTp atom_list);
 
     /**
      * \brief initialize iterator using neighbour indexes list, source index and index in neighbour indexes list.
      * \param nei_index neighbour indexes list.
      * \param src_index source index.
-     * \param atom_list atom list, all atoms here.
+     * \param atom_list pointer to atoms data (e.g. array of `AtomElement`).
      * \param offset offset for neighbour index list.
      */
     NeiIterator(const link_type nei_index, const NeiOffset src_index,
-                const AtomList *atom_list, size_type offset);
+                DataTp atom_list, size_type offset);
 
     /**
      * iterator equal is specified by neighbour lattice indexes vector, atom list, current index offset and source lattice.
@@ -72,7 +72,7 @@ public:
     }
 
     reference operator*() {
-        return atom_list->getAtomEleByLinearIndex(cur_index);
+        return atom_list[cur_index];
     }
 
     pointer operator->() { return &(operator*()); }
@@ -90,7 +90,8 @@ protected:
     const _type_atom_index src_index;
     // current index for neighbour index.
     size_type current_nei_index;
-    const AtomList *atom_list;
+    // pointer to atoms data (e.g. array of `AtomElement`), it's type must be the data type of `AtomPropList<>`
+    DataTp atom_list;
 };
 
 #include "neighbour_iterator.inl"

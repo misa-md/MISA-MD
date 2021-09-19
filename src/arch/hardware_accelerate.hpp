@@ -9,10 +9,10 @@
 #include <comm/domain/bcc_domain.h>
 #include <args.hpp>
 
-#include "atom/atom_element.h"
-#include "atom/neighbour_index.h"
 #include "arch_building_config.h"
+#include "arch_atom_list_collection.h"
 #include "arch_imp.h"
+#include "atom/neighbour_index.h"
 
 // check whether it has accelerate hardware to be used, for example GPU, MIC(Xeon Phi), or sunway slave cores.
 inline bool isArchAccSupport() {
@@ -40,18 +40,21 @@ inline bool archCliOptionsParse(args::ArgumentParser &parser) {
 
 // api for creating lattice atoms memory.
 // It will recreate using `malloc/new` after this call if it returns nullptr.
-inline AtomElement *archCreateAtomsMemory(_type_atom_count size_x, _type_atom_count size_y, _type_atom_count size_z) {
+template<typename T>
+inline bool
+archCreateAtomsMemory(T **atoms, _type_atom_count size_x, _type_atom_count size_y, _type_atom_count size_z) {
 #ifdef ACCELERATE_ENABLED
-    return ARCH_PREFIX(ARCH_NAME, create_atoms_mem)(size_x, size_y, size_z);
+    return ARCH_PREFIX(ARCH_NAME, create_atoms_mem)((void **)(atoms), sizeof(T), size_x, size_y, size_z);
 #else
-    return nullptr;
+    return false;
 #endif
 }
 
 // release created lattice atoms.
-inline bool archReleaseAtomsMemory(AtomElement *atoms) {
+template<typename T>
+inline bool archReleaseAtomsMemory(T *atoms) {
 #ifdef ACCELERATE_ENABLED
-    return ARCH_PREFIX(ARCH_NAME, release_atoms_mem)(atoms);
+    return ARCH_PREFIX(ARCH_NAME, release_atoms_mem)((void *)(atoms));
 #else
     return false;
 #endif
@@ -66,7 +69,7 @@ inline void archAccDomainInit(const comm::BccDomain *domain) {
 }
 
 // callback function for acceleration, when neighbor offset indexes are created.
-inline void archAccNeiOffsetInit(const NeighbourIndex<AtomElement> *nei_offset) {
+inline void archAccNeiOffsetInit(const NeighbourIndex<_type_neighbour_index_ele> *nei_offset) {
 #ifdef ACCELERATE_ENABLED
     ARCH_PREFIX(ARCH_NAME, nei_offset_init)(nei_offset);
 #endif
@@ -81,14 +84,14 @@ inline void archAccPotInit(eam *_pot) {
 }
 
 // accelerate for calculating electron_density in computing eam potential.
-inline void archAccEamRhoCalc(eam *pot, AtomElement *atoms, const double cutoff_radius) {
+inline void archAccEamRhoCalc(eam *pot, _type_atom_list_collection atoms, const double cutoff_radius) {
 #ifdef ACCELERATE_ENABLED
     ARCH_PREFIX(ARCH_NAME, eam_rho_calc)(pot, atoms, cutoff_radius);
 #endif
 }
 
 // accelerate for calculating df in computing eam potential.
-inline void archAccEamDfCalc(eam *pot, AtomElement *atoms, const double cutoff_radius) {
+inline void archAccEamDfCalc(eam *pot, _type_atom_list_collection atoms, const double cutoff_radius) {
 #ifdef ACCELERATE_ENABLED
     ARCH_PREFIX(ARCH_NAME, eam_df_calc)(pot, atoms, cutoff_radius);
 #endif
@@ -97,7 +100,7 @@ inline void archAccEamDfCalc(eam *pot, AtomElement *atoms, const double cutoff_r
 /**
  * accelerate for calculating force in computing eam potential.
  */
-inline void archAccEamForceCalc(eam *pot, AtomElement *atoms, const double cutoff_radius) {
+inline void archAccEamForceCalc(eam *pot, _type_atom_list_collection atoms, const double cutoff_radius) {
 #ifdef ACCELERATE_ENABLED
     ARCH_PREFIX(ARCH_NAME, eam_force_calc)(pot, atoms, cutoff_radius);
 #endif

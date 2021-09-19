@@ -37,7 +37,7 @@ const unsigned long InterParticlePacker::sendLength(const int dimension, const i
          inter_it != inter_atom_list.inter_list.end(); inter_it++) {
 #ifdef MD_RUNTIME_CHECKING
         {
-            const box::_type_flag_32 flag = ws::isOutBox(*inter_it, &domain);
+            const box::_type_flag_32 flag = ws::isOutBox((*inter_it).x, &domain);
             if (dimension == 1) { // y dimension
                 // In y dimension communication, atoms in inter atoms list
                 // can not be out of x boundary of simulation box.
@@ -56,7 +56,7 @@ const unsigned long InterParticlePacker::sendLength(const int dimension, const i
         }
 #endif
         // we assume that, a atom cannot cross 2 or more than 2 sub-boxes
-        if (ws::isOutBox(*inter_it, &domain) & out_box_flags[dimension][direction]) {
+        if (ws::isOutBox((*inter_it).x, &domain) & out_box_flags[dimension][direction]) {
             num_to_send++;
         }
     }
@@ -84,7 +84,7 @@ void InterParticlePacker::onSend(particledata *buffer, const unsigned long send_
     unsigned long i = 0; // todo type
     for (_type_inter_list::iterator inter_it = inter_list.begin(); inter_it != inter_list.end();) {
         // we assume that, a atom cannot cross 2 or more than 2 sub-boxes
-        if (ws::isOutBox(*inter_it, &domain) & out_box_flags[dimension][direction]) {
+        if (ws::isOutBox((*inter_it).x, &domain) & out_box_flags[dimension][direction]) {
             buffer[i].id = inter_it->id;
             buffer[i].type = inter_it->type;
             buffer[i].r[0] = inter_it->x[0] + offset[0];

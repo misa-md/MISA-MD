@@ -34,8 +34,8 @@ void InterAtomList::makeIndex(AtomList *atom_list, const comm::Domain *p_domain)
     }
 }
 
-void InterAtomList::addInterAtom(AtomElement &atom) {
-    inter_list.push_back(atom);
+void InterAtomList::addInterAtom(AtomElement atom) {
+    inter_list.emplace_back(atom);
     nlocalinter++;
 }
 

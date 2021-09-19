@@ -8,10 +8,12 @@
 #include <types/pre_define.h>
 #include <atom/neighbour_index.h>
 #include <cmath>
+#include <atom/atom_list.h>
 
-class NeiIndexTests : public NeighbourIndex<AtomElement> {
+class NeiIndexTests : public NeighbourIndex<_type_neighbour_index_ele> {
 public:
-    explicit NeiIndexTests(AtomList &atom_list) : NeighbourIndex<AtomElement>(atom_list) {}
+    explicit NeiIndexTests(AtomList &atom_list)
+            : NeighbourIndex<_type_neighbour_index_ele>(atom_list._atoms._data(), atom_list.lattice) {}
 
     FRIEND_TEST(isPositive_test, nei_index_test);
 
@@ -43,7 +45,7 @@ public:
                         const double r = xIndex * xIndex + yIndex * yIndex + zIndex * zIndex;
                         // r > 0 means neighbour index can not be itself.
                         if (r < cutoff_lat_factor * cutoff_lat_factor && r > 0) {
-                            const _type_atom_index even_offset = atom_list.lattice.IndexOf3DIndex(
+                            const _type_atom_index even_offset = lattice.IndexOf3DIndex(
                                     2 * xIndex, yIndex, zIndex);
                             _nei_even_offsets.push_back(even_offset);
                             if (isPositiveIndex(xIndex, yIndex, zIndex)) {
@@ -57,7 +59,7 @@ public:
                                          (yIndex + 0.5) * (yIndex + 0.5) +
                                          (zIndex + 0.5) * (zIndex + 0.5);
                         if (r < cutoff_lat_factor * cutoff_lat_factor && r > 0) { // in fact "r > 0" is not used.
-                            const _type_atom_index even_offset = atom_list.lattice.IndexOf3DIndex(
+                            const _type_atom_index even_offset = lattice.IndexOf3DIndex(
                                     2 * xIndex + 1, yIndex, zIndex);
                             _nei_even_offsets.push_back(even_offset);
                             if (isPositiveIndex(xIndex + 0.5, yIndex + 0.5, zIndex + 0.5)) {
@@ -77,7 +79,7 @@ public:
                     {
                         const double r = xIndex * xIndex + yIndex * yIndex + zIndex * zIndex;
                         if (r < cutoff_lat_factor * cutoff_lat_factor && r > 0) {
-                            const _type_atom_index odd_offset = atom_list.lattice.IndexOf3DIndex(
+                            const _type_atom_index odd_offset = lattice.IndexOf3DIndex(
                                     2 * xIndex, yIndex, zIndex);
                             _nei_odd_offsets.push_back(odd_offset);
                             if (isPositiveIndex(xIndex, yIndex, zIndex)) {
@@ -91,7 +93,7 @@ public:
                                          (yIndex - 0.5) * (yIndex - 0.5) +
                                          (zIndex - 0.5) * (zIndex - 0.5);
                         if (r < cutoff_lat_factor * cutoff_lat_factor && r > 0) {
-                            const _type_atom_index odd_offset = atom_list.lattice.IndexOf3DIndex(
+                            const _type_atom_index odd_offset = lattice.IndexOf3DIndex(
                                     2 * xIndex - 1, yIndex, zIndex);
                             _nei_odd_offsets.push_back(odd_offset);
                             if (isPositiveIndex(xIndex - 0.5, yIndex - 0.5, zIndex - 0.6)) {
@@ -173,10 +175,10 @@ TEST(nei_index_test_index_case, nei_index_test) {
 //    24	16	3
 // its neighbour (23,17,4) should be included.
     bool exists = false;
-    NeighbourIndex<AtomElement>::iterator nei_itl_end = nei_index.end(true, 24, 16, 3);
-    for (NeighbourIndex<AtomElement>::iterator nei_itl = nei_index.begin(true, 24, 16, 3);
+    NeighbourIndex<_type_neighbour_index_ele>::iterator nei_itl_end = nei_index.end(true, 24, 16, 3);
+    for (NeighbourIndex<_type_neighbour_index_ele>::iterator nei_itl = nei_index.begin(true, 24, 16, 3);
          nei_itl != nei_itl_end; ++nei_itl) {
-        _type_atom_index ind = atom_list.getAtomIndex(23,17,4);
+        _type_atom_index ind = atom_list._atoms.getAtomIndex(23, 17, 4);
         if (ind == nei_itl.cur_index) {
             exists = true;
         }

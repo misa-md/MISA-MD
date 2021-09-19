@@ -2,14 +2,17 @@
 // Created by genshen on 2019-04-14.
 //
 
+#include <cmath>
 #include <gtest/gtest.h>
+
 #include <types/pre_define.h>
 #include <atom/neighbour_index.h>
-#include <cmath>
+#include <atom/atom_list.h>
 
-class NeiIndexItlTests : public NeighbourIndex<AtomElement> {
+class NeiIndexItlTests : public NeighbourIndex<_type_neighbour_index_ele> {
 public:
-    explicit NeiIndexItlTests(AtomList &atom_list) : NeighbourIndex<AtomElement>(atom_list) {}
+    explicit NeiIndexItlTests(AtomList &atom_list)
+            : NeighbourIndex<_type_neighbour_index_ele>(atom_list._atoms._data(), atom_list.lattice) {}
 
     FRIEND_TEST(nei_index_test_itl_plus, nei_index_test);
 };
