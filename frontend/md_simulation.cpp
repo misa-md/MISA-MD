@@ -22,8 +22,8 @@ MDSimulation::MDSimulation(ConfigValues *p_config_values)
 }
 
 void MDSimulation::onSimulationStarted() {
-    for (const DumpConfig preset : pConfigVal->output.presets) {
-        switch (pConfigVal->output.presets[0].mode) {
+    for (const DumpConfig &preset : pConfigVal->output.presets) {
+        switch (preset.mode) {
             case OutputMode::DEBUG:
                 this->dump_instances[preset.name] = new OutputDump(preset, *_p_domain);
                 break;
