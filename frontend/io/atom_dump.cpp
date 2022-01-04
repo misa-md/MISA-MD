@@ -70,7 +70,8 @@ void AtomDump::tryCreateLocalStorage(std::string dump_file_name) {
 void AtomDump::setFrameHeader(size_t time_step) {
     if ((cur_frame % MPIDomain::sim_processor.all_ranks) == MPIDomain::sim_processor.own_rank) {
         this->frames_meta.emplace_back(
-                atom_dump::FrameMetaData{.step = time_step});
+                atom_dump::FrameMetaData{.atoms_num = 0, .atoms_num_hash_collision=0, .step = time_step,
+                        .time=0.0});
     }
 }
 
@@ -91,7 +92,7 @@ void AtomDump::dumpFrame(const comm::Region<double> region, const bool region_en
 
     // dumping inter atoms.
     kiwi::logs::v("dump", "inter atoms count: {}\n", inter_list->nLocalInter());
-    for (AtomElement &inter_ref :inter_list->inter_list) {
+    for (AtomElement &inter_ref: inter_list->inter_list) {
         if (!region_enabled || region.isIn(inter_ref.x[0], inter_ref.x[1], inter_ref.x[2])) {
             buffered_writer->write(&inter_ref, mpi_data_type);
         }
