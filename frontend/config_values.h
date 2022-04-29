@@ -111,6 +111,19 @@ struct AtomType {
     void unnpackdata(int &cursor, kiwi::Bundle &bundle);
 };
 
+struct ReadPhaseConfig {
+    bool enable;
+    unsigned int version;
+    std::string file_path;
+    unsigned int init_step; // initial time step.
+
+    void packdata(kiwi::Bundle &bundle) const;
+
+    void unpackdata(int &cursor, kiwi::Bundle &bundle);
+
+    ReadPhaseConfig() : enable(false), version(0), init_step(0) {};
+};
+
 class ConfigValues {
     friend std::ostream &operator<<(std::ostream &os, const ConfigValues &cv);
 
@@ -131,6 +144,9 @@ public:
     // alloy
     int alloyCreateSeed;
     std::vector<AtomType> types;
+
+    // read atoms from file
+    ReadPhaseConfig read_phase;
 
     // potential config
     std::string potentialFileType;

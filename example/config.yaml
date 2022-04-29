@@ -20,8 +20,8 @@ potential: # potential file config
   type: "setfl" # string type
   file_path: "FeCuNi.eam.alloy" # string type
 
-creation: # read atoms information from file or create atoms.
-  create_phase: true  # boolean type. true: create atoms,false: read atoms.
+creation: #  create atoms.
+  create_phase: true  # boolean type. true: create atoms, false: ignore.
   create_seed: 466953 # int type, for create mode
   create_t_set: 600 # temperature double type, for creation mode
   alloy: # types of alloy
@@ -37,7 +37,11 @@ creation: # read atoms information from file or create atoms.
         mass: 58.6934
         weight: 1
 
-#read_phase_filename = ""  # string type, for read mode.
+read_phase: # read atoms data from a file. It can be used for restart.
+  enable: false
+  version: 0
+  file_path: "./10.atom" # string type, for read mode.
+  init_step: 10 # initial step for simulation
 
 output:
   atom_dump:

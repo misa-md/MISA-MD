@@ -55,6 +55,9 @@ private:
     // resolve "create" section in yaml config file.
     bool parseConfigCreation(const YAML::Node &yaml_creation);
 
+    // resolve "read_phase" section in in yaml config file.
+    bool parseConfigReadPhase(const YAML::Node &yaml_read);
+
     // resolve "potential" section in yaml config file.
     bool parseConfigPotential(const YAML::Node &yaml_pot);
 
