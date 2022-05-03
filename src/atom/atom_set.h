@@ -59,8 +59,7 @@ public:
     /**
      * used in read creating mode.
      */
-    void addAtom(comm::BccDomain *p_domain, unsigned long id,
-                 double rx, double ry, double rz, double vx, double vy, double vz);
+    void addAtom(comm::BccDomain *p_domain, const AtomElement atom);
 
 #ifdef MD_RUNTIME_CHECKING
 

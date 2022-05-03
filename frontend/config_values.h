@@ -136,7 +136,7 @@ public:
     unsigned long timeSteps; // total steps is not set in config file, but compute from each stages.
     double timeStepLength; // default step length
 
-    bool createPhaseMode;
+    bool createPhaseMode; // enable/disable create mode
     double createTSet; // system temperature for creation.
     int createSeed;
     std::string readPhaseFilename; // for read mode
@@ -147,6 +147,14 @@ public:
 
     // read atoms from file
     ReadPhaseConfig read_phase;
+
+    inline bool createSystemMode() const {
+        return createPhaseMode;
+    }
+
+    inline bool readSystemMode() const {
+        return read_phase.enable;
+    }
 
     // potential config
     std::string potentialFileType;

@@ -42,10 +42,12 @@ public:
      * @param create_seed seed to create atoms.
      * @param t_set initial temperature.
      * @param types types defines ratio and relative atomic mass of alloy for each types of material.
+     * @param read_inp_path the path for reading atoms from.
      */
     void createAtoms(const int64_t phase_space[DIMENSION], const double lattice_const, const double init_step_len,
                      const bool create_mode, const double t_set, const unsigned long create_seed,
-                     const std::vector<tp_atom_type_weight> &types_weight);
+                     const std::vector<tp_atom_type_weight> &types_weight,
+                     const std::string read_inp_path);
 
     /**
      * initialize potential function and perform the first simulation step.
@@ -113,7 +115,6 @@ protected:
     atom *_atom;
     NewtonMotion *_newton_motion;
 
-    input *_input;  // 从文件读取原子坐标,速度信息
     eam *_pot; // eam potential
 
     /**

@@ -186,7 +186,11 @@ void ws::getNearLatSubBoxCoord(const AtomElement &src_atom, const comm::Domain *
 }
 
 bool ws::isInBox(const AtomElement &src_atom, const comm::Domain *p_domain) {
-    VORONOY(src_atom.x[0], src_atom.x[1], src_atom.x[2], p_domain->lattice_const)
+    return isInBox(src_atom.x[0], src_atom.x[1], src_atom.x[2], p_domain);
+}
+
+bool ws::isInBox(const double rx, const double ry, const double rz, const comm::Domain *p_domain) {
+    VORONOY(rx, ry, rz, p_domain->lattice_const)
 
     lat_coord_x -= 2 * p_domain->sub_box_lattice_region.x_low;
     lat_coord_y -= p_domain->sub_box_lattice_region.y_low;

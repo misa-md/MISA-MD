@@ -143,14 +143,8 @@ bool ConfigParser::parseConfigCreation(const YAML::Node &yaml_creation) {
             return false;
         }
         configValues.createSeed = yaml_creation["create_seed"].as<int>(default_random_seek);
-    } else {  // read mode.
-        auto yaml_read_file = yaml_creation["read_phase_filename"];
-        if (yaml_read_file) {
-            configValues.readPhaseFilename = yaml_read_file.as<std::string>();
-        } else {
-            setError("read phase file must be specified.");
-            return false;
-        }
+    } else {
+        // read mode.
     }
 
     // resolve simulation.alloy

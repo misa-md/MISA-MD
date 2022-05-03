@@ -1,4 +1,5 @@
 #include <cmath>
+#include <string>
 
 #include <utils/mpi_utils.h>
 #include <logs/logs.h>
@@ -13,7 +14,7 @@
 
 simulation::simulation() :
         _p_domain(nullptr), _atom(nullptr),
-        _newton_motion(nullptr), _input(nullptr), _pot(nullptr) {
+        _newton_motion(nullptr), _pot(nullptr) {
 //    createDomainDecomposition();
 //    collision_step = -1;
 }
@@ -22,8 +23,6 @@ simulation::~simulation() {
     delete _atom;
     delete _newton_motion;
     delete _pot;
-
-    delete _input; // delete null pointer has no effect.
 }
 
 void simulation::createDomain(const int64_t phase_space[DIMENSION],
@@ -58,7 +57,8 @@ void simulation::createDomain(const int64_t phase_space[DIMENSION],
 void simulation::createAtoms(const int64_t phase_space[DIMENSION], const double lattice_const,
                              const double init_step_len, const bool create_mode,
                              const double t_set, const unsigned long create_seed,
-                             const std::vector<tp_atom_type_weight> &types_weight) {
+                             const std::vector<tp_atom_type_weight> &types_weight,
+                             const std::string read_inp_path) {
     _atom = new atom(_p_domain);
     // establish index offset for neighbour.
     _atom->calcNeighbourIndices(_p_domain->cutoff_radius_factor, _p_domain->cut_lattice);
@@ -78,8 +78,8 @@ void simulation::createAtoms(const int64_t phase_space[DIMENSION], const double 
                 .setAlloyRatio(types_weight)
                 .build();
     } else { //读取原子坐标、速度信息
-        _input = new input();
-        _input->readPhaseSpace(_atom, _p_domain);
+        input _input;
+        _input.readPhaseSpace(read_inp_path, _atom, _p_domain);
     }
     _newton_motion = new NewtonMotion(init_step_len, atom_type::num_atom_types); // time step length.
 }

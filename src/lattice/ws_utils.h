@@ -96,6 +96,8 @@ namespace ws {
      * @return true for in the sub-box, false for otherwise.
      */
     bool isInBox(const AtomElement &src_atom, const comm::Domain *p_domain);
+
+    bool isInBox(const double rx, const double ry, const double rz, const comm::Domain *p_domain);
 };
 
 

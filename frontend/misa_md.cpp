@@ -114,9 +114,17 @@ bool MISAMD::prepare() {
         masses.emplace_back(tp.mass);
     }
     atom_type::setGlobalAtomMasses(masses);
+
+    // create atoms or read atoms from file.
+    const bool create_mode = config.createSystemMode();
+    const bool read_mode = config.readSystemMode();
+    if (read_mode == create_mode) {
+        kiwi::logs::e(MASTER_PROCESSOR, "simulation", "Error: ambiguous config for creating or reading system.\n");
+        return false;
+    }
     // todo alloy ratio seed is not used.
     pSimulation->createAtoms(config.phaseSpace, config.latticeConst, config.timeStepLength,
-                             config.createPhaseMode, config.createTSet, config.createSeed, weight);
+                             create_mode, config.createTSet, config.createSeed, weight, config.read_phase.file_path);
     return true;
 }
 

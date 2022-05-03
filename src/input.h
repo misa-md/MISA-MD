@@ -10,19 +10,25 @@
 
 #include "atom.h"
 
+struct inp_header {
+    unsigned long uniq;
+    unsigned int version;
+    long atom_count;
+    long mask;
+};
+
 class input {
 public:
     input();
 
     ~input();
 
-    void readPhaseSpace(atom *_atom, comm::BccDomain *p_domain);
+    void readPhaseSpace(const std::string read_inp_path, atom *_atom, comm::BccDomain *p_domain);
 
 private:
-    std::string _phaseSpaceFile;
-    std::string _phaseSpaceHeaderFile;
-    std::fstream _phaseSpaceFileStream;
-    std::fstream _phaseSpaceHeaderFileStream;
+    static inp_header readHeader(std::fstream &fs);
+
+    static void readAtoms(std::fstream &fs, const inp_header head, atom *_atom, comm::BccDomain *p_domain);
 };
 
 #endif //MISA_MD_INPUT_H
