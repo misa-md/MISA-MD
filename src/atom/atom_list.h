@@ -142,6 +142,17 @@ public:
      */
     bool isBadList(comm::Domain domain);
 
+    inline _type_atom_count countValidAtoms() {
+        _type_atom_count count = 0;
+        foreachSubBoxAtom([&count, this](_type_atom_index gid) {
+            MD_LOAD_ATOM_VAR(at, this, gid);
+            if (MD_GET_ATOM_TYPE(at, gid) != atom_type::INVALID) {
+                count++;
+            }
+        });
+        return count;
+    }
+
 public:
     const BccLattice lattice;
 

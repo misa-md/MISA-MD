@@ -42,7 +42,6 @@ void AtomSet::calcNeighbourIndices(const double cutoff_radius_factor, const _typ
 
 void
 AtomSet::addAtom(comm::BccDomain *p_domain, const AtomElement atom) {
-    // todo: add test
     if (ws::isInBox(atom.x[0], atom.x[1], atom.x[2], p_domain)) {
         const _type_atom_index near_atom_index = ws::findNearLatIndexInSubBox(atom_list->lattice, atom, p_domain);
         MD_LOAD_ATOM_VAR(atom_near, atom_list, near_atom_index);
