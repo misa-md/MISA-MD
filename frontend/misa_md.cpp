@@ -132,7 +132,9 @@ void MISAMD::onStart() {
     const ConfigValues config = ConfigParser::getInstance()->configValues;
     pSimulation->prepareForStart(config.potentialFilename);
     kiwi::logs::v(MASTER_PROCESSOR, "simulation", "Start simulation.\n");
-    pSimulation->simulate(config.timeSteps); // start simulation.
+
+    const unsigned long init_step = config.readSystemMode() ? config.read_phase.init_step : 0;
+    pSimulation->simulate(config.timeSteps, init_step); // start simulation.
 }
 
 void MISAMD::onFinish() {

@@ -11,7 +11,6 @@
 #include <eam.h>
 
 #include "newton_motion.h"
-#include "input.h"
 #include "world_builder.h"
 
 class simulation {
@@ -68,15 +67,18 @@ public:
     /**
      * do time steps loop simulation.
      * @param steps total simulation steps.
+     * @param init_step the initial step for step iterating.
      */
-    void simulate(const unsigned long steps);
+    void simulate(const unsigned long steps, const unsigned long init_step);
 
     void finalize();
 
     /**
      * this function will be called before simulation loop.
+     * @param init_step the initial step before simulation.
+     * This is usually used in restart simulation mode (otherwise it is 0).
      */
-    virtual void onSimulationStarted() {};
+    virtual void onSimulationStarted(const unsigned long init_step) {};
 
     /**
      * this function will be called after simulation loop finished.

@@ -8,6 +8,7 @@
 #include <comm/domain/domain.h>
 
 #include "simulation.h"
+#include "input.h"
 #include "utils/mpi_domain.h"
 #include "arch/hardware_accelerate.hpp"
 #include "world_builder.h"
@@ -133,10 +134,10 @@ void simulation::prepareForStart(const std::string pot_file_path) {
     archAccPotInit(_pot); // it runs after atom and boxes creation, but before simulation running.
 
     starttime = MPI_Wtime();
-    // todo make _cut_lattice a member of class AtomList
+    // todo: make _cut_lattice a member of class AtomList
+    // borderInter is only for [read atom mode], because in [create atom mode], inter is empty at first step;
+    _atom->p_send_recv_list->borderInter(_p_domain);
     _atom->p_send_recv_list->exchangeAtomFirst(_p_domain);
-    // fixme those code does not fit [read atom mode], because in [create atom mode], inter is empty at first step;
-    // so borderInter is not get called.
     stoptime = MPI_Wtime();
     commtime = stoptime - starttime;
 
@@ -152,16 +153,16 @@ void simulation::prepareForStart(const std::string pot_file_path) {
     kiwi::logs::i(MASTER_PROCESSOR, "sim", "first step compute time: {}\n", computetime);
 }
 
-void simulation::simulate(const unsigned long steps) {
-    // start do simulation.
+void simulation::simulate(const unsigned long steps, const unsigned long init_step) {
     double starttime, stoptime;
-    double commtime = 0, computetime = 0, comm;
+    double commtime = 0.0, computetime = 0.0, comm = 0.0;
     double alltime, allstart, allstop;
 
     allstart = MPI_Wtime();
-    onSimulationStarted();
+    onSimulationStarted(init_step);
 
-    for (_simulation_time_step = 0; _simulation_time_step < steps; _simulation_time_step++) {
+    // start simulation
+    for (_simulation_time_step = init_step; _simulation_time_step < steps; _simulation_time_step++) {
         beforeStep(_simulation_time_step);
         //先进行求解牛顿运动方程第一步
         _newton_motion->firststep(_atom->getAtomList(), _atom->getInterList());

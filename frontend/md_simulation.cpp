@@ -21,8 +21,8 @@ MDSimulation::MDSimulation(ConfigValues *p_config_values)
     next_stage_index = 0;
 }
 
-void MDSimulation::onSimulationStarted() {
-    for (const DumpConfig &preset : pConfigVal->output.presets) {
+void MDSimulation::onSimulationStarted(const unsigned long init_step) {
+    for (const DumpConfig &preset: pConfigVal->output.presets) {
         switch (preset.mode) {
             case OutputMode::DEBUG:
                 this->dump_instances[preset.name] = new OutputDump(preset, *_p_domain);
@@ -31,6 +31,33 @@ void MDSimulation::onSimulationStarted() {
                 this->dump_instances[preset.name] = new OutputCopy(preset, *_p_domain);
                 break;
         }
+    }
+    if (init_step != 0) {
+        moveToStageAtStep(init_step);
+    }
+}
+
+void MDSimulation::moveToStageAtStep(const unsigned long step) {
+    // test from the first stage.
+    unsigned long step_stage_begin = 0;
+    unsigned long step_stage_end = 0;
+    std::size_t i = 0;
+    bool flag = false;
+    for (const auto &stage: pConfigVal->stages) {
+        step_stage_end += stage.steps;
+        if (step >= step_stage_begin && step < step_stage_end) {
+            // set stage status
+            setCurStageStatus(stage, step - step_stage_begin);
+            next_stage_index = i + 1; // prepare for moving to next stage.
+            flag = true;
+            break;
+        }
+        step_stage_begin = step_stage_end;
+        i++;
+    }
+    if (!flag) {
+        kiwi::logs::e("simulation", "step offset too large when moving to new stage.\n");
+        abort(1);
     }
 }
 
@@ -47,14 +74,8 @@ void MDSimulation::beforeStep(const unsigned long step) {
         // if we are out of stage steps, then we can move to next stage.
         if (next_stage_index < pConfigVal->stages.size()) {
             // move to next stage.
-            current_stage = pConfigVal->stages[next_stage_index];
-            if (current_stage.step_length == 0.0) { // if it is 0, set a default value.
-                current_stage.step_length = pConfigVal->timeStepLength;
-            }
-            cur_stage_steps = 0; // clear stage step
+            setCurStageStatus(pConfigVal->stages[next_stage_index], 0);
             next_stage_index++;
-            // reset time steps length
-            _newton_motion->setTimestepLength(current_stage.step_length);
         } else {
             kiwi::logs::e("simulation", "no more stages.\n");
             abort(1);
@@ -167,6 +188,16 @@ void MDSimulation::print_force(const std::string filename, int step) {
     outfile.close();
 }
 
+void MDSimulation::setCurStageStatus(const Stage stage, const unsigned long stage_step) {
+    current_stage = stage;
+    cur_stage_steps = stage_step;
+    // set new step length
+    if (stage.step_length == 0.0) { // if it is 0, set a default value.
+        current_stage.step_length = pConfigVal->timeStepLength;
+    }
+    // reset time steps length
+    _newton_motion->setTimestepLength(current_stage.step_length);
+}
 
 #ifdef MD_RUNTIME_CHECKING
 
