@@ -12,9 +12,10 @@
 
 struct inp_header {
     unsigned long uniq;
-    unsigned int version;
     long atom_count;
-    long mask;
+    unsigned int version;
+    unsigned int mask;
+    size_t atom_size;
 };
 
 class input {

@@ -7,6 +7,14 @@
 #include "atom.h"
 #include "utils/mpi_data_types.h"
 
+struct AtomForRead {
+    _type_atom_id id;
+    int64_t type; // padding int32 to int64.
+    double x[DIMENSION];
+    double v[DIMENSION];
+    double f[DIMENSION];
+};
+
 input::input() {}
 
 input::~input() {}
@@ -32,6 +40,7 @@ void input::readPhaseSpace(const std::string read_inp_path, atom *_atom, comm::B
     kiwi::logs::e("read-phase-space", "Reading phase space file {}.\n", read_inp_path);
 
     const inp_header head = readHeader(fs);
+    assert(head.atom_size == sizeof(AtomForRead));
     const _type_atom_count atom_count = readAtoms(fs, head, _atom, p_domain);
     fs.close();
 
@@ -59,13 +68,6 @@ inp_header input::readHeader(std::fstream &fs) {
     return head;
 }
 
-struct AtomForRead {
-    long id;
-    long type;
-    double x[DIMENSION];
-    double v[DIMENSION];
-    double f[DIMENSION];
-};
 
 _type_atom_count input::readAtoms(std::fstream &fs, const inp_header head, atom *_atom, comm::BccDomain *p_domain) {
     // set all lattice site as invalid.
