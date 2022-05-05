@@ -58,8 +58,9 @@ public:
 
     /**
      * used in read creating mode.
+     * @return true for atom is added into the sub-box of current process. false for otherwise.
      */
-    void addAtom(comm::BccDomain *p_domain, const AtomElement atom);
+    bool addAtom(comm::BccDomain *p_domain, const AtomElement atom);
 
 #ifdef MD_RUNTIME_CHECKING
 

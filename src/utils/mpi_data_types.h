@@ -19,6 +19,8 @@ namespace mpi_types {
 
     // todo call me when finished
     void unsetInterMPIType();
+
+    extern MPI_Datatype mpi_type_atoms_count; // for type: _type_atom_count.
 };
 
 

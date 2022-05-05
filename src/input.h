@@ -28,7 +28,17 @@ public:
 private:
     static inp_header readHeader(std::fstream &fs);
 
-    static void readAtoms(std::fstream &fs, const inp_header head, atom *_atom, comm::BccDomain *p_domain);
+    /**
+     * read atoms from @param fs.
+     * @param fs binary file stream.
+     * @param head head part of the binary head.
+     * @param _atom atom container to store the read atoms.
+     * @param p_domain simulation domain.
+     * @return the number of atoms read by current process (only count atoms belonging to current process).
+     */
+    static _type_atom_count readAtoms(std::fstream &fs, const inp_header head, atom *_atom, comm::BccDomain *p_domain);
+
+    static void checkAtomRead(const _type_atom_count atom_added, comm::BccDomain *p_domain);
 };
 
 #endif //MISA_MD_INPUT_H

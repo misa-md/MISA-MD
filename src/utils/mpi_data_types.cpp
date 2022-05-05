@@ -9,6 +9,8 @@
 MPI_Datatype mpi_types::_mpi_Particle_data;
 MPI_Datatype mpi_types::_mpi_latParticle_data;
 
+MPI_Datatype mpi_types::mpi_type_atoms_count = MPI_UNSIGNED_LONG;
+
 void mpi_types::setInterMPIType() {
     particledata::setMPIType(_mpi_Particle_data);  // todo move code to other place?
     LatParticleData::setMPIType(_mpi_latParticle_data);

@@ -40,7 +40,7 @@ void AtomSet::calcNeighbourIndices(const double cutoff_radius_factor, const _typ
     neighbours->make(cut_lattice, cutoff_radius_factor);
 }
 
-void
+bool
 AtomSet::addAtom(comm::BccDomain *p_domain, const AtomElement atom) {
     if (ws::isInBox(atom.x[0], atom.x[1], atom.x[2], p_domain)) {
         const _type_atom_index near_atom_index = ws::findNearLatIndexInSubBox(atom_list->lattice, atom, p_domain);
@@ -56,10 +56,12 @@ AtomSet::addAtom(comm::BccDomain *p_domain, const AtomElement atom) {
             MD_SET_ATOM_V(atom_near, near_atom_index, 0, atom.v[0]);
             MD_SET_ATOM_V(atom_near, near_atom_index, 1, atom.v[1]);
             MD_SET_ATOM_V(atom_near, near_atom_index, 2, atom.v[2]);
-        }else {
+        } else {
             inter_atom_list->addInterAtom(atom);
         }
+        return true;
     }
+    return false;
 }
 
 _type_atom_count AtomSet::getnlocalatom(comm::Domain *p_domain) {
