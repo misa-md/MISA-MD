@@ -7,6 +7,7 @@
 #include <comm/domain/domain.h>
 
 #include "atom_set.h"
+#include "lattice/ws_utils.h"
 
 AtomSet::AtomSet(const double cutoff_radius,
                  const _type_lattice_size extended_lattice_size[DIMENSION],
@@ -39,38 +40,28 @@ void AtomSet::calcNeighbourIndices(const double cutoff_radius_factor, const _typ
     neighbours->make(cut_lattice, cutoff_radius_factor);
 }
 
-void
-AtomSet::addAtom(comm::BccDomain *p_domain, _type_atom_id id,
-                 double rx, double ry, double rz, double vx, double vy, double vz) {
-    int i;
-    if ((rx >= p_domain->meas_sub_box_region.x_low) &&
-        (rx < p_domain->meas_sub_box_region.x_high) &&
-        (ry >= p_domain->meas_sub_box_region.y_low) &&
-        (ry < p_domain->meas_sub_box_region.y_high) &&
-        (rz >= p_domain->meas_sub_box_region.z_low) &&
-        (rz < p_domain->meas_sub_box_region.z_high)) {
-        int lattice[3];
-        lattice[0] = rx * 2 / p_domain->lattice_const + 0.5;
-        lattice[1] = ry * 2 / p_domain->lattice_const + 0.5;
-        lattice[2] = rz * 2 / p_domain->lattice_const + 0.5;
-        lattice[1] = lattice[1] / 2;
-        lattice[2] = lattice[2] / 2;
-        lattice[0] -= p_domain->dbx_ghost_ext_lattice_region.x_low;
-        lattice[1] -= p_domain->dbx_ghost_ext_lattice_region.y_low;
-        lattice[2] -= p_domain->dbx_ghost_ext_lattice_region.z_low;
-        i = (((p_domain->dbx_ghost_extended_lattice_size[1])) * lattice[2] + lattice[1]) *
-            ((p_domain->dbx_ghost_extended_lattice_size[0])) + lattice[0];
-        MD_LOAD_ATOM_VAR(atom_, atom_list, i);
-        MD_SET_ATOM_ID(atom_, i, id);
+bool
+AtomSet::addAtom(comm::BccDomain *p_domain, const AtomElement atom) {
+    if (ws::isInBox(atom.x[0], atom.x[1], atom.x[2], p_domain)) {
+        const _type_atom_index near_atom_index = ws::findNearLatIndexInSubBox(atom_list->lattice, atom, p_domain);
+        MD_LOAD_ATOM_VAR(atom_near, atom_list, near_atom_index);
+        if (MD_GET_ATOM_TYPE(atom_near, near_atom_index) == atom_type::INVALID) {
+            MD_SET_ATOM_ID(atom_near, near_atom_index, atom.id);
+            MD_SET_ATOM_TYPE(atom_near, near_atom_index, atom.type);
 
-        MD_SET_ATOM_X(atom_, i, 0, rx);
-        MD_SET_ATOM_X(atom_, i, 1, ry);
-        MD_SET_ATOM_X(atom_, i, 2, rz);
+            MD_SET_ATOM_X(atom_near, near_atom_index, 0, atom.x[0]);
+            MD_SET_ATOM_X(atom_near, near_atom_index, 1, atom.x[1]);
+            MD_SET_ATOM_X(atom_near, near_atom_index, 2, atom.x[2]);
 
-        MD_SET_ATOM_V(atom_, i, 0, vx);
-        MD_SET_ATOM_V(atom_, i, 1, vy);
-        MD_SET_ATOM_V(atom_, i, 2, vz);
+            MD_SET_ATOM_V(atom_near, near_atom_index, 0, atom.v[0]);
+            MD_SET_ATOM_V(atom_near, near_atom_index, 1, atom.v[1]);
+            MD_SET_ATOM_V(atom_near, near_atom_index, 2, atom.v[2]);
+        } else {
+            inter_atom_list->addInterAtom(atom);
+        }
+        return true;
     }
+    return false;
 }
 
 _type_atom_count AtomSet::getnlocalatom(comm::Domain *p_domain) {

@@ -114,9 +114,17 @@ bool MISAMD::prepare() {
         masses.emplace_back(tp.mass);
     }
     atom_type::setGlobalAtomMasses(masses);
+
+    // create atoms or read atoms from file.
+    const bool create_mode = config.createSystemMode();
+    const bool read_mode = config.readSystemMode();
+    if (read_mode == create_mode) {
+        kiwi::logs::e(MASTER_PROCESSOR, "simulation", "Error: ambiguous config for creating or reading system.\n");
+        return false;
+    }
     // todo alloy ratio seed is not used.
     pSimulation->createAtoms(config.phaseSpace, config.latticeConst, config.timeStepLength,
-                             config.createPhaseMode, config.createTSet, config.createSeed, weight);
+                             create_mode, config.createTSet, config.createSeed, weight, config.read_phase.file_path);
     return true;
 }
 
@@ -124,7 +132,9 @@ void MISAMD::onStart() {
     const ConfigValues config = ConfigParser::getInstance()->configValues;
     pSimulation->prepareForStart(config.potentialFilename);
     kiwi::logs::v(MASTER_PROCESSOR, "simulation", "Start simulation.\n");
-    pSimulation->simulate(config.timeSteps); // start simulation.
+
+    const unsigned long init_step = config.readSystemMode() ? config.read_phase.init_step : 0;
+    pSimulation->simulate(config.timeSteps, init_step); // start simulation.
 }
 
 void MISAMD::onFinish() {

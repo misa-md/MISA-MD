@@ -62,6 +62,11 @@ void ConfigParser::parseConfig(const std::string config_file) {
         return;
     }
 
+    // parse read_phase field
+    if (!parseConfigReadPhase(config["read_phase"])) {
+        return;
+    }
+
     // parse potential
     if (!parseConfigPotential(config["potential"])) {
         return;
@@ -138,18 +143,38 @@ bool ConfigParser::parseConfigCreation(const YAML::Node &yaml_creation) {
             return false;
         }
         configValues.createSeed = yaml_creation["create_seed"].as<int>(default_random_seek);
-    } else {  // read mode.
-        auto yaml_read_file = yaml_creation["read_phase_filename"];
-        if (yaml_read_file) {
-            configValues.readPhaseFilename = yaml_read_file.as<std::string>();
-        } else {
-            setError("read phase file must be specified.");
-            return false;
-        }
+    } else {
+        // read mode.
     }
 
     // resolve simulation.alloy
     return parseConfigAlloy(yaml_creation["alloy"]);
+}
+
+#define PARSE_FILED_ELSE_RETURN_FALSE(value, parent_node, field_name, field_message, type, fallback) \
+const YAML::Node yaml_##field_name = (parent_node)[#field_name]; \
+if (yaml_##field_name) { \
+  (value) = yaml_##field_name.as<type>(fallback); \
+} else { \
+  setError(field_message " must be specified."); \
+  return false; \
+}
+
+
+bool ConfigParser::parseConfigReadPhase(const YAML::Node &yaml_read) {
+    if (!yaml_read) {
+        return true; // if it is not specified, it's also ok.
+    }
+
+    PARSE_FILED_ELSE_RETURN_FALSE(configValues.read_phase.enable, yaml_read, enable, "`enable` in read_phase", bool,
+                                  false);
+    PARSE_FILED_ELSE_RETURN_FALSE(configValues.read_phase.version, yaml_read, version, "`enable` in read_phase",
+                                  unsigned int, 0);
+    PARSE_FILED_ELSE_RETURN_FALSE(configValues.read_phase.file_path, yaml_read, file_path, "`file_path` in read_phase",
+                                  std::string, "");
+    PARSE_FILED_ELSE_RETURN_FALSE(configValues.read_phase.init_step, yaml_read, init_step, "`init_step` in read_phase",
+                                  unsigned int, 0);
+    return true;
 }
 
 bool ConfigParser::parseConfigPotential(const YAML::Node &yaml_pot) {

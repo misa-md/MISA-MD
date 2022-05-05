@@ -16,7 +16,12 @@ public:
     /**
     * this function will be called before simulation loop.
     */
-    void onSimulationStarted() override;
+    void onSimulationStarted(const unsigned long init_step) override;
+
+    /**
+     * @note: this function must be called before simulation starting.
+     */
+    void moveToStageAtStep(const unsigned long step);
 
     /**
      * this function will be called after simulation loop finished.
@@ -71,6 +76,13 @@ private:
      * @param step current simulation step, starting from 0.
      */
     void print_force(const std::string filename, int step);
+
+    /**
+     * set the current stage status to the stage specified by @param stage
+     * @param stage the stage
+     * @param stage_step step offset in the new stage.
+     */
+    void setCurStageStatus(const Stage stage, const unsigned long stage_step);
 
 #ifdef MD_RUNTIME_CHECKING
 

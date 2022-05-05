@@ -99,6 +99,20 @@ void AtomType::unnpackdata(int &cursor, kiwi::Bundle &bundle) {
     bundle.get(cursor, weight);
 }
 
+void ReadPhaseConfig::packdata(kiwi::Bundle &bundle) const {
+    bundle.put(enable);
+    bundle.put(version);
+    bundle.put(file_path);
+    bundle.put(init_step);
+}
+
+void ReadPhaseConfig::unpackdata(int &cursor, kiwi::Bundle &bundle) {
+    bundle.get(cursor, enable);
+    bundle.get(cursor, version);
+    bundle.get(cursor, file_path);
+    bundle.get(cursor, init_step);
+}
+
 ConfigValues::ConfigValues() :
         phaseSpace{0, 0, 0}, cutoffRadiusFactor(0.0), latticeConst(0.0),
         timeSteps(0),
@@ -129,6 +143,10 @@ void ConfigValues::packdata(kiwi::Bundle &bundle) {
         atom_ty.packdata(bundle);
     }
 
+    // read phase
+    read_phase.packdata(bundle);
+
+    // potential
     bundle.put(potentialFileType);
     bundle.put(potentialFilename);
 
@@ -177,6 +195,10 @@ void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
         types[i].unnpackdata(cursor, bundle);
     }
 
+    // read inp
+    read_phase.unpackdata(cursor, bundle);
+
+    // potential
     bundle.get(cursor, potentialFileType);
     bundle.get(cursor, potentialFilename);
 
@@ -224,6 +246,14 @@ std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
         os << "Name: " << atom_type.name << ", mass: " << atom_type.mass << ", weight: " << atom_type.weight
            << std::endl;
     }
+
+    // read_phase
+    os << "read_phase: enable: " << cv.read_phase.enable
+       << ", file_path: " << cv.read_phase.file_path
+       << ", version: " << cv.read_phase.version
+       << ", init_step: " << cv.read_phase.init_step << std::endl;
+
+    // potential
     os << "simulation.potential_file.type:" << cv.potentialFileType << std::endl;
     os << "simulation.potential_file.filename:" << cv.potentialFilename << std::endl;
 

@@ -1,4 +1,5 @@
 #include <cmath>
+#include <string>
 
 #include <utils/mpi_utils.h>
 #include <logs/logs.h>
@@ -7,13 +8,14 @@
 #include <comm/domain/domain.h>
 
 #include "simulation.h"
+#include "input.h"
 #include "utils/mpi_domain.h"
 #include "arch/hardware_accelerate.hpp"
 #include "world_builder.h"
 
 simulation::simulation() :
         _p_domain(nullptr), _atom(nullptr),
-        _newton_motion(nullptr), _input(nullptr), _pot(nullptr) {
+        _newton_motion(nullptr), _pot(nullptr) {
 //    createDomainDecomposition();
 //    collision_step = -1;
 }
@@ -22,8 +24,6 @@ simulation::~simulation() {
     delete _atom;
     delete _newton_motion;
     delete _pot;
-
-    delete _input; // delete null pointer has no effect.
 }
 
 void simulation::createDomain(const int64_t phase_space[DIMENSION],
@@ -58,7 +58,8 @@ void simulation::createDomain(const int64_t phase_space[DIMENSION],
 void simulation::createAtoms(const int64_t phase_space[DIMENSION], const double lattice_const,
                              const double init_step_len, const bool create_mode,
                              const double t_set, const unsigned long create_seed,
-                             const std::vector<tp_atom_type_weight> &types_weight) {
+                             const std::vector<tp_atom_type_weight> &types_weight,
+                             const std::string read_inp_path) {
     _atom = new atom(_p_domain);
     // establish index offset for neighbour.
     _atom->calcNeighbourIndices(_p_domain->cutoff_radius_factor, _p_domain->cut_lattice);
@@ -78,8 +79,8 @@ void simulation::createAtoms(const int64_t phase_space[DIMENSION], const double 
                 .setAlloyRatio(types_weight)
                 .build();
     } else { //读取原子坐标、速度信息
-        _input = new input();
-        _input->readPhaseSpace(_atom, _p_domain);
+        input _input;
+        _input.readPhaseSpace(read_inp_path, _atom, _p_domain);
     }
     _newton_motion = new NewtonMotion(init_step_len, atom_type::num_atom_types); // time step length.
 }
@@ -133,10 +134,10 @@ void simulation::prepareForStart(const std::string pot_file_path) {
     archAccPotInit(_pot); // it runs after atom and boxes creation, but before simulation running.
 
     starttime = MPI_Wtime();
-    // todo make _cut_lattice a member of class AtomList
+    // todo: make _cut_lattice a member of class AtomList
+    // borderInter is only for [read atom mode], because in [create atom mode], inter is empty at first step;
+    _atom->p_send_recv_list->borderInter(_p_domain);
     _atom->p_send_recv_list->exchangeAtomFirst(_p_domain);
-    // fixme those code does not fit [read atom mode], because in [create atom mode], inter is empty at first step;
-    // so borderInter is not get called.
     stoptime = MPI_Wtime();
     commtime = stoptime - starttime;
 
@@ -152,16 +153,16 @@ void simulation::prepareForStart(const std::string pot_file_path) {
     kiwi::logs::i(MASTER_PROCESSOR, "sim", "first step compute time: {}\n", computetime);
 }
 
-void simulation::simulate(const unsigned long steps) {
-    // start do simulation.
+void simulation::simulate(const unsigned long steps, const unsigned long init_step) {
     double starttime, stoptime;
-    double commtime = 0, computetime = 0, comm;
+    double commtime = 0.0, computetime = 0.0, comm = 0.0;
     double alltime, allstart, allstop;
 
     allstart = MPI_Wtime();
-    onSimulationStarted();
+    onSimulationStarted(init_step);
 
-    for (_simulation_time_step = 0; _simulation_time_step < steps; _simulation_time_step++) {
+    // start simulation
+    for (_simulation_time_step = init_step; _simulation_time_step < steps; _simulation_time_step++) {
         beforeStep(_simulation_time_step);
         //先进行求解牛顿运动方程第一步
         _newton_motion->firststep(_atom->getAtomList(), _atom->getInterList());

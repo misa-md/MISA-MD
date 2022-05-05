@@ -111,6 +111,19 @@ struct AtomType {
     void unnpackdata(int &cursor, kiwi::Bundle &bundle);
 };
 
+struct ReadPhaseConfig {
+    bool enable;
+    unsigned int version;
+    std::string file_path;
+    unsigned int init_step; // initial time step.
+
+    void packdata(kiwi::Bundle &bundle) const;
+
+    void unpackdata(int &cursor, kiwi::Bundle &bundle);
+
+    ReadPhaseConfig() : enable(false), version(0), init_step(0) {};
+};
+
 class ConfigValues {
     friend std::ostream &operator<<(std::ostream &os, const ConfigValues &cv);
 
@@ -123,7 +136,7 @@ public:
     unsigned long timeSteps; // total steps is not set in config file, but compute from each stages.
     double timeStepLength; // default step length
 
-    bool createPhaseMode;
+    bool createPhaseMode; // enable/disable create mode
     double createTSet; // system temperature for creation.
     int createSeed;
     std::string readPhaseFilename; // for read mode
@@ -131,6 +144,17 @@ public:
     // alloy
     int alloyCreateSeed;
     std::vector<AtomType> types;
+
+    // read atoms from file
+    ReadPhaseConfig read_phase;
+
+    inline bool createSystemMode() const {
+        return createPhaseMode;
+    }
+
+    inline bool readSystemMode() const {
+        return read_phase.enable;
+    }
 
     // potential config
     std::string potentialFileType;

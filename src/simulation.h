@@ -11,7 +11,6 @@
 #include <eam.h>
 
 #include "newton_motion.h"
-#include "input.h"
 #include "world_builder.h"
 
 class simulation {
@@ -42,10 +41,12 @@ public:
      * @param create_seed seed to create atoms.
      * @param t_set initial temperature.
      * @param types types defines ratio and relative atomic mass of alloy for each types of material.
+     * @param read_inp_path the path for reading atoms from.
      */
     void createAtoms(const int64_t phase_space[DIMENSION], const double lattice_const, const double init_step_len,
                      const bool create_mode, const double t_set, const unsigned long create_seed,
-                     const std::vector<tp_atom_type_weight> &types_weight);
+                     const std::vector<tp_atom_type_weight> &types_weight,
+                     const std::string read_inp_path);
 
     /**
      * initialize potential function and perform the first simulation step.
@@ -66,15 +67,18 @@ public:
     /**
      * do time steps loop simulation.
      * @param steps total simulation steps.
+     * @param init_step the initial step for step iterating.
      */
-    void simulate(const unsigned long steps);
+    void simulate(const unsigned long steps, const unsigned long init_step);
 
     void finalize();
 
     /**
      * this function will be called before simulation loop.
+     * @param init_step the initial step before simulation.
+     * This is usually used in restart simulation mode (otherwise it is 0).
      */
-    virtual void onSimulationStarted() {};
+    virtual void onSimulationStarted(const unsigned long init_step) {};
 
     /**
      * this function will be called after simulation loop finished.
@@ -113,7 +117,6 @@ protected:
     atom *_atom;
     NewtonMotion *_newton_motion;
 
-    input *_input;  // 从文件读取原子坐标,速度信息
     eam *_pot; // eam potential
 
     /**
