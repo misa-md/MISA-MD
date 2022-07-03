@@ -8,7 +8,8 @@
 #ifndef MISA_MD_PRE_CONFIG_H
 #define MISA_MD_PRE_CONFIG_H
 
-#define MD_ATOM_HASH_ARRAY_MEMORY_LAYOUT_AOS // array of struct memory layout
+#cmakedefine MD_ATOM_HASH_ARRAY_MEMORY_LAYOUT_AOS // array of struct memory layout
+#cmakedefine MD_ATOM_HASH_ARRAY_MEMORY_LAYOUT_SOA // struct of array memory layout
 
 #cmakedefine MD_DEV_MODE
 #cmakedefine MD_RUNTIME_CHECKING // run data checking at runtimee
