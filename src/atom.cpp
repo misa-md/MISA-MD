@@ -7,6 +7,7 @@
 #include "atom.h"
 #include "lattice/ws_utils.h"
 #include "atom/atom_props_macro_wrapper.h"
+#include "md_building_config.h"
 #include "pack/rho_packer.h"
 #include "pack/force_packer.h"
 #include "pack/df_embed_packer.h"
@@ -98,6 +99,7 @@ int atom::decide() {
 }
 
 void atom::clearForce() {
+#ifdef MD_ATOM_HASH_ARRAY_MEMORY_LAYOUT_AOS
     for (_type_atom_index i = 0; i < atom_list->cap(); i++) {
         MD_LOAD_ATOM_VAR(atom_, atom_list, i);
         MD_SET_ATOM_F(atom_, i, 0, 0.0);
@@ -105,11 +107,18 @@ void atom::clearForce() {
         MD_SET_ATOM_F(atom_, i, 2, 0.0);
         MD_SET_ATOM_RHO(atom_, i, 0.0);
     }
-    for (AtomElement &inter_ref :inter_atom_list->inter_list) {
-        inter_ref.f[0] = 0;
-        inter_ref.f[1] = 0;
-        inter_ref.f[2] = 0;
-        inter_ref.rho = 0;
+#endif
+#ifdef MD_ATOM_HASH_ARRAY_MEMORY_LAYOUT_SOA
+    // quick set force and rho for SoA memory layout.
+    memset(atom_list->atom_f._data(), 0, sizeof(_type_atom_force[DIMENSION]) * atom_list->cap());
+    memset(atom_list->atom_rho._data(), 0, sizeof(_type_atom_rho) * atom_list->cap());
+#endif
+
+    for (AtomElement &inter_ref: inter_atom_list->inter_list) {
+        inter_ref.f[0] = 0.0;
+        inter_ref.f[1] = 0.0;
+        inter_ref.f[2] = 0.0;
+        inter_ref.rho = 0.0;
     }
 }
 
