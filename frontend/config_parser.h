@@ -9,6 +9,10 @@
 #ifndef MISA_MD_CONFIG_PARSER_H
 #define MISA_MD_CONFIG_PARSER_H
 
+
+const unsigned short EAM_TYPE_ALLOY = 0;
+const unsigned short EAM_TYPE_FS = 1;
+
 /**
  * in our design, rank MASTER read config file,
  * and sync the config data to other processors.

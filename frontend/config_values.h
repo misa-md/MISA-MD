@@ -157,8 +157,10 @@ public:
     }
 
     // potential config
-    std::string potentialFileType;
+    std::string potentialFileFormat;
     std::string potentialFilename;
+    unsigned short potentialType;
+
     // simulation section ends
     // output section
     Output output;
