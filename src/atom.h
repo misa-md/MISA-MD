@@ -34,7 +34,7 @@ public :
 
     void clearForce();
 
-    void computeEam(eam *pot, double &comm);
+    void computeEam(const unsigned short potentialType,eam *pot, double &comm);
 
     /**
      * set velocity of a atom whose position is specified by array @param lat
@@ -65,15 +65,17 @@ private:
 
     /**
      * calculate electron density for all lattice atoms.
+     * @param potentialType type of potentail calculation.
      * @param pot pointer of eam potential object.
      */
-    void latRho(eam *pot);
+    void latRho(const unsigned short potentialType,eam *pot);
 
     /**
      * calculate electron density for all interstitial atoms.
+     * @param potentialType type of potentail calculation.
      * @param pot pointer of eam potential object.
      */
-    void interRho(eam *pot);
+    void interRho(const unsigned short potentialType,eam *pot);
 
     /**
      * calculate derivative of embedded energy for all lattice atoms.

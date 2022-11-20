@@ -50,26 +50,29 @@ public:
 
     /**
      * initialize potential function and perform the first simulation step.
+     * @param potentialType type of potentail calculation.
      * @param pot_file_path path of potential file.
      */
-    void prepareForStart(const std::string pot_file_path);
+    void prepareForStart(const unsigned short potentialType,const std::string pot_file_path);
 
     /**
      * set collision energy.
+     * @param potentialType type of potentail calculation.
      * @param coll_step step to perform collision.
      * @param coll_lat lattice position of PKA.
      * @param coll_dir direction of collision.
      * @param coll_pka_energy pka energy, unit eV.
      */
-    void collisionStep(unsigned long coll_step, const _type_lattice_coord coll_lat[DIMENSION + 1],
+    void collisionStep(const unsigned short potentialType,unsigned long coll_step, const _type_lattice_coord coll_lat[DIMENSION + 1],
                   const double coll_dir[DIMENSION], const double coll_pka_energy);
 
     /**
      * do time steps loop simulation.
+     * @param potentialType type of potentail calculation.
      * @param steps total simulation steps.
      * @param init_step the initial step for step iterating.
      */
-    void simulate(const unsigned long steps, const unsigned long init_step);
+    void simulate(const unsigned short potentialType,const unsigned long steps, const unsigned long init_step);
 
     void finalize();
 
@@ -88,9 +91,10 @@ public:
 
     /**
      * this callback function will be called before a simulation step.
+     * @param potentialType type of potentail calculation.
      * @param step current simulation step, starting from 0.
      */
-    virtual void beforeStep(const unsigned long step) {};
+    virtual void beforeStep(const unsigned short potentialType,const unsigned long step) {};
 
     /**
      * this callback function will be called after a simulation step.

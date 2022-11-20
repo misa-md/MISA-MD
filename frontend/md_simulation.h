@@ -30,9 +30,10 @@ public:
 
     /**
      * this callback function will be called before a simulation step.
+     * @param potentialType type of potentail calculation.
      * @param step current simulation step, starting from 0.
      */
-    void beforeStep(const unsigned long step) override;
+    void beforeStep(const unsigned short potentialType, const unsigned long step) override;
 
     /**
      * this callback function will be called after a simulation step.

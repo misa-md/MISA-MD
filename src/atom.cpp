@@ -113,12 +113,12 @@ void atom::clearForce() {
     }
 }
 
-void atom::computeEam(eam *pot, double &comm) {
+void atom::computeEam(const unsigned short potentialType, eam *pot, double &comm) {
     double starttime, stoptime;
     inter_atom_list->makeIndex(atom_list, p_domain); // create index for inter atom and inter ghost atoms.
 
-    latRho(pot);
-    interRho(pot);
+    latRho(potentialType, pot);
+    interRho(potentialType, pot);
 
     {
         // 发送电子云密度
@@ -161,7 +161,7 @@ void atom::computeEam(eam *pot, double &comm) {
     comm += stoptime - starttime;
 }
 
-void atom::latRho(eam *pot) {
+void atom::latRho(const unsigned short potentialType, eam *pot) {
     double delx, dely, delz;
     double dist2;
     const int xstart = p_domain->dbx_lattice_size_ghost[0];
@@ -197,10 +197,19 @@ void atom::latRho(eam *pot) {
                         delz = MD_GET_ATOM_X(atom_central, gid, 2) - MD_GET_ATOM_X(atom_neighbour, nei_id, 2);
                         dist2 = delx * delx + dely * dely + delz * delz;
                         if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                            MD_ADD_ATOM_RHO(atom_central, gid, pot->chargeDensity(
-                                    atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(atom_neighbour, nei_id)), dist2));
-                            MD_ADD_ATOM_RHO(atom_neighbour, nei_id, pot->chargeDensity(
-                                    atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(atom_central, gid)), dist2));
+                            if (potentialType == EAM_STYLE_FS) {
+                                MD_ADD_ATOM_RHO(atom_central, gid, pot->chargeDensity(
+                                        atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(atom_central, gid)),
+                                        atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(atom_neighbour, nei_id)), dist2));
+                                MD_ADD_ATOM_RHO(atom_neighbour, nei_id, pot->chargeDensity(
+                                        atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(atom_neighbour, nei_id)),
+                                        atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(atom_central, gid)), dist2));
+                            } else if (potentialType == EAM_STYLE_ALLOY) {
+                                MD_ADD_ATOM_RHO(atom_central, gid, pot->chargeDensity(
+                                        atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(atom_neighbour, nei_id)), dist2));
+                                MD_ADD_ATOM_RHO(atom_neighbour, nei_id, pot->chargeDensity(
+                                        atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(atom_central, gid)), dist2));
+                            }
                         }
                     }
                 }
@@ -209,7 +218,7 @@ void atom::latRho(eam *pot) {
     }
 }
 
-void atom::interRho(eam *pot) {
+void atom::interRho(const unsigned short potentialType, eam *pot) {
     double delx, dely, delz;
     double dist2;
     double dfEmbed;
@@ -236,11 +245,23 @@ void atom::interRho(eam *pot) {
         dely = (*inter_it).x[1] - MD_GET_ATOM_X(atom_near, near_atom_index, 1);
         delz = (*inter_it).x[2] - MD_GET_ATOM_X(atom_near, near_atom_index, 2);
         dist2 = delx * delx + dely * dely + delz * delz;
-        if (!MD_IS_ATOM_TYPE_INTER(atom_near, near_atom_index) && dist2 < (_cutoffRadius * _cutoffRadius)) {
-            inter_it->rho += pot->chargeDensity(
-                    atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(atom_near, near_atom_index)), dist2);
-            MD_ADD_ATOM_RHO(atom_near, near_atom_index,
-                            pot->chargeDensity(atom_type::getTypeIdByType((*inter_it).type), dist2));
+        if (potentialType == EAM_STYLE_FS) {
+            if (!MD_IS_ATOM_TYPE_INTER(atom_near, near_atom_index) && dist2 < (_cutoffRadius * _cutoffRadius)) {
+                inter_it->rho += pot->chargeDensity(atom_type::getTypeIdByType((*inter_it).type),
+                                                    atom_type::getTypeIdByType(
+                                                            MD_GET_ATOM_TYPE(atom_near, near_atom_index)), dist2);
+                MD_ADD_ATOM_RHO(atom_near, near_atom_index,
+                                pot->chargeDensity(
+                                        atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(atom_near, near_atom_index)),
+                                        atom_type::getTypeIdByType((*inter_it).type), dist2));
+            }
+        } else if (potentialType == EAM_STYLE_ALLOY) {
+            if (!MD_IS_ATOM_TYPE_INTER(atom_near, near_atom_index) && dist2 < (_cutoffRadius * _cutoffRadius)) {
+                inter_it->rho += pot->chargeDensity(
+                        atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(atom_near, near_atom_index)), dist2);
+                MD_ADD_ATOM_RHO(atom_near, near_atom_index,
+                                pot->chargeDensity(atom_type::getTypeIdByType((*inter_it).type), dist2));
+            }
         }
 
         _type_atom_index x, y, z;
@@ -257,10 +278,19 @@ void atom::interRho(eam *pot) {
                 delz = (*inter_it).x[2] - MD_GET_ATOM_X(lat_nei_atom, nei_id, 2);
                 dist2 = delx * delx + dely * dely + delz * delz;
                 if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                    (*inter_it).rho += pot->chargeDensity(
-                            atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(lat_nei_atom, nei_id)), dist2);
-                    MD_ADD_ATOM_RHO(lat_nei_atom, nei_id, pot->chargeDensity(
-                            atom_type::getTypeIdByType((*inter_it).type), dist2));
+                    if (potentialType == EAM_STYLE_FS) {
+                        (*inter_it).rho += pot->chargeDensity(atom_type::getTypeIdByType((*inter_it).type),
+                                                              atom_type::getTypeIdByType(
+                                                                      MD_GET_ATOM_TYPE(lat_nei_atom, nei_id)), dist2);
+                        MD_ADD_ATOM_RHO(lat_nei_atom, nei_id, pot->chargeDensity(
+                                atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(lat_nei_atom, nei_id)),
+                                atom_type::getTypeIdByType((*inter_it).type), dist2));
+                    } else if (potentialType == EAM_STYLE_ALLOY) {
+                        (*inter_it).rho += pot->chargeDensity(
+                                atom_type::getTypeIdByType(MD_GET_ATOM_TYPE(lat_nei_atom, nei_id)), dist2);
+                        MD_ADD_ATOM_RHO(lat_nei_atom, nei_id,
+                                        pot->chargeDensity(atom_type::getTypeIdByType((*inter_it).type), dist2));
+                    }
                 }
             }
         }
@@ -278,8 +308,14 @@ void atom::interRho(eam *pot) {
                 delz = (*inter_it).x[2] - bucket_nei_itl->second->x[2];
                 dist2 = delx * delx + dely * dely + delz * delz;
                 if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                    (*inter_it).rho += pot->chargeDensity(
-                            atom_type::getTypeIdByType(bucket_nei_itl->second->type), dist2);
+                    if (potentialType == EAM_STYLE_FS) {
+                        (*inter_it).rho += pot->chargeDensity(atom_type::getTypeIdByType((*inter_it).type),
+                                                              atom_type::getTypeIdByType(bucket_nei_itl->second->type),
+                                                              dist2);
+                    } else if (potentialType == EAM_STYLE_ALLOY) {
+                        (*inter_it).rho += pot->chargeDensity(
+                                atom_type::getTypeIdByType(bucket_nei_itl->second->type), dist2);
+                    }
                 }
             }
         }
@@ -297,8 +333,13 @@ void atom::interRho(eam *pot) {
                 delz = (*inter_it).x[2] - itl->second->x[2];
                 dist2 = delx * delx + dely * dely + delz * delz;
                 if (dist2 < (_cutoffRadius * _cutoffRadius)) {
-                    (*inter_it).rho += pot->chargeDensity(atom_type::getTypeIdByType(itl->second->type), dist2);
-//                    itl->second->rho += pot->rhoContribution(atom_type::getTypeIdByType((*inter_it).type), dist2);
+                    if (potentialType == EAM_STYLE_FS) {
+                        (*inter_it).rho += pot->chargeDensity(atom_type::getTypeIdByType((*inter_it).type),
+                                                              atom_type::getTypeIdByType(itl->second->type), dist2);
+                    } else if (potentialType == EAM_STYLE_ALLOY) {
+                        (*inter_it).rho += pot->chargeDensity(atom_type::getTypeIdByType(itl->second->type), dist2);
+                        //                    itl->second->rho += pot->rhoContribution(atom_type::getTypeIdByType((*inter_it).type), dist2);
+                    }
                 }
             }
         }

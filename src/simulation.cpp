@@ -85,11 +85,11 @@ void simulation::createAtoms(const int64_t phase_space[DIMENSION], const double 
     _newton_motion = new NewtonMotion(init_step_len, atom_type::num_atom_types); // time step length.
 }
 
-void simulation::prepareForStart(const std::string pot_file_path) {
+void simulation::prepareForStart(const unsigned short potentialType, const std::string pot_file_path) {
     double starttime, stoptime;
     double commtime, computetime, comm;
 
-    // todo file type funl support. pConfigVal->potentialFileType
+    // todo file type funl support. pConfigVal->potentialFileFormat
     // 读取势函数文件
     //atom_type::_type_atom_types eles = 0;
     if (MPIDomain::sim_processor.own_rank == MASTER_PROCESSOR) {
@@ -106,7 +106,7 @@ void simulation::prepareForStart(const std::string pot_file_path) {
         SetflParser *parser = new SetflParser(pot_file_path); // todo delete (vector)
         parser->parseHeader(); // elements count got. // todo parsing error.
         // eles = parser->getEles(); // elements values on non-root processors are 0.
-        _pot = eam::newInstance(EAM_STYLE_ALLOY, parser->getEles(),
+        _pot = eam::newInstance(potentialType, parser->getEles(),
                                 MASTER_PROCESSOR,
                                 MPIDomain::sim_processor.own_rank,
                                 MPIDomain::sim_processor.comm);
@@ -120,7 +120,7 @@ void simulation::prepareForStart(const std::string pot_file_path) {
                                 _pot->geEles());
 */
     } else {
-        _pot = eam::newInstance(EAM_STYLE_ALLOY, 0,
+        _pot = eam::newInstance(potentialType, 0,
                                 MASTER_PROCESSOR,
                                 MPIDomain::sim_processor.own_rank,
                                 MPIDomain::sim_processor.comm);
@@ -143,7 +143,7 @@ void simulation::prepareForStart(const std::string pot_file_path) {
 
     _atom->clearForce(); // clear force before running simulation.
     starttime = MPI_Wtime();
-    _atom->computeEam(_pot, comm);
+    _atom->computeEam(potentialType, _pot, comm);
     stoptime = MPI_Wtime();
     computetime = stoptime - starttime - comm;
     commtime += comm;
@@ -153,7 +153,7 @@ void simulation::prepareForStart(const std::string pot_file_path) {
     kiwi::logs::i(MASTER_PROCESSOR, "sim", "first step compute time: {}\n", computetime);
 }
 
-void simulation::simulate(const unsigned long steps, const unsigned long init_step) {
+void simulation::simulate(const unsigned short potentialType, const unsigned long steps, const unsigned long init_step) {
     double starttime, stoptime;
     double commtime = 0.0, computetime = 0.0, comm = 0.0;
     double alltime, allstart, allstop;
@@ -163,7 +163,7 @@ void simulation::simulate(const unsigned long steps, const unsigned long init_st
 
     // start simulation
     for (_simulation_time_step = init_step; _simulation_time_step < steps; _simulation_time_step++) {
-        beforeStep(_simulation_time_step);
+        beforeStep(potentialType, _simulation_time_step);
         //先进行求解牛顿运动方程第一步
         _newton_motion->firststep(_atom->getAtomList(), _atom->getInterList());
 
@@ -181,7 +181,7 @@ void simulation::simulate(const unsigned long steps, const unsigned long init_st
         //计算力
         _atom->clearForce();
         starttime = MPI_Wtime();
-        _atom->computeEam(_pot, comm);
+        _atom->computeEam(potentialType, _pot, comm);
         stoptime = MPI_Wtime();
         computetime += stoptime - starttime - comm;
         commtime += comm;
@@ -206,7 +206,7 @@ void simulation::simulate(const unsigned long steps, const unsigned long init_st
     }
 }
 
-void simulation::collisionStep(unsigned long coll_step, const _type_lattice_coord coll_lat[DIMENSION + 1],
+void simulation::collisionStep(const unsigned short potentialType, unsigned long coll_step, const _type_lattice_coord coll_lat[DIMENSION + 1],
                                const double coll_dir[DIMENSION], const double coll_pka_energy) {
     double comm = 0;
     _atom->setv(coll_lat, coll_dir, coll_pka_energy);
@@ -214,7 +214,7 @@ void simulation::collisionStep(unsigned long coll_step, const _type_lattice_coor
     _atom->p_send_recv_list->borderInter(_p_domain);
     _atom->p_send_recv_list->exchangeAtom(_p_domain);
     _atom->clearForce();
-    _atom->computeEam(_pot, comm);
+    _atom->computeEam(potentialType, _pot, comm);
 }
 
 void simulation::velocitySetStep(const comm::Region<long> global_region, const double velocity_value[DIMENSION]) {
