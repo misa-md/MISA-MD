@@ -106,7 +106,7 @@ void simulation::prepareForStart(const std::string pot_file_path) {
         SetflParser *parser = new SetflParser(pot_file_path); // todo delete (vector)
         parser->parseHeader(); // elements count got. // todo parsing error.
         // eles = parser->getEles(); // elements values on non-root processors are 0.
-        _pot = eam::newInstance(parser->getEles(),
+        _pot = eam::newInstance(EAM_STYLE_ALLOY, parser->getEles(),
                                 MASTER_PROCESSOR,
                                 MPIDomain::sim_processor.own_rank,
                                 MPIDomain::sim_processor.comm);
@@ -120,7 +120,7 @@ void simulation::prepareForStart(const std::string pot_file_path) {
                                 _pot->geEles());
 */
     } else {
-        _pot = eam::newInstance(0,
+        _pot = eam::newInstance(EAM_STYLE_ALLOY, 0,
                                 MASTER_PROCESSOR,
                                 MPIDomain::sim_processor.own_rank,
                                 MPIDomain::sim_processor.comm);

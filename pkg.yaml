@@ -13,7 +13,7 @@ dependencies:
     github.com/Taywee/args@6.2.2@args: {build: ["CP args.hxx {{.INCLUDE}}/args.hpp"]}
     github.com/google/googletest: {version: release-1.10.0, target: GTest}
     git.hpcer.dev/genshen/kiwi: {version: v0.4.0, target: kiwi}
-    git.hpcer.dev/HPCer/MISA-MD/potential: {version: v0.2.0, target: pot}
+    git.hpcer.dev/HPCer/MISA-MD/potential: {version: v0.3.0, target: pot}
     git.hpcer.dev/HPCer/MISA-MD/libcomm: {version: v0.3.4, target: comm}
     github.com/misa-kmc/xoshiro: {version: v0.1.1, target: xoshiro}
     github.com/jbeder/yaml-cpp@yaml-cpp-0.6.2@yaml-cpp:
