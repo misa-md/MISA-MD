@@ -110,9 +110,9 @@ void MDSimulation::beforeStep(const unsigned short potentialType,const unsigned 
     // log thermodynamic
     // todo: use the same (cur_stage_steps +1)
     if (current_stage.thermo_logs_set && (cur_stage_steps + 1) % current_stage.thermo_logs_every_steps == 0) {
-        // todo: set flag = true;
+        runtime_status.flag_calc_system_potential_energy = true;
     } else {
-        // todo: set flag = false;
+        runtime_status.flag_calc_system_potential_energy = false;
     }
 }
 
@@ -186,7 +186,7 @@ void MDSimulation::log_thermodynamics(const Stage stage, const unsigned long cur
             }
         }
         if ((preset.flags & md_thermodynamic::WithPotentialEnergyMask) != 0) {
-            const double pot_energy = 0;
+            double pot_energy = _atom->get_system_pot_energy();
             ss << " potential energy: " << pot_energy;
         }
         // write buffer
