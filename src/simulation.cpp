@@ -143,7 +143,7 @@ void simulation::prepareForStart(const unsigned short potentialType, const std::
 
     _atom->clearForce(); // clear force before running simulation.
     starttime = MPI_Wtime();
-    _atom->computeEam(potentialType, _pot, comm);
+    _atom->computeEamWrapper(potentialType, _pot, comm);
     stoptime = MPI_Wtime();
     computetime = stoptime - starttime - comm;
     commtime += comm;
@@ -181,7 +181,7 @@ void simulation::simulate(const unsigned short potentialType, const unsigned lon
         //计算力
         _atom->clearForce();
         starttime = MPI_Wtime();
-        _atom->computeEam(potentialType, _pot, comm);
+        _atom->computeEamWrapper(potentialType, _pot, comm);
         stoptime = MPI_Wtime();
         computetime += stoptime - starttime - comm;
         commtime += comm;
@@ -214,7 +214,7 @@ void simulation::collisionStep(const unsigned short potentialType, unsigned long
     _atom->p_send_recv_list->borderInter(_p_domain);
     _atom->p_send_recv_list->exchangeAtom(_p_domain);
     _atom->clearForce();
-    _atom->computeEam(potentialType, _pot, comm);
+    _atom->computeEamWrapper(potentialType, _pot, comm);
 }
 
 void simulation::velocitySetStep(const comm::Region<long> global_region, const double velocity_value[DIMENSION]) {

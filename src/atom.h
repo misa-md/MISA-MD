@@ -34,7 +34,21 @@ public :
 
     void clearForce();
 
-    void computeEam(const unsigned short potentialType,eam *pot, double &comm);
+    /**
+     * @tparam POT_TYPE the potential type used for calculation.
+     * @param pot pointer of eam potential object
+     * @param comm timer for recording communication time.
+     */
+    template<int POT_TYPE>
+    void computeEam(eam *pot, double &comm);
+
+    /**
+     * wrapper function to call template function computeEam
+     * @param pot_type potential type
+     * @param pot pointer of eam potential object
+     * @param comm timer for recording communication time.
+     */
+    void computeEamWrapper(const unsigned short pot_type, eam *pot, double &comm);
 
     /**
      * set velocity of a atom whose position is specified by array @param lat
@@ -65,17 +79,19 @@ private:
 
     /**
      * calculate electron density for all lattice atoms.
-     * @param potentialType type of potentail calculation.
+     * @tparam POT_TYPE the potential type used for calculation.
      * @param pot pointer of eam potential object.
      */
-    void latRho(const unsigned short potentialType,eam *pot);
+    template<int POT_TYPE>
+    void latRho(eam *pot);
 
     /**
      * calculate electron density for all interstitial atoms.
-     * @param potentialType type of potentail calculation.
+     * @tparam POT_TYPE the potential type used for calculation.
      * @param pot pointer of eam potential object.
      */
-    void interRho(const unsigned short potentialType,eam *pot);
+    template<int POT_TYPE>
+    void interRho(eam *pot);
 
     /**
      * calculate derivative of embedded energy for all lattice atoms.
