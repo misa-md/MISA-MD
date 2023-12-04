@@ -22,6 +22,7 @@ set(MD_TH_ARCH_SRC_PATH "" CACHE PATH "Source files directory of TianHe-3 archit
 set(MD_CUDA_ARCH_SRC_PATH "" CACHE PATH "Source directory of CUDA architecture code") # source file directory of cuda arch code.
 set(MD_HIP_ARCH_SRC_PATH "" CACHE PATH "Source directory of HIP architecture code") # source file directory of hip arch code.
 
+set(MD_ATOMS_MEMORY_LAYOUT "default" CACHE STRING "memory layout for atoms, can be: soa/aos/default")
 set(MD_RAND "MT" CACHE STRING "random number generating algorithm") # random number generating
 # options are:
 #   LCG: linear congruential

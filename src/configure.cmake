@@ -21,6 +21,19 @@ if (MD_RUNTIME_CHECKING_FLAG)
     set(MD_RUNTIME_CHECKING ON)
 endif ()
 
+# set kernel strategy.
+string(TOLOWER ${MD_ATOMS_MEMORY_LAYOUT} MD_ATOMS_MEMORY_LAYOUT_LOWER)
+if (MD_ATOMS_MEMORY_LAYOUT_LOWER MATCHES "default")
+    set(MD_ATOM_HASH_ARRAY_MEMORY_LAYOUT_AOS ON) # default memory layout is AoS
+elseif (MD_ATOMS_MEMORY_LAYOUT_LOWER MATCHES "soa")
+    set(MD_ATOM_HASH_ARRAY_MEMORY_LAYOUT_SOA ON)
+elseif (MD_ATOMS_MEMORY_LAYOUT_LOWER MATCHES "aos")
+    set(MD_ATOM_HASH_ARRAY_MEMORY_LAYOUT_AOS ON)
+else ()
+    MESSAGE(FATAL_ERROR "unsupported kernel strategy ${MD_ATOMS_MEMORY_LAYOUT}")
+endif ()
+MESSAGE(STATUS "current kernel strategy is: ${MD_ATOMS_MEMORY_LAYOUT}")
+
 configure_file(
         "${CMAKE_CURRENT_SOURCE_DIR}/md_building_config.h.in"
         "${CONFIGURE_GENERATED_PATH}/md_building_config.h"
