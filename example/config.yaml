@@ -17,7 +17,8 @@ simulation:
   def_timesteps_length: 0.001  # simulation time steps length for each timestep, double type.
 
 potential: # potential file config
-  type: "setfl" # string type
+  format: "setfl" # string type
+  type: "eam/alloy" # string type. Potential type used for simulation. Its value can be "eam/fs" or "eam/alloy".
   file_path: "FeCuNi.eam.alloy" # string type
 
 creation: #  create atoms.

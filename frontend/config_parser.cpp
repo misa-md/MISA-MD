@@ -183,13 +183,14 @@ bool ConfigParser::parseConfigPotential(const YAML::Node &yaml_pot) {
         setError("\"potential\" in config is not specified.");
         return false;
     }
-    const YAML::Node yaml_pot_type = yaml_pot["type"];
+    const YAML::Node yaml_pot_format = yaml_pot["format"];
     const YAML::Node yaml_pot_file = yaml_pot["file_path"];
+    const YAML::Node yaml_pot_type = yaml_pot["type"];
 
-    if (yaml_pot_type) {
-        configValues.potentialFileType = yaml_pot_type.as<std::string>();
+    if (yaml_pot_format) {
+        configValues.potentialFileFormat = yaml_pot_format.as<std::string>();
     } else {
-        setError("potential file type must be specified.");
+        setError("potential file format must be specified.");
         return false;
     }
 
@@ -197,6 +198,20 @@ bool ConfigParser::parseConfigPotential(const YAML::Node &yaml_pot) {
         configValues.potentialFilename = yaml_pot_file.as<std::string>();;
     } else {
         setError("potential filename must be specified.");
+        return false;
+    }
+    if (yaml_pot_type) {
+        std::string type = yaml_pot_type.as<std::string>();;
+        if (type.compare("eam/fs") == 0) {
+            configValues.potentialType = EAM_TYPE_FS;
+        } else if (type.compare("eam/alloy") == 0) {
+            configValues.potentialType = EAM_TYPE_ALLOY;
+        } else {
+            setError("potential type must be specified111.");
+            return false;
+        }
+    } else {
+        setError("potential type must be specified.");
         return false;
     }
     return true;

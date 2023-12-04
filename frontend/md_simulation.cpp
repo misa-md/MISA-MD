@@ -68,7 +68,7 @@ void MDSimulation::onSimulationDone(const unsigned long step) {
     }
 }
 
-void MDSimulation::beforeStep(const unsigned long step) {
+void MDSimulation::beforeStep(const unsigned short potentialType,const unsigned long step) {
     // set new stage
     if (cur_stage_steps >= current_stage.steps) {
         // if we are out of stage steps, then we can move to next stage.
@@ -88,7 +88,7 @@ void MDSimulation::beforeStep(const unsigned long step) {
     // perform collision.
     if (current_stage.collision_set && cur_stage_steps + 1 == current_stage.collisionStep) {
         // just output atoms in preview step of the collision step.
-        collisionStep(step, current_stage.collisionLat, current_stage.direction, current_stage.pkaEnergy);
+        collisionStep(potentialType, step, current_stage.collisionLat, current_stage.direction, current_stage.pkaEnergy);
     }
 
     // perform "velocity"

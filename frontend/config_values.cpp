@@ -147,8 +147,9 @@ void ConfigValues::packdata(kiwi::Bundle &bundle) {
     read_phase.packdata(bundle);
 
     // potential
-    bundle.put(potentialFileType);
+    bundle.put(potentialFileFormat);
     bundle.put(potentialFilename);
+    bundle.put(potentialType);
 
     // output section
     bundle.put(output.presets.size());
@@ -199,8 +200,9 @@ void ConfigValues::unpackdata(kiwi::Bundle &bundle) {
     read_phase.unpackdata(cursor, bundle);
 
     // potential
-    bundle.get(cursor, potentialFileType);
+    bundle.get(cursor, potentialFileFormat);
     bundle.get(cursor, potentialFilename);
+    bundle.get(cursor, potentialType);
 
     // output section.
     std::size_t presets_size = 0;
@@ -254,8 +256,9 @@ std::ostream &operator<<(std::ostream &os, const ConfigValues &cv) {
        << ", init_step: " << cv.read_phase.init_step << std::endl;
 
     // potential
-    os << "simulation.potential_file.type:" << cv.potentialFileType << std::endl;
+    os << "simulation.potential_file.format:" << cv.potentialFileFormat << std::endl;
     os << "simulation.potential_file.filename:" << cv.potentialFilename << std::endl;
+    os << "simulation.potential.type:" << cv.potentialType << std::endl;
 
     // output section
     os << "output.preset:" << std::endl;
