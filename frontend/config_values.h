@@ -14,6 +14,7 @@
 #include "io/atom_dump_types.h"
 #include "types/pre_define.h"
 #include "types/atom_types.h"
+#include "config_values_thermodynamic.hpp"
 
 enum OutputMode {
     DEBUG = 0,
@@ -47,6 +48,11 @@ struct Stage {
     int collisionLat[4];
     double pkaEnergy;
     double direction[DIMENSION];
+
+    // thermodynamic
+    bool thermo_logs_set;
+    std::string thermo_logs_preset_use;
+    unsigned int thermo_logs_every_steps;
 
     bool velocity_set;
     unsigned long velocity_step;
@@ -94,6 +100,7 @@ struct Output {
 
     // interval to output thermodynamics information.
     unsigned long thermo_interval;
+    std::vector<md_thermodynamic::OutputThermodynamic> thermo_presets;
     // logs in output section
     _type_logs_mode logs_mode;
     std::string logs_filename;
