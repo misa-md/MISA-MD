@@ -58,7 +58,6 @@ output:
         file_path: "before_collision.{}.out"
         by_frame: true
   thermo:
-    interval: 0 # @deprecated. unsigned integer type, default is 0, no output
     presets:
       - name: my_thermo
         with: [step, time, temp, pe, ke, etotal]

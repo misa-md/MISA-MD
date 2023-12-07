@@ -98,14 +98,13 @@ struct Output {
     // output section
     std::vector<DumpConfig> presets;
 
-    // interval to output thermodynamics information.
-    unsigned long thermo_interval;
+    // config fields to output thermodynamics information.
     std::vector<md_thermodynamic::OutputThermodynamic> thermo_presets;
     // logs in output section
     _type_logs_mode logs_mode;
     std::string logs_filename;
 
-    Output() : thermo_interval(0), logs_mode(LOGS_MODE_CONSOLE), logs_filename("") {}
+    Output() : logs_mode(LOGS_MODE_CONSOLE), logs_filename("") {}
 };
 
 struct AtomType {
