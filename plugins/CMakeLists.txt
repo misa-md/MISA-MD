@@ -1,6 +1,8 @@
 
 add_library(${MD_PLUGINS_LIB_NAME} STATIC
         plugin_api.h
+        ws_analysis_otf_plugin.cpp
+        ws_analysis_otf_plugin.h
 )
 
 target_include_directories(

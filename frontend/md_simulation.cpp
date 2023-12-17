@@ -28,7 +28,7 @@ void MDSimulation::onSimulationStarted(const unsigned long init_step) {
                 this->dump_instances[preset.name] = new OutputDump(preset, *_p_domain);
                 break;
             case OutputMode::COPY:
-                this->dump_instances[preset.name] = new OutputCopy(preset, *_p_domain);
+                this->dump_instances[preset.name] = new OutputCopy(preset, *_p_domain, io_plugins);
                 break;
         }
     }
@@ -121,7 +121,7 @@ void MDSimulation::postStep(const unsigned long step) {
             MPI_Abort(MPI_COMM_WORLD, 1);
         } else {
             OutputBaseInterface *dump_ptr = this->dump_instances[current_stage.dump_preset_use];
-            dump_ptr->onOutputStep(step + 1, _atom->getAtomList(), _atom->getInterList());
+            dump_ptr->onOutputStep(step + 1, _atom->getAtomList(), _atom->getInterList(), io_plugins);
         }
     }
 
@@ -218,3 +218,11 @@ void MDSimulation::forceChecking() {
 }
 
 #endif //MD_RUNTIME_CHECKING
+
+void MDSimulation::load_plugins(plugins::IOPlugin *plugin) {
+    io_plugins = plugin;
+}
+
+void MDSimulation::unload_plugins() {
+    delete io_plugins;
+}

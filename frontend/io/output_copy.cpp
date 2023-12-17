@@ -6,7 +6,7 @@
 #include <logs/logs.h>
 #include "output_copy.h"
 
-OutputCopy::OutputCopy(const DumpConfig output, const comm::BccDomain p_domain)
+OutputCopy::OutputCopy(const DumpConfig output, const comm::BccDomain p_domain, plugins::IOPlugin *io_plugins)
         : dumpInstance(nullptr), OutputBaseInterface(output, p_domain) {}
 
 void OutputCopy::prepareOutput(const comm::BccDomain domain) {
@@ -16,8 +16,9 @@ void OutputCopy::prepareOutput(const comm::BccDomain domain) {
                  domain.dbx_sub_box_lattice_size[2];
 }
 
-void OutputCopy::onOutputStep(const unsigned long time_step, AtomList *atom_list, InterAtomList *inter_atom_list) {
-    double start = 0, stop = 0;
+void OutputCopy::onOutputStep(const unsigned long time_step, AtomList *atom_list, InterAtomList *inter_atom_list,
+                              plugins::IOPlugin *io_plugins) {
+  double start = 0, stop = 0;
     start = MPI_Wtime();
     if (!output_config.by_frame) {
         if (dumpInstance == nullptr) { // initialize atomDump if it is not initialized.
@@ -28,14 +29,14 @@ void OutputCopy::onOutputStep(const unsigned long time_step, AtomList *atom_list
         }
         dumpInstance->setFrameHeader(time_step);
         dumpInstance->dumpFrame(region, !(output_config.dump_whole_system),
-                                atom_list, inter_atom_list, time_step);
+                                atom_list, inter_atom_list, time_step, io_plugins);
     } else {
         std::string filename = fmt::format(output_config.file_path, time_step);
         // pointer to the atom dump class for outputting atoms information.
         auto *dump_instance = new AtomDump(atoms_size, 1, output_config.dump_mask, begin, end);
         dump_instance->tryCreateLocalStorage(filename);
         dump_instance->setFrameHeader(time_step);
-        dump_instance->dumpFrame(region, !(output_config.dump_whole_system), atom_list, inter_atom_list, time_step);
+        dump_instance->dumpFrame(region, !(output_config.dump_whole_system), atom_list, inter_atom_list, time_step, io_plugins);
         dump_instance->writeDumpHeader();
         delete dump_instance;
     }

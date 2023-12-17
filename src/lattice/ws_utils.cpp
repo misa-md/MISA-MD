@@ -150,6 +150,27 @@ _type_atom_index ws::findNearLatIndexInSubBox(const BccLattice &lattice, const _
     return lattice.IndexOf3DIndex(j, k, l);
 }
 
+// get the 1D index (in sub-box) of nearest lattice of the given atom.
+_type_atom_index ws::getNearestLatIndexInSubBox(const BccLattice &lattice, const _type_atom_location src_x[DIMENSION],
+                                                const comm::Domain *p_domain) {
+    // get the lattice coordinate of nearest atom first.
+    _type_atom_index coord_to_sub_box[DIMENSION];
+    getNearLatSubBoxCoord(src_x, p_domain, coord_to_sub_box);
+    _type_atom_index &j = coord_to_sub_box[0];
+    _type_atom_index &k = coord_to_sub_box[1];
+    _type_atom_index &l = coord_to_sub_box[2];
+
+    // if nearest atom is out of box.
+    if (j < 0 || k < 0 || l < 0 ||
+        j >= 2 * p_domain->sub_box_lattice_size[0] ||
+        k >= p_domain->sub_box_lattice_size[1] ||
+        l >= p_domain->sub_box_lattice_size[2]) {
+        return box::IndexNotExists;
+    }
+    // calculate atom index in non-ghost included sub-box
+    return lattice.IndexOf3DIndexSubBox(j, k, l);
+}
+
 void ws::getNearLatCoord(const AtomElement &src_atom, const comm::Domain *p_domain,
                          _type_atom_index coords[DIMENSION]) {
     VORONOY(src_atom.x[0], src_atom.x[1], src_atom.x[2], p_domain->lattice_const)

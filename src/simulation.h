@@ -28,8 +28,9 @@ public:
      * @param phase_space the lattice count in each dimension.
      * @param lattice_const lattice constance
      * @param cutoff_radius_factor cutoff radius factor = cutoff/lattice_const
+     * @return the created domain.
      */
-    void createDomain(const int64_t phase_space[DIMENSION],
+    comm::BccDomain *createDomain(const int64_t phase_space[DIMENSION],
                       const double lattice_const, const double cutoff_radius_factor);
 
     /**
@@ -109,6 +110,8 @@ public:
     virtual void onForceSolved(const unsigned long step) {};
 
     void abort(int exitcode);
+
+    inline atom *get_atom() { return _atom; }
 
 protected:
     /**

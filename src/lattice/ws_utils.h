@@ -67,6 +67,10 @@ namespace ws {
      */
     _type_atom_index findNearLatIndexInSubBox(const BccLattice &lattice, const _type_atom_location src_x[DIMENSION], const comm::Domain *p_domain);
 
+
+    _type_atom_index getNearestLatIndexInSubBox(const BccLattice &lattice, const _type_atom_location src_x[DIMENSION],
+                                                const comm::Domain *p_domain);
+
     /**
      * get the coordinate(starting from ghost area, not sub-box) of nearest lattice of @param src_atom.
      *

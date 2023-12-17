@@ -12,8 +12,9 @@ OutputDump::OutputDump(const DumpConfig output, const comm::BccDomain p_domain)
 
 void OutputDump::prepareOutput(const comm::BccDomain p_domain) {}
 
-void OutputDump::onOutputStep(const unsigned long time_step, AtomList *atom_list, InterAtomList *inter_atom_list) {
-    double start = 0, stop = 0;
+void OutputDump::onOutputStep(const unsigned long time_step, AtomList *atom_list, InterAtomList *inter_atom_list,
+                              plugins::IOPlugin *io_plugins) {
+  double start = 0, stop = 0;
     start = MPI_Wtime();
     dump(time_step, atom_list, inter_atom_list);
     stop = MPI_Wtime();

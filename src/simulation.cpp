@@ -26,7 +26,7 @@ simulation::~simulation() {
     delete _pot;
 }
 
-void simulation::createDomain(const int64_t phase_space[DIMENSION],
+comm::BccDomain *simulation::createDomain(const int64_t phase_space[DIMENSION],
                               const double lattice_const, const double cutoff_radius_factor) {
 
     //进行区域分解
@@ -53,6 +53,7 @@ void simulation::createDomain(const int64_t phase_space[DIMENSION],
         archAccDomainInit(_p_domain);
     }
     kiwi::logs::v(MASTER_PROCESSOR, "domain", "Initialization done.\n");
+    return _p_domain;
 }
 
 void simulation::createAtoms(const int64_t phase_space[DIMENSION], const double lattice_const,

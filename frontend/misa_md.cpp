@@ -15,6 +15,8 @@
 #include "frontend_config.h"
 #include "md_simulation.h"
 
+#include "ws_analysis_otf_plugin.h"
+
 bool MISAMD::beforeCreate(int argc, char *argv[]) {
     // parser arguments
     // see https://github.com/Taywee/args for using args.
@@ -104,7 +106,8 @@ bool MISAMD::prepare() {
     mpi_types::setInterMPIType();
     pSimulation = new MDSimulation(&ConfigParser::getInstance()->configValues);
     const ConfigValues config = ConfigParser::getInstance()->configValues;
-    pSimulation->createDomain(config.phaseSpace, config.latticeConst, config.cutoffRadiusFactor); // 区域分解
+    comm::BccDomain *p_domain = pSimulation->createDomain(config.phaseSpace, config.latticeConst,
+                                                          config.cutoffRadiusFactor); // 区域分解
 
     // set system atom mass
     std::vector<tp_atom_type_weight> weight;
@@ -125,6 +128,12 @@ bool MISAMD::prepare() {
     // todo alloy ratio seed is not used.
     pSimulation->createAtoms(config.phaseSpace, config.latticeConst, config.timeStepLength,
                              create_mode, config.createTSet, config.createSeed, weight, config.read_phase.file_path);
+
+    // initialize and load plugins after the atoms are created.
+    const BccLattice &lat =  pSimulation->get_atom()->atom_list->lattice;
+    plugins::WSAnalysisOTFPlugin *ws_otf = new plugins::WSAnalysisOTFPlugin(lat, p_domain);
+    (dynamic_cast<MDSimulation *>(pSimulation))->load_plugins(ws_otf);
+
     return true;
 }
 
@@ -151,6 +160,7 @@ void MISAMD::onFinish() {
 void MISAMD::beforeDestroy() {
     kiwi::logs::v(MASTER_PROCESSOR, "app", "app was detached.\n");
     archEnvFinalize(); // clean architectures environment.
+    (dynamic_cast<MDSimulation *>(pSimulation))->unload_plugins();
 }
 
 void MISAMD::onDestroy() {

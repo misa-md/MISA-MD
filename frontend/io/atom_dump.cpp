@@ -9,6 +9,7 @@
 #include "utils/mpi_domain.h"
 #include "atom_dump_types.h"
 #include "types/pre_define.h"
+#include "plugin_api.h"
 
 AtomDump::AtomDump() : frames(0), cur_frame(0), _atoms_size(0), mask(atom_dump::WithPositionMask), frames_meta() {}
 
@@ -75,9 +76,20 @@ void AtomDump::setFrameHeader(size_t time_step) {
     }
 }
 
+bool AtomDump::can_atom_dump( const bool region_enabled,const comm::Region<double> region,
+                             const _type_atom_location x[DIMENSION], plugins::IOPlugin *io_plugin) {
+    if (region_enabled && !region.isIn(x[0], x[1], x[2])) {
+        return false;
+    }
+    if(io_plugin == nullptr) {
+      return true;
+    }
+    return io_plugin->filter_atom( x);
+}
+
 // todo asynchronous io.
-void AtomDump::dumpFrame(const comm::Region<double> region, const bool region_enabled,
-                         AtomList *atom_list, InterAtomList *inter_list, size_t time_step) {
+void AtomDump::dumpFrame(const comm::Region<double> region, const bool region_enabled, AtomList *atom_list,
+                         InterAtomList *inter_list, size_t time_step, plugins::IOPlugin *io_plugins) {
     if (local_storage == nullptr) {
         kiwi::logs::e("dump", "local storage is not created");
         // todo exit application.
@@ -89,11 +101,14 @@ void AtomDump::dumpFrame(const comm::Region<double> region, const bool region_en
     }
 
     const MPI_Datatype mpi_data_type = atom_dump::registerAtomDumpMPIDataType(mask);
+    if (io_plugins != nullptr) {
+      io_plugins->init();
+    } else {
 
     // dumping inter atoms.
     kiwi::logs::v("dump", "inter atoms count: {}\n", inter_list->nLocalInter());
     for (AtomElement &inter_ref: inter_list->inter_list) {
-        if (!region_enabled || region.isIn(inter_ref.x[0], inter_ref.x[1], inter_ref.x[2])) {
+        if (can_atom_dump(region_enabled, region, inter_ref.x, io_plugins)) {
             buffered_writer->write(&inter_ref, mpi_data_type);
         }
     }
@@ -108,8 +123,7 @@ void AtomDump::dumpFrame(const comm::Region<double> region, const bool region_en
                     continue; // skip out of boxed atoms.
                 }
                 // if it is whole system dump, or not while system dump but atom is in the region
-                if (!region_enabled || region.isIn(MD_GET_ATOM_X(atom_, gid, 0), MD_GET_ATOM_X(atom_, gid, 1),
-                                                   MD_GET_ATOM_X(atom_, gid, 2))) {
+                if (can_atom_dump(region_enabled, region, MD_GET_ATOM_X_ALL(atom_, gid), io_plugins)) {
                     AtomElement atom_write = MD_TO_ATOM_ELEMENT(atom_, gid);
                     buffered_writer->write(&atom_write, mpi_data_type);
                 }

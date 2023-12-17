@@ -9,6 +9,7 @@
 #include "atom.h"
 #include "../config_values.h"
 #include "buffered_io.h"
+#include "plugin_api.h"
 
 /**
  * Dump atoms information(including position and velocity of atoms) to binary or text file(s).
@@ -61,12 +62,24 @@ public:
     void setFrameHeader(size_t time_step);
 
     /**
+     * check IO plugins and dump region.
+     * @param region_enabled enabled/disable region dump.
+     * @param region the dump region.
+     * @param x position of the atom for dumping.
+     * @param io_plugins the io plugin for atoms filter.
+     * @return true for can dump, false for not dump.
+     */
+    static bool can_atom_dump(const bool region_enabled, const comm::Region<_type_atom_location> region,
+                       const _type_atom_location x[DIMENSION], plugins::IOPlugin *io_plugins);
+
+    /**
      * dumpFrame dump one frame of atoms in current system into file(s), as well as frame header.
      * @param region the dump region
      * @param region_enabled enabled region dump.
+     * @param io_plugins the io plugin for atoms filter.
      */
     void dumpFrame(const comm::Region<double> region, const bool region_enabled,
-            AtomList *atom_list, InterAtomList *inter_list, size_t time_step);
+                   AtomList *atom_list, InterAtomList *inter_list, size_t time_step, plugins::IOPlugin *io_plugins);
 
     /**
      * It write global header and frame headers into dump file.

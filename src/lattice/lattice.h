@@ -64,6 +64,18 @@ public:
     IndexOf3DIndex(_type_atom_index xIndex, _type_atom_index yIndex, _type_atom_index zIndex) const {
         return (zIndex * _size_y + yIndex) * _size_x + xIndex;
     }
+
+    /**
+     * get linear index of 3d atoms in the simulation box.
+     * @param xIndex index at x dimension
+     * @param yIndex index at y dimension
+     * @param zIndex index at z dimension
+     * @return the linear index.
+     */
+    inline _type_atom_index IndexOf3DIndexSubBox(_type_atom_index xIndex, _type_atom_index yIndex,
+                                                 _type_atom_index zIndex) const {
+      return (zIndex * _size_sub_box_y + yIndex) * _size_sub_box_x + xIndex;
+    }
 };
 
 

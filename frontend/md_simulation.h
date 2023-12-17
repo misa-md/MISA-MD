@@ -9,6 +9,8 @@
 #include <simulation.h>
 #include "io/output_base_interface.h"
 
+#include "ws_analysis_otf_plugin.h"
+
 class MDSimulation : public simulation {
 public:
     explicit MDSimulation(ConfigValues *p_config_values);
@@ -46,6 +48,15 @@ public:
      * @param step current simulation step, starting from 0.
      */
     void onForceSolved(const unsigned long step) override;
+
+public:
+    /**
+     * pass plugin to our simulation system.
+     * @param plugin the plugin to be loaded.
+     */
+    void load_plugins(plugins::IOPlugin *plugin);
+
+    void unload_plugins();
 
 private:
     /**
@@ -95,7 +106,11 @@ private:
 
 #endif
 
+private:
+    /**
+     * the io plugin for filtering atoms in dumping step.
+     */
+    plugins::IOPlugin *io_plugins = nullptr;
 };
-
 
 #endif //MISA_MD_MD_SIMULATION_H
