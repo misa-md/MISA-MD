@@ -70,7 +70,7 @@ int atom::decide() {
         // If we use func findNearLatAtom to find a near atom of an inter atom in atoms list
         // the near atom can be an ghost atom (but the position of that ghost atom may still be in sub-box).
         // we should find near atom only in lattice atoms(exclude ghost atoms), so we use func finNearLatAtomInSubBox.
-        const _type_atom_index near_atom_inx = ws::findNearLatIndexInSubBox(atom_list->lattice, inter_ref, p_domain);
+        const _type_atom_index near_atom_inx = ws::findNearLatIndexInSubBox(atom_list->lattice, inter_ref.x, p_domain);
 
         // the near atom must be in sub-box, and it is in the lattice atom lists.
         if (near_atom_inx != box::IndexNotExists) {
@@ -258,7 +258,7 @@ void atom::interRho(eam *pot) {
     for (_type_inter_list::iterator inter_it = inter_atom_list->inter_list.begin();
          inter_it != inter_atom_list->inter_list.end(); inter_it++) {
         // get index of nearest atom of inter atoms.
-        near_atom_index = ws::findNearLatIndexInSubBox(atom_list->lattice, *inter_it, p_domain);
+        near_atom_index = ws::findNearLatIndexInSubBox(atom_list->lattice, (*inter_it).x, p_domain);
 #ifdef MD_RUNTIME_CHECKING
         if (near_atom_index == box::IndexNotExists) {
             assert(false);
@@ -466,7 +466,7 @@ void atom::interForce(eam *pot) {
     _type_atom_index _atom_near_index;
     for (_type_inter_list::iterator inter_it = inter_atom_list->inter_list.begin();
          inter_it != inter_atom_list->inter_list.end(); inter_it++) {
-        _atom_near_index = ws::findNearLatIndexInSubBox(atom_list->lattice, *inter_it, p_domain);
+        _atom_near_index = ws::findNearLatIndexInSubBox(atom_list->lattice, (*inter_it).x, p_domain);
 #ifdef MD_RUNTIME_CHECKING
         if (_atom_near_index == box::IndexNotExists) {
             assert(false);

@@ -31,7 +31,7 @@ TEST(ws_utils_getNearLatSubBoxCoord_test, _ws_utils_test) {
                 src_atom.x[2] = x % 2 == 0 ? lattice_const * z : lattice_const * z + lattice_const / 2;
 
                 _type_atom_index coords[DIMENSION];
-                ws::getNearLatSubBoxCoord(src_atom, p_domain, coords);
+                ws::getNearLatSubBoxCoord(src_atom.x, p_domain, coords);
                 EXPECT_EQ(coords[0], x);
                 EXPECT_EQ(coords[1], y);
                 EXPECT_EQ(coords[2], z);
@@ -41,7 +41,7 @@ TEST(ws_utils_getNearLatSubBoxCoord_test, _ws_utils_test) {
                 src_atom.x[1] = src_atom.x[1] - 0.2 * lattice_const;
                 src_atom.x[2] = src_atom.x[2] + 0.15 * lattice_const;
 
-                ws::getNearLatSubBoxCoord(src_atom, p_domain, coords);
+                ws::getNearLatSubBoxCoord(src_atom.x, p_domain, coords);
                 EXPECT_EQ(coords[0], x);
                 EXPECT_EQ(coords[1], y);
                 EXPECT_EQ(coords[2], z);
@@ -82,22 +82,22 @@ z lattice coord:
     src_atom.x[1] = 0;
     src_atom.x[2] = 0 - 0.01;
     _type_atom_index coords[DIMENSION];
-    ws::getNearLatSubBoxCoord(src_atom, p_domain, coords);
+    ws::getNearLatSubBoxCoord(src_atom.x, p_domain, coords);
     EXPECT_EQ(coords[2], 0);
 
     // case 2:
     src_atom.x[2] = lattice_const * (-2) - 0.01;
-    ws::getNearLatSubBoxCoord(src_atom, p_domain, coords);
+    ws::getNearLatSubBoxCoord(src_atom.x, p_domain, coords);
     EXPECT_EQ(coords[2], -2);
 
     // case 3:
     src_atom.x[2] = lattice_const * (-2.44);
-    ws::getNearLatSubBoxCoord(src_atom, p_domain, coords);
+    ws::getNearLatSubBoxCoord(src_atom.x, p_domain, coords);
     EXPECT_EQ(coords[2], -2);
 
     // case 4:
     src_atom.x[2] = lattice_const * (-2.66);
-    ws::getNearLatSubBoxCoord(src_atom, p_domain, coords);
+    ws::getNearLatSubBoxCoord(src_atom.x, p_domain, coords);
     EXPECT_EQ(coords[2], -3);
 }
 
@@ -131,27 +131,27 @@ z lattice coord:
     src_atom.x[1] = 0.5 * lattice_const;
     src_atom.x[2] = 0 - 0.01;
     _type_atom_index coords[DIMENSION];
-    ws::getNearLatSubBoxCoord(src_atom, p_domain, coords);
+    ws::getNearLatSubBoxCoord(src_atom.x, p_domain, coords);
     EXPECT_EQ(coords[2], -1);
 
     // case 2:
     src_atom.x[2] = lattice_const * (-2) + 0.01;
-    ws::getNearLatSubBoxCoord(src_atom, p_domain, coords);
+    ws::getNearLatSubBoxCoord(src_atom.x, p_domain, coords);
     EXPECT_EQ(coords[2], -2);
 
     // case 3:
     src_atom.x[2] = lattice_const * (-2) - 0.01;
-    ws::getNearLatSubBoxCoord(src_atom, p_domain, coords);
+    ws::getNearLatSubBoxCoord(src_atom.x, p_domain, coords);
     EXPECT_EQ(coords[2], -3);
 
     // case 4:
     src_atom.x[2] = lattice_const * (-2.44);
-    ws::getNearLatSubBoxCoord(src_atom, p_domain, coords);
+    ws::getNearLatSubBoxCoord(src_atom.x, p_domain, coords);
     EXPECT_EQ(coords[2], -3);
 
     // case 5:
     src_atom.x[2] = lattice_const * (-2.66);
-    ws::getNearLatSubBoxCoord(src_atom, p_domain, coords);
+    ws::getNearLatSubBoxCoord(src_atom.x, p_domain, coords);
     EXPECT_EQ(coords[2], -3);
 }
 
@@ -174,36 +174,36 @@ TEST(ws_utils_getNearLatSubBoxCoord_minusX_test, _ws_utils_test) {
     src_atom.x[1] = 0.0;
     src_atom.x[2] = 0.0;
     _type_atom_index coords[DIMENSION];
-    ws::getNearLatSubBoxCoord(src_atom, p_domain, coords);
+    ws::getNearLatSubBoxCoord(src_atom.x, p_domain, coords);
     EXPECT_EQ(coords[0], 0 * 2);
 
     // case 2:
     src_atom.x[0] = lattice_const * (-2) - 0.01;
-    ws::getNearLatSubBoxCoord(src_atom, p_domain, coords);
+    ws::getNearLatSubBoxCoord(src_atom.x, p_domain, coords);
     EXPECT_EQ(coords[0], -2 * 2);
 
     // case 3:
     src_atom.x[0] = lattice_const * (-2 - 0.1); // point in (-1.75,-2.25) will be -2*2 = -4
-    ws::getNearLatSubBoxCoord(src_atom, p_domain, coords);
+    ws::getNearLatSubBoxCoord(src_atom.x, p_domain, coords);
     EXPECT_EQ(coords[0], -2 * 2);
 
     // case 4:
     src_atom.x[0] = lattice_const * (-2 + 0.1); // point in  (-1.75,-2.25) will be -2*2 = -4
-    ws::getNearLatSubBoxCoord(src_atom, p_domain, coords);
+    ws::getNearLatSubBoxCoord(src_atom.x, p_domain, coords);
     EXPECT_EQ(coords[0], -2 * 2);
 
     // case 5:
     src_atom.x[0] = lattice_const * (-2.25 - 0.1); // point in (-2.75,-2.25) will be -2.5*2 = -5
-    ws::getNearLatSubBoxCoord(src_atom, p_domain, coords);
+    ws::getNearLatSubBoxCoord(src_atom.x, p_domain, coords);
     EXPECT_EQ(coords[0], -2 * 2 );
 
     // case 6:
     src_atom.x[0] = lattice_const * (-2.75 + 0.1); // point in (-2.75,-2.25) will be -2.5*2 = -5
-    ws::getNearLatSubBoxCoord(src_atom, p_domain, coords);
+    ws::getNearLatSubBoxCoord(src_atom.x, p_domain, coords);
     EXPECT_EQ(coords[0], -2 * 3);
 
     // case 7:
     src_atom.x[0] = lattice_const * (-2.75 - 0.1); // point in (-3,-2.75) will be -3*2 = -6
-    ws::getNearLatSubBoxCoord(src_atom, p_domain, coords);
+    ws::getNearLatSubBoxCoord(src_atom.x, p_domain, coords);
     EXPECT_EQ(coords[0], -3 * 2);
 }

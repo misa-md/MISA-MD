@@ -47,25 +47,25 @@ namespace ws {
      *
      * If there is no nearest atom in sub box found, an nullptr pointer will be returned.
      * @param atom_list pointer to the atom list.
-     * @param src_atom reference to source atom.
+     * @param src_x the position referenced to the source atom.
      * @param p_domain pointer to box domain.
      * @return array index to the nearest atom or nullptr if the nearest atom is not found.
      */
     _type_atom_index
-    findNearLatAtomInSubBox(AtomList *atom_list, const AtomElement &src_atom, const comm::Domain *p_domain);
+    findNearLatAtomInSubBox(AtomList *atom_list, const _type_atom_location src_x[DIMENSION], const comm::Domain *p_domain);
 
     /**
-     * It returns the lattice index in 3d(not atom) of nearest lattice of @param src_atom.
+     * It returns the lattice index in 3d(not atom) of nearest lattice of the atom specified by @param src_x.
      *
      * if the nearest atom is not found in sub-box(the @param src_atom can be out of sub-box),
      * box::IndexNotExists will be returned.
      *
      * @param lattice the lattice which described the simulation box.
-     * @param src_atom reference to source atom.
+     * @param src_x the position referenced to the source atom.
      * @param p_domain pointer to box domain.
      * @return lattice index of nearest atom in 3d, or box::IndexNotExists if the nearest atom is not found
      */
-    _type_atom_index findNearLatIndexInSubBox(const BccLattice &lattice, const AtomElement &src_atom, const comm::Domain *p_domain);
+    _type_atom_index findNearLatIndexInSubBox(const BccLattice &lattice, const _type_atom_location src_x[DIMENSION], const comm::Domain *p_domain);
 
     /**
      * get the coordinate(starting from ghost area, not sub-box) of nearest lattice of @param src_atom.
@@ -81,11 +81,11 @@ namespace ws {
      * similar as above, but the lattice coordinate is relative to sub-box, ghost area is not included.
      *
      * @note the x lattice coordinate is doubled.
-     * @param src_atom source atom.
+     * @param src_x the position referenced to the source atom.
      * @param p_domain pointer to box domain.
      * @param coords the coordinate of nearest lattice to be returned.
      */
-    void getNearLatSubBoxCoord(const AtomElement &src_atom, const comm::Domain *p_domain, _type_atom_index coords[DIMENSION]);
+    void getNearLatSubBoxCoord(const _type_atom_location src_x[DIMENSION], const comm::Domain *p_domain, _type_atom_index coords[DIMENSION]);
 
     /**
      * check weather an atom's coordinate is in current sub-box (the sub box on current processor).

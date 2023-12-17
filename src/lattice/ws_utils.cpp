@@ -121,17 +121,17 @@ _type_atom_index ws::findNearLatAtom(AtomList *atom_list, const AtomElement &src
     return near_index;
 }
 
-_type_atom_index ws::findNearLatAtomInSubBox(AtomList *atom_list, const AtomElement &src_atom,
+_type_atom_index ws::findNearLatAtomInSubBox(AtomList *atom_list, const _type_atom_location src_x[DIMENSION],
                                              const comm::Domain *p_domain) {
-    _type_atom_index near_index = findNearLatIndexInSubBox(atom_list->lattice, src_atom, p_domain);
+    _type_atom_index near_index = findNearLatIndexInSubBox(atom_list->lattice, src_x, p_domain);
     return near_index;
 }
 
-_type_atom_index ws::findNearLatIndexInSubBox(const BccLattice &lattice, const AtomElement &src_atom,
+_type_atom_index ws::findNearLatIndexInSubBox(const BccLattice &lattice, const _type_atom_location src_x[DIMENSION],
                                               const comm::Domain *p_domain) {
     // get the lattice coordinate of nearest atom first.
     _type_atom_index coord_to_sub_box[DIMENSION];
-    getNearLatSubBoxCoord(src_atom, p_domain, coord_to_sub_box);
+    getNearLatSubBoxCoord(src_x, p_domain, coord_to_sub_box);
     _type_atom_index &j = coord_to_sub_box[0];
     _type_atom_index &k = coord_to_sub_box[1];
     _type_atom_index &l = coord_to_sub_box[2];
@@ -175,9 +175,9 @@ void ws::getNearLatCoord(const AtomElement &src_atom, const comm::Domain *p_doma
  * If d1 < d2, return lattice coordinate of major lattice,
  * otherwise return lattice coordinate of minor lattice.
  */
-void ws::getNearLatSubBoxCoord(const AtomElement &src_atom, const comm::Domain *p_domain,
+void ws::getNearLatSubBoxCoord(const _type_atom_location src_x[DIMENSION], const comm::Domain *p_domain,
                                _type_atom_index coords[DIMENSION]) {
-    VORONOY(src_atom.x[0], src_atom.x[1], src_atom.x[2], p_domain->lattice_const)
+    VORONOY(src_x[0], src_x[1], src_x[2], p_domain->lattice_const)
 
     // get relative coords
     coords[0] = lat_coord_x - 2 * p_domain->sub_box_lattice_region.x_low;

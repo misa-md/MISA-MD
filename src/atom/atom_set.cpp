@@ -43,7 +43,7 @@ void AtomSet::calcNeighbourIndices(const double cutoff_radius_factor, const _typ
 bool
 AtomSet::addAtom(comm::BccDomain *p_domain, const AtomElement atom) {
     if (ws::isInBox(atom.x[0], atom.x[1], atom.x[2], p_domain)) {
-        const _type_atom_index near_atom_index = ws::findNearLatIndexInSubBox(atom_list->lattice, atom, p_domain);
+        const _type_atom_index near_atom_index = ws::findNearLatIndexInSubBox(atom_list->lattice, atom.x, p_domain);
         MD_LOAD_ATOM_VAR(atom_near, atom_list, near_atom_index);
         if (MD_GET_ATOM_TYPE(atom_near, near_atom_index) == atom_type::INVALID) {
             MD_SET_ATOM_ID(atom_near, near_atom_index, atom.id);

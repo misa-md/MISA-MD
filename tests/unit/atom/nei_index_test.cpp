@@ -128,8 +128,8 @@ TEST(atom_cutoff_radius_included_test, lattice_included_test) {
 
                 _type_atom_index coords1[DIMENSION];
                 _type_atom_index coords2[DIMENSION];
-                ws::getNearLatSubBoxCoord(src_atom1, p_domain, coords1);
-                ws::getNearLatSubBoxCoord(src_atom2, p_domain, coords2);
+                ws::getNearLatSubBoxCoord(src_atom1.x, p_domain, coords1);
+                ws::getNearLatSubBoxCoord(src_atom2.x, p_domain, coords2);
 
                 //to save offset of 2 atoms
                 const CutoffAtom atom_meta1{
