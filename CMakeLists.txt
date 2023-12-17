@@ -9,6 +9,7 @@ include(dependency.cmake)
 
 add_subdirectory(src)
 add_subdirectory(frontend)
+add_subdirectory(plugins)
 
 ##############################
 ## test configure

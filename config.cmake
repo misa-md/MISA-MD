@@ -47,6 +47,7 @@ endif ()
 set(EXECUTE_BIN_NAME misamd)
 set(MD_LIB_NAME md) # use PARENT_SCOPE to modify global variable.
 set(MD_FRONTEND_LIB_NAME frontend)
+set(MD_PLUGINS_LIB_NAME md_plugins)
 
 set(CONFIGURE_GENERATED_PATH ${CMAKE_BINARY_DIR}/generated)
 # test

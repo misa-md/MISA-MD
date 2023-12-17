@@ -46,6 +46,7 @@ target_link_libraries(
         PUBLIC
         yaml-cpp
         ${MD_LIB_NAME}
+        ${MD_PLUGINS_LIB_NAME}
 )
 
 add_executable(${EXECUTE_BIN_NAME} main.cpp)
